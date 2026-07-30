@@ -64,10 +64,11 @@ The upstream R package is a second-class citizen:
 | :--- | :--- | :--- |
 | Package name | `catboostr` | No CRAN name collision if upstream ever submits; matches the existing `libcatboostr` shared object. |
 | Fork shape | Standalone repo, pinned core | Upstream enters as a submodule at a release tag. Avoids inheriting a multi-GB monorepo and permanent merge conflicts. |
+| Build model | R's own `Makevars` compiles the fork's glue; CMake builds the pinned core as static libraries | Upstream's `catboostr` CMake target hardcodes its source list inside the read-only submodule, so the fork's own C++ has no path into it. This model needs no submodule edits, compiles against the installing user's real R headers, and uses R's configured compiler flags — which CRAN requires. See §4.1. |
 | API compatibility | Strict superset | Every upstream `catboost.*` name and signature preserved. Nothing that works today breaks. |
 | Scope boundary | CLI/Python parity only | Per explicit user instruction. No new API surface that lacks a CLI or Python counterpart. |
-| Sequencing | r-universe first, CRAN as phase 2 | A usable install in weeks instead of quarters; CRAN submission happens once, against a frozen API. |
-| Glue layer | Existing raw `.Call` untouched; new entry points in cpp11 | **CONFIRMED by the Phase 0 probe (catboost-8z4.2), independently reproduced in review.** Viable in upstream's exact hard configuration (shared-object name ≠ package name, `R_useDynamicSymbols(dll, FALSE)`). See §4.7 for the required mechanism and its maintenance cost. |
+| Sequencing | Release at R1, immediately after the CPU capability phases | Ship to r-universe and submit to CRAN once Phases 1-5 are green, then continue parity as minor releases against a live package. An earlier draft put CRAN at phase 10, behind unscoped work and a hardware-blocked GPU phase; that put the only stated success criterion last. See §5. |
+| Glue layer | **PROVISIONAL — decided by the Phase 1b spike.** Existing raw `.Call` untouched either way. | The registration *mechanism* is proven (Phase 0 probe, independently reproduced). The *choice* of cpp11 is not: the probe compiled under `R CMD INSTALL` against the installed R's headers, and cpp11 cannot compile against upstream's vendored `contrib/libs/r-lang`, which lacks `Rversion.h` and `R_ext/Visibility.h`. Under §4.1's Makevars model cpp11 does work — but raw `.Call` throughout costs zero new mechanism and upstream already has exception safety via `R_API_BEGIN`/`R_API_END`. See §4.7 and §6. |
 | GPU | Separate non-CRAN binary channel, identical R API | CRAN and r-universe runners have no CUDA. Parity and CRAN cannot coexist in one artifact. |
 
 ## 4. Architecture
@@ -154,35 +155,94 @@ read-only and built from a disposable copy, never in place.
 **Target design.** `configure` is rewritten, not patched. The binary-download mechanism is
 deleted outright.
 
-- **`vendored`** (default; release, r-universe, CRAN): builds the pinned core in-tree with
-  no network access at any point during installation. Requires decoupling the CMake tree
-  from Conan's dependency provider by vendoring the third-party dependencies Conan
-  currently fetches. Phase 0 establishes the size and tractability of that decoupling;
-  Phase 1 performs it.
-- **`prebuilt`** (development): `--with-catboost=/path` or `CATBOOST_LIB_DIR` links an
-  already-built library.
+#### Who compiles what (decided; resolves the gap the design review found)
 
-Both modes compile the same `src/`, run the same R code, and pass the same tests. The
-`prebuilt` mode exists because a full rebuild makes iteration impossible during feature
-work — a development necessity, not user-facing flexibility.
+Phase 0 built upstream's **unmodified** `catboostr` CMake target and installed the result by
+`CATBOOST_DYNLIB` copy-in. That never exercised the fork's own glue-compilation model, and
+the model the spec implied does not work: the `catboostr` target hardcodes its source list to
+exactly `catboostr.cpp` and `init.c`
+(`vendor/catboost/catboost/R-package/src/CMakeLists.linux-x86_64.txt:57-61`), duplicated
+across 8 machine-generated platform files, all inside the submodule §8 declares read-only.
+Adding `src/cpp11.cpp` or editing `init.c` there is impossible without violating that rule.
 
-**Resolved (Phase 0 complete): the Conan decoupling did not prove intractable.** Both the
-network-ON and offline builds above completed with 4265/4265 targets and zero errors; only
-two link dependencies (openssl, zlib) need vendoring. The system-library fallback from §6 is
-therefore not needed and is retained only as a documented alternative, not an active
-contingency.
+**Decision: R's own build compiles the fork's glue.**
+
+- `src/Makevars[.win]` in the **fork** compiles the fork's `src/*.cpp` and `init.c` and links
+  against static libraries produced by a CMake build of the pinned core. The `catboostr`
+  CMake target is not used to build the fork's shared object.
+- Consequences, all of which resolve review blockers: no submodule file is ever edited; the
+  glue compiles against the **installing user's** R headers rather than the stale vendored
+  `contrib/libs/r-lang` set (which lacks `Rversion.h` and `R_ext/Visibility.h`, so cpp11
+  could not have compiled there at all); and R's configured `CC`, `CXX`, `CFLAGS`,
+  `CXXFLAGS` are used by construction, which CRAN requires of any package that shells out to
+  another build system.
+- `configure` must forward R's compiler configuration (`R CMD config CC`, `CXX`, `CFLAGS`,
+  `CXXFLAGS`, `CPPFLAGS`, `LDFLAGS`) into the CMake invocation for the core, declare
+  `SystemRequirements: CMake (>= 3.15), C++20`, and select a generator explicitly rather than
+  inheriting upstream's hardcoded `-G Ninja` — Ninja may not exist on a user's machine, so
+  Makefiles are the portable default with Ninja used when present.
+
+#### Modes
+
+- **`vendored`** (default; release, r-universe, CRAN): builds the pinned core with no
+  network access at any point during installation.
+- **`prebuilt`** (development): reuses an already-built library via the **existing upstream
+  spelling `CATBOOST_DYNLIB`** (`configure:1756-1796`) — no new environment variable and no
+  new flag is invented for a mechanism upstream already has. It must print the resolved path
+  and its SHA256 during configure, and release builds must assert vendored mode, so a stale
+  or unintended library cannot be substituted silently.
+
+Both modes run the same R code and pass the same tests. `prebuilt` exists because a full
+rebuild makes iteration impossible during feature work — a development necessity, not
+user-facing flexibility.
+
+#### Conan is not an install-time dependency
+
+The spec previously contradicted itself: §4.1 eliminated Conan while §7 proposed vendoring
+its cache. Resolved: **Conan must not appear anywhere in the end-user install path.** Conan
+is a Python application; keeping it would make Python and pip install-time dependencies,
+which is fatal for CRAN. The vendored build therefore carries the two link dependencies
+(openssl, zlib) as pinned, checksum-verified vendored sources found via plain
+`find_package`/direct compilation, with no Conan mediation. Conan remains a *maintainer-side*
+tool for reproducing upstream's own build during development only, and while it is used there
+it must be driven from a committed `conan.lock`.
+
+**Tractability is established for building, NOT for CRAN shipping.** Both builds completed
+4265/4265 with zero errors and only two link dependencies need vendoring. But "builds" and
+"is CRAN-shippable" are different claims and the spec previously conflated them — see the
+size risk in §7 and the reinstated contingency in §6.
 
 ### 4.2 R API — one layer
 
-Upstream `catboost.*` names and signatures preserved exactly; new capabilities added as
-new `catboost.*` functions mirroring their Python/CLI counterparts. Upstream's existing S3
-methods (`predict.catboost.Model`, `print`/`summary.catboost.Model`, the `catboost.Pool`
-methods) are retained as-is because they already exist — retaining them is compatibility,
-not new surface.
+Upstream `catboost.*` names and signatures preserved exactly. Upstream's existing S3 methods
+(`predict.catboost.Model`, `print`/`summary.catboost.Model`, the `catboost.Pool` methods) are
+retained as-is because they already exist — retaining them is compatibility, not new surface.
 
-No `hardhat` blueprint layer, no recipes/parsnip/mlr3/DALEX/vetiver adapters, no
-alternative idiomatic API. These have no CLI or Python counterpart and are out of scope
-per §8.
+**A capability does not automatically become a function.** The naive rule "mirror each
+Python/CLI capability as a new `catboost.*` function" produces a broken API, because much of
+the parity surface is not method-shaped. The mapping rule is:
+
+| Upstream shape | Becomes in R |
+| :--- | :--- |
+| Python method / CLI mode | A `catboost.*` function, `verb_object` snake_case, matching upstream's dominant style (`get_feature_importance`, `drop_unused_features`). Never a dotted name — `catboost.compare(model, other, ...)`, **not** `model.compare`, because dots collide with R's S3 dispatch already used by `predict.catboost.Model`. |
+| **Enum member** (e.g. `EFstrType.ShapInteractionValues`, `EFstrType.PredictionDiff`) | An accepted **value of an existing argument** — `catboost.get_feature_importance(..., type = "ShapInteractionValues")`. Not a new export. `python_surface.json` records these as `catboost.EFstrType.*`; §2 lists them by bare name for readability, which must not be read as a mandate for top-level functions. |
+| **Training hyperparameter** (139 distinct) | A documented key of the existing `params` list — see below. Not an export. |
+| **CLI flag** (224 distinct alias-sets) | Either an argument of the R function wrapping that mode, or a `params` key. Universal flags (`--help`, `--svnrevision`, `--thread-count`) are not capabilities and are flagged `universal: true` in the inventory. |
+
+**The `params` list is the weak point, and Phase 5 owns it.** Upstream routes every
+hyperparameter through an untyped `params = list()` (`R/catboost.R:1550`) with no validation
+of unknown keys before JSON serialisation (`:1622`). A mistyped key is silently accepted. The
+Phase 5 gate "full parameter surface documented and validated" is only meaningful with a
+named mechanism, so it is fixed here:
+
+- **Documented** = a generated `@param`-level reference for all 139 distinct hyperparameters,
+  derived from the machine inventory (§4.5), not hand-written.
+- **Validated** = `catboost.train`/`catboost.cv` check supplied `params` names against that
+  generated list and error on unknown keys, with a documented escape hatch for
+  forward-compatibility with a newer core.
+
+No `hardhat` blueprint layer, no recipes/parsnip/mlr3/DALEX/vetiver adapters, no alternative
+idiomatic API. These have no CLI or Python counterpart and are out of scope per §8.
 
 ### 4.3 Differential test harness (the oracle)
 
@@ -207,6 +267,23 @@ capability, so each capability declares its method:
 | Text/console output | Snapshot tests whose snapshot files are **generated from the oracle's output**, never from R's. A snapshot authored from R output only proves R is self-consistent, which is not the claim being made. Snapshots are regenerated from the oracle whenever the pinned upstream version moves. |
 | Error paths | Assert on error class and message, including GPU-requested-but-unavailable (§4.4). |
 
+**Tolerance policy — a rule, not a per-test choice.** "Within a declared tolerance" is a hole
+unless the declaration is governed: a red differential test can always be made green by
+widening its own tolerance, which converts differential testing into tolerance-fitting.
+Therefore:
+
+- **Defaults, derived from first principles, not from observed failures.** Python path:
+  relative `1e-12`, because Phase 0 established bit-exact reproducibility there. CLI path:
+  relative `1e-9`, derived from the measured ~10 significant digits of `calc`'s text output
+  (below). These are the defaults; a test that passes at default declares nothing.
+- **Any override must be recorded with a first-principles justification** — an appeal to
+  floating-point accumulation order, a documented precision limit of the output format, a
+  known algorithmic non-determinism. "The test failed at 1e-12 and passes at 1e-6" is not a
+  justification; it is the failure mode this rule exists to prevent.
+- **Tolerances are fixed before the R implementation exists.** Widening one after
+  implementation is a design change requiring the same recorded justification and review, not
+  a test tweak.
+
 **Precision ceiling on CLI comparisons (measured in Phase 0, catboost-8z4.4).** The CLI's
 `calc` mode has no `--precision` flag and emits roughly 10 significant digits, not a
 full float64 repr round-trip. Python fixtures are full precision; CLI fixtures cannot be.
@@ -215,6 +292,25 @@ capability must declare a tolerance at or above the CLI's own output precision, 
 may assert bit-exactness against CLI text output. If a CLI-only capability ever needs
 tighter comparison, the extraction path must change (via the binary model or another mode) —
 that is a design change, not a tolerance tweak.
+
+**The parity matrix is the join table, and it is a real artifact.** Phase 0 produced three
+tools that currently coexist rather than compose: the inventory writes
+`tests/fixtures/parity/`, the Python oracle writes `tests/fixtures/oracle/`, the CLI oracle
+writes `tests/fixtures/oracle-cli/`, and nothing connects a capability to the oracle that
+verifies it. Phase 2's first deliverable is the matrix that joins them, one row per inventory
+entry:
+
+`inventory_row_id → oracle (python | cli | none) → verification method (§4.3 table) → tolerance → test id → state (green | red | out-of-scope + reason)`
+
+This is the artifact §4.3 refers to when it says "declared per capability", it is what makes
+the three Phase 0 tools one substrate, and it is the input to every phase after it. A
+capability with no row cannot be claimed; a row with no test cannot be green.
+
+**RED-GREEN, concretely.** For a new capability — `select_features` is representative:
+1. Generate the oracle fixture (Python or CLI per the matrix row) and commit it.
+2. Write the R differential test against that fixture. It fails: the R function does not exist.
+3. Implement the R function and any needed glue.
+4. Test passes at the default tolerance. Matrix row flips to green with its test id recorded.
 
 **Two oracles, not one.** Python is the reference for capabilities Python exposes. For
 CLI-only capabilities — distributed training via `run-worker` being the flagship case — the
@@ -241,7 +337,19 @@ Regardless of how verification is resourced:
 - On a CPU-only build, `task_type="GPU"` must fail with a specific, tested error naming the
   GPU-enabled channel — not a crash and not a silent fallback to CPU. A silent CPU fallback
   would make GPU parity results meaningless.
-- The GPU-enabled artifact is built from the same tree and ships via GitHub Releases.
+- The GPU-enabled artifact is built from the same tree and ships via GitHub Releases,
+  **with integrity requirements, because this is native code distributed outside a curated
+  registry**: a `SHA256SUMS` file published alongside every asset, a documented user-side
+  verification command, and any install helper must verify before loading, never
+  install-then-hope. A tampered Release asset is a shared object loaded into the user's R
+  session with full process privileges. The project already implements exactly this pattern
+  on the consumer side (`tools/oracle/cli/acquire.sh`); it must apply it to its own
+  publishing channel.
+- Other failure modes get the same rigour as the GPU one, since §2 documents a real
+  version-skew symptom in the wild (the "virtual ensembles missing" report, root-caused to a
+  stale binary): native library load failure, R-package/`libcatboostr` version skew, and
+  unsupported loss function each need a specific, tested error rather than a crash or a
+  silent wrong answer.
 
 ### 4.5 The capability inventory is machine-generated, never hand-curated
 
@@ -279,14 +387,51 @@ generated inventory. Full numbers and methodology: `tools/parity/README.md`.
 The inventory is regenerated whenever the pinned upstream version moves, so a newly added
 upstream capability appears as a new red row rather than going unnoticed.
 
+**725 rows are not 725 work items, and Phase 2 must not become 725 tickets.** Roughly 363 of
+the 725 are parameter and flag surface (139 distinct hyperparameters + 224 distinct CLI flag
+alias-sets) that cannot match an R export by construction, because R routes hyperparameters
+through an untyped `params` list — `tools/parity/compute_diff.py:17-24` documents this
+honestly and the spec now states it too. The bulk-disposition rule for Phase 2:
+
+- **Parameter/flag rows** are dispositioned as a family, not individually: one differential
+  test per parameter family that reaches the core through `params`, plus the generated
+  documentation and validation described in §4.2. They do not become per-name tickets.
+- **Enum-member rows** attach to the function whose argument they are (§4.2), not to
+  tickets of their own.
+- **Universal flags** (`--help`, `--svnrevision`, and similar) are marked non-capabilities.
+- **Method- and mode-shaped rows** are the genuine feature work, and only these become
+  per-capability tickets.
+
+Phase 2 produces the dispositioned matrix; **the classification gets explicit user sign-off
+before any Phase 3+ epic is written**, because that classification is what determines whether
+the remaining work is weeks or quarters.
+
 ### 4.6 Regression protection for the strict-superset promise
 
 The claim "nothing that works today breaks" is verified, not asserted: upstream's own
-`R-package` test suite is vendored into the fork and must pass unmodified at every phase
-gate. A change that requires editing an upstream test halts and reports rather than
-silently rewriting the test.
+`R-package` test suite is vendored into the fork and must pass at every phase gate. A change
+that requires editing an upstream test halts and reports rather than silently rewriting the
+test.
+
+**One carve-out, because "unmodified" is literally unsatisfiable after the §3 rename.**
+Upstream's suite calls `library(catboost)` and `test_check("catboost")`
+(`tests/testthat.R:2`) and uses `catboost::` at
+`tests/testthat/test_caret_parameter_tuning.R:49` and
+`tests/testthat/test_on_trimmed_adult_dataset.R:6`. A **scripted, mechanical package-name
+rewrite** is therefore permitted and is the only permitted edit. Every other change halts and
+reports. The rewrite is a script, not hand-editing, so drift is visible.
 
 ### 4.7 Native routine registration — the required mechanism
+
+**Status: the registration MECHANISM is proven; the CHOICE of cpp11 is provisional.** Design
+review established that the Phase 0 probe compiled under `R CMD INSTALL` against the
+*installed* R's headers with `LinkingTo: cpp11`, not inside upstream's CMake target — whose
+only R includes are the vendored `contrib/libs/r-lang`, which has no `Rversion.h` (required by
+`cpp11/R.hpp:21`) and no `R_ext/Visibility.h`. Under the build model decided in §4.1 (R's own
+Makevars compiles the glue) cpp11 does compile, because the installing user's real R headers
+are used. But whether to adopt cpp11 at all is **deferred to a Phase 1 spike** — see §6 for
+the zero-new-mechanism alternative, which is now a live option rather than a fallback. The
+mechanism below applies to whichever is chosen wherever two registration sources exist.
 
 Established empirically in Phase 0 (catboost-8z4.2) and independently reproduced in review.
 This is a correctness constraint, not a style preference:
@@ -303,8 +448,8 @@ The working mechanism:
 2. One `R_registerRoutines` call, from the hand-written `init.c`.
 3. cpp11's individual `extern "C"` wrapper symbols are forward-declared in `init.c`.
 4. cpp11's generated init function is never invoked. It is dead code here anyway, because
-   its symbol name binds to the package name (`catboost`) while the shared object is named
-   `libcatboostr`.
+   its symbol name binds to the package name (`catboostr`) while the shared object is named
+   `libcatboostr` — the two differ, so `dyn.load` never auto-invokes it.
 5. `R_useDynamicSymbols(dll, FALSE)` is retained, as upstream sets it. Both entry kinds
    remain reachable under it. `R CMD check` produced no registration NOTEs (relevant to
    upstream #778).
@@ -312,57 +457,115 @@ The working mechanism:
 **Maintenance cost, stated explicitly because it is a trap.** `cpp11::cpp_register()` does
 **not** update the combined table. Adding a cpp11 function requires two manual edits to
 `init.c` — a forward declaration and a table row. A maintainer who runs `cpp_register()` and
-assumes the function is wired will get a symbol that exists but is unreachable. Phase 1
-should generate this table rather than hand-maintain it, and until it does, the requirement
-belongs in the contributor documentation.
+assumes the function is wired will get a symbol that exists but is unreachable.
+
+**The mitigation is an enforced check, not documentation.** Prose cannot stop a failure the
+spec itself calls a trap. The required guard is three lines of testthat, added the moment a
+second registration source exists: assert that every symbol named in an `R/*.R` `.Call()`
+invocation appears in `getDLLRegisteredRoutines("libcatboostr")$.Call`. That fails loudly on
+exactly the silent-drop mode the probe found, needs no code generation, and no table
+generator is justified until the entry-point count actually makes hand-maintenance
+burdensome.
+
+### 4.8 Supply-chain requirements
+
+This package compiles code from thirteen third-party sources on the end user's machine and
+will be distributed through a public registry. The Python side of the project already carries
+192 sha256 pins in `tools/oracle/uv.lock`; the C++ side — the code that actually ships inside
+`libcatboostr.so` — currently carries none. That asymmetry is the largest security hole in the
+design, and closing it is a Phase 1 requirement, not a later hardening pass.
+
+Requirements, all modelled on patterns the repo already implements correctly
+(`tools/vendor/acquire.sh`, `tools/oracle/cli/acquire.sh`):
+
+1. **Every vendored third-party source is pinned and verified**: exact upstream URL, exact
+   version, `SHA256`, and a fail-closed check. No exceptions, because these end up compiled
+   into the shipped binary.
+2. **A committed `conan.lock`** capturing recipe revisions and package ids, used with
+   `--lockfile` for as long as Conan is used anywhere in the project. `swig`, `ragel`,
+   `bison`, `flex` and `m4` execute during the build and emit source that gets compiled —
+   a tampered recipe is code execution on the build host.
+3. **`SHA256SUMS` published for every GPU Release asset**, with a documented verification
+   command and verify-before-load in any install helper (§4.4).
+4. **`.Rbuildignore`** excluding `docs/`, `tools/`, `.beads/`, `.claude/`, `.codex/`,
+   `AGENTS.md`, `CLAUDE.md` before the first tarball is built, so development tooling and
+   evidence logs never reach a distributed artifact.
+5. **`uv run --frozen`** (or `--locked`) everywhere the oracle is invoked. Plain `uv run`
+   silently re-resolves and rewrites `uv.lock` if `pyproject.toml` drifts, quietly defeating
+   the strongest supply-chain control currently in the repo.
+6. **A `SOURCES.md` inventory** listing every external artifact the project ingests —
+   upstream tag and SHA, CLI asset and SHA256, Python lock, Conan lock, each vendored
+   dependency and its SHA256. This is a lightweight SBOM and is the first thing a CRAN
+   reviewer or a downstream security team will ask for.
+
+**Trust boundary, stated so it is a decision rather than an omission.** A user of the source
+package trusts that they compiled from a SHA-pinned source tree; the build is not
+bit-reproducible and no published hash lets them compare their `libcatboostr.so` against
+anyone else's. That is the normal position for a source-installed CRAN package and is
+accepted. It is *not* acceptable for the GPU binary channel, which is why requirement 3
+exists.
 
 ## 5. Phases
 
-Each phase becomes an epic. Phase 0 is a hard gate.
+Phase 0 is complete. **Phases 3-8 are PROVISIONAL**: their contents are determined by the
+Phase 2 classification of the 725-row matrix (§4.5), which has not happened yet. The rows
+below name the capabilities currently believed to belong in each phase; they are not a
+committed work breakdown, and no Phase 3+ epic is written before the classification exists
+and is signed off. Treating this table as a costed multi-quarter plan would be fiction.
 
 | # | Phase | Gate condition |
 | :--- | :--- | :--- |
-| 0 | **Build spike.** Size the network-free source build and enumerate Conan's dependencies. Prove cpp11 and raw `.Call` registration can coexist in one `R_init_`. Stand up **both** oracles (Python and CLI). Generate the capability inventory (§4.5). | If vendoring proves intractable, the approach is revisited with numbers before anything is built on it. |
-| 1 | Repo skeleton, dual-mode `configure`, upstream test suite vendored and green, CI green under r-universe constraints. | Installs from a clean checkout with no network. |
-| 2 | Differential harness + fixtures + the parity matrix, seeded from the **machine-generated** capability inventory (§4.5), not from §2's hand-written list. Every row becomes a passing test, a failing test, or a recorded out-of-scope decision. | Generated inventory exists; every row has a state; root cause established for multi-target and any other reported breakage. |
-| 3 | Data/Pool parity: multi-target labels, embeddings, sparse/CSR, timestamps, quantized pools, text tokenizers. Includes the CLI's `dataset-statistics` mode (pool-level statistics, no Python/R counterpart yet). | Differential tests green. |
-| 4 | Analysis parity: `ShapInteractionValues`, `PredictionDiff`, `calc_feature_statistics`, object-importance MultiClass fix (#869), `plot_tree`, `model.compare`. Includes the CLI's `eval-feature` (feature-elimination evaluation), `roc` (ROC curve computation), and `model-based-eval` (approximation-based feature evaluation) modes — all analysis operations, all measured in the Phase 0 CLI inventory but absent from Python/R. | Differential tests green, structural method per §4.3. |
-| 5 | Training-control parity: `init_model`, grid/randomized search, `select_features`, virtual ensembles verified end-to-end, full parameter surface documented and validated. Includes the CLI's `metadata` submodes (get/set/dump/dump-feature-names — model metadata as a first-class object) and `normalize-model` (post-training scale/bias adjustment, the CLI counterpart of `Pool`/`CatBoost.set_scale_and_bias`). | Differential tests green. |
-| 6 | Custom R loss/metric callback bridge. | Highest risk; isolated deliberately. See Risks. |
-| 7 | GPU parity: build variant, tests on CUDA hardware, tested failure mode on CPU-only builds. | Differential tests green **on a real GPU runner**; skips do not count. |
-| 8 | Distributed training parity (CLI `run-worker` equivalent reachable from R). | Differential test against the CLI. |
-| 9 | Distribution: r-universe live, GPU release channel, documentation and vignettes covering the full parity surface. | Installable from r-universe. |
-| 10 | CRAN hardening and submission. | Accepted. |
+| 0 | **COMPLETE.** Build spike, both oracles, capability inventory, cpp11 registration probe. | Passed. Evidence in `docs/phase-0/`. |
+| 1 | **Build engineering.** Rewrite `configure` on the R-Makevars model (§4.1); vendor openssl and zlib with pinned, checksum-verified sources; remove Conan from the install path; gate the `hnsw` component; forward R's compiler configuration; commit `.Rbuildignore` and `conan.lock`. | A mechanical no-network install test passes **in a fresh container** with no pre-populated Conan cache and no pre-existing build venv, asserting zero network attempts across `R CMD INSTALL`. **Plus the size gate below.** |
+| 1a | **Size gate (CRAN-decisive).** Measure the pruned vendored source tarball. | Measured number recorded. **Abort threshold: if the pruned tarball exceeds 30 MB, the vendored route is reconsidered against §6's thin-package model before Phase 2 begins.** Unpruned upstream C/C++ source is ~163 MB (contrib alone 141.4 MB) against CRAN's 5 MB guidance, so this is the single most likely cause of the CRAN goal failing. |
+| 1b | **Glue-layer spike.** Build one trivial fork glue function both ways — cpp11 and raw `.Call` — under the Makevars model. | A decision recorded in §4.7 and §6, with the measured cost of each. Until then cpp11 is provisional. |
+| 2 | **Classification.** Differential harness + fixtures + the parity matrix as a real join table (§4.3), seeded from the machine-generated inventory. Every one of the 725 rows dispositioned per §4.5's bulk rule. | Matrix exists with every row in a state; **user signs off the classification**; root cause established for multi-target and any other reported breakage. This gate is what converts Phases 3-8 from provisional to planned. |
+| 3 | *(Provisional)* Data/Pool parity: multi-target labels, embeddings, sparse/CSR, timestamps, quantized pools, text tokenizers. Includes the CLI's `dataset-statistics` mode. | Differential tests green at default tolerance. |
+| 4 | *(Provisional)* Analysis parity: `calc_feature_statistics`, object-importance MultiClass fix (#869), `plot_tree`, `catboost.compare`, and the `ShapInteractionValues`/`PredictionDiff` **argument values** (§4.2 — not new functions). Includes the CLI's `eval-feature`, `roc`, `model-based-eval` modes. | Differential tests green; structural method per §4.3. |
+| 5 | *(Provisional)* Training-control parity: `init_model`, grid/randomized search, `select_features`, virtual ensembles verified end-to-end, the generated parameter documentation and validation (§4.2). Includes the CLI's `metadata` and `normalize-model` modes. | Differential tests green. |
+| **R1** | **FIRST PUBLIC RELEASE — r-universe + CRAN submission.** CPU-only. Ships the strict-superset upstream surface plus everything green through Phase 5. Documentation and vignettes cover the parity matrix **as it stands**, with red rows listed honestly as not-yet-available. | Installable from r-universe; CRAN submitted. **This is where the user's stated goal is delivered**, not Phase 10. |
+| 6 | *(Provisional)* Custom R loss/metric callback bridge. Highest risk; isolated deliberately. | Differential tests green, or a recorded infeasibility finding. |
+| 7 | *(Provisional)* GPU parity. **Blocked on the §9.1 hardware decision.** | Differential tests green **on real CUDA hardware**; skips never count. Does not gate R1. |
+| 8 | *(Provisional)* Distributed training parity (CLI `run-worker`). | Differential test against the CLI. |
+| 9+ | Each subsequent parity phase ships as a **minor release against the live CRAN package**, not as a gate in front of it. | Per-phase differential tests green. |
 
-Phases 0-2 are foundational and gate everything after them. Phases 9-10 are where the CRAN
-goal lands; that is quarters of work, not weeks.
+**Sequencing rationale.** An earlier draft placed r-universe at Phase 9 and CRAN at Phase 10,
+behind every parity phase — including Phase 7, which is blocked on hardware nobody has. That
+contradicted §3's own "usable install in weeks, not quarters" and put the user's only stated
+success criterion last, gated on the least certain work. R1 moves the release to just after
+the CPU capability phases: the packaging risk that actually threatens CRAN is resolved in
+Phase 1, so there is no reason to sit on it for quarters. Parity then continues against a
+shipped package, where unscoped work is a backlog rather than a blocker.
 
 ## 6. Alternatives Considered
 
-| Alternative | Why not chosen |
+| Alternative | Status |
 | :--- | :--- |
-| **Parity + idiomatic R layer + ecosystem integration** (hardhat blueprints, parsnip engine, mlr3 learner, DALEX, vetiver) | Rejected on explicit user instruction: "First class support in R means that all functions / capabilities available for the cli and python version are also available in R. Beyond that is scope creep." Roughly doubles API surface and test burden for capabilities with no CLI/Python counterpart. |
-| **CRAN-first** (solve vendoring and size before any feature work) | Nothing installable for a long time; feature work blocked behind packaging archaeology. Retained as the phase-10 destination. |
-| **Thin package + system `libcatboost`** (the `sf`/GDAL model) | CRAN-legal with a tiny tarball and fast compile, but no distro ships `libcatboost`, so we would own conda-forge and homebrew feedstocks and every user hits an install wall. Trades one packaging problem for another. **Not needed as a fallback: Phase 0 demonstrated the vendored build is tractable (§4.1).** Retained here only as a documented alternative. |
+| **Thin package + system `libcatboost`** (the `sf`/GDAL model) | **ACTIVE CONTINGENCY — reinstated.** An earlier draft retired this on the grounds that Phase 0 proved the vendored build tractable. That was wrong: Phase 0 proved the core *builds*, not that a vendored tarball is *CRAN-shippable*. Unpruned upstream C/C++ source is ~163 MB (contrib alone 141.4 MB) against CRAN's 5 MB guidance, and no phase had scheduled the measurement that matters. Phase 1a now measures the pruned tarball against a 30 MB abort threshold; if it fails, this model becomes the route. Its cost is real — no distro ships `libcatboost`, so we would own conda-forge and homebrew feedstocks and users hit an install wall — but an unshippable tarball is worse. |
+| **Raw `.Call` throughout, no binding framework** | **LIVE OPTION, decided by the Phase 1b spike.** Upstream already has the exception safety cpp11 is usually bought for: `R_API_BEGIN`/`R_API_END` wrap every entry point in try/catch and route to `error()` (`vendor/catboost/catboost/R-package/src/catboostr.cpp:45-58`). Choosing cpp11 buys less PROTECT boilerplate but costs a new dependency, the combined-table trap (§4.7), and a documented maintainer footgun. This is what xgboost does. An earlier draft listed this only as a fallback; it is a peer option. |
+| **Parity + idiomatic R layer + ecosystem integration** (hardhat, parsnip, mlr3, DALEX, vetiver) | Rejected on explicit user instruction: "First class support in R means that all functions / capabilities available for the cli and python version are also available in R. Beyond that is scope creep." |
+| **CRAN-first** (solve vendoring and size before any feature work) | Partially adopted. Phase 1 and 1a now front-load exactly the packaging and size risk, without blocking feature work behind the whole CRAN process. |
 | **Full monorepo fork** | Inherits a multi-GB repo and permanent upstream merge conflicts for no gain — the R package needs the core's source, not its history. |
 | **Wrap the CatBoost CLI** | CRAN forbids bundling standalone executables at this size; no precedent for a full ML engine being CLI-shelled from R; loses in-memory pools. |
-| **`reticulate` over the Python package** | **The strongest rejected alternative — rejected by user decision, not on technical grounds.** An earlier version of this spec dismissed it as "does not solve CRAN availability". That was false: `keras3` and `tensorflow` are on CRAN, wrap Python via reticulate as their primary mechanism, and satisfy the no-network-during-install rule by deferring Python setup to a post-install user-invoked step. Honestly assessed, reticulate delivers every capability in §1 far sooner, tracks upstream releases automatically, avoids the Conan/vendoring engineering entirely, and makes custom R loss/metric *easier* (reticulate passes R functions as Python callables) rather than "may prove infeasible". Its one real cost is a Python runtime dependency. The user was shown this comparison explicitly and chose the native fork; that independence from Python is the deciding requirement. |
+| **`reticulate` over the Python package** | **The strongest rejected alternative — rejected by user decision, not on technical grounds.** An earlier version of this spec dismissed it as "does not solve CRAN availability". That was false: `keras3` and `tensorflow` are on CRAN, wrap Python via reticulate as their primary mechanism, and satisfy the no-network-during-install rule by deferring Python setup to a post-install user-invoked step. Honestly assessed, reticulate delivers every capability in §1 far sooner, tracks upstream releases automatically, avoids the vendoring engineering entirely, and makes custom R loss/metric *easier* rather than "may prove infeasible". Its one real cost is a Python runtime dependency. The user was shown this comparison explicitly and chose the native fork; that independence from Python is the deciding requirement. |
 | **Rcpp instead of cpp11** | Heavier compile and header cost across many new translation units. |
 | **extendr (Rust)** | Would add a third toolchain atop CMake, C++, and Python for no net gain against a C++ core. |
 
 ## 7. Risks
 
+Retired risks are removed rather than left as answered questions; a register where half the
+rows are settled stops being read.
+
 | Risk | Impact | Mitigation |
 | :--- | :--- | :--- |
-| Vendored build too large or slow for CRAN | Kills the stated end goal | Phase 0 measures it before anything depends on it. Fallback: the system-library model from §6. |
-| ~~No network-free build path exists upstream~~ | **RETIRED for the build step, with a scope caveat.** The build itself needs zero network access (run `run6_offline_final`, 174 s, 4265/4265) *given* a pre-populated Conan cache and a venv with `ninja`, `conan`, NumPy, and Cython already installed. This is not the same claim as a clean-machine, no-network-ever install — populating that cache/venv still needs network access once, upstream of the build. The three build-time conditions are known and cheap: disable the Conan remote, gate or satisfy `hnsw`, pass the PIC/component/CUDA flags. | Phase 1 makes those three reproducible in `configure`, vendors openssl and zlib (the only two link dependencies), and addresses the clean-machine no-network-ever case (vendoring the Conan cache contents, not just disabling the remote). |
-| ~~`ninja` and `conan` absent from the environment~~ | **RETIRED.** Both are pip wheels; a throwaway venv satisfies them without touching the system. | — |
-| Building in place corrupts the pinned snapshot | Silent drift in the read-only upstream reference | Conan 2.x writes `CMakeUserPresets.json` into the source tree unconditionally. Build only from a disposable copy; assert `git status --porcelain` is empty on the snapshot after any build. |
-| cpp11 and raw `.Call` registration conflict over `R_init_libcatboostr` | Forces a glue-layer decision late | Proven or disproven in Phase 0. Fallback: raw `.Call` throughout, as xgboost does. |
-| Custom R loss/metric callback infeasible | Phase 6 does not ship | Isolated as its own phase. R's single-threaded evaluator constrains any callback design; the constraint is documented rather than worked around silently. |
-| **No CUDA hardware exists anywhere in this project.** Development machine has an AMD GPU; CatBoost has no ROCm backend; CRAN and r-universe runners have no CUDA. | GPU parity unverifiable with current resources | GPU parity is claimed only from a real-hardware run. Phase 7 reports blocked rather than claiming green from skipped tests. Resourcing decision open — see §9. |
-| Python 1.2.10 has no wheels for an available Python | Blocks the oracle | Pin the Python version in the harness venv; fall back to building CatBoost Python from the same pinned source. |
-| Upstream bumps break the fork | Ongoing maintenance cost | Submodule moves are deliberate and gated on a full differential suite run plus the vendored upstream test suite. |
+| **Vendored source tarball too large for CRAN** | Kills the CRAN goal. This is the live form of the size risk and the most likely single cause of failure. Unpruned C/C++ source is ~163 MB against 5 MB guidance. | Phase 1a measures the pruned tarball against a 30 MB abort threshold before Phase 2 begins. §6's thin-package model is an active contingency, not a documented curiosity. |
+| **CRAN check-time limits on build machines** | Rejection. The 164 s / 174 s figures are this machine's, on 32 cores. CRAN and r-universe runners have far fewer. | Measure build time on a constrained runner during Phase 1; treat compile time as a CRAN acceptance criterion, not an afterthought. |
+| **No integrity pinning on the C++ dependency chain** | A tampered Conan recipe or vendored source is arbitrary code execution on the build host and a silent backdoor in what users install. `swig`, `ragel`, `bison`, `flex`, `m4` are code generators that execute during the build and emit compiled source. The Python side has 192 sha256 pins; the C++ side has none. | Commit a `conan.lock` for as long as Conan is used anywhere; give every vendored dependency the pin-and-verify contract already used by `tools/vendor/acquire.sh` and `tools/oracle/cli/acquire.sh`; record every external artifact in a `SOURCES.md` inventory. |
+| **Vendoring openssl creates a standing CVE liability** | A frozen openssl 3.0.15 in a CRAN package ages badly and CRAN reviewers have pushed back on exactly this. | Establish during Phase 1 whether openssl is genuinely required by the R-package component — only 2 of 13 packages link at all — and prefer configuring it out over vendoring it. Otherwise accept an explicit CVE-tracking obligation. |
+| **The §4.7 registration trap** | A maintainer adds a cpp11 function, runs `cpp_register()`, and gets a symbol that exists but is unreachable. Compiles, installs, loads, fails only at call time. | The enforced testthat check in §4.7, added the moment a second registration source exists. Not documentation. |
+| **Custom R loss/metric callback infeasible** | Phase 6 does not ship. | Isolated as its own phase. R's single-threaded evaluator constrains any callback design; whether a `thread_count=1`-only callback counts as parity is an open question that must be answered before Phase 6 is planned, not during it. |
+| **No CUDA hardware exists anywhere in this project** | GPU parity unverifiable. Dev machine is AMD; CatBoost has no ROCm backend; CRAN and r-universe runners have no CUDA. | GPU parity claimed only from a real-hardware run; skipped tests never count as green. Resourcing decision deferred to Phase 7 by user decision — see §9.1. Does not gate the R1 release. |
+| **Upstream bumps break the fork** | Ongoing maintenance cost. | Submodule moves are deliberate and gated on a full differential suite run plus the vendored upstream test suite, with the inventory regenerated so new upstream capabilities appear as new red rows. |
 
 ## 8. Out of Scope
 
@@ -379,7 +582,31 @@ Also out of scope:
   core changes is filed upstream and tracked, not patched locally.
 - Publishing under the name `catboost`.
 
+**Carve-out, so §3's strict-superset promise and this section do not collide:**
+`catboost.caret` is an existing upstream export with no CLI or Python counterpart, and
+upstream ships a test for it. It is **retained as pre-existing legacy** under the same
+compatibility logic §4.2 applies to the existing S3 methods. Retaining what already exists is
+not the same as adding an ecosystem adapter, which remains out of scope.
+
 ## 9. Open Decisions
+
+### 9.0 When this project stops
+
+Every phase has a pass condition; none had a stop condition, which against a 725-row surface
+and a multi-quarter horizon is how projects run indefinitely. Explicit abandonment and
+descope triggers:
+
+| Trigger | Response |
+| :--- | :--- |
+| Phase 1a pruned tarball exceeds 30 MB | Vendored route reconsidered against §6's thin-package contingency before Phase 2 begins. |
+| Two consecutive CRAN rejections on grounds that are structural rather than fixable (size, build time, bundled sources) | Stop pursuing CRAN. Ship r-universe only, and record that the stated goal was not reachable on this architecture. |
+| Phase 6 (custom R loss/metric) proves infeasible after one honest attempt | Record the infeasibility with evidence, mark those matrix rows permanently out-of-scope, continue. It does not block anything else. |
+| GPU hardware still unresourced when Phases 1-6 are done | Take the §9.1 decision then, on the terms below. GPU never blocks R1. |
+| Upstream ships its own feature-complete R package or accepts these changes | Stop. The fork's purpose is gone; contribute upstream instead. |
+
+The R1 release exists partly so that abandonment after it still leaves the user with a
+working, installed, useful package rather than nothing.
+
 
 ### 9.1 How GPU parity gets verified
 
@@ -395,7 +622,7 @@ green, so Phase 7 cannot be completed without resolving this. Options, none yet 
 3. **Declare GPU out of scope.** Contradicts the parity definition in §1, and would need to
    be an explicit user decision recorded here.
 
-**Decision (2026-07-30): deferred to Phase 7 by explicit user choice.** Phases 0-6 are
+**Decision (2026-07-30): deferred to Phase 7 by explicit user choice, with a time-box.** If the decision is still open when Phases 1-6 are complete, it defaults to option 2 (ship GPU implemented-but-unverified, every GPU matrix row labelled unverified in the documentation) rather than stalling the project — unless the user chooses otherwise at that point. Phases 0-6 are
 unaffected, so the decision is taken when it becomes actionable rather than now. Until then
 Phase 7 stays planned but unstarted, and no GPU claim is made anywhere.
 

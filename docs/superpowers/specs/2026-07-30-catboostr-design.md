@@ -33,9 +33,13 @@ The upstream R package is a second-class citizen:
   though the pool path does accept matrix labels — root cause unconfirmed and must be
   established by test, not by reading.
 - **Broken distribution.** Never on CRAN (#439), not on r-universe (#1846). The upstream
-  `configure` downloads a prebuilt `libcatboostr` from GitHub Releases (#724) — a flat
-  violation of CRAN Policy, which forbids network access during installation. Roughly nine
-  open issues are pure install/build breakage. Users end up on stale binaries lacking
+  `catboost/R-package/configure` downloads a prebuilt `libcatboostr` at install time —
+  verified directly from source at `configure:1793` (`catboost_download_dynlib`), not
+  inferred from an issue report. This is a flat violation of CRAN Policy, which forbids
+  network access during installation. (Issue #724 is sometimes cited for this; it should not
+  be. It is a closed 2019 report of a transient 404 against v0.13, not a tracking issue for
+  the design flaw. The source is the evidence.) Roughly nine open issues are pure
+  install/build breakage. Users end up on stale binaries lacking
   functions the current source exports. This is the confirmed root cause of the reported
   "virtual ensembles are not available": `catboost.virtual_ensembles_predict` is in
   upstream's NAMESPACE, so the user's installed build predated it.
@@ -47,7 +51,7 @@ The upstream R package is a second-class citizen:
 | 19 exported R functions; `from_matrix`/`from_data_frame`/`from_file` unexported | upstream `R-package/NAMESPACE`, `R/catboost.R:118,141,243` |
 | Multi-column labels do reach the core | `R/catboost.R:165` (`label <- as.matrix(label)`; line 164 is the `if` guard); `src/catboostr.cpp:147-161,254,302` |
 | Shipped `libcatboostr` is CPU-only | zero CUDA references in `R-package/CMakeLists.txt` / `configure` |
-| `configure` fetches a binary over the network | upstream issue #724 |
+| `configure` fetches a binary over the network | `catboost/R-package/configure:1793`, `catboost_download_dynlib` (source, not issue report) |
 | Install size ~141 MB | secondary source, confidence 55 — **must be measured in Phase 0** |
 
 ## 3. Decisions
@@ -68,12 +72,14 @@ The upstream R package is a second-class citizen:
 
 **What upstream actually does today** (verified at tag `v1.2.10`, not assumed):
 
-- `R-package/configure` has **zero** occurrences of `cmake`. It never invokes CMake, Make,
-  or a compiler. It obtains `libcatboostr` by exactly three routes: an environment variable
-  pointing at a prebuilt library, a pre-existing `src/libcatboostr.{so,dylib}` in the
-  checkout, or a network download (`configure:1756-1796`, `catboost_download_dynlib`).
-- The only from-source path reachable from `R-package/` is `src/Makefile` →
-  `Makefile.inner`, which shells out to `ya make`, Yandex's proprietary build tool.
+- `catboost/R-package/configure` has **zero** occurrences of `cmake`. It never invokes
+  CMake, Make, or a compiler. It obtains `libcatboostr` by exactly three routes: the
+  `CATBOOST_DYNLIB` environment variable, a pre-existing `src/libcatboostr.{so,dylib}` in
+  the checkout, or a network download (`catboost/R-package/configure:1756-1796`, download
+  call at :1793).
+- The only from-source path reachable from `catboost/R-package/` is `src/Makefile` →
+  `Makefile.inner` (13 lines), which shells out to `ya make`, Yandex's proprietary build
+  tool.
 - The R package is pulled into the native build by `add_subdirectory(R-package)` from the
   platform-specific top-level file (`catboost/CMakeLists.linux-x86_64.txt:19`), and that
   tree is driven by `build/build_native.py`. That script hardcodes `-G Ninja`

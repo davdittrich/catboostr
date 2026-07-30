@@ -1,0 +1,202 @@
+[
+  {
+    "SampleId": 0,
+    "RawFormulaVal": 0.7314313174,
+    "Probability": 0.6751192867
+  },
+  {
+    "SampleId": 1,
+    "RawFormulaVal": -1.245354374,
+    "Probability": 0.2235053549
+  },
+  {
+    "SampleId": 2,
+    "RawFormulaVal": -0.7033028171,
+    "Probability": 0.331080358
+  },
+  {
+    "SampleId": 3,
+    "RawFormulaVal": -0.6507940764,
+    "Probability": 0.3428106163
+  },
+  {
+    "SampleId": 4,
+    "RawFormulaVal": -0.3602781486,
+    "Probability": 0.4108922357
+  },
+  {
+    "SampleId": 5,
+    "RawFormulaVal": 0.9284901681,
+    "Probability": 0.716768873
+  },
+  {
+    "SampleId": 6,
+    "RawFormulaVal": -0.343754136,
+    "Probability": 0.4148978417
+  },
+  {
+    "SampleId": 7,
+    "RawFormulaVal": -0.09385915309,
+    "Probability": 0.4765524227
+  },
+  {
+    "SampleId": 8,
+    "RawFormulaVal": -0.6197067994,
+    "Probability": 0.3498481383
+  },
+  {
+    "SampleId": 9,
+    "RawFormulaVal": 0.7802401954,
+    "Probability": 0.6857318792
+  },
+  {
+    "SampleId": 10,
+    "RawFormulaVal": -0.3424366343,
+    "Probability": 0.4152177112
+  },
+  {
+    "SampleId": 11,
+    "RawFormulaVal": -1.150992622,
+    "Probability": 0.2403078233
+  },
+  {
+    "SampleId": 12,
+    "RawFormulaVal": -0.61202697,
+    "Probability": 0.3515969574
+  },
+  {
+    "SampleId": 13,
+    "RawFormulaVal": 0.1434789605,
+    "Probability": 0.5358083314
+  },
+  {
+    "SampleId": 14,
+    "RawFormulaVal": -1.11562178,
+    "Probability": 0.2468243012
+  },
+  {
+    "SampleId": 15,
+    "RawFormulaVal": 0.6177280543,
+    "Probability": 0.6497016538
+  },
+  {
+    "SampleId": 16,
+    "RawFormulaVal": -1.165064385,
+    "Probability": 0.2377482782
+  },
+  {
+    "SampleId": 17,
+    "RawFormulaVal": -0.7295066767,
+    "Probability": 0.3253029932
+  },
+  {
+    "SampleId": 18,
+    "RawFormulaVal": 0.9796739786,
+    "Probability": 0.7270435218
+  },
+  {
+    "SampleId": 19,
+    "RawFormulaVal": -1.184749312,
+    "Probability": 0.2341993321
+  },
+  {
+    "SampleId": 20,
+    "RawFormulaVal": -1.164674424,
+    "Probability": 0.2378189557
+  },
+  {
+    "SampleId": 21,
+    "RawFormulaVal": -0.7005667255,
+    "Probability": 0.3316865895
+  },
+  {
+    "SampleId": 22,
+    "RawFormulaVal": -0.6969197839,
+    "Probability": 0.3324955048
+  },
+  {
+    "SampleId": 23,
+    "RawFormulaVal": -0.7029821163,
+    "Probability": 0.3311513862
+  },
+  {
+    "SampleId": 24,
+    "RawFormulaVal": -1.184749312,
+    "Probability": 0.2341993321
+  },
+  {
+    "SampleId": 25,
+    "RawFormulaVal": -0.2734904674,
+    "Probability": 0.4320503919
+  },
+  {
+    "SampleId": 26,
+    "RawFormulaVal": -0.4969445844,
+    "Probability": 0.378258971
+  },
+  {
+    "SampleId": 27,
+    "RawFormulaVal": -1.245898899,
+    "Probability": 0.2234108663
+  },
+  {
+    "SampleId": 28,
+    "RawFormulaVal": 1.007375112,
+    "Probability": 0.7325061404
+  },
+  {
+    "SampleId": 29,
+    "RawFormulaVal": -0.3189021347,
+    "Probability": 0.4209433293
+  },
+  {
+    "SampleId": 30,
+    "RawFormulaVal": 0.8642319705,
+    "Probability": 0.7035440753
+  },
+  {
+    "SampleId": 31,
+    "RawFormulaVal": -1.150992622,
+    "Probability": 0.2403078233
+  },
+  {
+    "SampleId": 32,
+    "RawFormulaVal": 0.9071783575,
+    "Probability": 0.7124224206
+  },
+  {
+    "SampleId": 33,
+    "RawFormulaVal": -0.2841558462,
+    "Probability": 0.4294352109
+  },
+  {
+    "SampleId": 34,
+    "RawFormulaVal": 0.4141245995,
+    "Probability": 0.6020764668
+  },
+  {
+    "SampleId": 35,
+    "RawFormulaVal": 0.9635568024,
+    "Probability": 0.7238333708
+  },
+  {
+    "SampleId": 36,
+    "RawFormulaVal": -1.21673455,
+    "Probability": 0.2285116197
+  },
+  {
+    "SampleId": 37,
+    "RawFormulaVal": -1.245898899,
+    "Probability": 0.2234108663
+  },
+  {
+    "SampleId": 38,
+    "RawFormulaVal": -0.7166927487,
+    "Probability": 0.3281216775
+  },
+  {
+    "SampleId": 39,
+    "RawFormulaVal": 0.6128637629,
+    "Probability": 0.648593788
+  }
+]

@@ -1,0 +1,49 @@
+{
+  "release_tag": "v1.2.10",
+  "asset_name": "catboost-linux-x86_64-1.2.10",
+  "asset_url": "https://github.com/catboost/catboost/releases/download/v1.2.10/catboost-linux-x86_64-1.2.10",
+  "sha256": "478dc57f4c19de205b19b709fd4c6af93f79753dc462b6bb49d33c920dddec75",
+  "size_bytes": 287580072,
+  "version_verified": "1.2.10",
+  "version_verification_method": "catboost --version emits git commit info, not a semver string. Commit shown (b1bd2a6d77219e82a1acfcedfccb8e6f6c1ee084) and branch (tags/v1.2.10) match the pinned upstream SHA in the ticket brief.",
+  "acquisition_script": "tools/oracle/cli/acquire.sh",
+  "fit_command": "catboost fit --learn-set smoke_data.csv --column-description smoke.cd --delimiter , --has-header --loss-function Logloss -i 20 --depth 4 --learning-rate 0.1 --random-seed 42 -T 1 --model-file smoke_model.cbm --logging-level Silent",
+  "calc_command": "catboost calc --input-path smoke_data.csv --column-description smoke.cd --delimiter , --has-header -m smoke_model.cbm --output-path smoke_predictions.tsv --prediction-type RawFormulaVal,Probability",
+  "determinism": {
+    "checked": true,
+    "method": "fit+calc run twice from scratch in separate clean directories, thread-count pinned to 1 (-T 1) to eliminate cross-thread histogram-order nondeterminism",
+    "predictions_bit_identical": true,
+    "predictions_diff": "empty (byte-identical smoke_predictions.tsv across both runs)",
+    "model_file_bit_identical": false,
+    "model_file_note": "smoke_model.cbm SHA256 differed between the two runs despite identical predictions; CatBoost embeds a training timestamp/GUID in model metadata. Not investigated further (out of scope for this ticket); does not affect oracle validity since predictions are what the differential harness compares."
+  },
+  "cli_precision_note": "catboost calc's default TSV output prints doubles at ~10 significant digits, not a full float64 round-trip repr (17 sig digits). No --precision flag exists on calc (confirmed via `calc -?`). smoke_predictions.json preserves every digit the CLI emitted (float() parse + JSON dump, no truncation added), but the CLI itself is the precision ceiling — flag this if the harness ever needs bit-exact float64 comparison against the Python oracle.",
+  "supported_modes": [
+    "fit",
+    "calc",
+    "dataset-statistics",
+    "fstr",
+    "ostr",
+    "eval-metrics",
+    "eval-feature",
+    "metadata",
+    "model-sum",
+    "run-worker",
+    "roc",
+    "model-based-eval",
+    "normalize-model",
+    "select-features",
+    "dump-options"
+  ],
+  "run_worker": {
+    "present": true,
+    "help_text": "run a worker (for the distributed mode)",
+    "args": [
+      "--svnrevision           print svn version",
+      "{-?|--help}             print usage",
+      "{-T|--thread-count} VAL worker thread count (default: core count)",
+      "--node-port VAL         TCP port for this worker; default is 0"
+    ],
+    "note": "All run-worker flags are optional per --help (no required positional args). Distributed-mode wiring (master/worker handshake) not exercised in this ticket — out of scope (brief explicitly excludes distributed-training work)."
+  }
+}

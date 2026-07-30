@@ -1,0 +1,21 @@
+{
+  "loss_function": "Logloss",
+  "iterations": 20,
+  "depth": 4,
+  "learning_rate": 0.1,
+  "random_seed": 42,
+  "verbose": false,
+  "cli_args": {
+    "--learn-set": "smoke_data.csv",
+    "--column-description": "smoke.cd",
+    "--delimiter": ",",
+    "--has-header": true,
+    "--loss-function": "Logloss",
+    "-i": 20,
+    "--depth": 4,
+    "--learning-rate": 0.1,
+    "--random-seed": 42,
+    "-T": 1,
+    "--model-file": "smoke_model.cbm"
+  }
+}

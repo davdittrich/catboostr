@@ -1,10 +1,9 @@
 # catboostr — Design Spec
 
 **Date:** 2026-07-30
-**Status:** FROZEN pending the Phase 1 build spike (see §10). Design review round 2 returned
-NEEDS_REVISION from all five reviewers; the hardest remaining blockers are empirical, not
-editorial, and are recorded in §10 rather than answered by more prose.
-**Upstream pinned at:** catboost/catboost `v1.2.10` (released 2026-02-19)
+**Status:** Revised against the Phase 1 build spike (2026-07-31). The design-review blockers that
+were empirical are now answered by measurement; §10 records which, and what remains deferred.
+Build model, dependency surface and CRAN size are measured facts, not assumptions.
 
 ## 1. Goal
 
@@ -66,7 +65,7 @@ The upstream R package is a second-class citizen:
 | :--- | :--- | :--- |
 | Package name | `catboostr` | No CRAN name collision if upstream ever submits; matches the existing `libcatboostr` shared object. |
 | Fork shape | Standalone repo, pinned core | Upstream enters as a submodule at a release tag. Avoids inheriting a multi-GB monorepo and permanent merge conflicts. |
-| Build model | **The fork defines its OWN CMake target** (`add_shared_library`) linking the same upstream targets by name plus the fork's own sources, injected into the disposable copy via `add_subdirectory` or `-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES` (the hook upstream itself uses at `build_native.py:585`). | Corrects two earlier wrong models. Upstream's `catboostr` target hardcodes its source list in the read-only submodule, so the fork's C++ cannot join it — but the R-Makevars alternative would have required hand-reproducing whole-archive semantics for 28 `.global` archives (`cmake/common.cmake:149-166`) plus the mimalloc allocator and export script. Owning a CMake target edits no submodule file and lets CMake resolve whole-archive, allocator, export script and link order for free. **Verification is the first job of the §10 spike.** |
+| Build model | **The fork defines its OWN CMake target** (`add_shared_library`) linking the same upstream targets by name plus the fork's own sources, injected into the disposable copy by appending `add_subdirectory(fork-src)` to the root `CMakeLists.txt` **after** upstream's own `add_subdirectory(catboost)`. **Measured, not assumed:** `-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES` does NOT work for this — it runs too early, before upstream's targets exist, so `target_link_libraries` cannot resolve them by identity. | Corrects two earlier wrong models. Upstream's `catboostr` target hardcodes its source list in the read-only submodule, so the fork's C++ cannot join it — but the R-Makevars alternative would have required hand-reproducing whole-archive semantics for 28 `.global` archives (`cmake/common.cmake:149-166`) plus the mimalloc allocator and export script. Owning a CMake target edits no submodule file and lets CMake resolve whole-archive, allocator, export script and link order for free. **VERIFIED by the spike** (catboost-8z4.8): built, loaded via `dyn.load`, entry point called, and 23/23 `.global` archives confirmed wrapped in `-Wl,--whole-archive` in the actual link line. |
 | API compatibility | Strict superset | Every upstream `catboost.*` name and signature preserved. Nothing that works today breaks. |
 | Scope boundary | CLI/Python parity only | Per explicit user instruction. No new API surface that lacks a CLI or Python counterpart. |
 | Sequencing | Release at R1, immediately after the CPU capability phases | Ship to r-universe and submit to CRAN once Phases 1-5 are green, then continue parity as minor releases. See §5. |
@@ -214,6 +213,63 @@ it must be driven from a committed `conan.lock`.
 4265/4265 with zero errors and only two link dependencies need vendoring. But "builds" and
 "is CRAN-shippable" are different claims and the spec previously conflated them — see the
 size risk in §7 and the reinstated contingency in §6.
+
+### 4.1b Phase 1 spike results (2026-07-31) — measured
+
+Three spikes answered the empirical questions design review raised. Reports:
+`docs/phase-1/catboost-8z4.{6,7,8}-report.md`.
+
+**Build model — VIABLE.** A fork-owned CMake target linking upstream's targets by name builds,
+loads and runs. The whole-archive hazard is real and CMake handles it: the actual `ninja -v`
+link line wraps **23 of 23** `.global` archives in `-Wl,--whole-archive`. Two independent
+object-factory registrars were exercised — `TTrainerFactory` through a live training run and
+`TModelLoaderFactory` through a JSON export/reload that reproduced the original prediction
+exactly. Raw `.Call` with plain `extern "C"` symbols worked; no cpp11, no `init.c` needed for
+the spike. Injection is `add_subdirectory` appended **after** upstream's, not
+`CMAKE_PROJECT_TOP_LEVEL_INCLUDES`.
+
+**Dependency surface — 4 invoked, not 13 and not 2.**
+
+| Package | Status |
+| :--- | :--- |
+| openssl, zlib, ragel, yasm | **INVOKED** in an R-package-only build |
+| swig, bzip2, pcre, autoconf, automake, bison, flex, gnu-config, m4 | **RESOLVED_ONLY** — absent from the 84,789-line `build.ninja`; consumed inside Conan's own recipe sandbox to compile ragel/swig |
+
+**openssl is reachable only through code R never calls.** Traced with `ninja -t query`:
+`catboostr → train_lib → private/libs/distributed → library/cpp/par → library/cpp/neh →
+openssl`. It enters solely via the distributed-training network transport. **Component-gating
+`private/libs/distributed` is the single largest simplification available to Phase 1** — it
+would drop openssl from the link and retire the CVE-tracking liability with it. Note the
+tension with §5's Phase 8 (distributed training parity): gating the subtree for the R1 build
+does not preclude re-enabling it later, but the two must be reconciled deliberately.
+
+**Python3 IS required at install time.** An earlier claim in this spec said removing Conan
+removed Python; that was wrong. `cmake/common.cmake:3` requires it, and it is load-bearing at
+build time: `vcs_info.py`/`generate_vcs_info.py` generate `__vcs_version__.c`, which is
+compiled into the target, and `export_script_gen.py` generates the linker version script for
+`libcatboostr.so`. `SystemRequirements` must list Python3 and CMake.
+
+**`-DCUSTOM_ALLOCATORS=Off` works** — 858/858 steps, mimalloc absent from the link line, the
+resulting `.so` loads into R. This removes the `_mi_heap_default` TPOFF32 relocation hazard and
+process-wide `malloc` interposition for one flag. Caveat: load-tested only, not yet a full
+train/predict round-trip.
+
+**CRAN size — CONDITIONALLY viable.** 3902 unique translation units. Pruned tarball
+**16.078 MiB** (16,858,704 bytes) — inside the 30 MiB abort threshold, but **3.2× CRAN's 5 MiB
+guidance**, so this is not a clean pass. About 19.15 MiB of the 94.9 MiB uncompressed pruned
+tree is build-system plumbing: the full CMakeLists tree plus 87 unconditionally-configured
+test/tool/benchmark directories that `-DCATBOOST_COMPONENTS=R-package` does not gate. Reducing
+that needs build-system changes and is the obvious next lever.
+
+**Prune-set validation caveat.** A successful configure and dry run were *not* sufficient: the
+first real build failed on a Ragel include chain invisible to both `compile_commands.json` and
+ninja's dep records. Prune sets must be validated by an actual build. Only
+Linux/clang/no-CUDA/R-package was exercised.
+
+**Unreconciled discrepancy, recorded rather than smoothed:** the spike measured the full tree
+at 870.2 MiB and `contrib` at 178.0 MiB, against the ~163 MiB / 141.4 MiB figures this spec
+had been citing. The measurement scopes evidently differ. The pruned-tarball number is the one
+that matters and it was measured directly, but the baseline discrepancy is unexplained.
 
 ### 4.2 R API — one layer
 
@@ -561,7 +617,7 @@ rows are settled stops being read.
 
 | Risk | Impact | Mitigation |
 | :--- | :--- | :--- |
-| **Vendored source tarball too large for CRAN** | Kills the CRAN goal. This is the live form of the size risk and the most likely single cause of failure. Unpruned C/C++ source is ~163 MB against 5 MB guidance. | Phase 1a measures the pruned tarball against a 30 MB abort threshold before Phase 2 begins. §6's thin-package model is an active contingency, not a documented curiosity. |
+| **Vendored source tarball 3.2× CRAN guidance** | MEASURED at 16.078 MiB pruned (§4.1b), inside the 30 MiB abort threshold but well over the 5 MiB guidance. Not fatal; a likely source of CRAN pushback requiring justification or further reduction. | Next levers, in order: gate the 87 unconditionally-configured test/tool/benchmark directories (~19 MiB of plumbing), and gate `private/libs/distributed` (drops openssl entirely). §6's thin-package model stays an active contingency until a submission actually clears. |
 | **CRAN check-time limits on build machines** | Rejection. The 164 s / 174 s figures are this machine's, on 32 cores. CRAN and r-universe runners have far fewer. | Measure build time on a constrained runner during Phase 1; treat compile time as a CRAN acceptance criterion, not an afterthought. |
 | **No integrity pinning on the C++ dependency chain** | A tampered Conan recipe or vendored source is arbitrary code execution on the build host and a silent backdoor in what users install. `swig`, `ragel`, `bison`, `flex`, `m4` are code generators that execute during the build and emit compiled source. The Python side has 192 sha256 pins; the C++ side has none. | Commit a `conan.lock` for as long as Conan is used anywhere; give every vendored dependency the pin-and-verify contract already used by `tools/vendor/acquire.sh` and `tools/oracle/cli/acquire.sh`; record every external artifact in a `SOURCES.md` inventory. |
 | **Vendoring openssl creates a standing CVE liability** | A frozen openssl 3.0.15 in a CRAN package ages badly and CRAN reviewers have pushed back on exactly this. | Establish during Phase 1 whether openssl is genuinely required by the R-package component — only 2 of 13 packages link at all — and prefer configuring it out over vendoring it. Otherwise accept an explicit CVE-tracking obligation. |
@@ -634,7 +690,23 @@ unconditionally ("verified by differential tests run on real CUDA hardware"). If
 3 is chosen, that criterion must be amended in the same change, or the epic becomes
 internally contradictory.
 
-## 10. Open questions for the Phase 1 build spike
+## 10. Spike results and remaining work
+
+**§10.1-10.3 are ANSWERED by the 2026-07-31 spike — see §4.1b for the measurements.** In
+summary: the fork-owned CMake target is viable and registrars survive (Q1); the shared object
+name and init symbol need no non-standard override (Q3); the dependency surface is 4 invoked
+packages with openssl reachable only through the distributed subtree (Q4, Q5); Python3 is
+required at install time, contradicting an earlier claim in this spec (Q6); the pruned tarball
+is 16.078 MiB, conditionally viable (Q7). `-DCUSTOM_ALLOCATORS=Off` works (Q2).
+
+**Still unanswered and carried into Phase 1:** build time on a 2-core CRAN-like runner (Q8),
+and whether upstream's vendored R test suite passes against a from-source build (Q9) — it
+currently passes only against a downloaded prebuilt library, so the §4.6 regression gate has
+an untested baseline.
+
+The original question text is retained below for provenance.
+
+## 10-original. Open questions as posed before the spike
 
 Design review round 2 returned NEEDS_REVISION from all five reviewers. The blockers below are
 **empirical** — no amount of spec revision answers them, and two successive build models were

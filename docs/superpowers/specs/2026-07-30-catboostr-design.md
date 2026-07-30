@@ -52,7 +52,7 @@ The upstream R package is a second-class citizen:
 | Multi-column labels do reach the core | `R/catboost.R:165` (`label <- as.matrix(label)`; line 164 is the `if` guard); `src/catboostr.cpp:147-161,254,302` |
 | Shipped `libcatboostr` is CPU-only | zero CUDA references in `R-package/CMakeLists.txt` / `configure` |
 | `configure` fetches a binary over the network | `catboost/R-package/configure:1793`, `catboost_download_dynlib` (source, not issue report) |
-| Install size ~141 MB | secondary source, confidence 55 — **must be measured in Phase 0** |
+| ~~Install size ~141 MB~~ | **REFUTED in Phase 0.** Measured ~34 MB installed, `libcatboostr.so` 32.9 MB. The 141 MB figure came from a secondary source at confidence 55 and was wrong by ~4×. |
 
 ## 3. Decisions
 
@@ -88,10 +88,35 @@ The upstream R package is a second-class citizen:
   (`build_native.py:585`). Conan resolves third-party dependencies over the network the
   moment `cmake` runs.
 
-**Consequence:** no network-free, Conan-free, from-source build of the CatBoost core exists
-anywhere in the upstream repository. Producing one is **new engineering**, not a
-configuration or hardening pass. Neither `ninja` nor `conan` is installed in the target
-environment, which sharpens rather than softens the problem.
+**MEASURED IN PHASE 0 (catboost-8z4.1) — this section's earlier pessimism is refuted.**
+The core builds cleanly from source once `ninja` and `conan` are present, and both are pip
+wheels installable into a throwaway venv, which is not a system-package install:
+
+| Measurement | Value |
+| :--- | :--- |
+| Build result | **4265/4265 targets, zero errors**, `libcatboostr.so` linked |
+| Wall-clock, 32 cores | **164 s** |
+| `libcatboostr.so` | **32.9 MB** unstripped |
+| Installed R library | **~34 MB** — the ~141 MB claim is **refuted**, by roughly 4× |
+| R source tarball | 0.164 MB (C++ excluded; not representative post-vendoring) |
+| Conan closure | **13 packages**, of which only openssl, zlib, bzip2, pcre are link dependencies; the rest (autoconf, automake, bison, flex, m4, gnu-config, swig, yasm, ragel) are build-time tools |
+
+**Offline build.** Conan contacts `center2.conan.io` during CMake *configure* even with a
+fully warm cache — it performs a binary-availability probe rather than a download. This is
+the actual CRAN blocker, and it is a configuration issue, not a missing artifact.
+Independently verified fix: `conan remote disable conancenter` (equivalently `-nr` /
+`--no-remote` in the Conan args). After disabling, configure proceeds with zero network
+access and every package resolves from cache.
+
+**Consequence, revised:** producing a network-free build is real but **bounded** work —
+disable the Conan remote, and vendor four ordinary C libraries. It is not the open-ended
+engineering this section previously assumed. The system-library fallback in §6 is no longer
+the expected outcome.
+
+**Constraint discovered while measuring:** any from-source build writes
+`CMakeUserPresets.json` into the source tree unconditionally (Conan 2.x `CMakeToolchain`
+behaviour, not flag-controlled). The pinned upstream snapshot must therefore be treated as
+read-only and built from a disposable copy, never in place.
 
 **Target design.** `configure` is rewritten, not patched. The binary-download mechanism is
 deleted outright.
@@ -281,8 +306,9 @@ goal lands; that is quarters of work, not weeks.
 | Risk | Impact | Mitigation |
 | :--- | :--- | :--- |
 | Vendored build too large or slow for CRAN | Kills the stated end goal | Phase 0 measures it before anything depends on it. Fallback: the system-library model from §6. |
-| **No network-free build path exists upstream.** Conan is wired into the CMake configure step; the only R-reachable source build uses Yandex's `ya make`. | Largest single unknown in the plan. Phase 1 becomes build engineering, not packaging. | Phase 0 enumerates every Conan-provided dependency and reports the vendoring cost before Phase 1 is planned. Fallback: system-library model (§6). |
-| `ninja` and `conan` absent from the target environment | Blocks even reproducing upstream's own build | Phase 0 reports what the build actually requires rather than installing tools ad hoc. |
+| ~~No network-free build path exists upstream~~ | **RETIRED by Phase 0 measurement.** The build works; Conan's configure-time remote probe is disabled with one flag, and the link-dependency set is four ordinary C libraries. Residual risk is now vendoring those four portably across CRAN's platforms, which is ordinary R packaging work. | Phase 1 vendors openssl, zlib, bzip2, pcre and disables the Conan remote. |
+| ~~`ninja` and `conan` absent from the environment~~ | **RETIRED.** Both are pip wheels; a throwaway venv satisfies them without touching the system. | — |
+| Building in place corrupts the pinned snapshot | Silent drift in the read-only upstream reference | Conan 2.x writes `CMakeUserPresets.json` into the source tree unconditionally. Build only from a disposable copy; assert `git status --porcelain` is empty on the snapshot after any build. |
 | cpp11 and raw `.Call` registration conflict over `R_init_libcatboostr` | Forces a glue-layer decision late | Proven or disproven in Phase 0. Fallback: raw `.Call` throughout, as xgboost does. |
 | Custom R loss/metric callback infeasible | Phase 6 does not ship | Isolated as its own phase. R's single-threaded evaluator constrains any callback design; the constraint is documented rather than worked around silently. |
 | **No CUDA hardware exists anywhere in this project.** Development machine has an AMD GPU; CatBoost has no ROCm backend; CRAN and r-universe runners have no CUDA. | GPU parity unverifiable with current resources | GPU parity is claimed only from a real-hardware run. Phase 7 reports blocked rather than claiming green from skipped tests. Resourcing decision open — see §9. |

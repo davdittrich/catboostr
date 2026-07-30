@@ -63,7 +63,7 @@ The upstream R package is a second-class citizen:
 | API compatibility | Strict superset | Every upstream `catboost.*` name and signature preserved. Nothing that works today breaks. |
 | Scope boundary | CLI/Python parity only | Per explicit user instruction. No new API surface that lacks a CLI or Python counterpart. |
 | Sequencing | r-universe first, CRAN as phase 2 | A usable install in weeks instead of quarters; CRAN submission happens once, against a frozen API. |
-| Glue layer | Existing raw `.Call` untouched; new entry points in cpp11 | cpp11 is header-only, vendorable, and removes PROTECT boilerplate across many new entry points. **Contingent on the Phase 0 registration probe.** |
+| Glue layer | Existing raw `.Call` untouched; new entry points in cpp11 | **CONFIRMED by the Phase 0 probe (catboost-8z4.2), independently reproduced in review.** Viable in upstream's exact hard configuration (shared-object name ≠ package name, `R_useDynamicSymbols(dll, FALSE)`). See §4.7 for the required mechanism and its maintenance cost. |
 | GPU | Separate non-CRAN binary channel, identical R API | CRAN and r-universe runners have no CUDA. Parity and CRAN cannot coexist in one artifact. |
 
 ## 4. Architecture
@@ -146,6 +146,15 @@ capability, so each capability declares its method:
 | Text/console output | Snapshot tests whose snapshot files are **generated from the oracle's output**, never from R's. A snapshot authored from R output only proves R is self-consistent, which is not the claim being made. Snapshots are regenerated from the oracle whenever the pinned upstream version moves. |
 | Error paths | Assert on error class and message, including GPU-requested-but-unavailable (§4.4). |
 
+**Precision ceiling on CLI comparisons (measured in Phase 0, catboost-8z4.4).** The CLI's
+`calc` mode has no `--precision` flag and emits roughly 10 significant digits, not a
+full float64 repr round-trip. Python fixtures are full precision; CLI fixtures cannot be.
+Therefore bit-exact comparison is available on the Python path only. Every CLI-only
+capability must declare a tolerance at or above the CLI's own output precision, and no test
+may assert bit-exactness against CLI text output. If a CLI-only capability ever needs
+tighter comparison, the extraction path must change (via the binary model or another mode) —
+that is a design change, not a tolerance tweak.
+
 **Two oracles, not one.** Python is the reference for capabilities Python exposes. For
 CLI-only capabilities — distributed training via `run-worker` being the flagship case — the
 reference is the CatBoost CLI binary at the same pinned version, driven over files. Both
@@ -202,6 +211,36 @@ The claim "nothing that works today breaks" is verified, not asserted: upstream'
 `R-package` test suite is vendored into the fork and must pass unmodified at every phase
 gate. A change that requires editing an upstream test halts and reports rather than
 silently rewriting the test.
+
+### 4.7 Native routine registration — the required mechanism
+
+Established empirically in Phase 0 (catboost-8z4.2) and independently reproduced in review.
+This is a correctness constraint, not a style preference:
+
+**R replaces, rather than merges, the routine table per DLL.** Calling `R_registerRoutines`
+twice — once from a hand-written `init.c` and once from cpp11's generated
+`R_init_<package>` — silently drops the first table. The failure is silent: the package
+compiles, installs, and loads, and the missing entry points only fail at call time.
+
+The working mechanism:
+
+1. One combined `static const R_CallMethodDef` table containing both the raw `.Call` entries
+   and the cpp11 entries.
+2. One `R_registerRoutines` call, from the hand-written `init.c`.
+3. cpp11's individual `extern "C"` wrapper symbols are forward-declared in `init.c`.
+4. cpp11's generated init function is never invoked. It is dead code here anyway, because
+   its symbol name binds to the package name (`catboost`) while the shared object is named
+   `libcatboostr`.
+5. `R_useDynamicSymbols(dll, FALSE)` is retained, as upstream sets it. Both entry kinds
+   remain reachable under it. `R CMD check` produced no registration NOTEs (relevant to
+   upstream #778).
+
+**Maintenance cost, stated explicitly because it is a trap.** `cpp11::cpp_register()` does
+**not** update the combined table. Adding a cpp11 function requires two manual edits to
+`init.c` — a forward declaration and a table row. A maintainer who runs `cpp_register()` and
+assumes the function is wired will get a symbol that exists but is unreachable. Phase 1
+should generate this table rather than hand-maintain it, and until it does, the requirement
+belongs in the contributor documentation.
 
 ## 5. Phases
 

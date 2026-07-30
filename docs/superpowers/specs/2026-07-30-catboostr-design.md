@@ -101,25 +101,35 @@ wheels installable into a throwaway venv, which is not a system-package install:
 | R source tarball | 0.164 MB (C++ excluded; not representative post-vendoring) |
 | Conan closure | **13 packages**, of which exactly **2 are link dependencies of `libcatboostr.so`: openssl and zlib** (zlib transitively via openssl). All 11 others are `context=build`. `bzip2` and `pcre` carry `libs=True` only as edges of the **swig** node — they link into the code generator, not the shipped library. |
 
-**Offline build — NOT yet demonstrated end to end.** Two blockers are known, one cleared and
-one open:
+**Offline build — DEMONSTRATED END TO END.** Achieved with every proxy pointed at a black
+hole and the Conan remote disabled:
 
-1. *Cleared.* Conan contacts `center2.conan.io` during CMake *configure* even with a fully
-   warm cache — a binary-availability probe, not a download. Fix verified: `conan remote
-   disable conancenter` (equivalently `-nr` / `--no-remote`). Afterwards all 13 packages
-   resolve from cache with zero network access.
-2. *Open.* Disabling the remote unmasks a second failure: `library/python/CMakeLists.txt:15`
-   calls `add_subdirectory(hnsw)` **unconditionally** — it is not gated by
-   `CATBOOST_COMPONENTS`, unlike the R-package directory. So even an R-package-only
-   configure descends into the Python component and fails on
-   `Could NOT find Python3 (missing: Python3_NumPy_INCLUDE_DIRS NumPy)`.
+```
+configure_rc=0  build_rc=0  total 174 s
+[4265/4265] Linking CXX shared library .../libcatboostr.so
+network attempts: 0    hard failures: 0
+libcatboostr.so: 34,467,216 bytes — byte-identical in size to the network-ON build
+```
 
-**Status: build tractability is PROBABLE, not established.** The network-ON compile and size
-numbers are solid measurements. The offline claim rests on one verified fix plus one
-unresolved blocker, and no run by any agent has yet completed an offline build end to end.
-The honest verdict is "no fundamental obstacle found, one open scoping bug" — not "tractable,
-confidence 90". Phase 1 must produce a genuine end-to-end offline build before this is
-treated as settled, and §6's system-library fallback stays live until it does.
+Three things had to be true, all now known:
+
+1. **Disable the Conan remote.** Conan probes `center2.conan.io` during CMake *configure*
+   even with a fully warm cache — a binary-availability check, not a download.
+   `conan remote disable conancenter` (or `-nr` / `--no-remote`) clears it; all 13 packages
+   then resolve from cache.
+2. **Satisfy or gate the `hnsw` Python component.** `library/python/CMakeLists.txt:15` calls
+   `add_subdirectory(hnsw)` **unconditionally** — unlike the R-package directory, it is not
+   gated by `CATBOOST_COMPONENTS`. An R-only configure therefore descends into it and
+   demands NumPy, then Cython. Supplying both in the build venv works; gating the component
+   out is the cleaner Phase 1 fix.
+3. **Pass the flags upstream's own build path passes.** `-DCMAKE_POSITION_INDEPENDENT_CODE=On`,
+   `-DCATBOOST_COMPONENTS=R-package`, `-DHAVE_CUDA=no`. Omitting PIC produces a link failure
+   (`relocation R_X86_64_TPOFF32 against _mi_heap_default cannot be used with -shared`) that
+   looks like an upstream defect but is purely an invocation error.
+
+**Status: tractable, established by demonstration.** §6's system-library fallback is no
+longer the expected outcome. Phase 1's remaining work is vendoring openssl and zlib
+portably and making the three conditions above reproducible in `configure`.
 
 **Measurement caveats.** The 32.9 MB figure is an **unstripped, debug-info-bearing** binary,
 installed via the `CATBOOST_DYNLIB` copy-in path rather than compiled through R's own
@@ -319,7 +329,7 @@ goal lands; that is quarters of work, not weeks.
 | Risk | Impact | Mitigation |
 | :--- | :--- | :--- |
 | Vendored build too large or slow for CRAN | Kills the stated end goal | Phase 0 measures it before anything depends on it. Fallback: the system-library model from §6. |
-| No network-free build demonstrated yet | **DOWNGRADED, not retired.** The build compiles fine with network on, and Conan's remote probe is one flag away from fixed. But an unconditional `add_subdirectory(hnsw)` drags the Python/NumPy component into an R-only configure, and no end-to-end offline build has succeeded. | Phase 1 must (a) disable the Conan remote, (b) gate or satisfy the `hnsw` Python component, (c) vendor openssl and zlib — the only two real link dependencies — and (d) demonstrate a complete offline build before the CRAN track is considered viable. |
+| ~~No network-free build path exists upstream~~ | **RETIRED — demonstrated end to end** (zero network, 174 s, 4265/4265). The three conditions are known and cheap: disable the Conan remote, gate or satisfy `hnsw`, pass the PIC/component/CUDA flags. | Phase 1 makes those three reproducible in `configure` and vendors openssl and zlib, the only two link dependencies. |
 | ~~`ninja` and `conan` absent from the environment~~ | **RETIRED.** Both are pip wheels; a throwaway venv satisfies them without touching the system. | — |
 | Building in place corrupts the pinned snapshot | Silent drift in the read-only upstream reference | Conan 2.x writes `CMakeUserPresets.json` into the source tree unconditionally. Build only from a disposable copy; assert `git status --porcelain` is empty on the snapshot after any build. |
 | cpp11 and raw `.Call` registration conflict over `R_init_libcatboostr` | Forces a glue-layer decision late | Proven or disproven in Phase 0. Fallback: raw `.Call` throughout, as xgboost does. |

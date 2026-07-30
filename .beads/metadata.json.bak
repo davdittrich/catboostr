@@ -1,7 +1,0 @@
-{
-  "database": "dolt",
-  "backend": "dolt",
-  "dolt_mode": "embedded",
-  "dolt_database": "catboost",
-  "project_id": "1a4da69b-e817-476c-8e39-98a2b7b8574f"
-}

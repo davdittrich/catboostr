@@ -3,12 +3,16 @@
 predictions + model file, all written full-precision (repr round-trip).
 
 Run via: uv run --project tools/oracle python3 tools/oracle/gen_smoke_fixture.py
+(cwd-independent: fixture output dir and CatBoost's train_dir are both
+resolved from this file's own location, not the invocation cwd, so running
+from elsewhere cannot litter the repo root with catboost_info/.)
 
 Determinism check (brief step 7): run this script twice in two fresh
 processes and diff the two predictions JSON files. They must be byte-identical.
 """
 import csv
 import json
+import os
 import random
 import sys
 
@@ -16,7 +20,10 @@ import catboost
 import numpy as np
 from catboost import CatBoostClassifier, Pool
 
-FIXTURE_DIR = "tests/fixtures/oracle"
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+REPO_ROOT = os.path.dirname(os.path.dirname(SCRIPT_DIR))  # tools/oracle -> tools -> repo root
+FIXTURE_DIR = os.path.join(REPO_ROOT, "tests", "fixtures", "oracle")
+TRAIN_DIR = os.path.join(SCRIPT_DIR, ".catboost_train")  # CatBoost scratch dir, stays in tools/oracle/
 SEED = 42
 N_ROWS = 40
 PARAMS = {
@@ -27,6 +34,9 @@ PARAMS = {
     "random_seed": SEED,
     "verbose": False,
 }
+# train_dir is a CatBoost runtime scratch dir (learn/, tmp/, *.tsv), not a fixture
+# output — kept separate from PARAMS so it never lands in smoke_params.json.
+TRAIN_KWARGS = {"train_dir": TRAIN_DIR}
 
 
 def make_dataset(seed: int, n_rows: int):
@@ -54,8 +64,6 @@ def write_csv(path, rows, fieldnames):
 
 
 def main():
-    import os
-
     os.makedirs(FIXTURE_DIR, exist_ok=True)
 
     rows = make_dataset(SEED, N_ROWS)
@@ -66,7 +74,7 @@ def main():
     y = [r["target"] for r in rows]
     pool = Pool(X, y, cat_features=[2], feature_names=feature_cols)
 
-    model = CatBoostClassifier(**PARAMS)
+    model = CatBoostClassifier(**PARAMS, **TRAIN_KWARGS)
     model.fit(pool)
 
     raw_preds = model.predict(pool, prediction_type="RawFormulaVal")

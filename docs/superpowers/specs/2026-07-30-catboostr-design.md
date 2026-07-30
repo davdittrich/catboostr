@@ -1,7 +1,9 @@
 # catboostr — Design Spec
 
 **Date:** 2026-07-30
-**Status:** Approved (design), pending implementation plan
+**Status:** FROZEN pending the Phase 1 build spike (see §10). Design review round 2 returned
+NEEDS_REVISION from all five reviewers; the hardest remaining blockers are empirical, not
+editorial, and are recorded in §10 rather than answered by more prose.
 **Upstream pinned at:** catboost/catboost `v1.2.10` (released 2026-02-19)
 
 ## 1. Goal
@@ -64,11 +66,12 @@ The upstream R package is a second-class citizen:
 | :--- | :--- | :--- |
 | Package name | `catboostr` | No CRAN name collision if upstream ever submits; matches the existing `libcatboostr` shared object. |
 | Fork shape | Standalone repo, pinned core | Upstream enters as a submodule at a release tag. Avoids inheriting a multi-GB monorepo and permanent merge conflicts. |
-| Build model | R's own `Makevars` compiles the fork's glue; CMake builds the pinned core as static libraries | Upstream's `catboostr` CMake target hardcodes its source list inside the read-only submodule, so the fork's own C++ has no path into it. This model needs no submodule edits, compiles against the installing user's real R headers, and uses R's configured compiler flags — which CRAN requires. See §4.1. |
+| Build model | **The fork defines its OWN CMake target** (`add_shared_library`) linking the same upstream targets by name plus the fork's own sources, injected into the disposable copy via `add_subdirectory` or `-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES` (the hook upstream itself uses at `build_native.py:585`). | Corrects two earlier wrong models. Upstream's `catboostr` target hardcodes its source list in the read-only submodule, so the fork's C++ cannot join it — but the R-Makevars alternative would have required hand-reproducing whole-archive semantics for 28 `.global` archives (`cmake/common.cmake:149-166`) plus the mimalloc allocator and export script. Owning a CMake target edits no submodule file and lets CMake resolve whole-archive, allocator, export script and link order for free. **Verification is the first job of the §10 spike.** |
 | API compatibility | Strict superset | Every upstream `catboost.*` name and signature preserved. Nothing that works today breaks. |
 | Scope boundary | CLI/Python parity only | Per explicit user instruction. No new API surface that lacks a CLI or Python counterpart. |
-| Sequencing | Release at R1, immediately after the CPU capability phases | Ship to r-universe and submit to CRAN once Phases 1-5 are green, then continue parity as minor releases against a live package. An earlier draft put CRAN at phase 10, behind unscoped work and a hardware-blocked GPU phase; that put the only stated success criterion last. See §5. |
-| Glue layer | **PROVISIONAL — decided by the Phase 1b spike.** Existing raw `.Call` untouched either way. | The registration *mechanism* is proven (Phase 0 probe, independently reproduced). The *choice* of cpp11 is not: the probe compiled under `R CMD INSTALL` against the installed R's headers, and cpp11 cannot compile against upstream's vendored `contrib/libs/r-lang`, which lacks `Rversion.h` and `R_ext/Visibility.h`. Under §4.1's Makevars model cpp11 does work — but raw `.Call` throughout costs zero new mechanism and upstream already has exception safety via `R_API_BEGIN`/`R_API_END`. See §4.7 and §6. |
+| Sequencing | Release at R1, immediately after the CPU capability phases | Ship to r-universe and submit to CRAN once Phases 1-5 are green, then continue parity as minor releases. See §5. |
+| Platform scope for R1 | **Linux and macOS. Windows deferred.** | CRAN builds Windows for every accepted package, and MSVC-produced C++ static libraries cannot link into a mingw-built R DLL (different mangling, runtime and C++ ABI); upstream's Windows CMake path targets MSVC/clang-cl while R on Windows uses Rtools mingw-w64. Solving that is real work that would gate R1 on an unmeasured assumption. R1 therefore targets Linux and macOS; full CRAN acceptance follows once Windows is solved, and the spec says so rather than discovering it in Phase 1. |
+| Glue layer | **Raw `.Call` throughout. Decided; no spike.** | The glue is 28 entry points. Upstream already provides the exception safety cpp11 is usually bought for (`R_API_BEGIN`/`R_API_END`, `src/catboostr.cpp:45-58`). cpp11 would buy less PROTECT boilerplate at the cost of a new dependency, the combined-table registration trap, and a maintainer footgun this spec itself called a trap. Zero new mechanism wins. This is what xgboost does. §4.7's trap is thereby designed out rather than mitigated. |
 | GPU | Separate non-CRAN binary channel, identical R API | CRAN and r-universe runners have no CUDA. Parity and CRAN cannot coexist in one artifact. |
 
 ## 4. Architecture
@@ -630,3 +633,103 @@ Consequence to close when Phase 7 starts: the epic's GPU success criterion is wr
 unconditionally ("verified by differential tests run on real CUDA hardware"). If option 2 or
 3 is chosen, that criterion must be amended in the same change, or the epic becomes
 internally contradictory.
+
+## 10. Open questions for the Phase 1 build spike
+
+Design review round 2 returned NEEDS_REVISION from all five reviewers. The blockers below are
+**empirical** — no amount of spec revision answers them, and two successive build models were
+written into this document with confidence and then demolished. The spike answers them by
+measurement; the spec is revised once afterwards, against facts.
+
+### 10.1 Build model (blocking everything else)
+
+1. Does a fork-owned CMake target linking upstream's targets by name actually produce a
+   working `libcatboostr.so`? Specifically, do the 28 `.global` archives created by
+   `add_global_library_for` (`vendor/catboost/cmake/common.cmake:149-166`) link with their
+   static registrars intact, or are they silently dropped — producing a package that builds,
+   installs, loads, and fails at runtime with missing model formats or metrics?
+2. Does `-DCUSTOM_ALLOCATORS=Off` (`cmake/common.cmake:333`) swap mimalloc for the system
+   allocator cleanly? If so it removes the `_mi_heap_default` TPOFF32 relocation failure and
+   the risk of an R shared object interposing `malloc`/`free` process-wide. Measure the
+   performance cost once.
+3. What is the shared object named — `libcatboostr` (preserving upstream's
+   `useDynLib(libcatboostr)` and every existing `.Call` site) or `catboostr`? This determines
+   the init symbol and whether any double-registration hazard exists at all.
+
+### 10.2 Dependency surface (determines Phase 1's real size)
+
+4. Which of the 13 Conan packages are actually *invoked* in a `CATBOOST_COMPONENTS=R-package`
+   build, rather than merely resolved? Phase 0 always had all 13 present, so this was never
+   isolated. `ragel` and `yasm` are confirmed invoked via `util`
+   (`util/CMakeLists.linux-x86_64.txt:589,595`); the rest are unverified.
+5. **Does openssl configure out of the R-package component?** If it does, vendoring collapses
+   to zlib alone — and R itself already links zlib and exposes it via `R CMD config`, so the
+   vendoring scope could reach **zero**. This is the single largest simplification available
+   and it is one measurement.
+6. `cmake/common.cmake:3` is an unconditional `find_package(Python3 REQUIRED)`. So removing
+   Conan does **not** remove Python from the install path — an earlier claim in §4.1 was wrong
+   on this. What is the actual minimum install-time toolchain, and what belongs in
+   `SystemRequirements`?
+
+### 10.3 CRAN viability (can fail the whole route)
+
+7. What is the pruned vendored source tarball size? Unpruned C/C++ source is ~163 MB against
+   CRAN's 5 MB guidance. A configure-only CMake run yields a compile database naming every
+   translation unit the target compiles — that is the prune set, and it needs none of Phase
+   1's other work. **This measurement must run first**, so an abort costs a day rather than a
+   phase.
+8. What is the build time on a 2-core machine resembling a CRAN check runner? 164 s on 32
+   cores is roughly 1.5 CPU-hours; build time is the second structural CRAN rejection cause
+   and currently has no abort threshold.
+9. Does upstream's vendored R test suite — the §4.6 strict-superset regression gate — actually
+   pass against a from-source build? It currently passes against a *downloaded prebuilt*
+   library. A green baseline established before Phase 1 is worth more than the same suite
+   discovered red mid-phase.
+
+### 10.4 Recorded review findings not yet folded into the design
+
+These are accepted as valid and are deferred to the single post-spike revision, not dropped:
+
+- **Integrity of the shipped artifact.** Nothing verifies `tarball == prune(pinned_tree)`;
+  §4.8 pins everything going in and nothing coming out. Needs a committed prune script, a
+  file-level SHA256 manifest, and CI reproduction from a fresh acquire.
+- **GPU channel signing.** A `SHA256SUMS` file co-located with the asset shares its write
+  credential and does not defend against whoever can write the release. Needs a detached
+  signature or build attestation with the trust root shipped through the CRAN package.
+- **`CATBOOST_DYNLIB` in the shipped `configure`** is an env-var-selected shared object loaded
+  into R at install time — same class as the deleted download, minus the network. Decide
+  whether the distributed `configure` refuses it outright.
+- **`uv run` without `--frozen`** at `tools/parity/run.sh:11`,
+  `tools/oracle/gen_smoke_fixture.py:5`, `tools/oracle/cli/gen_smoke_fixture.sh:28` can
+  silently re-resolve and rewrite the lockfile, defeating 192 sha256 pins. Fix immediately,
+  not in a phase.
+- **`.Rbuildignore` as a denylist** already misses `.agents/` and `tests/fixtures/` (652K).
+  Replace with a built-tarball manifest assertion.
+- **Uncovered inventory kinds.** §4.2's mapping table has no rule for `property` (40 rows:
+  `best_iteration_`, `tree_count_`, `evals_result_`, `classes_`, `feature_names_`, …),
+  `attribute` (11 rows), `class` (38) or `submode` (4). None appears in any phase. §4.5 says
+  a capability may not be silently absent; today this slice is.
+- **Generator kind-tagging bug.** `catboost.utils.compute_wx_test`,
+  `compute_training_options` and `fspath` are real functions tagged `attribute`. Mapping by
+  `kind` plus a tagging bug drops capabilities by construction.
+- **Hyperparameter documentation is not machine-derivable.** `python_surface.json` carries
+  only name and default; `introspect_python.py` captures no docstrings. A "generated
+  `@param` reference" cannot explain what `l2_leaf_reg` does. Either capture docstrings or
+  state honestly where the prose comes from.
+- **No version-skew detection exists.** §4.4 demands a tested error for R-package/
+  `libcatboostr` skew, but no `.onLoad` check or version handshake is designed anywhere.
+- **Tolerance default vs its own evidence.** The 1e-12 Python default cites Phase 0
+  bit-exactness that `docs/phase-0/fix-wave-report.md:56-70` explicitly disclaims as holding
+  only for a 40-row fixture.
+- **Parity matrix should extend `capability_diff.json`**, not become a second store, and needs
+  its own enforced check: a green row whose test id does not resolve is the same silent
+  failure §4.7 guards against.
+- **Licence provenance.** Vendoring dozens of third-party sources requires
+  `inst/COPYRIGHTS`/`LICENSE.note` and `Authors@R` holders — a routine CRAN rejection cause,
+  currently absent. `SOURCES.md` is a security SBOM and does not discharge it.
+- **30 MB abort threshold is asserted, not derived**, and sits 6× above the CRAN guidance it
+  cites, so the gate can pass while the goal still fails.
+- **§9.0 lacks its most likely stop condition**: Phase 2's classification coming back
+  multi-quarter and the user declining to fund it.
+- **R1 wording overstates** — §1's goal is CRAN acceptance *and* parity; R1 delivers the CRAN
+  half with red rows documented.

@@ -8,7 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
 python3 "${SCRIPT_DIR}/parse_namespace.py"
-uv run --project "${REPO_ROOT}/tools/oracle" python "${SCRIPT_DIR}/introspect_python.py"
+uv run --frozen --project "${REPO_ROOT}/tools/oracle" python "${SCRIPT_DIR}/introspect_python.py"
 python3 "${SCRIPT_DIR}/enumerate_cli.py"
 python3 "${SCRIPT_DIR}/compute_diff.py"
 python3 "${SCRIPT_DIR}/spec_crosscheck.py"

@@ -2,7 +2,7 @@
 """Generate the oracle smoke fixture: deterministic dataset + params + CatBoost
 predictions + model file, all written full-precision (repr round-trip).
 
-Run via: uv run --project tools/oracle python3 tools/oracle/gen_smoke_fixture.py
+Run via: uv run --frozen --project tools/oracle python3 tools/oracle/gen_smoke_fixture.py
 (cwd-independent: fixture output dir and CatBoost's train_dir are both
 resolved from this file's own location, not the invocation cwd, so running
 from elsewhere cannot litter the repo root with catboost_info/.)

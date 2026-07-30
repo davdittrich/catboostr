@@ -1,6 +1,6 @@
 """Machine-introspect the catboost Python package surface. No hand-typed names.
 
-Run: uv run --project tools/oracle python tools/parity/introspect_python.py
+Run: uv run --frozen --project tools/oracle python tools/parity/introspect_python.py
 Writes: tests/fixtures/parity/python_surface.json
 """
 import enum

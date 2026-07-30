@@ -25,7 +25,7 @@ if [[ ! -x "${BIN}" ]]; then
 fi
 if [[ ! -f "${PY_FIXTURE_DIR}/smoke_data.csv" ]]; then
   echo "FATAL: ${PY_FIXTURE_DIR}/smoke_data.csv not found. Run" >&2
-  echo "  uv run --project tools/oracle python tools/oracle/gen_smoke_fixture.py" >&2
+  echo "  uv run --frozen --project tools/oracle python tools/oracle/gen_smoke_fixture.py" >&2
   echo "first -- the CLI fixture reuses that dataset for cross-oracle comparability." >&2
   exit 1
 fi

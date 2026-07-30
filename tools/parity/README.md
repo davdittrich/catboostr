@@ -17,7 +17,7 @@ Each stage reads the previous stage's fixture and writes its own under
    `export()` and registered S3 method plus the upstream tag/SHA actually
    used. Writes `tests/fixtures/parity/r_surface.json`.
 2. **`introspect_python.py`** — introspects the installed `catboost` Python
-   package (must run inside the pinned oracle venv: `uv run --project
+   package (must run inside the pinned oracle venv: `uv run --frozen --project
    tools/oracle python tools/parity/introspect_python.py`). Every public
    module member, class method, property, enum member, and training
    parameter. Writes `tests/fixtures/parity/python_surface.json`.

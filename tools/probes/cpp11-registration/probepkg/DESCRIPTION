@@ -1,0 +1,12 @@
+Package: probepkg
+Type: Package
+Title: cpp11 and raw .Call coexistence probe
+Version: 0.0.1
+Description: Throwaway probe. Not for distribution.
+Author: probe
+Maintainer: probe <probe@example.com>
+License: MIT
+Encoding: UTF-8
+LinkingTo: cpp11
+Imports: cpp11
+RoxygenNote: 7.3.1

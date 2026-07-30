@@ -1,5 +1,7 @@
 {
   "source": "vendor/catboost/catboost/R-package/NAMESPACE",
+  "upstream_tag": "v1.2.10",
+  "upstream_sha": "b1bd2a6d77219e82a1acfcedfccb8e6f6c1ee084",
   "exports": [
     "catboost.caret",
     "catboost.cv",

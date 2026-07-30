@@ -70,13 +70,45 @@ for label, key in SPEC_CLAIMS:
     else:
         spec_claims_not_found.append(label)
 
+
+def tokens(s):
+    return re.findall(r"[a-z0-9]+", s.lower())
+
+
+def token_exact_match(cap_tokens, key):
+    """True only if `key` equals one whole token of the capability string, or
+    the exact concatenation of a contiguous run of whole tokens. Rejects a
+    key that merely occurs as a substring inside an unrelated longer token
+    (e.g. key "csr" must not match some unrelated identifier that happens to
+    contain the letters c-s-r) -- a bare `key in normalized_string` check, as
+    this used to be, matched at that granularity and over-suppressed real gap
+    rows in the direction that flatters the hand-written spec list, which is
+    the wrong direction (see compute_diff.py's docstring for the same
+    over-matching failure mode, fixed there the same way: exact match only)."""
+    if key in cap_tokens:
+        return True
+    n = len(cap_tokens)
+    for i in range(n):
+        acc = ""
+        for j in range(i, n):
+            acc += cap_tokens[j]
+            if acc == key:
+                return True
+            if len(acc) >= len(key):
+                break
+    return False
+
+
 # gaps_missing_from_spec: every capability_diff.json gap row whose capability
-# string does not contain any matched spec key (i.e. no plausible link back to
-# a Section 2 term) -- capabilities the hand-written list never mentioned.
+# string does not token-exact-match any matched spec key (i.e. no plausible
+# link back to a Section 2 term) -- capabilities the hand-written list never
+# mentioned. Conservative on purpose (see token_exact_match docstring): a
+# false "still missing" is a harmless triage item, a false "found" hides a
+# real gap permanently.
 gaps_missing_from_spec = []
 for g in diff["gaps"]:
-    cn = norm(g["capability"])
-    if not any(k in cn for k in matched_keys):
+    cap_tokens = tokens(g["capability"])
+    if not any(token_exact_match(cap_tokens, k) for k in matched_keys):
         gaps_missing_from_spec.append(f"{g['oracle']}:{g['capability']}")
 
 out = {

@@ -1,0 +1,3 @@
+useDynLib(libprobe, .registration = TRUE)
+export(raw_probe)
+export(cpp11_scalar)

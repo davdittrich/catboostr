@@ -4,5 +4,6 @@
   "depth": 4,
   "learning_rate": 0.1,
   "random_seed": 42,
+  "thread_count": 1,
   "verbose": false
 }

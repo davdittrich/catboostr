@@ -7,6 +7,7 @@ import enum
 import inspect
 import json
 import pathlib
+import sys
 
 import catboost
 
@@ -193,7 +194,8 @@ for sub_name in SUBMODULES:
             record(f"catboost.{sub_name}.{name}", "attribute", sub_name, obj)
 
 output = {
-    "python_version": catboost.__version__,
+    "catboost_version": catboost.__version__,
+    "python_version": sys.version.split()[0],
     "entries": entries,
     "private_excluded_count": private_excluded,
     "non_introspectable_count": non_introspectable,

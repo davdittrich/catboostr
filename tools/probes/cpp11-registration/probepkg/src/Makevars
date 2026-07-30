@@ -1,0 +1,1 @@
+override SHLIB = libprobe.so

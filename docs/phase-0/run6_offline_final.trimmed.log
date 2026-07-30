@@ -1,0 +1,65 @@
+# Trimmed build log: run6 (offline, final)
+
+Source: scratchpad `run6_offline_final.log`, 860,362 bytes / 7,868 lines
+(offline Conan+CMake+Ninja build of the same R-package CMake target, with
+`conan remote disable conancenter` and a pre-populated Conan cache/venv --
+this is the run referenced by catboost-8z4.3-report.md as the "zero network"
+build). This file keeps the compiler-detection/Conan-bootstrap header and the
+final ~60 lines of the Ninja build; ~7,700 lines of per-target-file
+`[NNNN/4265] Building/Linking ...` progress lines were cut.
+
+Note: unlike run1's log, this capture starts mid-configure (compiler
+identification already underway) -- the capture does not include the
+top-of-log `cmake ...` invocation line itself. The invocation used for this
+run is identical to run1's except for the offline Conan setup (remote
+disabled, cache pre-populated) described in catboost-8z4.3-report.md; it is
+not re-quoted here since it was not present in this particular capture.
+
+## Head (compiler detection / Conan bootstrap)
+
+```
+-- C compiler identification is Clang 22.1.8
+-- CXX compiler identification is Clang 22.1.8
+-- ASM compiler identification is Clang with GNU-like command-line
+-- Found assembler: /usr/bin/clang
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/clang - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/clang++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+CMake Warning (deprecated) CMakeLists.txt:36 (cmake_policy): ...
+-- CMake-Conan: first find_package() found. Installing dependencies with Conan
+-- CMake-Conan: Checking if default profile exists
+<scratchpad>/conan_home/profiles/default
+-- CMake-Conan: cmake_system_name=Linux
+-- CMake-Conan: cmake_system_processor=x86_64
+```
+
+(Conan then resolves its dependency graph entirely from the pre-populated
+local cache -- conancenter remote disabled -- full resolution output cut.)
+
+## Final ~60 lines (tail) -- last static libs through final link and exit
+
+```
+[4257/4265] Linking CXX static library catboost/libs/train_lib/libcatboost-libs-train_lib.a
+[4258/4265] Linking CXX static library catboost/libs/train_lib/libcatboost-libs-train_lib.global.a
+[4259/4265] Generating gen_catboostr.exports
+[4260/4265] Generating vcs_info.json
+[4261/4265] Generating __vcs_version__.c
+[4262/4265] Building C object catboost/R-package/src/CMakeFiles/catboostr.dir/__vcs_version__.c.o
+[4263/4265] Building C object catboost/R-package/src/CMakeFiles/catboostr.dir/init.c.o
+[4264/4265] Building CXX object catboost/R-package/src/CMakeFiles/catboostr.dir/catboostr.cpp.o
+[4265/4265] Linking CXX shared library catboost/R-package/src/libcatboostr.so
+build_rc=0 build_seconds=172 total_seconds=174
+```
+
+Result: 4265/4265 targets built, `build_rc=0`, `build_seconds=172`,
+`total_seconds=174` (this is the "offline, given pre-populated Conan cache +
+venv" reference build -- NOT a from-scratch no-network-ever install; see the
+honest-signal reword of spec §7 in docs/phase-0/README.md and the design
+spec itself).

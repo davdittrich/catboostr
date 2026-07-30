@@ -23,7 +23,11 @@ differential test.
 The upstream R package is a second-class citizen:
 
 - **Missing capability.** Absent from R but present in Python/CLI: embedding features,
-  sparse/CSR pool input, timestamps, `grid_search`, `randomized_search`, `select_features`,
+  sparse/CSR pool input (name-matching in the Phase 0 machine-generated inventory did not
+  find a Python/CLI symbol containing "csr" — the capability is asserted from CatBoost's
+  documented `Pool` constructor accepting scipy sparse matrices, not from the generated
+  inventory; see `tools/parity/spec_crosscheck.py`'s `spec_claims_not_found`), timestamps,
+  `grid_search`, `randomized_search`, `select_features`,
   `calc_feature_statistics`, `ShapInteractionValues`, `PredictionDiff`, `plot_tree`,
   training-progress plotting, `model.compare`, explicit pool quantization, text
   tokenizer/dictionary configuration, `init_model` continued training, custom R
@@ -95,14 +99,20 @@ wheels installable into a throwaway venv, which is not a system-package install:
 | Measurement | Value |
 | :--- | :--- |
 | Build result | **4265/4265 targets, zero errors**, `libcatboostr.so` linked |
-| Wall-clock, 32 cores | **164 s** |
+| Wall-clock, 32 cores, network ON | **164 s** (run `run1_network_on`; log trimmed at `docs/phase-0/run1_network_on.trimmed.log`) |
 | `libcatboostr.so` | **32.9 MB** unstripped |
 | Installed R library | **~34 MB** — the ~141 MB claim is **refuted**, by roughly 4× |
 | R source tarball | 0.164 MB (C++ excluded; not representative post-vendoring) |
 | Conan closure | **13 packages**, of which exactly **2 are link dependencies of `libcatboostr.so`: openssl and zlib** (zlib transitively via openssl). All 11 others are `context=build`. `bzip2` and `pcre` carry `libs=True` only as edges of the **swig** node — they link into the code generator, not the shipped library. |
 
-**Offline build — DEMONSTRATED END TO END.** Achieved with every proxy pointed at a black
-hole and the Conan remote disabled:
+**Offline build (run `run6_offline_final`; log trimmed at
+`docs/phase-0/run6_offline_final.trimmed.log`) — built with zero network access during the
+build itself**, every proxy pointed at a black hole and the Conan remote disabled. This
+demonstrates the build *step* needs no network given a pre-populated Conan cache and a venv
+that already has `ninja`, `conan`, NumPy, and Cython installed — it does **not** demonstrate
+a from-scratch, no-network-ever install on a clean machine (populating that cache and venv
+still requires network access once, upstream, before this build runs). That from-scratch
+case remains Phase 1 work (see §7):
 
 ```
 configure_rc=0  build_rc=0  total 174 s
@@ -156,8 +166,11 @@ Both modes compile the same `src/`, run the same R code, and pass the same tests
 `prebuilt` mode exists because a full rebuild makes iteration impossible during feature
 work — a development necessity, not user-facing flexibility.
 
-If Phase 0 finds the Conan decoupling intractable, the fallback is the system-library model
-from §6, which moves the native build out of the R package entirely.
+**Resolved (Phase 0 complete): the Conan decoupling did not prove intractable.** Both the
+network-ON and offline builds above completed with 4265/4265 targets and zero errors; only
+two link dependencies (openssl, zlib) need vendoring. The system-library fallback from §6 is
+therefore not needed and is retained only as a documented alternative, not an active
+contingency.
 
 ### 4.2 R API — one layer
 
@@ -236,19 +249,32 @@ The parity matrix is only as complete as its input list. A hand-written inventor
 the one in §2 of this spec — silently omits whatever nobody happened to notice, which makes
 the goal in §1 unfalsifiable for the omitted capability.
 
-Therefore the inventory is generated, not written:
+Therefore the inventory is generated, not written. **Built and run in Phase 0
+(catboost-8z4.5); the generator tools live under `tools/parity/`, see
+`tools/parity/README.md` for the pipeline order and regeneration command
+(`tools/parity/run.sh`):**
 
 - **Python surface**: introspect the installed `catboost` module — every public module
   member, every public method on `CatBoost`, `CatBoostClassifier`, `CatBoostRegressor`,
-  `CatBoostRanker`, `Pool`, and every documented training parameter.
-- **CLI surface**: every mode from the binary's `--help`, and every flag within each mode.
-- **R surface**: every `export()` in the fork's NAMESPACE plus every registered S3 method.
+  `CatBoostRanker`, `Pool`, and every documented training parameter
+  (`tools/parity/introspect_python.py`).
+- **CLI surface**: every mode from the binary's `--help`, and every flag within each mode
+  (`tools/parity/enumerate_cli.py`).
+- **R surface**: every `export()` in the fork's NAMESPACE plus every registered S3 method
+  (`tools/parity/parse_namespace.py`).
 
-The parity matrix is the *diff* of those three sets. §2's list is treated as a hypothesis to
-be checked against the generated inventory, not as the source of truth. Any capability
-present in the Python or CLI set and absent from the R set is automatically a matrix row —
-green, red, or explicitly out-of-scope with a recorded reason. A capability may not be
-silently absent.
+The parity matrix is the *diff* of those three sets (`tools/parity/compute_diff.py`). §2's
+list is treated as a hypothesis to be checked against the generated inventory
+(`tools/parity/spec_crosscheck.py`), not as the source of truth. Any capability present in
+the Python or CLI set and absent from the R set is automatically a matrix row — green, red,
+or explicitly out-of-scope with a recorded reason. A capability may not be silently absent.
+
+**What Phase 0 found:** 1537 raw gap rows (719 Python-only, 818 CLI-only, 48 covered),
+inflated roughly 2× by duplication across CLI modes and Python classes — 725 after
+deduplication (224 distinct CLI flag alias-sets, 139 distinct Python parameter names; two
+universal non-capability CLI flags, `--help` and `--svnrevision`, are marked rather than
+dropped). Of the spec's own 18 hand-written §2 claims, 17 are confirmed present in the
+generated inventory. Full numbers and methodology: `tools/parity/README.md`.
 
 The inventory is regenerated whenever the pinned upstream version moves, so a newly added
 upstream capability appears as a new red row rather than going unnoticed.
@@ -299,9 +325,9 @@ Each phase becomes an epic. Phase 0 is a hard gate.
 | 0 | **Build spike.** Size the network-free source build and enumerate Conan's dependencies. Prove cpp11 and raw `.Call` registration can coexist in one `R_init_`. Stand up **both** oracles (Python and CLI). Generate the capability inventory (§4.5). | If vendoring proves intractable, the approach is revisited with numbers before anything is built on it. |
 | 1 | Repo skeleton, dual-mode `configure`, upstream test suite vendored and green, CI green under r-universe constraints. | Installs from a clean checkout with no network. |
 | 2 | Differential harness + fixtures + the parity matrix, seeded from the **machine-generated** capability inventory (§4.5), not from §2's hand-written list. Every row becomes a passing test, a failing test, or a recorded out-of-scope decision. | Generated inventory exists; every row has a state; root cause established for multi-target and any other reported breakage. |
-| 3 | Data/Pool parity: multi-target labels, embeddings, sparse/CSR, timestamps, quantized pools, text tokenizers. | Differential tests green. |
-| 4 | Analysis parity: `ShapInteractionValues`, `PredictionDiff`, `calc_feature_statistics`, object-importance MultiClass fix (#869), `plot_tree`, `model.compare`. | Differential tests green, structural method per §4.3. |
-| 5 | Training-control parity: `init_model`, grid/randomized search, `select_features`, virtual ensembles verified end-to-end, full parameter surface documented and validated. | Differential tests green. |
+| 3 | Data/Pool parity: multi-target labels, embeddings, sparse/CSR, timestamps, quantized pools, text tokenizers. Includes the CLI's `dataset-statistics` mode (pool-level statistics, no Python/R counterpart yet). | Differential tests green. |
+| 4 | Analysis parity: `ShapInteractionValues`, `PredictionDiff`, `calc_feature_statistics`, object-importance MultiClass fix (#869), `plot_tree`, `model.compare`. Includes the CLI's `eval-feature` (feature-elimination evaluation), `roc` (ROC curve computation), and `model-based-eval` (approximation-based feature evaluation) modes — all analysis operations, all measured in the Phase 0 CLI inventory but absent from Python/R. | Differential tests green, structural method per §4.3. |
+| 5 | Training-control parity: `init_model`, grid/randomized search, `select_features`, virtual ensembles verified end-to-end, full parameter surface documented and validated. Includes the CLI's `metadata` submodes (get/set/dump/dump-feature-names — model metadata as a first-class object) and `normalize-model` (post-training scale/bias adjustment, the CLI counterpart of `Pool`/`CatBoost.set_scale_and_bias`). | Differential tests green. |
 | 6 | Custom R loss/metric callback bridge. | Highest risk; isolated deliberately. See Risks. |
 | 7 | GPU parity: build variant, tests on CUDA hardware, tested failure mode on CPU-only builds. | Differential tests green **on a real GPU runner**; skips do not count. |
 | 8 | Distributed training parity (CLI `run-worker` equivalent reachable from R). | Differential test against the CLI. |
@@ -317,7 +343,7 @@ goal lands; that is quarters of work, not weeks.
 | :--- | :--- |
 | **Parity + idiomatic R layer + ecosystem integration** (hardhat blueprints, parsnip engine, mlr3 learner, DALEX, vetiver) | Rejected on explicit user instruction: "First class support in R means that all functions / capabilities available for the cli and python version are also available in R. Beyond that is scope creep." Roughly doubles API surface and test burden for capabilities with no CLI/Python counterpart. |
 | **CRAN-first** (solve vendoring and size before any feature work) | Nothing installable for a long time; feature work blocked behind packaging archaeology. Retained as the phase-10 destination. |
-| **Thin package + system `libcatboost`** (the `sf`/GDAL model) | CRAN-legal with a tiny tarball and fast compile, but no distro ships `libcatboost`, so we would own conda-forge and homebrew feedstocks and every user hits an install wall. Trades one packaging problem for another. Retained as the Phase 0 fallback if vendoring proves intractable. |
+| **Thin package + system `libcatboost`** (the `sf`/GDAL model) | CRAN-legal with a tiny tarball and fast compile, but no distro ships `libcatboost`, so we would own conda-forge and homebrew feedstocks and every user hits an install wall. Trades one packaging problem for another. **Not needed as a fallback: Phase 0 demonstrated the vendored build is tractable (§4.1).** Retained here only as a documented alternative. |
 | **Full monorepo fork** | Inherits a multi-GB repo and permanent upstream merge conflicts for no gain — the R package needs the core's source, not its history. |
 | **Wrap the CatBoost CLI** | CRAN forbids bundling standalone executables at this size; no precedent for a full ML engine being CLI-shelled from R; loses in-memory pools. |
 | **`reticulate` over the Python package** | **The strongest rejected alternative — rejected by user decision, not on technical grounds.** An earlier version of this spec dismissed it as "does not solve CRAN availability". That was false: `keras3` and `tensorflow` are on CRAN, wrap Python via reticulate as their primary mechanism, and satisfy the no-network-during-install rule by deferring Python setup to a post-install user-invoked step. Honestly assessed, reticulate delivers every capability in §1 far sooner, tracks upstream releases automatically, avoids the Conan/vendoring engineering entirely, and makes custom R loss/metric *easier* (reticulate passes R functions as Python callables) rather than "may prove infeasible". Its one real cost is a Python runtime dependency. The user was shown this comparison explicitly and chose the native fork; that independence from Python is the deciding requirement. |
@@ -329,7 +355,7 @@ goal lands; that is quarters of work, not weeks.
 | Risk | Impact | Mitigation |
 | :--- | :--- | :--- |
 | Vendored build too large or slow for CRAN | Kills the stated end goal | Phase 0 measures it before anything depends on it. Fallback: the system-library model from §6. |
-| ~~No network-free build path exists upstream~~ | **RETIRED — demonstrated end to end** (zero network, 174 s, 4265/4265). The three conditions are known and cheap: disable the Conan remote, gate or satisfy `hnsw`, pass the PIC/component/CUDA flags. | Phase 1 makes those three reproducible in `configure` and vendors openssl and zlib, the only two link dependencies. |
+| ~~No network-free build path exists upstream~~ | **RETIRED for the build step, with a scope caveat.** The build itself needs zero network access (run `run6_offline_final`, 174 s, 4265/4265) *given* a pre-populated Conan cache and a venv with `ninja`, `conan`, NumPy, and Cython already installed. This is not the same claim as a clean-machine, no-network-ever install — populating that cache/venv still needs network access once, upstream of the build. The three build-time conditions are known and cheap: disable the Conan remote, gate or satisfy `hnsw`, pass the PIC/component/CUDA flags. | Phase 1 makes those three reproducible in `configure`, vendors openssl and zlib (the only two link dependencies), and addresses the clean-machine no-network-ever case (vendoring the Conan cache contents, not just disabling the remote). |
 | ~~`ninja` and `conan` absent from the environment~~ | **RETIRED.** Both are pip wheels; a throwaway venv satisfies them without touching the system. | — |
 | Building in place corrupts the pinned snapshot | Silent drift in the read-only upstream reference | Conan 2.x writes `CMakeUserPresets.json` into the source tree unconditionally. Build only from a disposable copy; assert `git status --porcelain` is empty on the snapshot after any build. |
 | cpp11 and raw `.Call` registration conflict over `R_init_libcatboostr` | Forces a glue-layer decision late | Proven or disproven in Phase 0. Fallback: raw `.Call` throughout, as xgboost does. |

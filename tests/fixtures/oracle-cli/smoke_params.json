@@ -16,6 +16,7 @@
     "--learning-rate": 0.1,
     "--random-seed": 42,
     "-T": 1,
-    "--model-file": "smoke_model.cbm"
+    "--model-file": "smoke_model.cbm",
+    "--logging-level": "Silent"
   }
 }

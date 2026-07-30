@@ -32,6 +32,7 @@ PARAMS = {
     "depth": 4,
     "learning_rate": 0.1,
     "random_seed": SEED,
+    "thread_count": 1,
     "verbose": False,
 }
 # train_dir is a CatBoost runtime scratch dir (learn/, tmp/, *.tsv), not a fixture
@@ -56,7 +57,11 @@ def make_dataset(seed: int, n_rows: int):
 
 def write_csv(path, rows, fieldnames):
     with open(path, "w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=fieldnames)
+        # csv's default "excel" dialect writes CRLF regardless of the
+        # `newline=""` open() argument (that argument only disables Python's
+        # own newline translation, it does not change the dialect's
+        # lineterminator). Force LF to match the CLI oracle's fixture (I3).
+        w = csv.DictWriter(f, fieldnames=fieldnames, lineterminator="\n")
         w.writeheader()
         for r in rows:
             # repr() round-trips Python floats exactly (float_repr_style=short since 3.1)

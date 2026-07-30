@@ -794,10 +794,13 @@ These are accepted as valid and are deferred to the single post-spike revision, 
 - **`CATBOOST_DYNLIB` in the shipped `configure`** is an env-var-selected shared object loaded
   into R at install time — same class as the deleted download, minus the network. Decide
   whether the distributed `configure` refuses it outright.
-- **`uv run` without `--frozen`** at `tools/parity/run.sh:11`,
-  `tools/oracle/gen_smoke_fixture.py:5`, `tools/oracle/cli/gen_smoke_fixture.sh:28` can
-  silently re-resolve and rewrite the lockfile, defeating 192 sha256 pins. Fix immediately,
-  not in a phase.
+- ~~**`uv run` without `--frozen`**~~ — **WITHDRAWN 2026-07-31: the finding was false.** All
+  three cited sites already carry `--frozen` (`tools/parity/run.sh:11`,
+  `tools/oracle/gen_smoke_fixture.py:5`, `tools/oracle/cli/gen_smoke_fixture.sh:28`), as do
+  `tools/parity/introspect_python.py:3` and `tools/oracle/README.md:20`. Verified by grep
+  across `tools/`. The requirement in §4.8.6 stands as a rule for new invocations; there is
+  no outstanding work. Recorded rather than deleted because it was propagated into a Phase 1
+  ticket (`catboost-8z4.18`, closed invalid) before anyone checked it.
 - **`.Rbuildignore` as a denylist** already misses `.agents/` and `tests/fixtures/` (652K).
   Replace with a built-tarball manifest assertion.
 - **Uncovered inventory kinds.** §4.2's mapping table has no rule for `property` (40 rows:

@@ -1,0 +1,60 @@
+{
+  "source": "vendor/catboost/catboost/R-package/NAMESPACE",
+  "exports": [
+    "catboost.caret",
+    "catboost.cv",
+    "catboost.drop_unused_features",
+    "catboost.eval_metrics",
+    "catboost.get_feature_importance",
+    "catboost.get_model_params",
+    "catboost.get_object_importance",
+    "catboost.get_plain_params",
+    "catboost.load_model",
+    "catboost.load_pool",
+    "catboost.predict",
+    "catboost.restore_handle",
+    "catboost.save_model",
+    "catboost.save_pool",
+    "catboost.shrink",
+    "catboost.staged_predict",
+    "catboost.sum_models",
+    "catboost.train",
+    "catboost.virtual_ensembles_predict"
+  ],
+  "s3methods": [
+    {
+      "generic": "dim",
+      "class": "catboost.Pool"
+    },
+    {
+      "generic": "dimnames",
+      "class": "catboost.Pool"
+    },
+    {
+      "generic": "head",
+      "class": "catboost.Pool"
+    },
+    {
+      "generic": "predict",
+      "class": "catboost.Model"
+    },
+    {
+      "generic": "print",
+      "class": "catboost.Model"
+    },
+    {
+      "generic": "print",
+      "class": "catboost.Pool"
+    },
+    {
+      "generic": "summary",
+      "class": "catboost.Model"
+    },
+    {
+      "generic": "tail",
+      "class": "catboost.Pool"
+    }
+  ],
+  "export_count": 19,
+  "s3method_count": 8
+}

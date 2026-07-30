@@ -1,0 +1,5300 @@
+{
+  "python_version": "1.2.10",
+  "entries": [
+    {
+      "qualified_name": "catboost.CatBoost",
+      "kind": "class",
+      "owner": null,
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.CatBoostClassifier",
+      "kind": "class",
+      "owner": null,
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.CatBoostError",
+      "kind": "class",
+      "owner": null,
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.CatBoostRanker",
+      "kind": "class",
+      "owner": null,
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.CatBoostRegressor",
+      "kind": "class",
+      "owner": null,
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.CatboostError",
+      "kind": "class",
+      "owner": null,
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.EFeaturesSelectionAlgorithm",
+      "kind": "class",
+      "owner": null,
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.EFeaturesSelectionAlgorithm.RecursiveByPredictionValuesChange",
+      "kind": "enum_member",
+      "owner": "EFeaturesSelectionAlgorithm",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.EFeaturesSelectionAlgorithm.RecursiveByLossFunctionChange",
+      "kind": "enum_member",
+      "owner": "EFeaturesSelectionAlgorithm",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.EFeaturesSelectionAlgorithm.RecursiveByShapValues",
+      "kind": "enum_member",
+      "owner": "EFeaturesSelectionAlgorithm",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.EFeaturesSelectionGrouping",
+      "kind": "class",
+      "owner": null,
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.EFeaturesSelectionGrouping.Individual",
+      "kind": "enum_member",
+      "owner": "EFeaturesSelectionGrouping",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.EFeaturesSelectionGrouping.ByTags",
+      "kind": "enum_member",
+      "owner": "EFeaturesSelectionGrouping",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.EFstrType",
+      "kind": "class",
+      "owner": null,
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.EFstrType.PredictionValuesChange",
+      "kind": "enum_member",
+      "owner": "EFstrType",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.EFstrType.LossFunctionChange",
+      "kind": "enum_member",
+      "owner": "EFstrType",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.EFstrType.FeatureImportance",
+      "kind": "enum_member",
+      "owner": "EFstrType",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.EFstrType.Interaction",
+      "kind": "enum_member",
+      "owner": "EFstrType",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.EFstrType.ShapValues",
+      "kind": "enum_member",
+      "owner": "EFstrType",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.EFstrType.PredictionDiff",
+      "kind": "enum_member",
+      "owner": "EFstrType",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.EFstrType.ShapInteractionValues",
+      "kind": "enum_member",
+      "owner": "EFstrType",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.EFstrType.SageValues",
+      "kind": "enum_member",
+      "owner": "EFstrType",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.EShapCalcType",
+      "kind": "class",
+      "owner": null,
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.EShapCalcType.Regular",
+      "kind": "enum_member",
+      "owner": "EShapCalcType",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.EShapCalcType.Approximate",
+      "kind": "enum_member",
+      "owner": "EShapCalcType",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.EShapCalcType.Exact",
+      "kind": "enum_member",
+      "owner": "EShapCalcType",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.FeaturesData",
+      "kind": "class",
+      "owner": null,
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.MultiRegressionCustomMetric",
+      "kind": "class",
+      "owner": null,
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.MultiRegressionCustomObjective",
+      "kind": "class",
+      "owner": null,
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.MultiTargetCustomMetric",
+      "kind": "class",
+      "owner": null,
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.MultiTargetCustomObjective",
+      "kind": "class",
+      "owner": null,
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.Pool",
+      "kind": "class",
+      "owner": null,
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.cv",
+      "kind": "function",
+      "owner": null,
+      "signature": "(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=None, fold_count=None, nfold=None, inverted=False, partition_random_seed=0, seed=None, shuffle=True, logging_level=None, stratified=None, as_pandas=True, metric_period=None, verbose=None, verbose_eval=None, plot=False, plot_file=None, early_stopping_rounds=None, save_snapshot=None, snapshot_file=None, snapshot_interval=None, metric_update_interval=0.5, folds=None, type='Classical', return_models=False, log_cout=None, log_cerr=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.sample_gaussian_process",
+      "kind": "function",
+      "owner": null,
+      "signature": "(X, y, eval_set=None, cat_features=None, text_features=None, embedding_features=None, random_seed=None, samples=10, posterior_iterations=900, prior_iterations=100, learning_rate=0.1, depth=6, sigma=0.1, delta=0, random_strength=0.1, random_score_type='Gumbel', eps=0.0001, verbose=False)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.sum_models",
+      "kind": "function",
+      "owner": null,
+      "signature": "(models, weights=None, ctr_merge_policy='IntersectingCountersAverage')",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.to_classifier",
+      "kind": "function",
+      "owner": null,
+      "signature": "(model)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.to_ranker",
+      "kind": "function",
+      "owner": null,
+      "signature": "(model)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.to_regressor",
+      "kind": "function",
+      "owner": null,
+      "signature": "(model)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.train",
+      "kind": "function",
+      "owner": null,
+      "signature": "(pool=None, params=None, dtrain=None, logging_level=None, verbose=None, iterations=None, num_boost_round=None, evals=None, eval_set=None, plot=None, plot_file=None, verbose_eval=None, metric_period=None, early_stopping_rounds=None, save_snapshot=None, snapshot_file=None, snapshot_interval=None, init_model=None, log_cout=None, log_cerr=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.best_iteration_",
+      "kind": "property",
+      "owner": "CatBoost",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.best_score_",
+      "kind": "property",
+      "owner": "CatBoost",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.calc_feature_statistics",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self, data, target=None, feature=None, prediction_type=None, cat_feature_values=None, plot=True, max_cat_features_on_plot=10, thread_count=-1, plot_file=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.calc_leaf_indexes",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self, data, ntree_start=0, ntree_end=0, thread_count=-1, verbose=False)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.classes_",
+      "kind": "property",
+      "owner": "CatBoost",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.compare",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self, model, data, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None, plot_file=None, log_cout=None, log_cerr=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.copy",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.create_metric_calcer",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.drop_unused_features",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.eval_metrics",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self, data, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None, plot=False, plot_file=None, log_cout=None, log_cerr=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.evals_result_",
+      "kind": "property",
+      "owner": "CatBoost",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.feature_importances_",
+      "kind": "property",
+      "owner": "CatBoost",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.feature_names_",
+      "kind": "property",
+      "owner": "CatBoost",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.fit",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self, X, y=None, cat_features=None, text_features=None, embedding_features=None, pairs=None, graph=None, sample_weight=None, group_id=None, group_weight=None, subgroup_id=None, pairs_weight=None, baseline=None, use_best_model=None, eval_set=None, verbose=None, logging_level=None, plot=False, plot_file=None, column_description=None, verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None, save_snapshot=None, snapshot_file=None, snapshot_interval=None, init_model=None, callbacks=None, log_cout=None, log_cerr=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.get_all_params",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.get_best_iteration",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.get_best_score",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.get_borders",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.get_cat_feature_indices",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.get_embedding_feature_indices",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.get_evals_result",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.get_feature_importance",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self, data=None, type=<EFstrType.FeatureImportance: 2>, prettified=False, thread_count=-1, verbose=False, fstr_type=None, shap_mode='Auto', model_output='Raw', interaction_indices=None, shap_calc_type='Regular', reference_data=None, sage_n_samples=128, sage_batch_size=512, sage_detect_convergence=True, log_cout=None, log_cerr=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.get_leaf_values",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.get_leaf_weights",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.get_metadata",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.get_n_features_in",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.get_object_importance",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self, pool, train_pool, top_size=-1, type='Average', update_method='SinglePoint', importance_values_sign='All', thread_count=-1, verbose=False, ostr_type=None, log_cout=None, log_cerr=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.get_param",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self, key)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.get_params",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self, **_unused_kwargs)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.get_scale_and_bias",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.get_sklearn_estimator_xfail_checks",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(estimator: '_CatBoostBase') -> Dict[str, str]",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.get_test_eval",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.get_test_evals",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.get_text_feature_indices",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.get_tree_leaf_counts",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.grid_search",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self, param_grid, X, y=None, cv=3, partition_random_seed=0, calc_cv_statistics=True, search_by_train_test_split=True, refit=True, shuffle=True, stratified=None, train_size=0.8, verbose=True, plot=False, plot_file=None, log_cout=None, log_cerr=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.is_fitted",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.iterate_leaf_indexes",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self, data, ntree_start=0, ntree_end=0)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.learning_rate_",
+      "kind": "property",
+      "owner": "CatBoost",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.load_model",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self, fname=None, format='cbm', stream=None, blob=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.n_features_in_",
+      "kind": "property",
+      "owner": "CatBoost",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.plot_partial_dependence",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self, data, features, plot=True, plot_file=None, thread_count=-1)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.plot_predictions",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self, data, features_to_change, plot=True, plot_file=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.plot_tree",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self, tree_idx, pool=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.predict",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self, data, prediction_type='RawFormulaVal', ntree_start=0, ntree_end=0, thread_count=-1, verbose=None, task_type='CPU')",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.random_seed_",
+      "kind": "property",
+      "owner": "CatBoost",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.randomized_search",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self, param_distributions, X, y=None, cv=3, n_iter=10, partition_random_seed=0, calc_cv_statistics=True, search_by_train_test_split=True, refit=True, shuffle=True, stratified=None, train_size=0.8, verbose=True, plot=False, plot_file=None, log_cout=None, log_cerr=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.save_borders",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self, fname)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.save_model",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self, fname, format='cbm', export_parameters=None, pool=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.select_features",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self, X, y=None, eval_set=None, features_for_select=None, num_features_to_select=None, algorithm=None, steps=None, shap_calc_type=None, train_final_model=True, verbose=None, logging_level=None, plot=False, plot_file=None, log_cout=None, log_cerr=None, grouping=None, features_tags_for_select=None, num_features_tags_to_select=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.set_feature_names",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self, feature_names)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.set_leaf_values",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self, new_leaf_values)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.set_params",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self, **params)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.set_scale_and_bias",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self, scale, bias)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.shrink",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self, ntree_end, ntree_start=0)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.staged_predict",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self, data, prediction_type='RawFormulaVal', ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.tree_count_",
+      "kind": "property",
+      "owner": "CatBoost",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.virtual_ensembles_predict",
+      "kind": "method",
+      "owner": "CatBoost",
+      "signature": "(self, data, prediction_type='VirtEnsembles', ntree_end=0, virtual_ensembles_count=10, thread_count=-1, verbose=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.best_iteration_",
+      "kind": "property",
+      "owner": "CatBoostClassifier",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.best_score_",
+      "kind": "property",
+      "owner": "CatBoostClassifier",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.calc_feature_statistics",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self, data, target=None, feature=None, prediction_type=None, cat_feature_values=None, plot=True, max_cat_features_on_plot=10, thread_count=-1, plot_file=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.calc_leaf_indexes",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self, data, ntree_start=0, ntree_end=0, thread_count=-1, verbose=False)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.classes_",
+      "kind": "property",
+      "owner": "CatBoostClassifier",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.compare",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self, model, data, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None, plot_file=None, log_cout=None, log_cerr=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.copy",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.create_metric_calcer",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.drop_unused_features",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.eval_metrics",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self, data, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None, plot=False, plot_file=None, log_cout=None, log_cerr=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.evals_result_",
+      "kind": "property",
+      "owner": "CatBoostClassifier",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.feature_importances_",
+      "kind": "property",
+      "owner": "CatBoostClassifier",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.feature_names_",
+      "kind": "property",
+      "owner": "CatBoostClassifier",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.fit",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self, X, y=None, cat_features=None, text_features=None, embedding_features=None, graph=None, sample_weight=None, baseline=None, use_best_model=None, eval_set=None, verbose=None, logging_level=None, plot=False, plot_file=None, column_description=None, verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None, save_snapshot=None, snapshot_file=None, snapshot_interval=None, init_model=None, callbacks=None, log_cout=None, log_cerr=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.get_all_params",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.get_best_iteration",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.get_best_score",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.get_borders",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.get_cat_feature_indices",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.get_embedding_feature_indices",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.get_evals_result",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.get_feature_importance",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self, data=None, type=<EFstrType.FeatureImportance: 2>, prettified=False, thread_count=-1, verbose=False, fstr_type=None, shap_mode='Auto', model_output='Raw', interaction_indices=None, shap_calc_type='Regular', reference_data=None, sage_n_samples=128, sage_batch_size=512, sage_detect_convergence=True, log_cout=None, log_cerr=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.get_leaf_values",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.get_leaf_weights",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.get_metadata",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.get_n_features_in",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.get_object_importance",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self, pool, train_pool, top_size=-1, type='Average', update_method='SinglePoint', importance_values_sign='All', thread_count=-1, verbose=False, ostr_type=None, log_cout=None, log_cerr=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.get_param",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self, key)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.get_params",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self, **_unused_kwargs)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.get_probability_threshold",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.get_scale_and_bias",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.get_sklearn_estimator_xfail_checks",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(estimator: '_CatBoostBase') -> Dict[str, str]",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.get_test_eval",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.get_test_evals",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.get_text_feature_indices",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.get_tree_leaf_counts",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.grid_search",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self, param_grid, X, y=None, cv=3, partition_random_seed=0, calc_cv_statistics=True, search_by_train_test_split=True, refit=True, shuffle=True, stratified=None, train_size=0.8, verbose=True, plot=False, plot_file=None, log_cout=None, log_cerr=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.is_fitted",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.iterate_leaf_indexes",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self, data, ntree_start=0, ntree_end=0)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.learning_rate_",
+      "kind": "property",
+      "owner": "CatBoostClassifier",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.load_model",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self, fname=None, format='cbm', stream=None, blob=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.n_features_in_",
+      "kind": "property",
+      "owner": "CatBoostClassifier",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.plot_partial_dependence",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self, data, features, plot=True, plot_file=None, thread_count=-1)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.plot_predictions",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self, data, features_to_change, plot=True, plot_file=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.plot_tree",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self, tree_idx, pool=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.predict",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self, data, prediction_type='Class', ntree_start=0, ntree_end=0, thread_count=-1, verbose=None, task_type='CPU')",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.predict_log_proba",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self, data, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None, task_type='CPU')",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.predict_proba",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self, X, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None, task_type='CPU')",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.random_seed_",
+      "kind": "property",
+      "owner": "CatBoostClassifier",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.randomized_search",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self, param_distributions, X, y=None, cv=3, n_iter=10, partition_random_seed=0, calc_cv_statistics=True, search_by_train_test_split=True, refit=True, shuffle=True, stratified=None, train_size=0.8, verbose=True, plot=False, plot_file=None, log_cout=None, log_cerr=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.save_borders",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self, fname)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.save_model",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self, fname, format='cbm', export_parameters=None, pool=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.score",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self, X, y=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.select_features",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self, X, y=None, eval_set=None, features_for_select=None, num_features_to_select=None, algorithm=None, steps=None, shap_calc_type=None, train_final_model=True, verbose=None, logging_level=None, plot=False, plot_file=None, log_cout=None, log_cerr=None, grouping=None, features_tags_for_select=None, num_features_tags_to_select=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.set_feature_names",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self, feature_names)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.set_leaf_values",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self, new_leaf_values)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.set_params",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self, **params)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.set_probability_threshold",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self, binclass_probability_threshold=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.set_scale_and_bias",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self, scale, bias)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.shrink",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self, ntree_end, ntree_start=0)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.staged_predict",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self, data, prediction_type='Class', ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.staged_predict_log_proba",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self, data, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.staged_predict_proba",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self, data, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.tree_count_",
+      "kind": "property",
+      "owner": "CatBoostClassifier",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.virtual_ensembles_predict",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "signature": "(self, data, prediction_type='VirtEnsembles', ntree_end=0, virtual_ensembles_count=10, thread_count=-1, verbose=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.best_iteration_",
+      "kind": "property",
+      "owner": "CatBoostRegressor",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.best_score_",
+      "kind": "property",
+      "owner": "CatBoostRegressor",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.calc_feature_statistics",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self, data, target=None, feature=None, prediction_type=None, cat_feature_values=None, plot=True, max_cat_features_on_plot=10, thread_count=-1, plot_file=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.calc_leaf_indexes",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self, data, ntree_start=0, ntree_end=0, thread_count=-1, verbose=False)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.classes_",
+      "kind": "property",
+      "owner": "CatBoostRegressor",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.compare",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self, model, data, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None, plot_file=None, log_cout=None, log_cerr=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.copy",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.create_metric_calcer",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.drop_unused_features",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.eval_metrics",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self, data, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None, plot=False, plot_file=None, log_cout=None, log_cerr=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.evals_result_",
+      "kind": "property",
+      "owner": "CatBoostRegressor",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.feature_importances_",
+      "kind": "property",
+      "owner": "CatBoostRegressor",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.feature_names_",
+      "kind": "property",
+      "owner": "CatBoostRegressor",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.fit",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self, X, y=None, cat_features=None, text_features=None, embedding_features=None, graph=None, sample_weight=None, baseline=None, use_best_model=None, eval_set=None, verbose=None, logging_level=None, plot=False, plot_file=None, column_description=None, verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None, save_snapshot=None, snapshot_file=None, snapshot_interval=None, init_model=None, callbacks=None, log_cout=None, log_cerr=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.get_all_params",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.get_best_iteration",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.get_best_score",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.get_borders",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.get_cat_feature_indices",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.get_embedding_feature_indices",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.get_evals_result",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.get_feature_importance",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self, data=None, type=<EFstrType.FeatureImportance: 2>, prettified=False, thread_count=-1, verbose=False, fstr_type=None, shap_mode='Auto', model_output='Raw', interaction_indices=None, shap_calc_type='Regular', reference_data=None, sage_n_samples=128, sage_batch_size=512, sage_detect_convergence=True, log_cout=None, log_cerr=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.get_leaf_values",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.get_leaf_weights",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.get_metadata",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.get_n_features_in",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.get_object_importance",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self, pool, train_pool, top_size=-1, type='Average', update_method='SinglePoint', importance_values_sign='All', thread_count=-1, verbose=False, ostr_type=None, log_cout=None, log_cerr=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.get_param",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self, key)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.get_params",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self, **_unused_kwargs)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.get_scale_and_bias",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.get_sklearn_estimator_xfail_checks",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(estimator: '_CatBoostBase') -> Dict[str, str]",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.get_test_eval",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.get_test_evals",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.get_text_feature_indices",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.get_tree_leaf_counts",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.grid_search",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self, param_grid, X, y=None, cv=3, partition_random_seed=0, calc_cv_statistics=True, search_by_train_test_split=True, refit=True, shuffle=True, stratified=None, train_size=0.8, verbose=True, plot=False, plot_file=None, log_cout=None, log_cerr=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.is_fitted",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.iterate_leaf_indexes",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self, data, ntree_start=0, ntree_end=0)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.learning_rate_",
+      "kind": "property",
+      "owner": "CatBoostRegressor",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.load_model",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self, fname=None, format='cbm', stream=None, blob=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.n_features_in_",
+      "kind": "property",
+      "owner": "CatBoostRegressor",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.plot_partial_dependence",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self, data, features, plot=True, plot_file=None, thread_count=-1)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.plot_predictions",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self, data, features_to_change, plot=True, plot_file=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.plot_tree",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self, tree_idx, pool=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.predict",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self, data, prediction_type=None, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None, task_type='CPU')",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.random_seed_",
+      "kind": "property",
+      "owner": "CatBoostRegressor",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.randomized_search",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self, param_distributions, X, y=None, cv=3, n_iter=10, partition_random_seed=0, calc_cv_statistics=True, search_by_train_test_split=True, refit=True, shuffle=True, stratified=None, train_size=0.8, verbose=True, plot=False, plot_file=None, log_cout=None, log_cerr=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.save_borders",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self, fname)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.save_model",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self, fname, format='cbm', export_parameters=None, pool=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.score",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self, X, y=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.select_features",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self, X, y=None, eval_set=None, features_for_select=None, num_features_to_select=None, algorithm=None, steps=None, shap_calc_type=None, train_final_model=True, verbose=None, logging_level=None, plot=False, plot_file=None, log_cout=None, log_cerr=None, grouping=None, features_tags_for_select=None, num_features_tags_to_select=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.set_feature_names",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self, feature_names)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.set_leaf_values",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self, new_leaf_values)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.set_params",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self, **params)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.set_scale_and_bias",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self, scale, bias)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.shrink",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self, ntree_end, ntree_start=0)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.staged_predict",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self, data, prediction_type='RawFormulaVal', ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.tree_count_",
+      "kind": "property",
+      "owner": "CatBoostRegressor",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.virtual_ensembles_predict",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "signature": "(self, data, prediction_type='VirtEnsembles', ntree_end=0, virtual_ensembles_count=10, thread_count=-1, verbose=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.best_iteration_",
+      "kind": "property",
+      "owner": "CatBoostRanker",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.best_score_",
+      "kind": "property",
+      "owner": "CatBoostRanker",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.calc_feature_statistics",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self, data, target=None, feature=None, prediction_type=None, cat_feature_values=None, plot=True, max_cat_features_on_plot=10, thread_count=-1, plot_file=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.calc_leaf_indexes",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self, data, ntree_start=0, ntree_end=0, thread_count=-1, verbose=False)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.classes_",
+      "kind": "property",
+      "owner": "CatBoostRanker",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.compare",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self, model, data, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None, plot_file=None, log_cout=None, log_cerr=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.copy",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.create_metric_calcer",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.drop_unused_features",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.eval_metrics",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self, data, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None, plot=False, plot_file=None, log_cout=None, log_cerr=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.evals_result_",
+      "kind": "property",
+      "owner": "CatBoostRanker",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.feature_importances_",
+      "kind": "property",
+      "owner": "CatBoostRanker",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.feature_names_",
+      "kind": "property",
+      "owner": "CatBoostRanker",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.fit",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self, X, y=None, group_id=None, cat_features=None, text_features=None, embedding_features=None, pairs=None, graph=None, sample_weight=None, group_weight=None, subgroup_id=None, pairs_weight=None, baseline=None, use_best_model=None, eval_set=None, verbose=None, logging_level=None, plot=False, plot_file=None, column_description=None, verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None, save_snapshot=None, snapshot_file=None, snapshot_interval=None, init_model=None, callbacks=None, log_cout=None, log_cerr=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.get_all_params",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.get_best_iteration",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.get_best_score",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.get_borders",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.get_cat_feature_indices",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.get_embedding_feature_indices",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.get_evals_result",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.get_feature_importance",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self, data=None, type=<EFstrType.FeatureImportance: 2>, prettified=False, thread_count=-1, verbose=False, fstr_type=None, shap_mode='Auto', model_output='Raw', interaction_indices=None, shap_calc_type='Regular', reference_data=None, sage_n_samples=128, sage_batch_size=512, sage_detect_convergence=True, log_cout=None, log_cerr=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.get_leaf_values",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.get_leaf_weights",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.get_metadata",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.get_n_features_in",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.get_object_importance",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self, pool, train_pool, top_size=-1, type='Average', update_method='SinglePoint', importance_values_sign='All', thread_count=-1, verbose=False, ostr_type=None, log_cout=None, log_cerr=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.get_param",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self, key)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.get_params",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self, **_unused_kwargs)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.get_scale_and_bias",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.get_sklearn_estimator_xfail_checks",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(estimator: '_CatBoostBase') -> Dict[str, str]",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.get_test_eval",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.get_test_evals",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.get_text_feature_indices",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.get_tree_leaf_counts",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.grid_search",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self, param_grid, X, y=None, cv=3, partition_random_seed=0, calc_cv_statistics=True, search_by_train_test_split=True, refit=True, shuffle=True, stratified=None, train_size=0.8, verbose=True, plot=False, plot_file=None, log_cout=None, log_cerr=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.is_fitted",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.iterate_leaf_indexes",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self, data, ntree_start=0, ntree_end=0)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.learning_rate_",
+      "kind": "property",
+      "owner": "CatBoostRanker",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.load_model",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self, fname=None, format='cbm', stream=None, blob=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.n_features_in_",
+      "kind": "property",
+      "owner": "CatBoostRanker",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.plot_partial_dependence",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self, data, features, plot=True, plot_file=None, thread_count=-1)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.plot_predictions",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self, data, features_to_change, plot=True, plot_file=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.plot_tree",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self, tree_idx, pool=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.predict",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self, X, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.random_seed_",
+      "kind": "property",
+      "owner": "CatBoostRanker",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.randomized_search",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self, param_distributions, X, y=None, cv=3, n_iter=10, partition_random_seed=0, calc_cv_statistics=True, search_by_train_test_split=True, refit=True, shuffle=True, stratified=None, train_size=0.8, verbose=True, plot=False, plot_file=None, log_cout=None, log_cerr=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.save_borders",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self, fname)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.save_model",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self, fname, format='cbm', export_parameters=None, pool=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.score",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self, X, y=None, group_id=None, top=None, type=None, denominator=None, group_weight=None, thread_count=-1)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.select_features",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self, X, y=None, eval_set=None, features_for_select=None, num_features_to_select=None, algorithm=None, steps=None, shap_calc_type=None, train_final_model=True, verbose=None, logging_level=None, plot=False, plot_file=None, log_cout=None, log_cerr=None, grouping=None, features_tags_for_select=None, num_features_tags_to_select=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.set_feature_names",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self, feature_names)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.set_leaf_values",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self, new_leaf_values)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.set_params",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self, **params)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.set_scale_and_bias",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self, scale, bias)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.shrink",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self, ntree_end, ntree_start=0)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.staged_predict",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self, X, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.tree_count_",
+      "kind": "property",
+      "owner": "CatBoostRanker",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.virtual_ensembles_predict",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "signature": "(self, data, prediction_type='VirtEnsembles', ntree_end=0, virtual_ensembles_count=10, thread_count=-1, verbose=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "Pool.get_baseline",
+      "kind": "attribute",
+      "owner": "Pool",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "Pool.get_cat_feature_indices",
+      "kind": "attribute",
+      "owner": "Pool",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "Pool.get_embedding_feature_indices",
+      "kind": "attribute",
+      "owner": "Pool",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "Pool.get_feature_names",
+      "kind": "attribute",
+      "owner": "Pool",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "Pool.get_features",
+      "kind": "attribute",
+      "owner": "Pool",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "Pool.get_group_id_hash",
+      "kind": "attribute",
+      "owner": "Pool",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "Pool.get_label",
+      "kind": "attribute",
+      "owner": "Pool",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "Pool.get_text_feature_indices",
+      "kind": "attribute",
+      "owner": "Pool",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "Pool.get_weight",
+      "kind": "attribute",
+      "owner": "Pool",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "Pool.has_label",
+      "kind": "attribute",
+      "owner": "Pool",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "Pool.is_empty_",
+      "kind": "attribute",
+      "owner": "Pool",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "Pool.is_quantized",
+      "kind": "attribute",
+      "owner": "Pool",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "Pool.num_col",
+      "kind": "attribute",
+      "owner": "Pool",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "Pool.num_pairs",
+      "kind": "attribute",
+      "owner": "Pool",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "Pool.num_row",
+      "kind": "attribute",
+      "owner": "Pool",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "Pool.quantize",
+      "kind": "method",
+      "owner": "Pool",
+      "signature": "(self, ignored_features=None, per_float_feature_quantization=None, border_count=None, max_bin=None, feature_border_type=None, sparse_features_conflict_fraction=None, nan_mode=None, input_borders=None, task_type=None, used_ram_limit=None, random_seed=None, **kwargs)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "Pool.save",
+      "kind": "method",
+      "owner": "Pool",
+      "signature": "(self, fname)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "Pool.save_quantization_borders",
+      "kind": "attribute",
+      "owner": "Pool",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "Pool.set_baseline",
+      "kind": "method",
+      "owner": "Pool",
+      "signature": "(self, baseline)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "Pool.set_feature_names",
+      "kind": "method",
+      "owner": "Pool",
+      "signature": "(self, feature_names)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "Pool.set_group_id",
+      "kind": "method",
+      "owner": "Pool",
+      "signature": "(self, group_id)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "Pool.set_group_weight",
+      "kind": "method",
+      "owner": "Pool",
+      "signature": "(self, group_weight)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "Pool.set_pairs",
+      "kind": "method",
+      "owner": "Pool",
+      "signature": "(self, pairs)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "Pool.set_pairs_weight",
+      "kind": "method",
+      "owner": "Pool",
+      "signature": "(self, pairs_weight)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "Pool.set_subgroup_id",
+      "kind": "method",
+      "owner": "Pool",
+      "signature": "(self, subgroup_id)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "Pool.set_timestamp",
+      "kind": "method",
+      "owner": "Pool",
+      "signature": "(self, timestamp)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "Pool.set_weight",
+      "kind": "method",
+      "owner": "Pool",
+      "signature": "(self, weight)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "Pool.shape",
+      "kind": "attribute",
+      "owner": "Pool",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "Pool.slice",
+      "kind": "method",
+      "owner": "Pool",
+      "signature": "(self, rindex)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "Pool.train_eval_split",
+      "kind": "method",
+      "owner": "Pool",
+      "signature": "(self, has_time, is_classification, eval_fraction, save_eval_pool)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "FeaturesData.get_cat_feature_count",
+      "kind": "attribute",
+      "owner": "FeaturesData",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "FeaturesData.get_feature_count",
+      "kind": "attribute",
+      "owner": "FeaturesData",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "FeaturesData.get_feature_names",
+      "kind": "attribute",
+      "owner": "FeaturesData",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "FeaturesData.get_num_feature_count",
+      "kind": "attribute",
+      "owner": "FeaturesData",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "FeaturesData.get_object_count",
+      "kind": "attribute",
+      "owner": "FeaturesData",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.__init__(param=params)",
+      "kind": "parameter",
+      "owner": "CatBoost.__init__",
+      "signature": "params=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.fit(param=X)",
+      "kind": "parameter",
+      "owner": "CatBoost.fit",
+      "signature": "X",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.fit(param=y)",
+      "kind": "parameter",
+      "owner": "CatBoost.fit",
+      "signature": "y=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.fit(param=cat_features)",
+      "kind": "parameter",
+      "owner": "CatBoost.fit",
+      "signature": "cat_features=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.fit(param=text_features)",
+      "kind": "parameter",
+      "owner": "CatBoost.fit",
+      "signature": "text_features=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.fit(param=embedding_features)",
+      "kind": "parameter",
+      "owner": "CatBoost.fit",
+      "signature": "embedding_features=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.fit(param=pairs)",
+      "kind": "parameter",
+      "owner": "CatBoost.fit",
+      "signature": "pairs=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.fit(param=graph)",
+      "kind": "parameter",
+      "owner": "CatBoost.fit",
+      "signature": "graph=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.fit(param=sample_weight)",
+      "kind": "parameter",
+      "owner": "CatBoost.fit",
+      "signature": "sample_weight=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.fit(param=group_id)",
+      "kind": "parameter",
+      "owner": "CatBoost.fit",
+      "signature": "group_id=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.fit(param=group_weight)",
+      "kind": "parameter",
+      "owner": "CatBoost.fit",
+      "signature": "group_weight=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.fit(param=subgroup_id)",
+      "kind": "parameter",
+      "owner": "CatBoost.fit",
+      "signature": "subgroup_id=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.fit(param=pairs_weight)",
+      "kind": "parameter",
+      "owner": "CatBoost.fit",
+      "signature": "pairs_weight=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.fit(param=baseline)",
+      "kind": "parameter",
+      "owner": "CatBoost.fit",
+      "signature": "baseline=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.fit(param=use_best_model)",
+      "kind": "parameter",
+      "owner": "CatBoost.fit",
+      "signature": "use_best_model=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.fit(param=eval_set)",
+      "kind": "parameter",
+      "owner": "CatBoost.fit",
+      "signature": "eval_set=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.fit(param=verbose)",
+      "kind": "parameter",
+      "owner": "CatBoost.fit",
+      "signature": "verbose=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.fit(param=logging_level)",
+      "kind": "parameter",
+      "owner": "CatBoost.fit",
+      "signature": "logging_level=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.fit(param=plot)",
+      "kind": "parameter",
+      "owner": "CatBoost.fit",
+      "signature": "plot=False",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.fit(param=plot_file)",
+      "kind": "parameter",
+      "owner": "CatBoost.fit",
+      "signature": "plot_file=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.fit(param=column_description)",
+      "kind": "parameter",
+      "owner": "CatBoost.fit",
+      "signature": "column_description=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.fit(param=verbose_eval)",
+      "kind": "parameter",
+      "owner": "CatBoost.fit",
+      "signature": "verbose_eval=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.fit(param=metric_period)",
+      "kind": "parameter",
+      "owner": "CatBoost.fit",
+      "signature": "metric_period=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.fit(param=silent)",
+      "kind": "parameter",
+      "owner": "CatBoost.fit",
+      "signature": "silent=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.fit(param=early_stopping_rounds)",
+      "kind": "parameter",
+      "owner": "CatBoost.fit",
+      "signature": "early_stopping_rounds=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.fit(param=save_snapshot)",
+      "kind": "parameter",
+      "owner": "CatBoost.fit",
+      "signature": "save_snapshot=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.fit(param=snapshot_file)",
+      "kind": "parameter",
+      "owner": "CatBoost.fit",
+      "signature": "snapshot_file=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.fit(param=snapshot_interval)",
+      "kind": "parameter",
+      "owner": "CatBoost.fit",
+      "signature": "snapshot_interval=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.fit(param=init_model)",
+      "kind": "parameter",
+      "owner": "CatBoost.fit",
+      "signature": "init_model=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.fit(param=callbacks)",
+      "kind": "parameter",
+      "owner": "CatBoost.fit",
+      "signature": "callbacks=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.fit(param=log_cout)",
+      "kind": "parameter",
+      "owner": "CatBoost.fit",
+      "signature": "log_cout=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoost.fit(param=log_cerr)",
+      "kind": "parameter",
+      "owner": "CatBoost.fit",
+      "signature": "log_cerr=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=iterations)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "iterations=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=learning_rate)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "learning_rate=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=depth)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "depth=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=l2_leaf_reg)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "l2_leaf_reg=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=model_size_reg)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "model_size_reg=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=rsm)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "rsm=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=loss_function)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "loss_function=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=border_count)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "border_count=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=feature_border_type)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "feature_border_type=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=per_float_feature_quantization)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "per_float_feature_quantization=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=input_borders)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "input_borders=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=output_borders)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "output_borders=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=fold_permutation_block)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "fold_permutation_block=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=od_pval)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "od_pval=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=od_wait)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "od_wait=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=od_type)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "od_type=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=nan_mode)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "nan_mode=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=counter_calc_method)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "counter_calc_method=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=leaf_estimation_iterations)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "leaf_estimation_iterations=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=leaf_estimation_method)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "leaf_estimation_method=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=thread_count)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "thread_count=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=random_seed)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "random_seed=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=use_best_model)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "use_best_model=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=best_model_min_trees)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "best_model_min_trees=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=verbose)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "verbose=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=silent)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "silent=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=logging_level)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "logging_level=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=metric_period)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "metric_period=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=ctr_leaf_count_limit)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "ctr_leaf_count_limit=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=store_all_simple_ctr)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "store_all_simple_ctr=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=max_ctr_complexity)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "max_ctr_complexity=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=has_time)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "has_time=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=allow_const_label)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "allow_const_label=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=target_border)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "target_border=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=classes_count)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "classes_count=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=class_weights)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "class_weights=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=auto_class_weights)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "auto_class_weights=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=class_names)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "class_names=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=one_hot_max_size)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "one_hot_max_size=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=random_strength)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "random_strength=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=random_score_type)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "random_score_type=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=name)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "name=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=ignored_features)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "ignored_features=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=train_dir)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "train_dir=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=custom_loss)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "custom_loss=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=custom_metric)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "custom_metric=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=eval_metric)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "eval_metric=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=bagging_temperature)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "bagging_temperature=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=save_snapshot)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "save_snapshot=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=snapshot_file)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "snapshot_file=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=snapshot_interval)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "snapshot_interval=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=fold_len_multiplier)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "fold_len_multiplier=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=used_ram_limit)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "used_ram_limit=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=gpu_ram_part)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "gpu_ram_part=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=pinned_memory_size)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "pinned_memory_size=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=allow_writing_files)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "allow_writing_files=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=final_ctr_computation_mode)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "final_ctr_computation_mode=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=approx_on_full_history)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "approx_on_full_history=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=boosting_type)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "boosting_type=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=simple_ctr)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "simple_ctr=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=combinations_ctr)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "combinations_ctr=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=per_feature_ctr)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "per_feature_ctr=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=ctr_description)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "ctr_description=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=ctr_target_border_count)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "ctr_target_border_count=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=task_type)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "task_type=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=device_config)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "device_config=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=devices)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "devices=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=bootstrap_type)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "bootstrap_type=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=subsample)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "subsample=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=mvs_reg)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "mvs_reg=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=sampling_unit)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "sampling_unit=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=sampling_frequency)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "sampling_frequency=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=dev_score_calc_obj_block_size)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "dev_score_calc_obj_block_size=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=dev_efb_max_buckets)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "dev_efb_max_buckets=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=sparse_features_conflict_fraction)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "sparse_features_conflict_fraction=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=max_depth)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "max_depth=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=n_estimators)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "n_estimators=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=num_boost_round)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "num_boost_round=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=num_trees)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "num_trees=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=colsample_bylevel)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "colsample_bylevel=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=random_state)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "random_state=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=reg_lambda)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "reg_lambda=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=objective)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "objective=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=eta)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "eta=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=max_bin)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "max_bin=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=scale_pos_weight)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "scale_pos_weight=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=gpu_cat_features_storage)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "gpu_cat_features_storage=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=data_partition)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "data_partition=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=metadata)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "metadata=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=early_stopping_rounds)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "early_stopping_rounds=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=cat_features)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "cat_features=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=grow_policy)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "grow_policy=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=min_data_in_leaf)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "min_data_in_leaf=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=min_child_samples)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "min_child_samples=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=max_leaves)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "max_leaves=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=num_leaves)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "num_leaves=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=score_function)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "score_function=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=leaf_estimation_backtracking)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "leaf_estimation_backtracking=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=ctr_history_unit)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "ctr_history_unit=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=monotone_constraints)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "monotone_constraints=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=feature_weights)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "feature_weights=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=penalties_coefficient)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "penalties_coefficient=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=first_feature_use_penalties)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "first_feature_use_penalties=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=per_object_feature_penalties)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "per_object_feature_penalties=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=model_shrink_rate)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "model_shrink_rate=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=model_shrink_mode)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "model_shrink_mode=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=langevin)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "langevin=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=diffusion_temperature)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "diffusion_temperature=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=posterior_sampling)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "posterior_sampling=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=boost_from_average)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "boost_from_average=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=text_features)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "text_features=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=tokenizers)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "tokenizers=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=dictionaries)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "dictionaries=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=feature_calcers)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "feature_calcers=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=text_processing)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "text_processing=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=embedding_features)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "embedding_features=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=callback)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "callback=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=eval_fraction)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "eval_fraction=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostClassifier.__init__(param=fixed_binary_splits)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__",
+      "signature": "fixed_binary_splits=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=iterations)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "iterations=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=learning_rate)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "learning_rate=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=depth)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "depth=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=l2_leaf_reg)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "l2_leaf_reg=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=model_size_reg)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "model_size_reg=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=rsm)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "rsm=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=loss_function)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "loss_function='RMSE'",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=border_count)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "border_count=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=feature_border_type)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "feature_border_type=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=per_float_feature_quantization)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "per_float_feature_quantization=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=input_borders)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "input_borders=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=output_borders)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "output_borders=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=fold_permutation_block)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "fold_permutation_block=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=od_pval)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "od_pval=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=od_wait)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "od_wait=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=od_type)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "od_type=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=nan_mode)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "nan_mode=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=counter_calc_method)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "counter_calc_method=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=leaf_estimation_iterations)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "leaf_estimation_iterations=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=leaf_estimation_method)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "leaf_estimation_method=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=thread_count)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "thread_count=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=random_seed)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "random_seed=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=use_best_model)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "use_best_model=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=best_model_min_trees)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "best_model_min_trees=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=verbose)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "verbose=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=silent)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "silent=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=logging_level)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "logging_level=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=metric_period)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "metric_period=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=ctr_leaf_count_limit)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "ctr_leaf_count_limit=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=store_all_simple_ctr)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "store_all_simple_ctr=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=max_ctr_complexity)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "max_ctr_complexity=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=has_time)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "has_time=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=allow_const_label)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "allow_const_label=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=target_border)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "target_border=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=one_hot_max_size)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "one_hot_max_size=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=random_strength)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "random_strength=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=random_score_type)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "random_score_type=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=name)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "name=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=ignored_features)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "ignored_features=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=train_dir)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "train_dir=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=custom_metric)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "custom_metric=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=eval_metric)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "eval_metric=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=bagging_temperature)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "bagging_temperature=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=save_snapshot)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "save_snapshot=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=snapshot_file)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "snapshot_file=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=snapshot_interval)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "snapshot_interval=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=fold_len_multiplier)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "fold_len_multiplier=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=used_ram_limit)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "used_ram_limit=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=gpu_ram_part)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "gpu_ram_part=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=pinned_memory_size)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "pinned_memory_size=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=allow_writing_files)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "allow_writing_files=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=final_ctr_computation_mode)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "final_ctr_computation_mode=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=approx_on_full_history)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "approx_on_full_history=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=boosting_type)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "boosting_type=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=simple_ctr)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "simple_ctr=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=combinations_ctr)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "combinations_ctr=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=per_feature_ctr)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "per_feature_ctr=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=ctr_description)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "ctr_description=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=ctr_target_border_count)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "ctr_target_border_count=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=task_type)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "task_type=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=device_config)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "device_config=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=devices)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "devices=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=bootstrap_type)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "bootstrap_type=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=subsample)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "subsample=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=mvs_reg)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "mvs_reg=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=sampling_frequency)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "sampling_frequency=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=sampling_unit)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "sampling_unit=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=dev_score_calc_obj_block_size)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "dev_score_calc_obj_block_size=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=dev_efb_max_buckets)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "dev_efb_max_buckets=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=sparse_features_conflict_fraction)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "sparse_features_conflict_fraction=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=max_depth)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "max_depth=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=n_estimators)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "n_estimators=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=num_boost_round)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "num_boost_round=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=num_trees)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "num_trees=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=colsample_bylevel)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "colsample_bylevel=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=random_state)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "random_state=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=reg_lambda)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "reg_lambda=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=objective)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "objective=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=eta)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "eta=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=max_bin)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "max_bin=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=gpu_cat_features_storage)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "gpu_cat_features_storage=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=data_partition)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "data_partition=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=metadata)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "metadata=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=early_stopping_rounds)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "early_stopping_rounds=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=cat_features)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "cat_features=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=grow_policy)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "grow_policy=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=min_data_in_leaf)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "min_data_in_leaf=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=min_child_samples)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "min_child_samples=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=max_leaves)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "max_leaves=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=num_leaves)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "num_leaves=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=score_function)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "score_function=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=leaf_estimation_backtracking)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "leaf_estimation_backtracking=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=ctr_history_unit)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "ctr_history_unit=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=monotone_constraints)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "monotone_constraints=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=feature_weights)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "feature_weights=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=penalties_coefficient)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "penalties_coefficient=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=first_feature_use_penalties)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "first_feature_use_penalties=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=per_object_feature_penalties)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "per_object_feature_penalties=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=model_shrink_rate)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "model_shrink_rate=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=model_shrink_mode)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "model_shrink_mode=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=langevin)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "langevin=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=diffusion_temperature)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "diffusion_temperature=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=posterior_sampling)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "posterior_sampling=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=boost_from_average)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "boost_from_average=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=text_features)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "text_features=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=tokenizers)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "tokenizers=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=dictionaries)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "dictionaries=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=feature_calcers)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "feature_calcers=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=text_processing)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "text_processing=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=embedding_features)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "embedding_features=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=eval_fraction)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "eval_fraction=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRegressor.__init__(param=fixed_binary_splits)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__",
+      "signature": "fixed_binary_splits=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=iterations)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "iterations=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=learning_rate)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "learning_rate=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=depth)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "depth=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=l2_leaf_reg)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "l2_leaf_reg=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=model_size_reg)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "model_size_reg=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=rsm)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "rsm=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=loss_function)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "loss_function='YetiRank'",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=border_count)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "border_count=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=feature_border_type)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "feature_border_type=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=per_float_feature_quantization)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "per_float_feature_quantization=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=input_borders)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "input_borders=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=output_borders)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "output_borders=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=fold_permutation_block)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "fold_permutation_block=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=od_pval)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "od_pval=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=od_wait)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "od_wait=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=od_type)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "od_type=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=nan_mode)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "nan_mode=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=counter_calc_method)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "counter_calc_method=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=leaf_estimation_iterations)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "leaf_estimation_iterations=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=leaf_estimation_method)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "leaf_estimation_method=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=thread_count)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "thread_count=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=random_seed)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "random_seed=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=use_best_model)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "use_best_model=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=best_model_min_trees)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "best_model_min_trees=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=verbose)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "verbose=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=silent)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "silent=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=logging_level)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "logging_level=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=metric_period)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "metric_period=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=ctr_leaf_count_limit)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "ctr_leaf_count_limit=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=store_all_simple_ctr)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "store_all_simple_ctr=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=max_ctr_complexity)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "max_ctr_complexity=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=has_time)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "has_time=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=allow_const_label)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "allow_const_label=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=target_border)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "target_border=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=one_hot_max_size)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "one_hot_max_size=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=random_strength)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "random_strength=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=random_score_type)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "random_score_type=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=name)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "name=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=ignored_features)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "ignored_features=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=train_dir)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "train_dir=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=custom_metric)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "custom_metric=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=eval_metric)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "eval_metric=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=bagging_temperature)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "bagging_temperature=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=save_snapshot)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "save_snapshot=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=snapshot_file)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "snapshot_file=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=snapshot_interval)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "snapshot_interval=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=fold_len_multiplier)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "fold_len_multiplier=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=used_ram_limit)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "used_ram_limit=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=gpu_ram_part)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "gpu_ram_part=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=pinned_memory_size)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "pinned_memory_size=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=allow_writing_files)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "allow_writing_files=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=final_ctr_computation_mode)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "final_ctr_computation_mode=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=approx_on_full_history)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "approx_on_full_history=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=boosting_type)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "boosting_type=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=simple_ctr)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "simple_ctr=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=combinations_ctr)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "combinations_ctr=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=per_feature_ctr)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "per_feature_ctr=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=ctr_description)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "ctr_description=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=ctr_target_border_count)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "ctr_target_border_count=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=task_type)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "task_type=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=device_config)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "device_config=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=devices)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "devices=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=bootstrap_type)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "bootstrap_type=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=subsample)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "subsample=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=mvs_reg)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "mvs_reg=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=sampling_frequency)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "sampling_frequency=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=sampling_unit)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "sampling_unit=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=dev_score_calc_obj_block_size)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "dev_score_calc_obj_block_size=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=dev_efb_max_buckets)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "dev_efb_max_buckets=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=sparse_features_conflict_fraction)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "sparse_features_conflict_fraction=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=max_depth)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "max_depth=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=n_estimators)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "n_estimators=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=num_boost_round)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "num_boost_round=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=num_trees)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "num_trees=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=colsample_bylevel)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "colsample_bylevel=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=random_state)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "random_state=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=reg_lambda)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "reg_lambda=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=objective)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "objective=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=eta)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "eta=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=max_bin)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "max_bin=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=gpu_cat_features_storage)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "gpu_cat_features_storage=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=data_partition)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "data_partition=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=metadata)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "metadata=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=early_stopping_rounds)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "early_stopping_rounds=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=cat_features)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "cat_features=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=grow_policy)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "grow_policy=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=min_data_in_leaf)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "min_data_in_leaf=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=min_child_samples)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "min_child_samples=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=max_leaves)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "max_leaves=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=num_leaves)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "num_leaves=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=score_function)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "score_function=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=leaf_estimation_backtracking)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "leaf_estimation_backtracking=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=ctr_history_unit)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "ctr_history_unit=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=monotone_constraints)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "monotone_constraints=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=feature_weights)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "feature_weights=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=penalties_coefficient)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "penalties_coefficient=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=first_feature_use_penalties)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "first_feature_use_penalties=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=per_object_feature_penalties)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "per_object_feature_penalties=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=model_shrink_rate)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "model_shrink_rate=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=model_shrink_mode)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "model_shrink_mode=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=langevin)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "langevin=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=diffusion_temperature)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "diffusion_temperature=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=posterior_sampling)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "posterior_sampling=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=boost_from_average)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "boost_from_average=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=text_features)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "text_features=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=tokenizers)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "tokenizers=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=dictionaries)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "dictionaries=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=feature_calcers)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "feature_calcers=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=text_processing)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "text_processing=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=embedding_features)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "embedding_features=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=eval_fraction)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "eval_fraction=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "CatBoostRanker.__init__(param=fixed_binary_splits)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__",
+      "signature": "fixed_binary_splits=None",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.utils.ARRAY_TYPES",
+      "kind": "attribute",
+      "owner": "utils",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.utils.CatBoostError",
+      "kind": "class",
+      "owner": "utils",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.utils.DataMetaInfo",
+      "kind": "class",
+      "owner": "utils",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.utils.PATH_TYPES",
+      "kind": "attribute",
+      "owner": "utils",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.utils.Pool",
+      "kind": "class",
+      "owner": "utils",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.utils.TargetStats",
+      "kind": "class",
+      "owner": "utils",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.utils.calculate_quantization_grid",
+      "kind": "function",
+      "owner": "utils",
+      "signature": "(values, border_count, border_type='Median')",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.utils.compute_training_options",
+      "kind": "attribute",
+      "owner": "utils",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.utils.compute_wx_test",
+      "kind": "attribute",
+      "owner": "utils",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.utils.contextmanager",
+      "kind": "function",
+      "owner": "utils",
+      "signature": "(func)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.utils.convert_to_onnx_object",
+      "kind": "function",
+      "owner": "utils",
+      "signature": "(model, export_parameters=None, **kwargs)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.utils.create_cd",
+      "kind": "function",
+      "owner": "utils",
+      "signature": "(label=None, cat_features=None, text_features=None, embedding_features=None, weight=None, baseline=None, doc_id=None, group_id=None, subgroup_id=None, timestamp=None, auxiliary_columns=None, feature_names=None, output_path='train.cd')",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.utils.defaultdict",
+      "kind": "class",
+      "owner": "utils",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.utils.eval_metric",
+      "kind": "function",
+      "owner": "utils",
+      "signature": "(label, approx, metric, weight=None, group_id=None, group_weight=None, subgroup_id=None, pairs=None, thread_count=-1)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.utils.fspath",
+      "kind": "attribute",
+      "owner": "utils",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.utils.get_confusion_matrix",
+      "kind": "function",
+      "owner": "utils",
+      "signature": "(model, data, thread_count=-1)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.utils.get_fnr_curve",
+      "kind": "function",
+      "owner": "utils",
+      "signature": "(model=None, data=None, curve=None, thread_count=-1, plot=False)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.utils.get_fpr_curve",
+      "kind": "function",
+      "owner": "utils",
+      "signature": "(model=None, data=None, curve=None, thread_count=-1, plot=False)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.utils.get_gpu_device_count",
+      "kind": "function",
+      "owner": "utils",
+      "signature": "()",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.utils.get_roc_curve",
+      "kind": "function",
+      "owner": "utils",
+      "signature": "(model, data, thread_count=-1, plot=False)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.utils.pl",
+      "kind": "class",
+      "owner": "utils",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.utils.polars",
+      "kind": "class",
+      "owner": "utils",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.utils.quantize",
+      "kind": "function",
+      "owner": "utils",
+      "signature": "(data_path, column_description=None, pairs=None, graph=None, delimiter='\\t', has_header=False, ignore_csv_quoting=False, feature_names=None, thread_count=-1, ignored_features=None, per_float_feature_quantization=None, border_count=None, max_bin=None, feature_border_type=None, nan_mode=None, input_borders=None, task_type=None, used_ram_limit=None, random_seed=None, log_cout=<_io.TextIOWrapper name='<stdout>' mode='w' encoding='utf-8'>, log_cerr=<_io.TextIOWrapper name='<stderr>' mode='w' encoding='utf-8'>, **kwargs)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.utils.read_cd",
+      "kind": "function",
+      "owner": "utils",
+      "signature": "(cd_file, column_count=None, data_file=None, canonize_column_types=False)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.utils.reset_trace_backend",
+      "kind": "function",
+      "owner": "utils",
+      "signature": "(filename)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.utils.select_threshold",
+      "kind": "function",
+      "owner": "utils",
+      "signature": "(model=None, data=None, curve=None, FPR=None, FNR=None, thread_count=-1)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.eval.CaseEvaluationResult",
+      "kind": "class",
+      "owner": "eval",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.eval.CatBoost",
+      "kind": "class",
+      "owner": "eval",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.eval.CatBoostError",
+      "kind": "class",
+      "owner": "eval",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.eval.CatboostEvaluation",
+      "kind": "class",
+      "owner": "eval",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.eval.Enum",
+      "kind": "class",
+      "owner": "eval",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.eval.EvalType",
+      "kind": "class",
+      "owner": "eval",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.eval.EvaluationResults",
+      "kind": "class",
+      "owner": "eval",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.eval.ExecutionCase",
+      "kind": "class",
+      "owner": "eval",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.eval.FactorUtils",
+      "kind": "class",
+      "owner": "eval",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.eval.FoldModelsHandler",
+      "kind": "class",
+      "owner": "eval",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.eval.LabelMode",
+      "kind": "class",
+      "owner": "eval",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.eval.MetricEvaluationResult",
+      "kind": "class",
+      "owner": "eval",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.eval.ScoreConfig",
+      "kind": "class",
+      "owner": "eval",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.eval.ScoreType",
+      "kind": "class",
+      "owner": "eval",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.eval.calc_bootstrap_ci_for_mean",
+      "kind": "function",
+      "owner": "eval",
+      "signature": "(samples, level=0.05, tries=999)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.eval.calc_wilcoxon_test",
+      "kind": "function",
+      "owner": "eval",
+      "signature": "(baseline, test)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.eval.compute_wx_test",
+      "kind": "attribute",
+      "owner": "eval",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.eval.copy",
+      "kind": "function",
+      "owner": "eval",
+      "signature": "(x)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.eval.make_dirs_if_not_exists",
+      "kind": "function",
+      "owner": "eval",
+      "signature": "(name)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.eval.metric_description_or_str_to_str",
+      "kind": "function",
+      "owner": "eval",
+      "signature": "(description)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.eval.print_function",
+      "kind": "attribute",
+      "owner": "eval",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.eval.save_plot",
+      "kind": "function",
+      "owner": "eval",
+      "signature": "(fig, file_name=None)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.eval.series_to_line",
+      "kind": "function",
+      "owner": "eval",
+      "signature": "(row, sep)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.datasets.PATH_TYPES",
+      "kind": "attribute",
+      "owner": "datasets",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.datasets.adult",
+      "kind": "function",
+      "owner": "datasets",
+      "signature": "()",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.datasets.amazon",
+      "kind": "function",
+      "owner": "datasets",
+      "signature": "()",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.datasets.epsilon",
+      "kind": "function",
+      "owner": "datasets",
+      "signature": "()",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.datasets.fspath",
+      "kind": "attribute",
+      "owner": "datasets",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.datasets.higgs",
+      "kind": "function",
+      "owner": "datasets",
+      "signature": "()",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.datasets.imdb",
+      "kind": "function",
+      "owner": "datasets",
+      "signature": "()",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.datasets.logger",
+      "kind": "attribute",
+      "owner": "datasets",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.datasets.monotonic1",
+      "kind": "function",
+      "owner": "datasets",
+      "signature": "()",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.datasets.monotonic2",
+      "kind": "function",
+      "owner": "datasets",
+      "signature": "()",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.datasets.msrank",
+      "kind": "function",
+      "owner": "datasets",
+      "signature": "()",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.datasets.msrank_10k",
+      "kind": "function",
+      "owner": "datasets",
+      "signature": "()",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.datasets.rotten_tomatoes",
+      "kind": "function",
+      "owner": "datasets",
+      "signature": "()",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.datasets.set_cache_path",
+      "kind": "function",
+      "owner": "datasets",
+      "signature": "(path)",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.datasets.titanic",
+      "kind": "function",
+      "owner": "datasets",
+      "signature": "()",
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.text_processing.Dictionary",
+      "kind": "class",
+      "owner": "text_processing",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.text_processing.Tokenizer",
+      "kind": "class",
+      "owner": "text_processing",
+      "signature": null,
+      "introspectable": true
+    }
+  ],
+  "private_excluded_count": 559,
+  "non_introspectable_count": 0,
+  "total_count": 756
+}

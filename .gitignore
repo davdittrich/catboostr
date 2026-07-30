@@ -5,3 +5,6 @@
 src/*.o
 src/*.so
 .claude/
+.superpowers/
+catboost_info/
+vendor/

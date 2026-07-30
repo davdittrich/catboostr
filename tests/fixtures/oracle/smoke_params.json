@@ -1,0 +1,8 @@
+{
+  "loss_function": "Logloss",
+  "iterations": 20,
+  "depth": 4,
+  "learning_rate": 0.1,
+  "random_seed": 42,
+  "verbose": false
+}

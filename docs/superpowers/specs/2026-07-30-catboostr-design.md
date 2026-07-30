@@ -157,32 +157,55 @@ read-only and built from a disposable copy, never in place.
 **Target design.** `configure` is rewritten, not patched. The binary-download mechanism is
 deleted outright.
 
-#### Who compiles what (decided; resolves the gap the design review found)
+#### Who compiles what (decided, then VERIFIED by the Phase 1 spike)
 
 Phase 0 built upstream's **unmodified** `catboostr` CMake target and installed the result by
 `CATBOOST_DYNLIB` copy-in. That never exercised the fork's own glue-compilation model, and
-the model the spec implied does not work: the `catboostr` target hardcodes its source list to
-exactly `catboostr.cpp` and `init.c`
+the model the spec first implied does not work: the `catboostr` target hardcodes its source
+list to exactly `catboostr.cpp` and `init.c`
 (`vendor/catboost/catboost/R-package/src/CMakeLists.linux-x86_64.txt:57-61`), duplicated
 across 8 machine-generated platform files, all inside the submodule §8 declares read-only.
-Adding `src/cpp11.cpp` or editing `init.c` there is impossible without violating that rule.
+Adding fork sources or editing `init.c` there is impossible without violating that rule.
 
-**Decision: R's own build compiles the fork's glue.**
+A second model — R's own `Makevars` compiling the glue and linking CMake-built static
+libraries — was then written into this spec and is also **rejected**. It would have required
+hand-reproducing whole-archive semantics for the 28 `.global` archives that
+`add_global_library_for` creates (`cmake/common.cmake:149-166`), plus the allocator and the
+generated linker version script. Getting that subtly wrong produces a package that builds,
+installs, loads, and then fails at runtime with missing model formats or metrics.
 
-- `src/Makevars[.win]` in the **fork** compiles the fork's `src/*.cpp` and `init.c` and links
-  against static libraries produced by a CMake build of the pinned core. The `catboostr`
-  CMake target is not used to build the fork's shared object.
-- Consequences, all of which resolve review blockers: no submodule file is ever edited; the
-  glue compiles against the **installing user's** R headers rather than the stale vendored
-  `contrib/libs/r-lang` set (which lacks `Rversion.h` and `R_ext/Visibility.h`, so cpp11
-  could not have compiled there at all); and R's configured `CC`, `CXX`, `CFLAGS`,
-  `CXXFLAGS` are used by construction, which CRAN requires of any package that shells out to
-  another build system.
+**Decision: the fork defines its own CMake target.** `add_shared_library(catboostr)` in a
+fork-owned `CMakeLists.txt`, listing the fork's own sources and linking upstream's targets by
+name. It is injected by appending `add_subdirectory` to the copied tree's root
+`CMakeLists.txt` **after** upstream's own `add_subdirectory(catboost)` — not via
+`-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES`, which the spike proved runs too early for
+`target_link_libraries` to resolve upstream targets by identity.
+
+**Verified by the spike (catboost-8z4.8):** the target builds, `dyn.load`s into R, and its
+entry point runs. The actual `ninja -v` link line wraps **23 of 23** `.global` archives in
+`-Wl,--whole-archive`, and two independent object-factory registrars were exercised —
+`TTrainerFactory` through a live training run, `TModelLoaderFactory` through a JSON
+export/reload that reproduced the original prediction exactly. CMake resolves whole-archive,
+allocator, export script and link order for free; no submodule file is edited.
+
+Consequences and obligations:
+
+- The glue compiles against the **installing user's** R headers, not the stale vendored
+  `contrib/libs/r-lang` set (which lacks `Rversion.h` and `R_ext/Visibility.h`). `configure`
+  passes R's include path explicitly; it does not rely on upstream's vendored copy.
 - `configure` must forward R's compiler configuration (`R CMD config CC`, `CXX`, `CFLAGS`,
-  `CXXFLAGS`, `CPPFLAGS`, `LDFLAGS`) into the CMake invocation for the core, declare
-  `SystemRequirements: CMake (>= 3.15), C++20`, and select a generator explicitly rather than
-  inheriting upstream's hardcoded `-G Ninja` — Ninja may not exist on a user's machine, so
-  Makefiles are the portable default with Ninja used when present.
+  `CXXFLAGS`, `CPPFLAGS`, `LDFLAGS`) into the CMake invocation, which CRAN requires of any
+  package that shells out to another build system.
+- `SystemRequirements` must declare **CMake (>= 3.15), C++20, and Python3** — the spike
+  established that Python3 is load-bearing at build time regardless of Conan
+  (`cmake/common.cmake:3`; it generates `__vcs_version__.c`, which is compiled into the
+  target, and the linker version script).
+- The generator must be selected explicitly rather than inheriting upstream's hardcoded
+  `-G Ninja`: Ninja may not exist on a user's machine, so Makefiles are the portable default
+  with Ninja used when present. Only the Ninja path has been exercised so far.
+- `-DCMAKE_POSITION_INDEPENDENT_CODE=On` is mandatory. Omitting it produces a
+  `relocation R_X86_64_TPOFF32 against _mi_heap_default` link failure, which is a missing
+  flag rather than an upstream defect.
 
 #### Modes
 
@@ -482,15 +505,14 @@ reports. The rewrite is a script, not hand-editing, so drift is visible.
 
 ### 4.7 Native routine registration — the required mechanism
 
-**Status: the registration MECHANISM is proven; the CHOICE of cpp11 is provisional.** Design
-review established that the Phase 0 probe compiled under `R CMD INSTALL` against the
-*installed* R's headers with `LinkingTo: cpp11`, not inside upstream's CMake target — whose
-only R includes are the vendored `contrib/libs/r-lang`, which has no `Rversion.h` (required by
-`cpp11/R.hpp:21`) and no `R_ext/Visibility.h`. Under the build model decided in §4.1 (R's own
-Makevars compiles the glue) cpp11 does compile, because the installing user's real R headers
-are used. But whether to adopt cpp11 at all is **deferred to a Phase 1 spike** — see §6 for
-the zero-new-mechanism alternative, which is now a live option rather than a fallback. The
-mechanism below applies to whichever is chosen wherever two registration sources exist.
+**Status: the trap below is DESIGNED OUT, not mitigated.** §3 decides raw `.Call` throughout,
+so the fork ships exactly one registration source and the double-registration hazard cannot
+arise. The spike confirmed the practical half: the fork target built with plain `extern "C"`
+entry points and needed neither cpp11 nor a generated `init.c`.
+
+The mechanism is recorded here because it is a real property of R that any future decision to
+add a second registration source (cpp11, Rcpp, a generated table) must respect. It was
+established empirically in Phase 0 (catboost-8z4.2) and independently reproduced in review.
 
 Established empirically in Phase 0 (catboost-8z4.2) and independently reproduced in review.
 This is a correctness constraint, not a style preference:
@@ -575,9 +597,10 @@ and is signed off. Treating this table as a costed multi-quarter plan would be f
 | # | Phase | Gate condition |
 | :--- | :--- | :--- |
 | 0 | **COMPLETE.** Build spike, both oracles, capability inventory, cpp11 registration probe. | Passed. Evidence in `docs/phase-0/`. |
-| 1 | **Build engineering.** Rewrite `configure` on the R-Makevars model (§4.1); vendor openssl and zlib with pinned, checksum-verified sources; remove Conan from the install path; gate the `hnsw` component; forward R's compiler configuration; commit `.Rbuildignore` and `conan.lock`. | A mechanical no-network install test passes **in a fresh container** with no pre-populated Conan cache and no pre-existing build venv, asserting zero network attempts across `R CMD INSTALL`. **Plus the size gate below.** |
-| 1a | **Size gate (CRAN-decisive).** Measure the pruned vendored source tarball. | Measured number recorded. **Abort threshold: if the pruned tarball exceeds 30 MB, the vendored route is reconsidered against §6's thin-package model before Phase 2 begins.** Unpruned upstream C/C++ source is ~163 MB (contrib alone 141.4 MB) against CRAN's 5 MB guidance, so this is the single most likely cause of the CRAN goal failing. |
-| 1b | **Glue-layer spike.** Build one trivial fork glue function both ways — cpp11 and raw `.Call` — under the Makevars model. | A decision recorded in §4.7 and §6, with the measured cost of each. Until then cpp11 is provisional. |
+| 1 | **Build engineering.** Fork-owned CMake target (§4.1, verified by the spike): a `configure` that copies the pinned tree, appends the fork's `add_subdirectory` after upstream's, and drives CMake with the measured flag set. Gate `private/libs/distributed` so openssl leaves the link entirely (§4.1b). Gate the 87 unconditionally-configured test/tool/benchmark directories. Pin and checksum-verify every third-party source that survives. Remove Conan from the install path. Declare Python3 and CMake in `SystemRequirements`. Commit `.Rbuildignore` and `conan.lock`. | A mechanical no-network install test passes **in a fresh container** with no pre-populated Conan cache and no pre-existing build venv, asserting zero network attempts across `R CMD INSTALL`; the upstream R test suite passes against that from-source build (§4.6's baseline, currently untested); **plus the size and build-time gates below.** |
+| 1a | **Size gate (CRAN-decisive). MEASURED 2026-07-31: 16.078 MiB pruned** (§4.1b). | Cleared the 30 MiB abort threshold, but sits at 3.2× CRAN's 5 MiB guidance, so this is not closed. Phase 1's two gating levers exist to reduce it; a re-measurement after gating is a Phase 1 exit criterion. |
+| 1b | **Glue layer. DECIDED, no spike: raw `.Call` throughout** (§3, §4.7). | Closed. The spike built the fork target with plain `extern "C"` entry points and needed neither cpp11 nor a generated `init.c`, so §4.7's double-registration trap is designed out rather than mitigated. |
+| 1c | **Build-time gate.** Measure `R CMD INSTALL` wall-clock on a 2-core machine resembling a CRAN check runner. | Measured number recorded. Build time is the second structural CRAN rejection cause and currently has no measurement and no abort threshold; the threshold is set once the first number exists. |
 | 2 | **Classification.** Differential harness + fixtures + the parity matrix as a real join table (§4.3), seeded from the machine-generated inventory. Every one of the 725 rows dispositioned per §4.5's bulk rule. | Matrix exists with every row in a state; **user signs off the classification**; root cause established for multi-target and any other reported breakage. This gate is what converts Phases 3-8 from provisional to planned. |
 | 3 | *(Provisional)* Data/Pool parity: multi-target labels, embeddings, sparse/CSR, timestamps, quantized pools, text tokenizers. Includes the CLI's `dataset-statistics` mode. | Differential tests green at default tolerance. |
 | 4 | *(Provisional)* Analysis parity: `calc_feature_statistics`, object-importance MultiClass fix (#869), `plot_tree`, `catboost.compare`, and the `ShapInteractionValues`/`PredictionDiff` **argument values** (§4.2 — not new functions). Includes the CLI's `eval-feature`, `roc`, `model-based-eval` modes. | Differential tests green; structural method per §4.3. |
@@ -601,7 +624,7 @@ shipped package, where unscoped work is a backlog rather than a blocker.
 | Alternative | Status |
 | :--- | :--- |
 | **Thin package + system `libcatboost`** (the `sf`/GDAL model) | **ACTIVE CONTINGENCY — reinstated.** An earlier draft retired this on the grounds that Phase 0 proved the vendored build tractable. That was wrong: Phase 0 proved the core *builds*, not that a vendored tarball is *CRAN-shippable*. Unpruned upstream C/C++ source is ~163 MB (contrib alone 141.4 MB) against CRAN's 5 MB guidance, and no phase had scheduled the measurement that matters. Phase 1a now measures the pruned tarball against a 30 MB abort threshold; if it fails, this model becomes the route. Its cost is real — no distro ships `libcatboost`, so we would own conda-forge and homebrew feedstocks and users hit an install wall — but an unshippable tarball is worse. |
-| **Raw `.Call` throughout, no binding framework** | **LIVE OPTION, decided by the Phase 1b spike.** Upstream already has the exception safety cpp11 is usually bought for: `R_API_BEGIN`/`R_API_END` wrap every entry point in try/catch and route to `error()` (`vendor/catboost/catboost/R-package/src/catboostr.cpp:45-58`). Choosing cpp11 buys less PROTECT boilerplate but costs a new dependency, the combined-table trap (§4.7), and a documented maintainer footgun. This is what xgboost does. An earlier draft listed this only as a fallback; it is a peer option. |
+| **Raw `.Call` throughout, no binding framework** | **CHOSEN (§3).** Upstream already has the exception safety cpp11 is usually bought for: `R_API_BEGIN`/`R_API_END` wrap every entry point in try/catch and route to `error()` (`vendor/catboost/catboost/R-package/src/catboostr.cpp:45-58`). Choosing cpp11 buys less PROTECT boilerplate but costs a new dependency, the combined-table trap (§4.7), and a documented maintainer footgun. This is what xgboost does. An earlier draft listed this only as a fallback, then as a peer option to be settled by a spike; it is the decision. The spike incidentally confirmed it works — the fork target built with plain `extern "C"` entry points. |
 | **Parity + idiomatic R layer + ecosystem integration** (hardhat, parsnip, mlr3, DALEX, vetiver) | Rejected on explicit user instruction: "First class support in R means that all functions / capabilities available for the cli and python version are also available in R. Beyond that is scope creep." |
 | **CRAN-first** (solve vendoring and size before any feature work) | Partially adopted. Phase 1 and 1a now front-load exactly the packaging and size risk, without blocking feature work behind the whole CRAN process. |
 | **Full monorepo fork** | Inherits a multi-GB repo and permanent upstream merge conflicts for no gain — the R package needs the core's source, not its history. |
@@ -621,7 +644,7 @@ rows are settled stops being read.
 | **CRAN check-time limits on build machines** | Rejection. The 164 s / 174 s figures are this machine's, on 32 cores. CRAN and r-universe runners have far fewer. | Measure build time on a constrained runner during Phase 1; treat compile time as a CRAN acceptance criterion, not an afterthought. |
 | **No integrity pinning on the C++ dependency chain** | A tampered Conan recipe or vendored source is arbitrary code execution on the build host and a silent backdoor in what users install. `swig`, `ragel`, `bison`, `flex`, `m4` are code generators that execute during the build and emit compiled source. The Python side has 192 sha256 pins; the C++ side has none. | Commit a `conan.lock` for as long as Conan is used anywhere; give every vendored dependency the pin-and-verify contract already used by `tools/vendor/acquire.sh` and `tools/oracle/cli/acquire.sh`; record every external artifact in a `SOURCES.md` inventory. |
 | **Vendoring openssl creates a standing CVE liability** | A frozen openssl 3.0.15 in a CRAN package ages badly and CRAN reviewers have pushed back on exactly this. | Establish during Phase 1 whether openssl is genuinely required by the R-package component — only 2 of 13 packages link at all — and prefer configuring it out over vendoring it. Otherwise accept an explicit CVE-tracking obligation. |
-| **The §4.7 registration trap** | A maintainer adds a cpp11 function, runs `cpp_register()`, and gets a symbol that exists but is unreachable. Compiles, installs, loads, fails only at call time. | The enforced testthat check in §4.7, added the moment a second registration source exists. Not documentation. |
+| **The §4.7 registration trap** | Latent, not live: with raw `.Call` throughout there is one registration source and the trap cannot fire. It returns the moment anyone adds a second one (cpp11, Rcpp, a generated table), and its failure mode is silent — compiles, installs, loads, fails only at call time. | The §3 decision removes it. If a second source is ever introduced, §4.7's enforced testthat check is a precondition of that change, not a follow-up. |
 | **Custom R loss/metric callback infeasible** | Phase 6 does not ship. | Isolated as its own phase. R's single-threaded evaluator constrains any callback design; whether a `thread_count=1`-only callback counts as parity is an open question that must be answered before Phase 6 is planned, not during it. |
 | **No CUDA hardware exists anywhere in this project** | GPU parity unverifiable. Dev machine is AMD; CatBoost has no ROCm backend; CRAN and r-universe runners have no CUDA. | GPU parity claimed only from a real-hardware run; skipped tests never count as green. Resourcing decision deferred to Phase 7 by user decision — see §9.1. Does not gate the R1 release. |
 | **Upstream bumps break the fork** | Ongoing maintenance cost. | Submodule moves are deliberate and gated on a full differential suite run plus the vendored upstream test suite, with the inventory regenerated so new upstream capabilities appear as new red rows. |

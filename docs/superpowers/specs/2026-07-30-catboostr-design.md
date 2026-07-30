@@ -45,7 +45,7 @@ The upstream R package is a second-class citizen:
 | Claim | Evidence |
 | :--- | :--- |
 | 19 exported R functions; `from_matrix`/`from_data_frame`/`from_file` unexported | upstream `R-package/NAMESPACE`, `R/catboost.R:118,141,243` |
-| Multi-column labels do reach the core | `R/catboost.R:164` (`label <- as.matrix(label)`); `src/catboostr.cpp:147-161,254,302` |
+| Multi-column labels do reach the core | `R/catboost.R:165` (`label <- as.matrix(label)`; line 164 is the `if` guard); `src/catboostr.cpp:147-161,254,302` |
 | Shipped `libcatboostr` is CPU-only | zero CUDA references in `R-package/CMakeLists.txt` / `configure` |
 | `configure` fetches a binary over the network | upstream issue #724 |
 | Install size ~141 MB | secondary source, confidence 55 — **must be measured in Phase 0** |
@@ -74,11 +74,13 @@ The upstream R package is a second-class citizen:
   checkout, or a network download (`configure:1756-1796`, `catboost_download_dynlib`).
 - The only from-source path reachable from `R-package/` is `src/Makefile` →
   `Makefile.inner`, which shells out to `ya make`, Yandex's proprietary build tool.
-- The R-package `CMakeLists.*.txt` fragments are `include()`d by the top-level
-  `CMakeLists.txt`, which is driven by `build/build_native.py`. That script hardcodes
-  `-G Ninja` (line 582) and injects Conan into the CMake configure step via
-  `-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=.../cmake/conan_provider.cmake` (lines 584-585).
-  Conan resolves third-party dependencies over the network the moment `cmake` runs.
+- The R package is pulled into the native build by `add_subdirectory(R-package)` from the
+  platform-specific top-level file (`catboost/CMakeLists.linux-x86_64.txt:19`), and that
+  tree is driven by `build/build_native.py`. That script hardcodes `-G Ninja`
+  (`build_native.py:582`) and injects Conan into the CMake configure step via
+  `-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=.../cmake/conan_provider.cmake`
+  (`build_native.py:585`). Conan resolves third-party dependencies over the network the
+  moment `cmake` runs.
 
 **Consequence:** no network-free, Conan-free, from-source build of the CatBoost core exists
 anywhere in the upstream repository. Producing one is **new engineering**, not a
@@ -133,14 +135,28 @@ capability, so each capability declares its method:
 | :--- | :--- |
 | Numeric (predictions, importances, metrics) | Elementwise comparison within a declared tolerance. |
 | Model artifacts | Round-trip: save in R, load in Python, compare predictions; and the reverse. |
-| Structural (`plot_tree`, `calc_feature_statistics`, progress logs) | Compare the underlying **data structure** against Python's, not the rendered image. Rendering itself gets a smoke test that asserts it runs and returns an object of the expected class. |
-| Text/console output | testthat snapshot tests. |
+| Structural (`plot_tree`, `calc_feature_statistics`, progress logs) | Both sides serialize to a **canonical JSON form** with a field mapping declared per capability in the parity matrix; comparison is field-by-field, numeric leaves within tolerance. Rendering gets a separate smoke test asserting it runs and returns an object of the expected class. The Phase 2 harness owns defining the serializer and the mapping; a capability without a declared mapping cannot be marked green. |
+| Text/console output | Snapshot tests whose snapshot files are **generated from the oracle's output**, never from R's. A snapshot authored from R output only proves R is self-consistent, which is not the claim being made. Snapshots are regenerated from the oracle whenever the pinned upstream version moves. |
 | Error paths | Assert on error class and message, including GPU-requested-but-unavailable (§4.4). |
+
+**Two oracles, not one.** Python is the reference for capabilities Python exposes. For
+CLI-only capabilities — distributed training via `run-worker` being the flagship case — the
+reference is the CatBoost CLI binary at the same pinned version, driven over files. Both
+oracles are pinned, both are stood up in Phase 0, and a capability is compared against
+whichever oracle actually exposes it.
 
 ### 4.4 GPU parity
 
-GPU is a capability the CLI and Python have, so it is in scope. It cannot be verified on
-CRAN or r-universe runners, which have no CUDA. Therefore:
+GPU is a capability the CLI and Python have, so it is in scope.
+
+**Hardware reality.** CatBoost's GPU backend is CUDA-only; there is no ROCm or HIP support.
+The development machine has an AMD GPU, so it cannot run CatBoost on GPU at all — this is
+not a driver or toolchain gap that can be closed locally. Neither can CRAN or r-universe
+runners, which have no CUDA. Consequently GPU parity cannot be verified anywhere currently
+available to this project, and the verification route is an explicit open decision recorded
+in §9.
+
+Regardless of how verification is resourced:
 
 - GPU differential tests are **tagged and skipped** when no CUDA device is present, and
   **required** on a CUDA-capable runner. Parity is claimed only from a run on real
@@ -187,7 +203,7 @@ goal lands; that is quarters of work, not weeks.
 | **Thin package + system `libcatboost`** (the `sf`/GDAL model) | CRAN-legal with a tiny tarball and fast compile, but no distro ships `libcatboost`, so we would own conda-forge and homebrew feedstocks and every user hits an install wall. Trades one packaging problem for another. Retained as the Phase 0 fallback if vendoring proves intractable. |
 | **Full monorepo fork** | Inherits a multi-GB repo and permanent upstream merge conflicts for no gain — the R package needs the core's source, not its history. |
 | **Wrap the CatBoost CLI** | CRAN forbids bundling standalone executables at this size; no precedent for a full ML engine being CLI-shelled from R; loses in-memory pools. |
-| **`reticulate` over the Python package** | Instant parity, but inherits Python environment management on top of R's, forfeits direct C++ performance, and does not solve CRAN availability. Acceptable only as a bounded stopgap, never for core paths. |
+| **`reticulate` over the Python package** | **The strongest rejected alternative — rejected by user decision, not on technical grounds.** An earlier version of this spec dismissed it as "does not solve CRAN availability". That was false: `keras3` and `tensorflow` are on CRAN, wrap Python via reticulate as their primary mechanism, and satisfy the no-network-during-install rule by deferring Python setup to a post-install user-invoked step. Honestly assessed, reticulate delivers every capability in §1 far sooner, tracks upstream releases automatically, avoids the Conan/vendoring engineering entirely, and makes custom R loss/metric *easier* (reticulate passes R functions as Python callables) rather than "may prove infeasible". Its one real cost is a Python runtime dependency. The user was shown this comparison explicitly and chose the native fork; that independence from Python is the deciding requirement. |
 | **Rcpp instead of cpp11** | Heavier compile and header cost across many new translation units. |
 | **extendr (Rust)** | Would add a third toolchain atop CMake, C++, and Python for no net gain against a C++ core. |
 
@@ -200,7 +216,7 @@ goal lands; that is quarters of work, not weeks.
 | `ninja` and `conan` absent from the target environment | Blocks even reproducing upstream's own build | Phase 0 reports what the build actually requires rather than installing tools ad hoc. |
 | cpp11 and raw `.Call` registration conflict over `R_init_libcatboostr` | Forces a glue-layer decision late | Proven or disproven in Phase 0. Fallback: raw `.Call` throughout, as xgboost does. |
 | Custom R loss/metric callback infeasible | Phase 6 does not ship | Isolated as its own phase. R's single-threaded evaluator constrains any callback design; the constraint is documented rather than worked around silently. |
-| No CUDA hardware available for Phase 7 | GPU parity unverifiable | GPU parity is claimed only from a real-hardware run. If no runner exists, Phase 7 reports blocked rather than claiming green from skipped tests. |
+| **No CUDA hardware exists anywhere in this project.** Development machine has an AMD GPU; CatBoost has no ROCm backend; CRAN and r-universe runners have no CUDA. | GPU parity unverifiable with current resources | GPU parity is claimed only from a real-hardware run. Phase 7 reports blocked rather than claiming green from skipped tests. Resourcing decision open — see §9. |
 | Python 1.2.10 has no wheels for an available Python | Blocks the oracle | Pin the Python version in the harness venv; fall back to building CatBoost Python from the same pinned source. |
 | Upstream bumps break the fork | Ongoing maintenance cost | Submodule moves are deliberate and gated on a full differential suite run plus the vendored upstream test suite. |
 
@@ -218,3 +234,21 @@ Also out of scope:
 - Modifying upstream CatBoost core source. The submodule is read-only; anything requiring
   core changes is filed upstream and tracked, not patched locally.
 - Publishing under the name `catboost`.
+
+## 9. Open Decisions
+
+### 9.1 How GPU parity gets verified
+
+CatBoost's GPU backend is CUDA-only. The development machine has an AMD GPU, so no
+CatBoost GPU execution is possible locally. The plan forbids counting skipped tests as
+green, so Phase 7 cannot be completed without resolving this. Options, none yet chosen:
+
+1. **Rented CUDA CI.** A GPU runner (cloud CI or a spot instance) executes the GPU
+   differential suite on release tags only, to bound cost. Gives genuine verification.
+2. **Ship GPU unverified, labelled.** Build the GPU variant, mark every GPU row in the
+   parity matrix as "implemented, unverified", and say so in the documentation. Honest, but
+   the project then knowingly ships a capability nobody has run.
+3. **Declare GPU out of scope.** Contradicts the parity definition in §1, and would need to
+   be an explicit user decision recorded here.
+
+Until this is decided, Phase 7 stays planned but unstarted, and no GPU claim is made.

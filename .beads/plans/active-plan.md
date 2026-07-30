@@ -1,14 +1,18 @@
 # Active Plan
 <!-- approved: 2026-07-30 -->
 <!-- gate-iterations: 3 -->
-<!-- user-approved: pending -->
-<!-- status: in-progress -->
+<!-- user-approved: design approved; Phase 1 NOT yet authorised -->
+<!-- status: phase-0-complete -->
 
-Epic: catboost-8z4
+Epic: catboost-8z4 (closed — Phase 0 complete)
 
-Exec order (Phase 0):
-1. catboost-8z4.1, catboost-8z4.2, catboost-8z4.3, catboost-8z4.4 — parallel, disjoint write scopes
-2. catboost-8z4.5 — blocked by .3 and .4
+Phase 0 result: gate passed. See `bd show catboost-8z4` for the full result comment,
+and `docs/phase-0/README.md` for committed evidence.
 
-Spec: docs/superpowers/specs/2026-07-30-catboostr-design.md
-Recovery: bd prime --work-type recovery, then bd show on the IDs above.
+Phase 1 is NOT started and NOT authorised. Before it begins:
+- User should review docs/superpowers/specs/2026-07-30-catboostr-design.md, which was
+  materially revised by measurement during Phase 0.
+- Phases 3-8 remain unscoped (725 distinct capabilities vs the ~20 originally planned);
+  Phase 2 classification gates any honest estimate.
+
+Recovery: bd prime --work-type recovery, then bd show catboost-8z4.

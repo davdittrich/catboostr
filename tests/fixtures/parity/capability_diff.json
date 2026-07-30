@@ -1,9 +1,9 @@
 {
-  "matching_rule": "normalize=lowercase+strip-non-alnum; exact or substring(>=4 chars) match against R export suffix / S3 generic name",
-  "gap_count_total": 1439,
-  "gap_count_python_only": 673,
-  "gap_count_cli_only": 766,
-  "covered_count": 140,
+  "matching_rule": "normalize=lowercase+strip-non-alnum; EXACT match only against R export suffix / S3 generic name (no substring/fuzzy matching -- see module docstring)",
+  "gap_count_total": 1537,
+  "gap_count_python_only": 719,
+  "gap_count_cli_only": 818,
+  "covered_count": 48,
   "gaps": [
     {
       "oracle": "python",
@@ -49,6 +49,12 @@
     },
     {
       "oracle": "python",
+      "capability": "catboost.EFeaturesSelectionAlgorithm.RecursiveByPredictionValuesChange",
+      "kind": "enum_member",
+      "owner": "EFeaturesSelectionAlgorithm"
+    },
+    {
+      "oracle": "python",
       "capability": "catboost.EFeaturesSelectionAlgorithm.RecursiveByLossFunctionChange",
       "kind": "enum_member",
       "owner": "EFeaturesSelectionAlgorithm"
@@ -85,7 +91,19 @@
     },
     {
       "oracle": "python",
+      "capability": "catboost.EFstrType.PredictionValuesChange",
+      "kind": "enum_member",
+      "owner": "EFstrType"
+    },
+    {
+      "oracle": "python",
       "capability": "catboost.EFstrType.LossFunctionChange",
+      "kind": "enum_member",
+      "owner": "EFstrType"
+    },
+    {
+      "oracle": "python",
+      "capability": "catboost.EFstrType.FeatureImportance",
       "kind": "enum_member",
       "owner": "EFstrType"
     },
@@ -98,6 +116,12 @@
     {
       "oracle": "python",
       "capability": "catboost.EFstrType.ShapValues",
+      "kind": "enum_member",
+      "owner": "EFstrType"
+    },
+    {
+      "oracle": "python",
+      "capability": "catboost.EFstrType.PredictionDiff",
       "kind": "enum_member",
       "owner": "EFstrType"
     },
@@ -164,6 +188,12 @@
     {
       "oracle": "python",
       "capability": "catboost.MultiTargetCustomObjective",
+      "kind": "class",
+      "owner": null
+    },
+    {
+      "oracle": "python",
+      "capability": "catboost.Pool",
       "kind": "class",
       "owner": null
     },
@@ -410,6 +440,12 @@
     {
       "oracle": "python",
       "capability": "CatBoost.plot_partial_dependence",
+      "kind": "method",
+      "owner": "CatBoost"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoost.plot_predictions",
       "kind": "method",
       "owner": "CatBoost"
     },
@@ -703,7 +739,25 @@
     },
     {
       "oracle": "python",
+      "capability": "CatBoostClassifier.plot_predictions",
+      "kind": "method",
+      "owner": "CatBoostClassifier"
+    },
+    {
+      "oracle": "python",
       "capability": "CatBoostClassifier.plot_tree",
+      "kind": "method",
+      "owner": "CatBoostClassifier"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostClassifier.predict_log_proba",
+      "kind": "method",
+      "owner": "CatBoostClassifier"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostClassifier.predict_proba",
       "kind": "method",
       "owner": "CatBoostClassifier"
     },
@@ -764,6 +818,18 @@
     {
       "oracle": "python",
       "capability": "CatBoostClassifier.set_scale_and_bias",
+      "kind": "method",
+      "owner": "CatBoostClassifier"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostClassifier.staged_predict_log_proba",
+      "kind": "method",
+      "owner": "CatBoostClassifier"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostClassifier.staged_predict_proba",
       "kind": "method",
       "owner": "CatBoostClassifier"
     },
@@ -992,6 +1058,12 @@
     {
       "oracle": "python",
       "capability": "CatBoostRegressor.plot_partial_dependence",
+      "kind": "method",
+      "owner": "CatBoostRegressor"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostRegressor.plot_predictions",
       "kind": "method",
       "owner": "CatBoostRegressor"
     },
@@ -1285,6 +1357,12 @@
     },
     {
       "oracle": "python",
+      "capability": "CatBoostRanker.plot_predictions",
+      "kind": "method",
+      "owner": "CatBoostRanker"
+    },
+    {
+      "oracle": "python",
       "capability": "CatBoostRanker.plot_tree",
       "kind": "method",
       "owner": "CatBoostRanker"
@@ -1352,61 +1430,61 @@
     {
       "oracle": "python",
       "capability": "Pool.get_baseline",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "Pool"
     },
     {
       "oracle": "python",
       "capability": "Pool.get_cat_feature_indices",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "Pool"
     },
     {
       "oracle": "python",
       "capability": "Pool.get_embedding_feature_indices",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "Pool"
     },
     {
       "oracle": "python",
       "capability": "Pool.get_feature_names",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "Pool"
     },
     {
       "oracle": "python",
       "capability": "Pool.get_features",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "Pool"
     },
     {
       "oracle": "python",
       "capability": "Pool.get_group_id_hash",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "Pool"
     },
     {
       "oracle": "python",
       "capability": "Pool.get_label",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "Pool"
     },
     {
       "oracle": "python",
       "capability": "Pool.get_text_feature_indices",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "Pool"
     },
     {
       "oracle": "python",
       "capability": "Pool.get_weight",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "Pool"
     },
     {
       "oracle": "python",
       "capability": "Pool.has_label",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "Pool"
     },
     {
@@ -1418,25 +1496,25 @@
     {
       "oracle": "python",
       "capability": "Pool.is_quantized",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "Pool"
     },
     {
       "oracle": "python",
       "capability": "Pool.num_col",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "Pool"
     },
     {
       "oracle": "python",
       "capability": "Pool.num_pairs",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "Pool"
     },
     {
       "oracle": "python",
       "capability": "Pool.num_row",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "Pool"
     },
     {
@@ -1447,8 +1525,14 @@
     },
     {
       "oracle": "python",
+      "capability": "Pool.save",
+      "kind": "method",
+      "owner": "Pool"
+    },
+    {
+      "oracle": "python",
       "capability": "Pool.save_quantization_borders",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "Pool"
     },
     {
@@ -1519,37 +1603,55 @@
     },
     {
       "oracle": "python",
+      "capability": "Pool.train_eval_split",
+      "kind": "method",
+      "owner": "Pool"
+    },
+    {
+      "oracle": "python",
       "capability": "FeaturesData.get_cat_feature_count",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "FeaturesData"
     },
     {
       "oracle": "python",
       "capability": "FeaturesData.get_feature_count",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "FeaturesData"
     },
     {
       "oracle": "python",
       "capability": "FeaturesData.get_feature_names",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "FeaturesData"
     },
     {
       "oracle": "python",
       "capability": "FeaturesData.get_num_feature_count",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "FeaturesData"
     },
     {
       "oracle": "python",
       "capability": "FeaturesData.get_object_count",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "FeaturesData"
     },
     {
       "oracle": "python",
+      "capability": "CatBoost.__init__(param=params)",
+      "kind": "parameter",
+      "owner": "CatBoost.__init__"
+    },
+    {
+      "oracle": "python",
       "capability": "CatBoost.fit(param=X)",
+      "kind": "parameter",
+      "owner": "CatBoost.fit"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoost.fit(param=y)",
       "kind": "parameter",
       "owner": "CatBoost.fit"
     },
@@ -1975,7 +2077,19 @@
     },
     {
       "oracle": "python",
+      "capability": "CatBoostClassifier.__init__(param=name)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__"
+    },
+    {
+      "oracle": "python",
       "capability": "CatBoostClassifier.__init__(param=ignored_features)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostClassifier.__init__(param=train_dir)",
       "kind": "parameter",
       "owner": "CatBoostClassifier.__init__"
     },
@@ -1988,6 +2102,12 @@
     {
       "oracle": "python",
       "capability": "CatBoostClassifier.__init__(param=custom_metric)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostClassifier.__init__(param=eval_metric)",
       "kind": "parameter",
       "owner": "CatBoostClassifier.__init__"
     },
@@ -2305,6 +2425,12 @@
     },
     {
       "oracle": "python",
+      "capability": "CatBoostClassifier.__init__(param=monotone_constraints)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__"
+    },
+    {
+      "oracle": "python",
       "capability": "CatBoostClassifier.__init__(param=feature_weights)",
       "kind": "parameter",
       "owner": "CatBoostClassifier.__init__"
@@ -2324,6 +2450,18 @@
     {
       "oracle": "python",
       "capability": "CatBoostClassifier.__init__(param=per_object_feature_penalties)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostClassifier.__init__(param=model_shrink_rate)",
+      "kind": "parameter",
+      "owner": "CatBoostClassifier.__init__"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostClassifier.__init__(param=model_shrink_mode)",
       "kind": "parameter",
       "owner": "CatBoostClassifier.__init__"
     },
@@ -2629,13 +2767,31 @@
     },
     {
       "oracle": "python",
+      "capability": "CatBoostRegressor.__init__(param=name)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__"
+    },
+    {
+      "oracle": "python",
       "capability": "CatBoostRegressor.__init__(param=ignored_features)",
       "kind": "parameter",
       "owner": "CatBoostRegressor.__init__"
     },
     {
       "oracle": "python",
+      "capability": "CatBoostRegressor.__init__(param=train_dir)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__"
+    },
+    {
+      "oracle": "python",
       "capability": "CatBoostRegressor.__init__(param=custom_metric)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostRegressor.__init__(param=eval_metric)",
       "kind": "parameter",
       "owner": "CatBoostRegressor.__init__"
     },
@@ -2947,6 +3103,12 @@
     },
     {
       "oracle": "python",
+      "capability": "CatBoostRegressor.__init__(param=monotone_constraints)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__"
+    },
+    {
+      "oracle": "python",
       "capability": "CatBoostRegressor.__init__(param=feature_weights)",
       "kind": "parameter",
       "owner": "CatBoostRegressor.__init__"
@@ -2966,6 +3128,18 @@
     {
       "oracle": "python",
       "capability": "CatBoostRegressor.__init__(param=per_object_feature_penalties)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostRegressor.__init__(param=model_shrink_rate)",
+      "kind": "parameter",
+      "owner": "CatBoostRegressor.__init__"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostRegressor.__init__(param=model_shrink_mode)",
       "kind": "parameter",
       "owner": "CatBoostRegressor.__init__"
     },
@@ -3265,13 +3439,31 @@
     },
     {
       "oracle": "python",
+      "capability": "CatBoostRanker.__init__(param=name)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__"
+    },
+    {
+      "oracle": "python",
       "capability": "CatBoostRanker.__init__(param=ignored_features)",
       "kind": "parameter",
       "owner": "CatBoostRanker.__init__"
     },
     {
       "oracle": "python",
+      "capability": "CatBoostRanker.__init__(param=train_dir)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__"
+    },
+    {
+      "oracle": "python",
       "capability": "CatBoostRanker.__init__(param=custom_metric)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostRanker.__init__(param=eval_metric)",
       "kind": "parameter",
       "owner": "CatBoostRanker.__init__"
     },
@@ -3583,6 +3775,12 @@
     },
     {
       "oracle": "python",
+      "capability": "CatBoostRanker.__init__(param=monotone_constraints)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__"
+    },
+    {
+      "oracle": "python",
       "capability": "CatBoostRanker.__init__(param=feature_weights)",
       "kind": "parameter",
       "owner": "CatBoostRanker.__init__"
@@ -3602,6 +3800,18 @@
     {
       "oracle": "python",
       "capability": "CatBoostRanker.__init__(param=per_object_feature_penalties)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostRanker.__init__(param=model_shrink_rate)",
+      "kind": "parameter",
+      "owner": "CatBoostRanker.__init__"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostRanker.__init__(param=model_shrink_mode)",
       "kind": "parameter",
       "owner": "CatBoostRanker.__init__"
     },
@@ -3703,6 +3913,12 @@
     },
     {
       "oracle": "python",
+      "capability": "catboost.utils.Pool",
+      "kind": "class",
+      "owner": "utils"
+    },
+    {
+      "oracle": "python",
       "capability": "catboost.utils.TargetStats",
       "kind": "class",
       "owner": "utils"
@@ -3711,6 +3927,12 @@
       "oracle": "python",
       "capability": "catboost.utils.calculate_quantization_grid",
       "kind": "function",
+      "owner": "utils"
+    },
+    {
+      "oracle": "python",
+      "capability": "catboost.utils.compute_training_options",
+      "kind": "attribute",
       "owner": "utils"
     },
     {
@@ -3741,6 +3963,12 @@
       "oracle": "python",
       "capability": "catboost.utils.defaultdict",
       "kind": "class",
+      "owner": "utils"
+    },
+    {
+      "oracle": "python",
+      "capability": "catboost.utils.eval_metric",
+      "kind": "function",
       "owner": "utils"
     },
     {
@@ -3777,6 +4005,12 @@
       "oracle": "python",
       "capability": "catboost.utils.get_roc_curve",
       "kind": "function",
+      "owner": "utils"
+    },
+    {
+      "oracle": "python",
+      "capability": "catboost.utils.pl",
+      "kind": "class",
       "owner": "utils"
     },
     {
@@ -3835,15 +4069,33 @@
     },
     {
       "oracle": "python",
-      "capability": "catboost.eval.Enum",
+      "capability": "catboost.eval.EvalType",
       "kind": "class",
       "owner": "eval"
     },
     {
       "oracle": "python",
-      "capability": "catboost.eval.EvalType",
-      "kind": "class",
-      "owner": "eval"
+      "capability": "catboost.eval.EvalType.All",
+      "kind": "enum_member",
+      "owner": "EvalType"
+    },
+    {
+      "oracle": "python",
+      "capability": "catboost.eval.EvalType.SeqRem",
+      "kind": "enum_member",
+      "owner": "EvalType"
+    },
+    {
+      "oracle": "python",
+      "capability": "catboost.eval.EvalType.SeqAdd",
+      "kind": "enum_member",
+      "owner": "EvalType"
+    },
+    {
+      "oracle": "python",
+      "capability": "catboost.eval.EvalType.SeqAddAndAll",
+      "kind": "enum_member",
+      "owner": "EvalType"
     },
     {
       "oracle": "python",
@@ -3877,6 +4129,18 @@
     },
     {
       "oracle": "python",
+      "capability": "catboost.eval.LabelMode.AddFeature",
+      "kind": "enum_member",
+      "owner": "LabelMode"
+    },
+    {
+      "oracle": "python",
+      "capability": "catboost.eval.LabelMode.IgnoreFeature",
+      "kind": "enum_member",
+      "owner": "LabelMode"
+    },
+    {
+      "oracle": "python",
       "capability": "catboost.eval.MetricEvaluationResult",
       "kind": "class",
       "owner": "eval"
@@ -3892,6 +4156,18 @@
       "capability": "catboost.eval.ScoreType",
       "kind": "class",
       "owner": "eval"
+    },
+    {
+      "oracle": "python",
+      "capability": "catboost.eval.ScoreType.Abs",
+      "kind": "enum_member",
+      "owner": "ScoreType"
+    },
+    {
+      "oracle": "python",
+      "capability": "catboost.eval.ScoreType.Rel",
+      "kind": "enum_member",
+      "owner": "ScoreType"
     },
     {
       "oracle": "python",
@@ -4075,6 +4351,12 @@
     },
     {
       "oracle": "cli",
+      "capability": "flag:fit:--has-header",
+      "kind": "flag",
+      "owner": "fit"
+    },
+    {
+      "oracle": "cli",
       "capability": "flag:fit:--ignore-csv-quoting",
       "kind": "flag",
       "owner": "fit"
@@ -4213,6 +4495,12 @@
     },
     {
       "oracle": "cli",
+      "capability": "flag:fit:--eval-metric",
+      "kind": "flag",
+      "owner": "fit"
+    },
+    {
+      "oracle": "cli",
       "capability": "flag:fit:--model-file/-m",
       "kind": "flag",
       "owner": "fit"
@@ -4250,6 +4538,12 @@
     {
       "oracle": "cli",
       "capability": "flag:fit:--fstr-internal-file",
+      "kind": "flag",
+      "owner": "fit"
+    },
+    {
+      "oracle": "cli",
+      "capability": "flag:fit:--training-options-file",
       "kind": "flag",
       "owner": "fit"
     },
@@ -4297,6 +4591,18 @@
     },
     {
       "oracle": "cli",
+      "capability": "flag:fit:--name",
+      "kind": "flag",
+      "owner": "fit"
+    },
+    {
+      "oracle": "cli",
+      "capability": "flag:fit:--train-dir",
+      "kind": "flag",
+      "owner": "fit"
+    },
+    {
+      "oracle": "cli",
       "capability": "flag:fit:--verbose",
       "kind": "flag",
       "owner": "fit"
@@ -4322,6 +4628,12 @@
     {
       "oracle": "cli",
       "capability": "flag:fit:--output-columns",
+      "kind": "flag",
+      "owner": "fit"
+    },
+    {
+      "oracle": "cli",
+      "capability": "flag:fit:--prediction-type",
       "kind": "flag",
       "owner": "fit"
     },
@@ -4412,6 +4724,18 @@
     {
       "oracle": "cli",
       "capability": "flag:fit:--od-type",
+      "kind": "flag",
+      "owner": "fit"
+    },
+    {
+      "oracle": "cli",
+      "capability": "flag:fit:--model-shrink-rate",
+      "kind": "flag",
+      "owner": "fit"
+    },
+    {
+      "oracle": "cli",
+      "capability": "flag:fit:--model-shrink-mode",
       "kind": "flag",
       "owner": "fit"
     },
@@ -4604,6 +4928,12 @@
     {
       "oracle": "cli",
       "capability": "flag:fit:--observations-to-bootstrap",
+      "kind": "flag",
+      "owner": "fit"
+    },
+    {
+      "oracle": "cli",
+      "capability": "flag:fit:--monotone-constraints",
       "kind": "flag",
       "owner": "fit"
     },
@@ -4909,6 +5239,12 @@
     },
     {
       "oracle": "cli",
+      "capability": "flag:fit:--detailed-profile",
+      "kind": "flag",
+      "owner": "fit"
+    },
+    {
+      "oracle": "cli",
       "capability": "flag:fit:--set-metadata-from-freeargs",
       "kind": "flag",
       "owner": "fit"
@@ -4940,6 +5276,12 @@
     {
       "oracle": "cli",
       "capability": "flag:calc:--delimiter",
+      "kind": "flag",
+      "owner": "calc"
+    },
+    {
+      "oracle": "cli",
+      "capability": "flag:calc:--has-header",
       "kind": "flag",
       "owner": "calc"
     },
@@ -5023,6 +5365,12 @@
     },
     {
       "oracle": "cli",
+      "capability": "flag:calc:--prediction-type",
+      "kind": "flag",
+      "owner": "calc"
+    },
+    {
+      "oracle": "cli",
       "capability": "flag:calc:--virtual-ensembles-count",
       "kind": "flag",
       "owner": "calc"
@@ -5072,6 +5420,12 @@
     {
       "oracle": "cli",
       "capability": "flag:dataset-statistics:--delimiter",
+      "kind": "flag",
+      "owner": "dataset-statistics"
+    },
+    {
+      "oracle": "cli",
+      "capability": "flag:dataset-statistics:--has-header",
       "kind": "flag",
       "owner": "dataset-statistics"
     },
@@ -5198,6 +5552,12 @@
     {
       "oracle": "cli",
       "capability": "flag:fstr:--delimiter",
+      "kind": "flag",
+      "owner": "fstr"
+    },
+    {
+      "oracle": "cli",
+      "capability": "flag:fstr:--has-header",
       "kind": "flag",
       "owner": "fstr"
     },
@@ -5341,6 +5701,12 @@
     },
     {
       "oracle": "cli",
+      "capability": "flag:ostr:--has-header",
+      "kind": "flag",
+      "owner": "ostr"
+    },
+    {
+      "oracle": "cli",
       "capability": "flag:ostr:--ignore-csv-quoting",
       "kind": "flag",
       "owner": "ostr"
@@ -5384,6 +5750,12 @@
     {
       "oracle": "cli",
       "capability": "flag:eval-metrics:--delimiter",
+      "kind": "flag",
+      "owner": "eval-metrics"
+    },
+    {
+      "oracle": "cli",
+      "capability": "flag:eval-metrics:--has-header",
       "kind": "flag",
       "owner": "eval-metrics"
     },
@@ -5473,6 +5845,12 @@
     },
     {
       "oracle": "cli",
+      "capability": "flag:eval-metrics:--metrics",
+      "kind": "flag",
+      "owner": "eval-metrics"
+    },
+    {
+      "oracle": "cli",
       "capability": "flag:eval-metrics:--result-dir",
       "kind": "flag",
       "owner": "eval-metrics"
@@ -5534,6 +5912,12 @@
     {
       "oracle": "cli",
       "capability": "flag:eval-feature:--delimiter",
+      "kind": "flag",
+      "owner": "eval-feature"
+    },
+    {
+      "oracle": "cli",
+      "capability": "flag:eval-feature:--has-header",
       "kind": "flag",
       "owner": "eval-feature"
     },
@@ -5677,6 +6061,12 @@
     },
     {
       "oracle": "cli",
+      "capability": "flag:eval-feature:--eval-metric",
+      "kind": "flag",
+      "owner": "eval-feature"
+    },
+    {
+      "oracle": "cli",
       "capability": "flag:eval-feature:--model-file/-m",
       "kind": "flag",
       "owner": "eval-feature"
@@ -5714,6 +6104,12 @@
     {
       "oracle": "cli",
       "capability": "flag:eval-feature:--fstr-internal-file",
+      "kind": "flag",
+      "owner": "eval-feature"
+    },
+    {
+      "oracle": "cli",
+      "capability": "flag:eval-feature:--training-options-file",
       "kind": "flag",
       "owner": "eval-feature"
     },
@@ -5761,6 +6157,18 @@
     },
     {
       "oracle": "cli",
+      "capability": "flag:eval-feature:--name",
+      "kind": "flag",
+      "owner": "eval-feature"
+    },
+    {
+      "oracle": "cli",
+      "capability": "flag:eval-feature:--train-dir",
+      "kind": "flag",
+      "owner": "eval-feature"
+    },
+    {
+      "oracle": "cli",
       "capability": "flag:eval-feature:--verbose",
       "kind": "flag",
       "owner": "eval-feature"
@@ -5786,6 +6194,12 @@
     {
       "oracle": "cli",
       "capability": "flag:eval-feature:--output-columns",
+      "kind": "flag",
+      "owner": "eval-feature"
+    },
+    {
+      "oracle": "cli",
+      "capability": "flag:eval-feature:--prediction-type",
       "kind": "flag",
       "owner": "eval-feature"
     },
@@ -5876,6 +6290,18 @@
     {
       "oracle": "cli",
       "capability": "flag:eval-feature:--od-type",
+      "kind": "flag",
+      "owner": "eval-feature"
+    },
+    {
+      "oracle": "cli",
+      "capability": "flag:eval-feature:--model-shrink-rate",
+      "kind": "flag",
+      "owner": "eval-feature"
+    },
+    {
+      "oracle": "cli",
+      "capability": "flag:eval-feature:--model-shrink-mode",
       "kind": "flag",
       "owner": "eval-feature"
     },
@@ -6128,6 +6554,12 @@
     {
       "oracle": "cli",
       "capability": "flag:eval-feature:--observations-to-bootstrap",
+      "kind": "flag",
+      "owner": "eval-feature"
+    },
+    {
+      "oracle": "cli",
+      "capability": "flag:eval-feature:--monotone-constraints",
       "kind": "flag",
       "owner": "eval-feature"
     },
@@ -6415,6 +6847,12 @@
     },
     {
       "oracle": "cli",
+      "capability": "flag:eval-feature:--detailed-profile",
+      "kind": "flag",
+      "owner": "eval-feature"
+    },
+    {
+      "oracle": "cli",
       "capability": "flag:eval-feature:--set-metadata-from-freeargs",
       "kind": "flag",
       "owner": "eval-feature"
@@ -6478,6 +6916,12 @@
       "capability": "flag:metadata set:--output-model-format",
       "kind": "flag",
       "owner": "metadata set"
+    },
+    {
+      "oracle": "cli",
+      "capability": "mode:metadata get",
+      "kind": "submode",
+      "owner": "metadata"
     },
     {
       "oracle": "cli",
@@ -6613,6 +7057,12 @@
     },
     {
       "oracle": "cli",
+      "capability": "flag:model-sum:--model/-m",
+      "kind": "flag",
+      "owner": "model-sum"
+    },
+    {
+      "oracle": "cli",
       "capability": "flag:model-sum:--model-with-weight",
       "kind": "flag",
       "owner": "model-sum"
@@ -6734,6 +7184,12 @@
     {
       "oracle": "cli",
       "capability": "flag:model-based-eval:--delimiter",
+      "kind": "flag",
+      "owner": "model-based-eval"
+    },
+    {
+      "oracle": "cli",
+      "capability": "flag:model-based-eval:--has-header",
       "kind": "flag",
       "owner": "model-based-eval"
     },
@@ -6877,6 +7333,12 @@
     },
     {
       "oracle": "cli",
+      "capability": "flag:model-based-eval:--eval-metric",
+      "kind": "flag",
+      "owner": "model-based-eval"
+    },
+    {
+      "oracle": "cli",
       "capability": "flag:model-based-eval:--model-file/-m",
       "kind": "flag",
       "owner": "model-based-eval"
@@ -6914,6 +7376,12 @@
     {
       "oracle": "cli",
       "capability": "flag:model-based-eval:--fstr-internal-file",
+      "kind": "flag",
+      "owner": "model-based-eval"
+    },
+    {
+      "oracle": "cli",
+      "capability": "flag:model-based-eval:--training-options-file",
       "kind": "flag",
       "owner": "model-based-eval"
     },
@@ -6961,6 +7429,18 @@
     },
     {
       "oracle": "cli",
+      "capability": "flag:model-based-eval:--name",
+      "kind": "flag",
+      "owner": "model-based-eval"
+    },
+    {
+      "oracle": "cli",
+      "capability": "flag:model-based-eval:--train-dir",
+      "kind": "flag",
+      "owner": "model-based-eval"
+    },
+    {
+      "oracle": "cli",
       "capability": "flag:model-based-eval:--verbose",
       "kind": "flag",
       "owner": "model-based-eval"
@@ -6986,6 +7466,12 @@
     {
       "oracle": "cli",
       "capability": "flag:model-based-eval:--output-columns",
+      "kind": "flag",
+      "owner": "model-based-eval"
+    },
+    {
+      "oracle": "cli",
+      "capability": "flag:model-based-eval:--prediction-type",
       "kind": "flag",
       "owner": "model-based-eval"
     },
@@ -7076,6 +7562,18 @@
     {
       "oracle": "cli",
       "capability": "flag:model-based-eval:--od-type",
+      "kind": "flag",
+      "owner": "model-based-eval"
+    },
+    {
+      "oracle": "cli",
+      "capability": "flag:model-based-eval:--model-shrink-rate",
+      "kind": "flag",
+      "owner": "model-based-eval"
+    },
+    {
+      "oracle": "cli",
+      "capability": "flag:model-based-eval:--model-shrink-mode",
       "kind": "flag",
       "owner": "model-based-eval"
     },
@@ -7304,6 +7802,12 @@
     {
       "oracle": "cli",
       "capability": "flag:model-based-eval:--observations-to-bootstrap",
+      "kind": "flag",
+      "owner": "model-based-eval"
+    },
+    {
+      "oracle": "cli",
+      "capability": "flag:model-based-eval:--monotone-constraints",
       "kind": "flag",
       "owner": "model-based-eval"
     },
@@ -7591,6 +8095,12 @@
     },
     {
       "oracle": "cli",
+      "capability": "flag:model-based-eval:--detailed-profile",
+      "kind": "flag",
+      "owner": "model-based-eval"
+    },
+    {
+      "oracle": "cli",
       "capability": "mode:normalize-model",
       "kind": "mode",
       "owner": null
@@ -7633,6 +8143,12 @@
     },
     {
       "oracle": "cli",
+      "capability": "flag:normalize-model:--has-header",
+      "kind": "flag",
+      "owner": "normalize-model"
+    },
+    {
+      "oracle": "cli",
       "capability": "flag:normalize-model:--ignore-csv-quoting",
       "kind": "flag",
       "owner": "normalize-model"
@@ -7658,6 +8174,12 @@
     {
       "oracle": "cli",
       "capability": "flag:normalize-model:--set-bias",
+      "kind": "flag",
+      "owner": "normalize-model"
+    },
+    {
+      "oracle": "cli",
+      "capability": "flag:normalize-model:--print-scale-and-bias",
       "kind": "flag",
       "owner": "normalize-model"
     },
@@ -7718,6 +8240,12 @@
     {
       "oracle": "cli",
       "capability": "flag:select-features:--delimiter",
+      "kind": "flag",
+      "owner": "select-features"
+    },
+    {
+      "oracle": "cli",
+      "capability": "flag:select-features:--has-header",
       "kind": "flag",
       "owner": "select-features"
     },
@@ -7861,6 +8389,12 @@
     },
     {
       "oracle": "cli",
+      "capability": "flag:select-features:--eval-metric",
+      "kind": "flag",
+      "owner": "select-features"
+    },
+    {
+      "oracle": "cli",
       "capability": "flag:select-features:--model-file/-m",
       "kind": "flag",
       "owner": "select-features"
@@ -7898,6 +8432,12 @@
     {
       "oracle": "cli",
       "capability": "flag:select-features:--fstr-internal-file",
+      "kind": "flag",
+      "owner": "select-features"
+    },
+    {
+      "oracle": "cli",
+      "capability": "flag:select-features:--training-options-file",
       "kind": "flag",
       "owner": "select-features"
     },
@@ -7945,6 +8485,18 @@
     },
     {
       "oracle": "cli",
+      "capability": "flag:select-features:--name",
+      "kind": "flag",
+      "owner": "select-features"
+    },
+    {
+      "oracle": "cli",
+      "capability": "flag:select-features:--train-dir",
+      "kind": "flag",
+      "owner": "select-features"
+    },
+    {
+      "oracle": "cli",
       "capability": "flag:select-features:--verbose",
       "kind": "flag",
       "owner": "select-features"
@@ -7970,6 +8522,12 @@
     {
       "oracle": "cli",
       "capability": "flag:select-features:--output-columns",
+      "kind": "flag",
+      "owner": "select-features"
+    },
+    {
+      "oracle": "cli",
+      "capability": "flag:select-features:--prediction-type",
       "kind": "flag",
       "owner": "select-features"
     },
@@ -8065,6 +8623,18 @@
     },
     {
       "oracle": "cli",
+      "capability": "flag:select-features:--model-shrink-rate",
+      "kind": "flag",
+      "owner": "select-features"
+    },
+    {
+      "oracle": "cli",
+      "capability": "flag:select-features:--model-shrink-mode",
+      "kind": "flag",
+      "owner": "select-features"
+    },
+    {
+      "oracle": "cli",
       "capability": "flag:select-features:--langevin",
       "kind": "flag",
       "owner": "select-features"
@@ -8108,6 +8678,12 @@
     {
       "oracle": "cli",
       "capability": "flag:select-features:--features-selection-steps",
+      "kind": "flag",
+      "owner": "select-features"
+    },
+    {
+      "oracle": "cli",
+      "capability": "flag:select-features:--train-final-model",
       "kind": "flag",
       "owner": "select-features"
     },
@@ -8306,6 +8882,12 @@
     {
       "oracle": "cli",
       "capability": "flag:select-features:--observations-to-bootstrap",
+      "kind": "flag",
+      "owner": "select-features"
+    },
+    {
+      "oracle": "cli",
+      "capability": "flag:select-features:--monotone-constraints",
       "kind": "flag",
       "owner": "select-features"
     },
@@ -8611,6 +9193,12 @@
     },
     {
       "oracle": "cli",
+      "capability": "flag:select-features:--detailed-profile",
+      "kind": "flag",
+      "owner": "select-features"
+    },
+    {
+      "oracle": "cli",
       "capability": "flag:select-features:--set-metadata-from-freeargs",
       "kind": "flag",
       "owner": "select-features"
@@ -8638,6 +9226,344 @@
       "capability": "flag:dump-options:--output",
       "kind": "flag",
       "owner": "dump-options"
+    }
+  ],
+  "covered": [
+    {
+      "oracle": "python",
+      "capability": "catboost.cv",
+      "kind": "function",
+      "owner": null,
+      "matched_r_symbol": "catboost.cv"
+    },
+    {
+      "oracle": "python",
+      "capability": "catboost.sum_models",
+      "kind": "function",
+      "owner": null,
+      "matched_r_symbol": "catboost.sum_models"
+    },
+    {
+      "oracle": "python",
+      "capability": "catboost.train",
+      "kind": "function",
+      "owner": null,
+      "matched_r_symbol": "catboost.train"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoost.drop_unused_features",
+      "kind": "method",
+      "owner": "CatBoost",
+      "matched_r_symbol": "catboost.drop_unused_features"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoost.eval_metrics",
+      "kind": "method",
+      "owner": "CatBoost",
+      "matched_r_symbol": "catboost.eval_metrics"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoost.get_feature_importance",
+      "kind": "method",
+      "owner": "CatBoost",
+      "matched_r_symbol": "catboost.get_feature_importance"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoost.get_object_importance",
+      "kind": "method",
+      "owner": "CatBoost",
+      "matched_r_symbol": "catboost.get_object_importance"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoost.load_model",
+      "kind": "method",
+      "owner": "CatBoost",
+      "matched_r_symbol": "catboost.load_model"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoost.predict",
+      "kind": "method",
+      "owner": "CatBoost",
+      "matched_r_symbol": "catboost.predict"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoost.save_model",
+      "kind": "method",
+      "owner": "CatBoost",
+      "matched_r_symbol": "catboost.save_model"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoost.shrink",
+      "kind": "method",
+      "owner": "CatBoost",
+      "matched_r_symbol": "catboost.shrink"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoost.staged_predict",
+      "kind": "method",
+      "owner": "CatBoost",
+      "matched_r_symbol": "catboost.staged_predict"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoost.virtual_ensembles_predict",
+      "kind": "method",
+      "owner": "CatBoost",
+      "matched_r_symbol": "catboost.virtual_ensembles_predict"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostClassifier.drop_unused_features",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "matched_r_symbol": "catboost.drop_unused_features"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostClassifier.eval_metrics",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "matched_r_symbol": "catboost.eval_metrics"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostClassifier.get_feature_importance",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "matched_r_symbol": "catboost.get_feature_importance"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostClassifier.get_object_importance",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "matched_r_symbol": "catboost.get_object_importance"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostClassifier.load_model",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "matched_r_symbol": "catboost.load_model"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostClassifier.predict",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "matched_r_symbol": "catboost.predict"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostClassifier.save_model",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "matched_r_symbol": "catboost.save_model"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostClassifier.shrink",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "matched_r_symbol": "catboost.shrink"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostClassifier.staged_predict",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "matched_r_symbol": "catboost.staged_predict"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostClassifier.virtual_ensembles_predict",
+      "kind": "method",
+      "owner": "CatBoostClassifier",
+      "matched_r_symbol": "catboost.virtual_ensembles_predict"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostRegressor.drop_unused_features",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "matched_r_symbol": "catboost.drop_unused_features"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostRegressor.eval_metrics",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "matched_r_symbol": "catboost.eval_metrics"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostRegressor.get_feature_importance",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "matched_r_symbol": "catboost.get_feature_importance"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostRegressor.get_object_importance",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "matched_r_symbol": "catboost.get_object_importance"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostRegressor.load_model",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "matched_r_symbol": "catboost.load_model"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostRegressor.predict",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "matched_r_symbol": "catboost.predict"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostRegressor.save_model",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "matched_r_symbol": "catboost.save_model"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostRegressor.shrink",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "matched_r_symbol": "catboost.shrink"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostRegressor.staged_predict",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "matched_r_symbol": "catboost.staged_predict"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostRegressor.virtual_ensembles_predict",
+      "kind": "method",
+      "owner": "CatBoostRegressor",
+      "matched_r_symbol": "catboost.virtual_ensembles_predict"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostRanker.drop_unused_features",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "matched_r_symbol": "catboost.drop_unused_features"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostRanker.eval_metrics",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "matched_r_symbol": "catboost.eval_metrics"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostRanker.get_feature_importance",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "matched_r_symbol": "catboost.get_feature_importance"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostRanker.get_object_importance",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "matched_r_symbol": "catboost.get_object_importance"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostRanker.load_model",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "matched_r_symbol": "catboost.load_model"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostRanker.predict",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "matched_r_symbol": "catboost.predict"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostRanker.save_model",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "matched_r_symbol": "catboost.save_model"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostRanker.shrink",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "matched_r_symbol": "catboost.shrink"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostRanker.staged_predict",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "matched_r_symbol": "catboost.staged_predict"
+    },
+    {
+      "oracle": "python",
+      "capability": "CatBoostRanker.virtual_ensembles_predict",
+      "kind": "method",
+      "owner": "CatBoostRanker",
+      "matched_r_symbol": "catboost.virtual_ensembles_predict"
+    },
+    {
+      "oracle": "cli",
+      "capability": "flag:fit:--cv",
+      "kind": "flag",
+      "owner": "fit",
+      "matched_r_symbol": "catboost.cv"
+    },
+    {
+      "oracle": "cli",
+      "capability": "mode:eval-metrics",
+      "kind": "mode",
+      "owner": null,
+      "matched_r_symbol": "catboost.eval_metrics"
+    },
+    {
+      "oracle": "cli",
+      "capability": "flag:eval-feature:--cv",
+      "kind": "flag",
+      "owner": "eval-feature",
+      "matched_r_symbol": "catboost.cv"
+    },
+    {
+      "oracle": "cli",
+      "capability": "flag:model-based-eval:--cv",
+      "kind": "flag",
+      "owner": "model-based-eval",
+      "matched_r_symbol": "catboost.cv"
+    },
+    {
+      "oracle": "cli",
+      "capability": "flag:select-features:--cv",
+      "kind": "flag",
+      "owner": "select-features",
+      "matched_r_symbol": "catboost.cv"
     }
   ]
 }

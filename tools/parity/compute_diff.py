@@ -1,17 +1,27 @@
 """Compute Python/CLI vs R-export diff by reproducible name normalization.
 
-Matching rule (deterministic, no judgment calls on importance):
+Matching rule (deterministic, conservative, auditable):
   normalize(name) = lowercase, strip all non-alphanumeric characters.
-  A candidate (Python entry / CLI mode / CLI flag) is COVERED if its
-  normalized last-component name either exactly equals, or is a substring
-  (len>=4) of / contains, a normalized R export suffix or S3 generic name.
-  Otherwise it is a GAP, tagged with the oracle it came from.
+  A candidate (Python entry / CLI mode / CLI flag) is COVERED only if its
+  normalized last-component name EXACTLY equals a normalized R export suffix
+  or S3 generic name. No substring/fuzzy matching: a coarser rule was tried
+  and 92 of 140 "covered" rows turned out to be false positives (e.g. CLI
+  `--has-header` matching R `head()`, `model_shrink_rate` matching `shrink`)
+  -- silently dropping real gap rows with no trail. Exact match only, so
+  anything not confidently matched stays a gap row (over-reporting is the
+  correct failure direction per the brief: a false gap gets triaged in
+  Phase 2, a false "covered" is never seen again). Every match this rule
+  does make is recorded in `covered` with the matched R symbol, auditable
+  the same way private_excluded_count already is.
 
 Caveat (recorded, not used to drop rows): R's catboost.train/catboost.cv take
-an untyped `params` named list, so individual CatBoostClassifier hyperparameter
-names have no discrete R export to match 1:1 by construction. They are still
-emitted as gap rows (python_only, kind=parameter) per the no-filtering guard;
-the mechanism note belongs in the report, not in row suppression.
+an untyped `params` named list, so most individual CatBoostClassifier
+hyperparameter names have no discrete R export to match 1:1 by construction.
+They are still emitted as gap rows (python_only, kind=parameter) per the
+no-filtering guard; the mechanism note belongs in the report, not in row
+suppression. A small number DO happen to share an exact name with an R
+export (e.g. `train_dir`, `eval_metric` -- matched against catboost.train /
+catboost.eval_metrics normalized suffixes) and are recorded as covered.
 
 Run: python3 tools/parity/compute_diff.py
 Reads: tests/fixtures/parity/{python_surface,cli_surface,r_surface}.json
@@ -41,22 +51,25 @@ for exp in r_surface["exports"]:
 for s3 in r_surface["s3methods"]:
     r_canon.setdefault(normalize(s3["generic"]), []).append(f"S3method({s3['generic']},{s3['class']})")
 
-r_norms = list(r_canon.keys())
-
 
 def covered(cand_norm):
     if not cand_norm:
         return None
-    if cand_norm in r_canon:
-        return ("exact", r_canon[cand_norm][0])
-    for rn in r_norms:
-        if len(rn) >= 4 and (rn in cand_norm or cand_norm in rn):
-            return ("substring", r_canon[rn][0])
-    return None
+    hit = r_canon.get(cand_norm)
+    return hit[0] if hit else None
 
 
 gaps = []
-covered_count = 0
+covered_rows = []
+
+
+def classify(oracle, capability, kind, owner, cand_norm):
+    r_symbol = covered(cand_norm)
+    if r_symbol:
+        covered_rows.append({"oracle": oracle, "capability": capability, "kind": kind, "owner": owner, "matched_r_symbol": r_symbol})
+    else:
+        gaps.append({"oracle": oracle, "capability": capability, "kind": kind, "owner": owner})
+
 
 # --- Python candidates ---
 for e in python_surface["entries"]:
@@ -66,72 +79,37 @@ for e in python_surface["entries"]:
         last = m.group(1) if m else qn
     else:
         last = qn.split("(")[0].split(".")[-1]
-    cand_norm = normalize(last)
-    hit = covered(cand_norm)
-    if hit:
-        covered_count += 1
-    else:
-        gaps.append({
-            "oracle": "python",
-            "capability": qn,
-            "kind": e["kind"],
-            "owner": e["owner"],
-        })
+    classify("python", qn, e["kind"], e["owner"], normalize(last))
 
 # --- CLI candidates: modes / submodes / flags ---
 for m in cli_surface["modes"]:
-    hit = covered(normalize(m["mode"]))
-    if hit:
-        covered_count += 1
-    else:
-        gaps.append({"oracle": "cli", "capability": f"mode:{m['mode']}", "kind": "mode", "owner": None})
+    classify("cli", f"mode:{m['mode']}", "mode", None, normalize(m["mode"]))
 
     if m["submodes"]:
         for sm in m["submodes"]:
             full = f"{m['mode']} {sm['submode']}"
-            hit = covered(normalize(sm["submode"]))
-            if hit:
-                covered_count += 1
-            else:
-                gaps.append({"oracle": "cli", "capability": f"mode:{full}", "kind": "submode", "owner": m["mode"]})
+            classify("cli", f"mode:{full}", "submode", m["mode"], normalize(sm["submode"]))
             for flag_aliases in sm["flags"]:
                 primary = sorted(flag_aliases, key=len, reverse=True)[0]
-                hit = covered(normalize(primary.lstrip("-")))
-                if hit:
-                    covered_count += 1
-                else:
-                    gaps.append({
-                        "oracle": "cli",
-                        "capability": f"flag:{full}:{'/'.join(flag_aliases)}",
-                        "kind": "flag",
-                        "owner": full,
-                    })
+                classify("cli", f"flag:{full}:{'/'.join(flag_aliases)}", "flag", full, normalize(primary.lstrip("-")))
     else:
         for flag_aliases in m["flags"]:
             primary = sorted(flag_aliases, key=len, reverse=True)[0]
-            hit = covered(normalize(primary.lstrip("-")))
-            if hit:
-                covered_count += 1
-            else:
-                gaps.append({
-                    "oracle": "cli",
-                    "capability": f"flag:{m['mode']}:{'/'.join(flag_aliases)}",
-                    "kind": "flag",
-                    "owner": m["mode"],
-                })
+            classify("cli", f"flag:{m['mode']}:{'/'.join(flag_aliases)}", "flag", m["mode"], normalize(primary.lstrip("-")))
 
 gap_python_only = sum(1 for g in gaps if g["oracle"] == "python")
 gap_cli_only = sum(1 for g in gaps if g["oracle"] == "cli")
 
 out = {
-    "matching_rule": "normalize=lowercase+strip-non-alnum; exact or substring(>=4 chars) match against R export suffix / S3 generic name",
+    "matching_rule": "normalize=lowercase+strip-non-alnum; EXACT match only against R export suffix / S3 generic name (no substring/fuzzy matching -- see module docstring)",
     "gap_count_total": len(gaps),
     "gap_count_python_only": gap_python_only,
     "gap_count_cli_only": gap_cli_only,
-    "covered_count": covered_count,
+    "covered_count": len(covered_rows),
     "gaps": gaps,
+    "covered": covered_rows,
 }
 with open(FIX / "capability_diff.json", "w") as f:
     json.dump(out, f, indent=2)
 
-print(f"gap_total={len(gaps)} python_only={gap_python_only} cli_only={gap_cli_only} covered={covered_count}")
+print(f"gap_total={len(gaps)} python_only={gap_python_only} cli_only={gap_cli_only} covered={len(covered_rows)}")

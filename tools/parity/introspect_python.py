@@ -20,12 +20,34 @@ non_introspectable = 0
 TOP_LEVEL_CLASSES = ["CatBoost", "CatBoostClassifier", "CatBoostRegressor", "CatBoostRanker", "Pool", "FeaturesData"]
 SUBMODULES = ["utils", "eval", "datasets", "text_processing"]
 
+# stdlib/__future__ objects that leak into catboost's submodule namespaces via
+# `from enum import Enum` / `from __future__ import print_function` — not a
+# catboost capability, just an import side effect.
+NON_CATBOOST_MODULES = {"enum", "__future__"}
+
 
 def sig_str(obj):
     try:
         return str(inspect.signature(obj))
     except (ValueError, TypeError):
         return None
+
+
+def expand_enum_members(entries, qualname, cls_name, obj):
+    """Enum classes carry their real capability surface as members (e.g.
+    EFstrType.ShapInteractionValues, eval.EvalType.SeqRem), not as the class
+    name itself. Every scan path that records a class must call this or its
+    members silently vanish -- the exact failure this ticket exists to catch."""
+    if not (inspect.isclass(obj) and issubclass(obj, enum.Enum)):
+        return
+    for member in obj:
+        entries.append({
+            "qualified_name": f"{qualname}.{member.name}",
+            "kind": "enum_member",
+            "owner": cls_name,
+            "signature": None,
+            "introspectable": True,
+        })
 
 
 def record(qualname, kind, owner, obj):
@@ -54,18 +76,7 @@ for name in dir(catboost):
     obj = getattr(catboost, name)
     if inspect.isclass(obj):
         record(f"catboost.{name}", "class", None, obj)
-        # Enum classes carry their real capability surface as members (e.g.
-        # EFstrType.ShapInteractionValues), not as the class name itself —
-        # enumerate those too or they silently vanish from the inventory.
-        if issubclass(obj, enum.Enum):
-            for member in obj:
-                entries.append({
-                    "qualified_name": f"catboost.{name}.{member.name}",
-                    "kind": "enum_member",
-                    "owner": name,
-                    "signature": None,
-                    "introspectable": True,
-                })
+        expand_enum_members(entries, f"catboost.{name}", name, obj)
     elif inspect.isfunction(obj) or inspect.isbuiltin(obj):
         record(f"catboost.{name}", "function", None, obj)
     elif inspect.ismodule(obj):
@@ -96,7 +107,15 @@ for cls_name in TOP_LEVEL_CLASSES:
             continue
         if isinstance(inspect.getattr_static(cls, name, None), property):
             record(f"{cls_name}.{name}", "property", cls_name, obj)
-        elif inspect.isfunction(obj) or inspect.ismethod(obj) or inspect.isbuiltin(obj):
+        elif inspect.isclass(obj):
+            record(f"{cls_name}.{name}", "attribute", cls_name, obj)
+            expand_enum_members(entries, f"{cls_name}.{name}", name, obj)
+        elif inspect.isfunction(obj) or inspect.ismethod(obj) or inspect.isbuiltin(obj) or callable(obj):
+            # callable() catches Cython/C-extension bound methods on Pool/
+            # FeaturesData that isfunction/ismethod/isbuiltin all miss --
+            # sig_str() inside record() will correctly mark these
+            # introspectable:false when inspect.signature() can't resolve them,
+            # rather than silently mistagging them as non-callable attributes.
             record(f"{cls_name}.{name}", "method", cls_name, obj)
         else:
             record(f"{cls_name}.{name}", "attribute", cls_name, obj)
@@ -159,13 +178,18 @@ for sub_name in SUBMODULES:
             private_excluded += 1
             continue
         obj = getattr(submod, name)
-        if inspect.isfunction(obj) or inspect.isbuiltin(obj):
-            record(f"catboost.{sub_name}.{name}", "function", sub_name, obj)
-        elif inspect.isclass(obj):
+        if inspect.isclass(obj):
+            if getattr(obj, "__module__", "") in NON_CATBOOST_MODULES:
+                continue  # stdlib/__future__ re-export leak, not a catboost capability
             record(f"catboost.{sub_name}.{name}", "class", sub_name, obj)
+            expand_enum_members(entries, f"catboost.{sub_name}.{name}", name, obj)
+        elif inspect.isfunction(obj) or inspect.isbuiltin(obj):
+            record(f"catboost.{sub_name}.{name}", "function", sub_name, obj)
         elif inspect.ismodule(obj):
             continue
         else:
+            if getattr(type(obj), "__module__", "") in NON_CATBOOST_MODULES:
+                continue  # e.g. __future__._Feature instances like print_function
             record(f"catboost.{sub_name}.{name}", "attribute", sub_name, obj)
 
 output = {

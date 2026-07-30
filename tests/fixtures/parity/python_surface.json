@@ -1963,72 +1963,72 @@
     },
     {
       "qualified_name": "Pool.get_baseline",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "Pool",
-      "signature": null,
+      "signature": "(self)",
       "introspectable": true
     },
     {
       "qualified_name": "Pool.get_cat_feature_indices",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "Pool",
-      "signature": null,
+      "signature": "(self)",
       "introspectable": true
     },
     {
       "qualified_name": "Pool.get_embedding_feature_indices",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "Pool",
-      "signature": null,
+      "signature": "(self)",
       "introspectable": true
     },
     {
       "qualified_name": "Pool.get_feature_names",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "Pool",
-      "signature": null,
+      "signature": "(self)",
       "introspectable": true
     },
     {
       "qualified_name": "Pool.get_features",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "Pool",
-      "signature": null,
+      "signature": "(self)",
       "introspectable": true
     },
     {
       "qualified_name": "Pool.get_group_id_hash",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "Pool",
-      "signature": null,
+      "signature": "(self)",
       "introspectable": true
     },
     {
       "qualified_name": "Pool.get_label",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "Pool",
-      "signature": null,
+      "signature": "(self)",
       "introspectable": true
     },
     {
       "qualified_name": "Pool.get_text_feature_indices",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "Pool",
-      "signature": null,
+      "signature": "(self)",
       "introspectable": true
     },
     {
       "qualified_name": "Pool.get_weight",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "Pool",
-      "signature": null,
+      "signature": "(self)",
       "introspectable": true
     },
     {
       "qualified_name": "Pool.has_label",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "Pool",
-      "signature": null,
+      "signature": "(self)",
       "introspectable": true
     },
     {
@@ -2040,30 +2040,30 @@
     },
     {
       "qualified_name": "Pool.is_quantized",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "Pool",
-      "signature": null,
+      "signature": "(self)",
       "introspectable": true
     },
     {
       "qualified_name": "Pool.num_col",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "Pool",
-      "signature": null,
+      "signature": "(self)",
       "introspectable": true
     },
     {
       "qualified_name": "Pool.num_pairs",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "Pool",
-      "signature": null,
+      "signature": "(self)",
       "introspectable": true
     },
     {
       "qualified_name": "Pool.num_row",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "Pool",
-      "signature": null,
+      "signature": "(self)",
       "introspectable": true
     },
     {
@@ -2082,9 +2082,9 @@
     },
     {
       "qualified_name": "Pool.save_quantization_borders",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "Pool",
-      "signature": null,
+      "signature": "(self, output_file)",
       "introspectable": true
     },
     {
@@ -2173,37 +2173,37 @@
     },
     {
       "qualified_name": "FeaturesData.get_cat_feature_count",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "FeaturesData",
-      "signature": null,
+      "signature": "(self)",
       "introspectable": true
     },
     {
       "qualified_name": "FeaturesData.get_feature_count",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "FeaturesData",
-      "signature": null,
+      "signature": "(self)",
       "introspectable": true
     },
     {
       "qualified_name": "FeaturesData.get_feature_names",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "FeaturesData",
-      "signature": null,
+      "signature": "(self)",
       "introspectable": true
     },
     {
       "qualified_name": "FeaturesData.get_num_feature_count",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "FeaturesData",
-      "signature": null,
+      "signature": "(self)",
       "introspectable": true
     },
     {
       "qualified_name": "FeaturesData.get_object_count",
-      "kind": "attribute",
+      "kind": "method",
       "owner": "FeaturesData",
-      "signature": null,
+      "signature": "(self)",
       "introspectable": true
     },
     {
@@ -5042,16 +5042,37 @@
       "introspectable": true
     },
     {
-      "qualified_name": "catboost.eval.Enum",
+      "qualified_name": "catboost.eval.EvalType",
       "kind": "class",
       "owner": "eval",
       "signature": null,
       "introspectable": true
     },
     {
-      "qualified_name": "catboost.eval.EvalType",
-      "kind": "class",
-      "owner": "eval",
+      "qualified_name": "catboost.eval.EvalType.All",
+      "kind": "enum_member",
+      "owner": "EvalType",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.eval.EvalType.SeqRem",
+      "kind": "enum_member",
+      "owner": "EvalType",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.eval.EvalType.SeqAdd",
+      "kind": "enum_member",
+      "owner": "EvalType",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.eval.EvalType.SeqAddAndAll",
+      "kind": "enum_member",
+      "owner": "EvalType",
       "signature": null,
       "introspectable": true
     },
@@ -5091,6 +5112,20 @@
       "introspectable": true
     },
     {
+      "qualified_name": "catboost.eval.LabelMode.AddFeature",
+      "kind": "enum_member",
+      "owner": "LabelMode",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.eval.LabelMode.IgnoreFeature",
+      "kind": "enum_member",
+      "owner": "LabelMode",
+      "signature": null,
+      "introspectable": true
+    },
+    {
       "qualified_name": "catboost.eval.MetricEvaluationResult",
       "kind": "class",
       "owner": "eval",
@@ -5108,6 +5143,20 @@
       "qualified_name": "catboost.eval.ScoreType",
       "kind": "class",
       "owner": "eval",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.eval.ScoreType.Abs",
+      "kind": "enum_member",
+      "owner": "ScoreType",
+      "signature": null,
+      "introspectable": true
+    },
+    {
+      "qualified_name": "catboost.eval.ScoreType.Rel",
+      "kind": "enum_member",
+      "owner": "ScoreType",
       "signature": null,
       "introspectable": true
     },
@@ -5151,13 +5200,6 @@
       "kind": "function",
       "owner": "eval",
       "signature": "(description)",
-      "introspectable": true
-    },
-    {
-      "qualified_name": "catboost.eval.print_function",
-      "kind": "attribute",
-      "owner": "eval",
-      "signature": null,
       "introspectable": true
     },
     {
@@ -5296,5 +5338,5 @@
   ],
   "private_excluded_count": 559,
   "non_introspectable_count": 0,
-  "total_count": 756
+  "total_count": 762
 }

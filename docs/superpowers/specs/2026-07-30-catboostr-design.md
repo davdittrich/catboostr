@@ -123,8 +123,9 @@ Every parity claim is a test: identical data, parameters, and seed, run through 
 CatBoost (or the CLI, where the capability is CLI-only) and through `catboostr`, compared
 within tolerance.
 
-- Python runs in a pinned `uv`-managed virtualenv. The local interpreter is 3.14.6 and
-  CatBoost 1.2.10 predates it, so the harness must pin a Python version that has wheels.
+- Python runs in a pinned `uv`-managed virtualenv. CatBoost 1.2.10 does publish
+  `catboost-1.2.10-cp314-cp314-manylinux2014_x86_64.whl`, so the local 3.14.6 interpreter
+  is usable and no source build of the Python package is required.
 - CI does not require Python. The harness records golden fixtures; CI compares against
   those. Python re-runs only when the pinned upstream version moves.
 
@@ -166,7 +167,30 @@ Regardless of how verification is resourced:
   would make GPU parity results meaningless.
 - The GPU-enabled artifact is built from the same tree and ships via GitHub Releases.
 
-### 4.5 Regression protection for the strict-superset promise
+### 4.5 The capability inventory is machine-generated, never hand-curated
+
+The parity matrix is only as complete as its input list. A hand-written inventory — including
+the one in §2 of this spec — silently omits whatever nobody happened to notice, which makes
+the goal in §1 unfalsifiable for the omitted capability.
+
+Therefore the inventory is generated, not written:
+
+- **Python surface**: introspect the installed `catboost` module — every public module
+  member, every public method on `CatBoost`, `CatBoostClassifier`, `CatBoostRegressor`,
+  `CatBoostRanker`, `Pool`, and every documented training parameter.
+- **CLI surface**: every mode from the binary's `--help`, and every flag within each mode.
+- **R surface**: every `export()` in the fork's NAMESPACE plus every registered S3 method.
+
+The parity matrix is the *diff* of those three sets. §2's list is treated as a hypothesis to
+be checked against the generated inventory, not as the source of truth. Any capability
+present in the Python or CLI set and absent from the R set is automatically a matrix row —
+green, red, or explicitly out-of-scope with a recorded reason. A capability may not be
+silently absent.
+
+The inventory is regenerated whenever the pinned upstream version moves, so a newly added
+upstream capability appears as a new red row rather than going unnoticed.
+
+### 4.6 Regression protection for the strict-superset promise
 
 The claim "nothing that works today breaks" is verified, not asserted: upstream's own
 `R-package` test suite is vendored into the fork and must pass unmodified at every phase
@@ -179,9 +203,9 @@ Each phase becomes an epic. Phase 0 is a hard gate.
 
 | # | Phase | Gate condition |
 | :--- | :--- | :--- |
-| 0 | **Build spike.** Build upstream's R package from the pinned tag. Measure compile time, artifact size, tarball size. Prove cpp11 and raw `.Call` registration can coexist in one `R_init_`. Stand up the Python oracle. | If vendoring proves intractable, the approach is revisited with numbers before anything is built on it. |
+| 0 | **Build spike.** Size the network-free source build and enumerate Conan's dependencies. Prove cpp11 and raw `.Call` registration can coexist in one `R_init_`. Stand up **both** oracles (Python and CLI). Generate the capability inventory (§4.5). | If vendoring proves intractable, the approach is revisited with numbers before anything is built on it. |
 | 1 | Repo skeleton, dual-mode `configure`, upstream test suite vendored and green, CI green under r-universe constraints. | Installs from a clean checkout with no network. |
-| 2 | Differential harness + fixtures + the parity matrix. Every gap-inventory claim becomes a passing or failing test. | Root cause established for multi-target and any other reported breakage. |
+| 2 | Differential harness + fixtures + the parity matrix, seeded from the **machine-generated** capability inventory (§4.5), not from §2's hand-written list. Every row becomes a passing test, a failing test, or a recorded out-of-scope decision. | Generated inventory exists; every row has a state; root cause established for multi-target and any other reported breakage. |
 | 3 | Data/Pool parity: multi-target labels, embeddings, sparse/CSR, timestamps, quantized pools, text tokenizers. | Differential tests green. |
 | 4 | Analysis parity: `ShapInteractionValues`, `PredictionDiff`, `calc_feature_statistics`, object-importance MultiClass fix (#869), `plot_tree`, `model.compare`. | Differential tests green, structural method per §4.3. |
 | 5 | Training-control parity: `init_model`, grid/randomized search, `select_features`, virtual ensembles verified end-to-end, full parameter surface documented and validated. | Differential tests green. |
@@ -251,4 +275,11 @@ green, so Phase 7 cannot be completed without resolving this. Options, none yet 
 3. **Declare GPU out of scope.** Contradicts the parity definition in §1, and would need to
    be an explicit user decision recorded here.
 
-Until this is decided, Phase 7 stays planned but unstarted, and no GPU claim is made.
+**Decision (2026-07-30): deferred to Phase 7 by explicit user choice.** Phases 0-6 are
+unaffected, so the decision is taken when it becomes actionable rather than now. Until then
+Phase 7 stays planned but unstarted, and no GPU claim is made anywhere.
+
+Consequence to close when Phase 7 starts: the epic's GPU success criterion is written
+unconditionally ("verified by differential tests run on real CUDA hardware"). If option 2 or
+3 is chosen, that criterion must be amended in the same change, or the epic becomes
+internally contradictory.

@@ -139,7 +139,18 @@ jobs:
 
       - name: Guard -- vendor/catboost still pristine
         if: always()
-        run: git -C vendor/catboost status --porcelain --untracked-files=no | tee /dev/stderr | (! grep -q .)
+        run: |
+          # A trailing `| grep -q` exits on its first match and can
+          # SIGPIPE `tee` before the diagnostic flushes, silently
+          # swallowing exactly the output needed to debug a failure
+          # (P1.13 hosted-CI finding, 2026-07-31) -- capture first,
+          # decide after.
+          dirty="$(git -C vendor/catboost status --porcelain --untracked-files=no)"
+          if [ -n "$dirty" ]; then
+            echo "$dirty" >&2
+            echo "*** vendor/catboost is dirty -- see above." >&2
+            exit 1
+          fi
 
   integrity:
     name: integrity-reproduction
@@ -201,4 +212,10 @@ jobs:
 
       - name: Guard -- vendor/catboost still pristine
         if: always()
-        run: git -C vendor/catboost status --porcelain --untracked-files=no | tee /dev/stderr | (! grep -q .)
+        run: |
+          dirty="$(git -C vendor/catboost status --porcelain --untracked-files=no)"
+          if [ -n "$dirty" ]; then
+            echo "$dirty" >&2
+            echo "*** vendor/catboost is dirty -- see above." >&2
+            exit 1
+          fi

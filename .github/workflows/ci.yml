@@ -116,7 +116,11 @@ jobs:
           # print -- capture the exit status instead so 00install.out
           # (never streamed to stdout by R itself) is always visible.
           set +e
-          R CMD check --as-cran "$tarball"
+          # --no-manual: runners have no pdflatex: R's own manual-PDF check
+          # fails with "pdflatex is not available", an environment gap
+          # unrelated to build/check correctness (confirmed via
+          # 00install.out: install itself only WARNs, never ERRORs).
+          R CMD check --as-cran --no-manual "$tarball"
           check_status=$?
           set -e
           end=$(date +%s)

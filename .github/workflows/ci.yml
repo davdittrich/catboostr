@@ -1,0 +1,187 @@
+name: CI
+
+# P1.13 (catboost-8z4.23). Three jobs, deliberately minimal (this is not a
+# release pipeline):
+#   1. build-check (matrix: ubuntu-latest, macos-14) -- R CMD build + R CMD
+#      check --as-cran, from source, via the fork-owned `configure`.
+#   2. integrity -- proves tools/vendor/acquire.sh's fresh acquisition matches
+#      the committed tools/vendor/PRUNED_MANIFEST.sha256, AND that the
+#      disposable build-source copy `configure` actually compiles from is the
+#      SAME tree the manifest describes. See the 2026-07-31 AMENDMENT in
+#      catboost-8z4.23: this replaces an earlier, dead design that hashed the
+#      R CMD build tarball against the manifest -- .Rbuildignore (P1.6)
+#      excludes vendor/ from that tarball entirely by design (distribution is
+#      git-checkout via r-universe/GitHub, not a CRAN source tarball), so that
+#      comparison would have been a vacuous 0-file check.
+#
+# No credentials anywhere below. macOS and Linux both use only what a hosted
+# GitHub Actions runner and a public git/https checkout provide.
+
+on:
+  push:
+  pull_request:
+
+env:
+  # Pinned in tools/vendor/acquire.sh -- restated here only as a cache key
+  # input, never as a second source of truth for the pin itself.
+  VENDOR_CATBOOST_SHA: b1bd2a6d77219e82a1acfcedfccb8e6f6c1ee084
+  # Pinned in tools/vendor/acquire-thirdparty.sh / configure sec. 3b -- same
+  # restated-for-cache-key-only rule.
+  VENDOR_THIRDPARTY_KEY: openssl-3.5.7_ragel-6.10_yasm-1.3.0
+
+jobs:
+  build-check:
+    name: build-check (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        # macOS is in R1 scope (2026-07-31 user decision, catboost-8z4
+        # epic). macos-14 is Apple Silicon (arm64) -- the current GitHub
+        # Actions macOS default. Intel macOS (x86_64, e.g. macos-13) is NOT
+        # run here and is untested; see docs/phase-1/P1.13-report.md.
+        os: [ubuntu-latest, macos-14]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          # jsonlite (Imports) + caret/testthat/tibble/e1071 (Suggests) --
+          # needed for R CMD check's own test run, not compiled from source.
+          extra-packages: any::rcmdcheck
+          needs: check
+
+      - name: Install Linux build toolchain
+        if: runner.os == 'Linux'
+        run: |
+          set -eux
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            clang lld cmake ninja-build python3 python3-venv perl
+          python3 -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install --quiet cython
+          echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
+
+      - name: Install macOS build toolchain
+        if: runner.os == 'macOS'
+        run: |
+          set -eux
+          # clang/clang++/make/perl come from Xcode Command Line Tools,
+          # already present on the hosted runner image. cmake is not
+          # guaranteed present -- install explicitly, harmlessly idempotent
+          # if it already is. No ninja: configure falls back to Unix
+          # Makefiles (proven in docs/phase-1/P1.4-report.md sec. 6).
+          brew install cmake
+          python3 -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install --quiet cython
+          echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
+
+      - name: Cache vendor/catboost
+        uses: actions/cache@v4
+        with:
+          path: vendor/catboost
+          key: vendor-catboost-${{ env.VENDOR_CATBOOST_SHA }}
+
+      - name: Cache vendor/thirdparty
+        uses: actions/cache@v4
+        with:
+          path: vendor/thirdparty
+          key: vendor-thirdparty-${{ env.VENDOR_THIRDPARTY_KEY }}
+
+      - name: Acquire pinned vendor sources
+        run: |
+          set -eux
+          tools/vendor/acquire.sh
+          tools/vendor/acquire-thirdparty.sh
+          git -C vendor/catboost status --porcelain
+
+      - name: R CMD build
+        run: R CMD build --no-build-vignettes .
+
+      - name: R CMD check --as-cran
+        env:
+          CATBOOSTR_VENDOR_SRC: ${{ github.workspace }}/vendor/catboost
+          CATBOOSTR_THIRDPARTY_SRC: ${{ github.workspace }}/vendor/thirdparty
+        run: |
+          set -eux
+          start=$(date +%s)
+          tarball=$(ls catboostr_*.tar.gz)
+          R CMD check --as-cran "$tarball"
+          end=$(date +%s)
+          echo "*** R CMD check wall-clock seconds: $((end - start))"
+          cat catboostr.Rcheck/00check.log
+          if grep -q 'ERROR' catboostr.Rcheck/00check.log; then
+            echo "*** ERROR found in R CMD check output -- see log above." >&2
+            exit 1
+          fi
+
+      - name: Guard -- vendor/catboost still pristine
+        if: always()
+        run: git -C vendor/catboost status --porcelain --untracked-files=no | tee /dev/stderr | (! grep -q .)
+
+  integrity:
+    name: integrity-reproduction
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+
+      - name: Cache vendor/catboost
+        uses: actions/cache@v4
+        with:
+          path: vendor/catboost
+          key: vendor-catboost-${{ env.VENDOR_CATBOOST_SHA }}
+
+      - name: Cache vendor/thirdparty
+        uses: actions/cache@v4
+        with:
+          path: vendor/thirdparty
+          key: vendor-thirdparty-${{ env.VENDOR_THIRDPARTY_KEY }}
+
+      - name: Acquire pinned vendor sources
+        run: |
+          set -eux
+          tools/vendor/acquire.sh
+          tools/vendor/acquire-thirdparty.sh
+          git -C vendor/catboost status --porcelain
+
+      - name: prune(fresh acquire) == committed manifest
+        run: |
+          set -eux
+          start=$(date +%s)
+          tools/vendor/prune.sh
+          git diff --exit-code -- tools/vendor/PRUNED_MANIFEST.sha256
+          end=$(date +%s)
+          echo "*** prune+diff wall-clock seconds: $((end - start))"
+          rm -rf vendor/catboost-pruned
+
+      - name: configure's build-source copy == committed manifest
+        env:
+          CATBOOSTR_BUILD_DIR: ${{ runner.temp }}/catboostr-build
+        run: |
+          set -eux
+          start=$(date +%s)
+          mkdir -p "$CATBOOSTR_BUILD_DIR"
+          # "Far enough to observe the copy" (P1.13 sec. IV step 5): configure
+          # copies vendor/catboost into $CATBOOSTR_BUILD_DIR/src-copy in its
+          # own sec. 3, long before any full C++ compile. A bounded timeout
+          # lets that copy (and configure's later, slower stages, up to
+          # whatever it reaches) run without paying for a full build here --
+          # job 1's build-check already proves the full build succeeds.
+          timeout 90 ./configure || true
+          end=$(date +%s)
+          echo "*** configure (bounded) wall-clock seconds: $((end - start))"
+          tools/vendor/verify-build-copy.sh "$CATBOOSTR_BUILD_DIR/src-copy" "$PWD/vendor/catboost"
+
+      - name: Guard -- vendor/catboost still pristine
+        if: always()
+        run: git -C vendor/catboost status --porcelain --untracked-files=no | tee /dev/stderr | (! grep -q .)

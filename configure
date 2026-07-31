@@ -141,6 +141,160 @@ printf '\nadd_subdirectory(%s %s)\n' "$PKG_ROOT/src" '${CMAKE_BINARY_DIR}/catboo
   >> "${SRC_COPY}/CMakeLists.txt"
 
 # --------------------------------------------------------------------------
+# 3b. Third-party sources that are NOT inside the pinned vendor/catboost
+# snapshot, built here from pinned, SHA256-verified tarballs.
+#
+# Upstream resolves these through Conan (vendor/catboost/conanfile.py:16
+# `requires("openssl/3.0.15")`, :19 `tool_requires("ragel/6.10")`, :21
+# `tool_requires("yasm/1.3.0")`). Conan is a network resolver with no
+# integrity pin this repository can audit, so it is removed from the install
+# path entirely (spec 4.8 / catboost-8z4.13). Nothing below contacts the
+# network: the tarballs are acquired once by
+# tools/vendor/acquire-thirdparty.sh and their SHA256 is re-verified here,
+# fail-closed, on every build.
+#
+# swig/4.0.2 is the fourth Conan tool_requires and is deliberately NOT
+# handled: `find_package(SWIG ...)` occurs only under
+# catboost/spark/catboost4j-spark/, which -DCATBOOST_COMPONENTS=R-package-fork
+# never configures. Verified by grep over the pinned tree: the only
+# find_package(SWIG) hits are the six spark CMakeLists.*.txt:17.
+#
+# ragel and yasm are BUILD-TIME code generators, not link inputs. The pinned
+# tree hardcodes where it looks for them --
+# vendor/catboost/cmake/common.cmake:26 `SET(RAGEL_BIN
+# ${PROJECT_BINARY_DIR}/bin/ragel...)` and :43 `SET(YASM_BIN
+# ${PROJECT_BINARY_DIR}/bin/yasm...)` -- with no cache variable to override,
+# so the binaries are placed at exactly that path below. They are reached
+# unconditionally by the yutil target the R package links
+# (util/CMakeLists.linux-x86_64.txt:589 target_ragel_lexers for
+# util/datetime/parser.rl6, :595 target_yasm_source for
+# util/system/context_x86.asm). Building them from source rather than
+# declaring them SystemRequirements is a deliberate choice: neither ships in
+# a base CRAN build image, ragel 6.10 in particular is absent from current
+# Debian/Ubuntu/Fedora repositories, and requiring the user to install two
+# obscure code generators to compile an R package trades a 10-second build
+# for an install that simply fails on most machines. Measured cost of
+# building all three here: openssl ~10s, ragel ~5s, yasm ~2s at -j16.
+#
+# openssl IS a link input (accepted into the R1 link, not gated -- see
+# SOURCES.md and docs/phase-1/P1.5-report.md). It is built static and
+# -fPIC so it is embedded in libcatboostr.so; that embedding is exactly why
+# SOURCES.md carries a standing CVE-tracking obligation for it.
+# --------------------------------------------------------------------------
+THIRDPARTY_SRC="${PKG_ROOT}/vendor/thirdparty"
+
+# Keep these three in lockstep with tools/vendor/acquire-thirdparty.sh and
+# SOURCES.md. They are duplicated rather than sourced from one file because
+# configure must run standalone from an unpacked source tarball.
+OPENSSL_VERSION="3.5.7"
+OPENSSL_SHA256="a8c0d28a529ca480f9f36cf5792e2cd21984552a3c8e4aa11a24aa31aeac98e8"
+RAGEL_VERSION="6.10"
+RAGEL_SHA256="5f156edb65d20b856d638dd9ee2dfb43285914d9aa2b6ec779dac0270cd56c3f"
+YASM_VERSION="1.3.0"
+YASM_SHA256="3dce6601b495f5b3d45b59f7d2492a340ee7e84b5beca17e48f862502bd5603f"
+
+JOBS="${CATBOOSTR_JOBS:-4}"
+TP_PREFIX="${CATBOOSTR_THIRDPARTY_PREFIX:-${WORKDIR}/thirdparty}"
+TP_WORK="${WORKDIR}/thirdparty-build"
+
+catboostr_sha256() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$1" | awk '{print $1}'
+  else
+    shasum -a 256 "$1" | awk '{print $1}'
+  fi
+}
+
+# Fail-closed integrity gate. Every third-party byte that reaches the
+# compiler passes through here first.
+catboostr_verify_tarball() {
+  _tb="${THIRDPARTY_SRC}/${1}-${2}.tar.gz"
+  if [ ! -f "$_tb" ]; then
+    echo "*** missing third-party source: $_tb" >&2
+    echo "*** Run tools/vendor/acquire-thirdparty.sh once to fetch and verify it." >&2
+    echo "*** This build will NOT download anything itself." >&2
+    exit 1
+  fi
+  _actual=$(catboostr_sha256 "$_tb")
+  if [ "$_actual" != "$3" ]; then
+    echo "*** SHA256 MISMATCH for $1 $2 -- refusing to build." >&2
+    echo "***   file    : $_tb" >&2
+    echo "***   expected: $3" >&2
+    echo "***   actual  : $_actual" >&2
+    exit 1
+  fi
+  echo "*** verified $1 $2 sha256=$_actual"
+}
+
+catboostr_verify_tarball openssl "$OPENSSL_VERSION" "$OPENSSL_SHA256"
+catboostr_verify_tarball ragel "$RAGEL_VERSION" "$RAGEL_SHA256"
+catboostr_verify_tarball yasm "$YASM_VERSION" "$YASM_SHA256"
+
+mkdir -p "$TP_WORK" "$TP_PREFIX"
+
+# openssl: static, -fPIC (it is linked into a shared object), no zlib (the
+# only reason zlib appeared in the Conan graph at all was openssl's default
+# zlib option -- catboost itself has no find_package(ZLIB) anywhere and
+# carries its own contrib/libs/zlib in-tree). build_libs + install_dev skips
+# the apps and the man pages: nothing here needs the `openssl` CLI.
+if [ ! -f "${TP_PREFIX}/lib/libcrypto.a" ]; then
+  if ! command -v perl >/dev/null 2>&1; then
+    echo "*** perl not found on PATH. openssl's own Configure is a Perl" >&2
+    echo "*** program; it cannot be built without it." >&2
+    exit 1
+  fi
+  echo "*** building pinned openssl ${OPENSSL_VERSION} (static, -fPIC)"
+  rm -rf "${TP_WORK}/openssl-${OPENSSL_VERSION}"
+  tar -xzf "${THIRDPARTY_SRC}/openssl-${OPENSSL_VERSION}.tar.gz" -C "$TP_WORK"
+  (
+    cd "${TP_WORK}/openssl-${OPENSSL_VERSION}" &&
+    ./config --prefix="$TP_PREFIX" --openssldir="${TP_PREFIX}/ssl" --libdir=lib \
+      no-shared no-tests no-docs no-zlib no-apps -fPIC &&
+    make -j"$JOBS" build_libs &&
+    make install_dev
+  )
+fi
+
+# ragel 6.10: -std=c++03 is required, not cosmetic -- the shipped sources use
+# `register` storage class and the implicit int/bool conversions that C++17
+# removed, so a default-standard modern compiler rejects them.
+if [ ! -x "${TP_PREFIX}/bin/ragel" ]; then
+  echo "*** building pinned ragel ${RAGEL_VERSION}"
+  rm -rf "${TP_WORK}/ragel-${RAGEL_VERSION}"
+  tar -xzf "${THIRDPARTY_SRC}/ragel-${RAGEL_VERSION}.tar.gz" -C "$TP_WORK"
+  (
+    cd "${TP_WORK}/ragel-${RAGEL_VERSION}" &&
+    CXXFLAGS="-O2 -std=c++03" ./configure --prefix="$TP_PREFIX" --disable-shared &&
+    make -j"$JOBS" &&
+    make install
+  )
+fi
+
+# yasm 1.3.0: -std=gnu17 is required, not cosmetic -- libyasm/bitvect.h:86
+# declares `typedef enum boolean { false = FALSE, true = TRUE }`, which C23
+# (the default standard of current gcc/clang) rejects because false/true are
+# keywords there. The two -Wno- flags cover the pre-C99 implicit
+# declarations elsewhere in the tree.
+if [ ! -x "${TP_PREFIX}/bin/yasm" ]; then
+  echo "*** building pinned yasm ${YASM_VERSION}"
+  rm -rf "${TP_WORK}/yasm-${YASM_VERSION}"
+  tar -xzf "${THIRDPARTY_SRC}/yasm-${YASM_VERSION}.tar.gz" -C "$TP_WORK"
+  (
+    cd "${TP_WORK}/yasm-${YASM_VERSION}" &&
+    CFLAGS="-O2 -std=gnu17 -Wno-implicit-function-declaration -Wno-int-conversion" \
+      ./configure --prefix="$TP_PREFIX" --disable-shared --disable-python &&
+    make -j"$JOBS" &&
+    make install
+  )
+fi
+
+# Hand the two generators to the pinned tree at the one path it looks at.
+mkdir -p "${BUILD_DIR}/bin"
+cp -f "${TP_PREFIX}/bin/ragel" "${BUILD_DIR}/bin/ragel"
+cp -f "${TP_PREFIX}/bin/yasm" "${BUILD_DIR}/bin/yasm"
+echo "*** ragel/yasm placed at ${BUILD_DIR}/bin (cmake/common.cmake:26,43)"
+
+# --------------------------------------------------------------------------
 # 4. Fork-owned toolchain file: forwards R's CFLAGS/CXXFLAGS/CPPFLAGS/LDFLAGS
 # into the CMake build (project-global CMAKE_*_FLAGS_INIT, not just the
 # fork's own two translation units).
@@ -213,7 +367,7 @@ else
   BUILD_CMD="make"
   EXTRA_CMAKE_ARGS=""
 fi
-JOBS="${CATBOOSTR_JOBS:-4}"
+# JOBS is set in section 3b -- the third-party builds there need it first.
 
 PY3_BIN="${CATBOOSTR_PYTHON3:-}"
 if [ -z "$PY3_BIN" ] && command -v python3 >/dev/null 2>&1; then
@@ -239,15 +393,23 @@ echo "*** cython:  $CYTHON_BIN"
 # 6. Configure and build.
 # --------------------------------------------------------------------------
 GATE_FILE="${PKG_ROOT}/cmake/gate-test-tool-dirs.cmake"
-CONAN_PROVIDER="${SRC_COPY}/cmake/conan_provider.cmake"
+# Conan is GONE from the install path. ${SRC_COPY}/cmake/conan_provider.cmake
+# used to be the second entry here; it installed a CMake dependency provider
+# that shelled out to `conan install` on the first find_package(), i.e. a
+# network fetch with no integrity pin, during R CMD INSTALL. It is replaced
+# by the fork's own provider, which resolves OpenSSL from the pinned,
+# SHA256-verified build in section 3b and claims nothing else.
+OPENSSL_TARGET_FILE="${PKG_ROOT}/cmake/openssl-target.cmake"
 
 # shellcheck disable=SC2086
 cmake -S "$SRC_COPY" -B "$BUILD_DIR" -G "$GENERATOR" -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN_FILE" \
-  -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES="${GATE_FILE};${CONAN_PROVIDER}" \
+  -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES="${GATE_FILE};${OPENSSL_TARGET_FILE}" \
   -DCMAKE_POSITION_INDEPENDENT_CODE=On \
   -DCATBOOST_COMPONENTS=R-package-fork \
   -DHAVE_CUDA=no \
+  -DCATBOOSTR_OPENSSL_ROOT="$TP_PREFIX" \
+  -DCATBOOSTR_OPENSSL_VERSION="$OPENSSL_VERSION" \
   -DPython3_EXECUTABLE="$PY3_BIN" -DCYTHON_EXE="$CYTHON_BIN" \
   -DR_INCLUDE_DIR="$R_INCLUDE_DIR" \
   $EXTRA_CMAKE_ARGS

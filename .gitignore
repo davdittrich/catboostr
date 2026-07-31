@@ -4,6 +4,7 @@
 .Ruserdata
 src/*.o
 src/*.so
+inst/libs/
 .claude/
 .superpowers/
 catboost_info/

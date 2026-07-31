@@ -181,6 +181,8 @@ EXPORT_FUNCTION CatBoostEvalMetrics_R(
     SEXP resultDirParam
 );
 
+EXPORT_FUNCTION CatBoostVersion_R(void);
+
 
 
 #if defined(__cplusplus)

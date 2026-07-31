@@ -31,6 +31,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"CatBoostSerializeModel_R",              (DL_FUNC) &CatBoostSerializeModel_R,               1},
     {"CatBoostShrinkModel_R",                 (DL_FUNC) &CatBoostShrinkModel_R,                  3},
     {"CatBoostSumModels_R",                   (DL_FUNC) &CatBoostSumModels_R,                    3},
+    {"CatBoostVersion_R",                     (DL_FUNC) &CatBoostVersion_R,                      0},
     {NULL, NULL, 0}
 };
 

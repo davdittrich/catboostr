@@ -23,6 +23,12 @@
 #include <catboost/private/libs/options/enum_helpers.h>
 #include <catboost/private/libs/target/data_providers.h>
 
+// P1.16: compiled-in build identifier for R/libcatboostr version-skew detection.
+// Same __vcs_version__.c mechanism (cmake/common.cmake's vcs_info(), fed by
+// build/scripts/vcs_info.py + generate_vcs_info.py) already linked into this
+// target's own vcs_info(catboostr) call in src/CMakeLists.txt.
+#include <library/cpp/svnversion/svnversion.h>
+
 #include <util/generic/cast.h>
 #include <util/generic/mem_copy.h>
 #include <util/generic/singleton.h>
@@ -465,6 +471,19 @@ EXPORT_FUNCTION CatBoostGetNumTrees_R(SEXP modelParam) {
     R_API_BEGIN();
     TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
     result = ScalarInteger(static_cast<int>(model->GetTreeCount()));
+    R_API_END();
+    return result;
+}
+
+// P1.16: returns the build tag compiled into this shared object by vcs_info()
+// (GetTag() is defined in the generated __vcs_version__.c, from ARCADIA_TAG =
+// `git describe --exact-match --tags HEAD` on the build tree). Empty string
+// when the build tree was not checked out exactly at a tag. Used by R's
+// .onLoad (R/zzz.R) to detect skew against the installed DESCRIPTION Version.
+EXPORT_FUNCTION CatBoostVersion_R(void) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    result = mkString(GetTag());
     R_API_END();
     return result;
 }

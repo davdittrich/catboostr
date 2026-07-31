@@ -5,11 +5,30 @@
 were empirical are now answered by measurement; §10 records which, and what remains deferred.
 Build model, dependency surface and CRAN size are measured facts, not assumptions.
 
+> **AMENDMENT 2026-07-31 — CRAN dropped as a distribution goal.** User decision, made after
+> catboost-8z4.32's research (`docs/phase-1/catboost-8z4.32-research.md`) found that every
+> CRAN-related section below (§4.1b size gate, §5 gate 1a, §6 thin-package alternative, §7
+> tarball-size risk row, §9.0 30MB trigger) assumed the pruned CatBoost C++ core would ship
+> inside the CRAN source tarball — engineering that was never actually built (the running
+> architecture instead treats `vendor/catboost` as an externally-acquired, gitignored
+> dependency the user obtains via `tools/vendor/acquire.sh`). Legally shipping a pruned
+> tarball WAS confirmed permitted (CatBoost is Apache-2.0, License §4 explicitly allows
+> redistributing modified Source-form Derivative Works under standard conditions), but the
+> user's stated preference is that users install required build dependencies
+> (CMake/compiler/Python3/Perl, plus running the acquire script) themselves rather than the
+> package vendoring and shipping everything invisibly — "easier to maintain the package."
+> Distribution is now **r-universe or GitHub only, built from a git checkout — not a CRAN
+> source tarball.** Every CRAN-specific passage below is a historical record of the reasoning
+> that led here, not a current requirement; it is left unedited in place rather than rewritten,
+> so the amendment is auditable against what it supersedes. See `catboost-8z4` (epic) for the
+> current, authoritative success criteria.
+
 ## 1. Goal
 
 Ship `catboostr`: a fork of the CatBoost R package in which **every capability available in
-the CatBoost CLI or Python package is also available in R**, and which is eventually
-accepted on CRAN.
+the CatBoost CLI or Python package is also available in R**. CRAN acceptance is explicitly
+NOT a goal (amendment above) — r-universe and/or GitHub, built from a git checkout, are the
+distribution targets.
 
 "R as a first-class citizen" is defined, by explicit user instruction, as exactly that
 parity — nothing more. Idiomatic-R additions that do not correspond to a CLI or Python

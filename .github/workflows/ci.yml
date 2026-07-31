@@ -111,11 +111,22 @@ jobs:
           set -eux
           start=$(date +%s)
           tarball=$(ls catboostr_*.tar.gz)
+          # R CMD check exits non-zero on ERROR, which would kill this
+          # script under set -e before the logs below get a chance to
+          # print -- capture the exit status instead so 00install.out
+          # (never streamed to stdout by R itself) is always visible.
+          set +e
           R CMD check --as-cran "$tarball"
+          check_status=$?
+          set -e
           end=$(date +%s)
           echo "*** R CMD check wall-clock seconds: $((end - start))"
+          if [ -f catboostr.Rcheck/00install.out ]; then
+            echo "*** 00install.out ***"
+            cat catboostr.Rcheck/00install.out
+          fi
           cat catboostr.Rcheck/00check.log
-          if grep -q 'ERROR' catboostr.Rcheck/00check.log; then
+          if [ "$check_status" -ne 0 ] || grep -q 'ERROR' catboostr.Rcheck/00check.log; then
             echo "*** ERROR found in R CMD check output -- see log above." >&2
             exit 1
           fi

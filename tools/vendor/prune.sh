@@ -117,6 +117,7 @@ echo "*** size: ${BEFORE_SIZE} -> ${AFTER_SIZE}"
 echo "*** writing manifest: ${MANIFEST}"
 (
   cd "${DEST_DIR}"
+  export LC_ALL=C
   find . -type f -print0 | sort -z | xargs -0 sha256sum
 ) > "${MANIFEST}"
 echo "*** manifest: $(wc -l < "${MANIFEST}") files"

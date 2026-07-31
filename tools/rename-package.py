@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Rename the vendored upstream R package `catboost` -> `catboostr`.
 
-Applies the four package-name spellings that appear in upstream's
-catboost/R-package sources.  Idempotent and re-runnable: none of the four
+Applies the five package-name spellings that appear in upstream's
+catboost/R-package sources.  Idempotent and re-runnable: none of the five
 patterns can match text this script has already rewritten, so running it twice
 is a no-op.  This is what makes the strict-superset regression gate meaningful
 -- the fork's R sources are upstream's sources plus exactly these
@@ -24,6 +24,7 @@ SUBS = [
     ("colons",      re.compile(r"\bcatboost::"),               "catboostr::"),
     ("test_check",  re.compile(r'test_check\("catboost"\)'),   'test_check("catboostr")'),
     ("package_arg", re.compile(r'(package\s*=\s*)"catboost"'), r'\1"catboostr"'),
+    ("caret_library", re.compile(r'(library\s*=\s*)"catboost"'), r'\1"catboostr"'),
 ]
 
 # Everything the rename must reach.  man/ is included deliberately:

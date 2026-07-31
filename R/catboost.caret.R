@@ -3,7 +3,7 @@
 #'
 #' @export
 catboost.caret <- list(label = "Catboost",
-                       library = "catboost",
+                       library = "catboostr",
                        type = c("Regression", "Classification"))
 
 

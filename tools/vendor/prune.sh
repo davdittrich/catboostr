@@ -114,10 +114,18 @@ BEFORE_SIZE=$(du -sh "${SRC_DIR}" | cut -f1)
 AFTER_SIZE=$(du -sh "${DEST_DIR}" | cut -f1)
 echo "*** size: ${BEFORE_SIZE} -> ${AFTER_SIZE}"
 
+# macOS has no sha256sum at all (P1.11 hosted-CI finding, 2026-08-01);
+# shasum -a 256 emits the identical "<hash>  <path>" format.
+if command -v sha256sum >/dev/null 2>&1; then
+  HASHER=(sha256sum)
+else
+  HASHER=(shasum -a 256)
+fi
+
 echo "*** writing manifest: ${MANIFEST}"
 (
   cd "${DEST_DIR}"
   export LC_ALL=C
-  find . -type f -print0 | sort -z | xargs -0 sha256sum
+  find . -type f -print0 | sort -z | xargs -0 "${HASHER[@]}"
 ) > "${MANIFEST}"
 echo "*** manifest: $(wc -l < "${MANIFEST}") files"

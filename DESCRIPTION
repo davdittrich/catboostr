@@ -8,6 +8,8 @@ Description: Open-source gradient boosting on decision trees with categorical
 License: Apache License (== 2.0)
 Imports: jsonlite
 Suggests: caret, testthat, tibble, e1071
+SystemRequirements: CMake (>= 3.15), C++20, clang and clang++ compiler,
+    Python3, Cython, Perl, GNU Make or Ninja
 Authors@R: c(
     person("Dennis Alexis Valin", "Dittrich", role = c("cre", "aut"),
       email = "davdittrich@gmail.com",

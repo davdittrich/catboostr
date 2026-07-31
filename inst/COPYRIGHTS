@@ -1,0 +1,89 @@
+catboostr licence and copyright provenance
+===========================================
+
+This file enumerates every third-party source that is compiled into (or
+used to build) libcatboostr.so, and states its licence. It covers LICENCES
+ONLY. Version pins, SHA256 checksums, acquisition mechanism and CVE-tracking
+obligations are covered by ../SOURCES.md and are not restated here.
+
+1. CatBoost C++ core (vendor/catboost, tag v1.2.10)
+----------------------------------------------------
+  Copyright:  2017-2026 YANDEX LLC
+  Licence:    Apache License, Version 2.0
+  Source:     https://github.com/catboost/catboost
+  Notes:      vendor/catboost/LICENSE, verbatim first line:
+              "Copyright 2017-2026 YANDEX LLC" / "Apache License Version 2.0".
+              This is the primary upstream project this package wraps;
+              matches this package's own DESCRIPTION License field.
+              CatBoost's own contrib/ tree bundles further third-party C++
+              libraries (protobuf, flatbuffers, cxxsupp, etc.) under
+              vendor/catboost/contrib/, each carrying its own upstream
+              licence file inside that read-only pinned snapshot; those are
+              upstream CatBoost's own vendoring decisions, not this fork's,
+              and are unaffected by this package (they are not re-vendored
+              or re-distributed separately by catboostr).
+
+2. OpenSSL 3.5.7 (vendor/thirdparty/openssl-3.5.7.tar.gz)
+------------------------------------------------------------
+  Licence:    Apache License, Version 2.0
+  Source:     https://github.com/openssl/openssl/releases/download/openssl-3.5.7/openssl-3.5.7.tar.gz
+  Notes:      Verified from openssl-3.5.7/LICENSE.txt (Apache-2.0 header,
+              as of the OpenSSL 3.x licence re-relicensing). Built static,
+              -fPIC, and statically embedded into libcatboostr.so (see
+              docs/phase-1/P1.5-report.md sec. 5.3: `strings` on the built
+              .so shows "OpenSSL 3.5.7", no libssl.so/libcrypto.so in
+              NEEDED). Because it is embedded, not dynamically linked, its
+              licence terms travel with the compiled artefact this package
+              ships. SOURCES.md sec. "STANDING OBLIGATION" tracks CVEs
+              against this pinned, statically-embedded copy.
+
+3. Ragel 6.10 (vendor/thirdparty/ragel-6.10.tar.gz)
+-------------------------------------------------------
+  Copyright:  1989, 1991 Free Software Foundation, Inc. (COPYING file terms);
+              Ragel itself is Copyright Adrian Thurston.
+  Licence:    GNU General Public License, version 2 (GPL-2.0-only)
+  Source:     https://www.colm.net/files/ragel/ragel-6.10.tar.gz
+  Notes:      Verified from ragel-6.10/COPYING (verbatim "GNU GENERAL PUBLIC
+              LICENSE / Version 2, June 1991"). Ragel is used ONLY as a
+              build-time code generator (invoked by `configure` to turn
+              util/datetime/parser.rl6 and library/cpp/json/fast_sax's .rl6
+              grammar into .cpp, per vendor/catboost/cmake/common.cmake:26
+              target_ragel_lexers). The ragel BINARY is built from this
+              tarball during every `configure` run and is NEVER shipped: it
+              is not present in inst/, not linked into libcatboostr.so, and
+              vendor/thirdparty/ is gitignored (not committed, not part of
+              the R source tarball -- verified sec. 3 of
+              docs/phase-1/P1.6-report.md). Ragel's own licensing FAQ and
+              the wider Ragel community treat the *generated* .cpp output as
+              unencumbered by the GPL (the GPL binds the compiler, not its
+              output, absent an explicit runtime-linked exception clause in
+              the generated code -- none is emitted by Ragel 6.10). The
+              GPL-2.0 obligation therefore attaches to redistribution of the
+              ragel tool itself, which this package does not do.
+
+4. Yasm 1.3.0 (vendor/thirdparty/yasm-1.3.0.tar.gz)
+--------------------------------------------------------
+  Copyright:  2001-2014 Peter Johnson and other Yasm developers.
+  Licence:    BSD-2-Clause (primary); libyasm's bundled "bitvect" component
+              is additionally triple-licensed under the Artistic License,
+              GPL, and LGPL (yasm's own COPYING summary: "Libyasm is
+              2-clause or 3-clause BSD licensed, with the exception of
+              bitvect, which is triple-licensed").
+  Source:     https://www.tortall.net/projects/yasm/releases/yasm-1.3.0.tar.gz
+  Notes:      Verified from yasm-1.3.0/COPYING and yasm-1.3.0/BSD.txt. Like
+              ragel, yasm is a build-time code generator only (invoked by
+              `configure` for util/system/context_x86.asm, per
+              vendor/catboost/cmake/common.cmake:43 target_yasm_source /
+              util/CMakeLists.linux-x86_64.txt:595). The yasm BINARY is
+              built during `configure` and never shipped (same evidence as
+              item 3 above): not in inst/, not linked into
+              libcatboostr.so, vendor/thirdparty/ gitignored.
+
+Summary of what is actually EMBEDDED in the shipped libcatboostr.so
+---------------------------------------------------------------------
+  - CatBoost C++ core and its own contrib/ (Apache-2.0 and upstream's own
+    per-component licences under vendor/catboost/contrib/).
+  - OpenSSL 3.5.7, statically linked (Apache-2.0).
+Ragel and Yasm are build-time-only tools; neither their binaries nor any
+GPL/BSD-licensed code they are built from is copied into the installed
+package or into libcatboostr.so.

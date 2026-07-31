@@ -114,9 +114,13 @@ fi
 # vendor/catboost/ is a read-only pin (tag v1.2.10). The copy always lives
 # under a disposable build dir, never under PKG_ROOT.
 # --------------------------------------------------------------------------
-VENDOR_SRC="${PKG_ROOT}/vendor/catboost"
+VENDOR_SRC="${CATBOOSTR_VENDOR_SRC:-${PKG_ROOT}/vendor/catboost}"
 if [ ! -d "$VENDOR_SRC" ]; then
   echo "*** ${VENDOR_SRC} not found -- this fork requires the pinned vendor/catboost snapshot." >&2
+  echo "*** Run tools/vendor/acquire.sh, or set CATBOOSTR_VENDOR_SRC to point at an" >&2
+  echo "*** existing checkout (e.g. one kept outside the package tree so 'R CMD check'" >&2
+  echo "*** never has to statically scan its ~870 MiB of upstream content -- see" >&2
+  echo "*** docs/phase-1/P1.6-report.md sec. 4)." >&2
   exit 1
 fi
 
@@ -181,7 +185,7 @@ printf '\nadd_subdirectory(%s %s)\n' "$PKG_ROOT/src" '${CMAKE_BINARY_DIR}/catboo
 # -fPIC so it is embedded in libcatboostr.so; that embedding is exactly why
 # SOURCES.md carries a standing CVE-tracking obligation for it.
 # --------------------------------------------------------------------------
-THIRDPARTY_SRC="${PKG_ROOT}/vendor/thirdparty"
+THIRDPARTY_SRC="${CATBOOSTR_THIRDPARTY_SRC:-${PKG_ROOT}/vendor/thirdparty}"
 
 # Keep these three in lockstep with tools/vendor/acquire-thirdparty.sh and
 # SOURCES.md. They are duplicated rather than sourced from one file because

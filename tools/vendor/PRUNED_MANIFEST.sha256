@@ -101,7 +101,6 @@ d90db2a02488fd8524ab675eafe3bb17e76a72e146721169cede9f63fa3429cd  ./build/intern
 242dd7d095bdac0106cad27da654a2768fe9f1972e88c7053e045c85fdb2a512  ./build/platform/linux_sdk/README.md
 5429a14d19baa64a5716449744d364ef3588567869385e18e699eac6b2e50066  ./build/platform/local_so/readme.md
 4d69aba4b88bf60f452bb3e9d6300f9afe3ce7262e86a07653858fa348ee58fd  ./build/platform/wine/readme.md
-745c94951f2c30f25486fb72e1f36e19bef5e58c61fe700d967913af15cc7336  ./build/scripts/__pycache__/process_command_files.cpython-312.pyc
 2cb3cb4fd478ba61957b2e9c06f79e2dbf54109ce6f5e8dff1674e0f047c8907  ./build/scripts/_fake_src.cpp
 76dbd4c4d289b802a460e7888d2fdb3dda623c08a655fc4896593a492760c2ed  ./build/scripts/build_info_gen.py
 67cf50ae14f3696996285926ea41dd61d0b25130dcad9631cbce3d5d60809871  ./build/scripts/c_templates/svn_interface.c

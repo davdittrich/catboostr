@@ -1,7 +1,7 @@
-"""Parse upstream R-package/NAMESPACE into export()/S3method() records.
+"""Parse the fork's NAMESPACE into export()/S3method() records.
 
 Run: python3 tools/parity/parse_namespace.py
-Reads: vendor/catboost (acquired via tools/vendor/acquire.sh; gitignored)
+Reads: NAMESPACE (fork root; the R surface the package actually exports)
 Writes: tests/fixtures/parity/r_surface.json
 """
 import json
@@ -12,7 +12,7 @@ import sys
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
 VENDOR_DIR = REPO_ROOT / "vendor" / "catboost"
-NAMESPACE_PATH = VENDOR_DIR / "catboost" / "R-package" / "NAMESPACE"
+NAMESPACE_PATH = REPO_ROOT / "NAMESPACE"
 OUT_PATH = REPO_ROOT / "tests" / "fixtures" / "parity" / "r_surface.json"
 EXPECTED_TAG = "v1.2.10"
 
@@ -40,7 +40,7 @@ with open(NAMESPACE_PATH) as f:
             s3methods.append({"generic": m.group(1), "class": m.group(2)})
 
 out = {
-    "source": "vendor/catboost/catboost/R-package/NAMESPACE",
+    "source": "NAMESPACE",
     "upstream_tag": EXPECTED_TAG,
     "upstream_sha": upstream_sha,
     "exports": exports,

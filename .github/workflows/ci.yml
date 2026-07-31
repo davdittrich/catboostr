@@ -152,6 +152,88 @@ jobs:
             exit 1
           fi
 
+  # P1.11 (catboost-8z4.20). The prune set (P1.2/P1.6) was derived and
+  # validated entirely from Linux configure/ninja output; the tree ships
+  # SEPARATE generated CMakeLists.darwin-{arm64,x86_64}.txt files, so that
+  # validation proves nothing about darwin on its own. build-check above
+  # never builds from the pruned tree (configure always reads full
+  # vendor/catboost) -- this job is the one place that actually builds
+  # against vendor/catboost-pruned, on the same hosted macOS runner, to
+  # measure whether the Linux-derived exclusion set holds on arm64 darwin.
+  darwin-prune-validation:
+    name: darwin-prune-validation (macos-14)
+    runs-on: macos-14
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::rcmdcheck
+          needs: check
+
+      - name: Install macOS build toolchain
+        run: |
+          set -eux
+          brew install cmake
+          python3 -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install --quiet cython
+          echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
+
+      - name: Cache vendor/catboost
+        uses: actions/cache@v4
+        with:
+          path: vendor/catboost
+          key: vendor-catboost-${{ env.VENDOR_CATBOOST_SHA }}
+
+      - name: Cache vendor/thirdparty
+        uses: actions/cache@v4
+        with:
+          path: vendor/thirdparty
+          key: vendor-thirdparty-${{ env.VENDOR_THIRDPARTY_KEY }}
+
+      - name: Acquire pinned vendor sources
+        run: |
+          set -eux
+          tools/vendor/acquire.sh
+          tools/vendor/acquire-thirdparty.sh
+          git -C vendor/catboost status --porcelain
+
+      - name: Prune vendor/catboost (Linux-derived exclusion set)
+        run: tools/vendor/prune.sh
+
+      - name: R CMD build
+        run: R CMD build --no-build-vignettes .
+
+      - name: Install from the PRUNED tree, not the full one
+        env:
+          CATBOOSTR_VENDOR_SRC: ${{ github.workspace }}/vendor/catboost-pruned
+          CATBOOSTR_THIRDPARTY_SRC: ${{ github.workspace }}/vendor/thirdparty
+        run: |
+          set -eux
+          start=$(date +%s)
+          tarball=$(ls catboostr_*.tar.gz)
+          R CMD INSTALL "$tarball"
+          end=$(date +%s)
+          echo "*** install-from-pruned-tree wall-clock seconds: $((end - start))"
+
+      - name: Run the full testthat suite against the pruned-tree build
+        run: Rscript tests/testthat.R
+
+      - name: Guard -- vendor/catboost still pristine
+        if: always()
+        run: |
+          dirty="$(git -C vendor/catboost status --porcelain --untracked-files=no)"
+          if [ -n "$dirty" ]; then
+            echo "$dirty" >&2
+            echo "*** vendor/catboost is dirty -- see above." >&2
+            exit 1
+          fi
+
   integrity:
     name: integrity-reproduction
     runs-on: ubuntu-latest

@@ -1,0 +1,43 @@
+PASS	test_caret_parameter_tuning.R	test caret train and parameter tuning on adult pool	passed=1	failed=0	warning=0
+PASS	test_model.R	model: baseline	passed=3	failed=0	warning=0
+PASS	test_model.R	model: catboost.cv	passed=4	failed=0	warning=0
+PASS	test_model.R	model: catboost.cv with eval_metric=AUC	passed=6	failed=0	warning=0
+PASS	test_model.R	model: catboost.eval_metrics	passed=13	failed=0	warning=0
+PASS	test_model.R	model: catboost.importance	passed=2	failed=0	warning=0
+PASS	test_model.R	model: catboost.importance with shapvalues for multiclass	passed=1	failed=0	warning=0
+PASS	test_model.R	model: catboost.load_model	passed=1	failed=0	warning=0
+PASS	test_model.R	model: catboost.predict vs catboost.staged_predict	passed=2	failed=0	warning=0
+PASS	test_model.R	model: catboost.predict vs stats::predict	passed=1	failed=0	warning=0
+PASS	test_model.R	model: catboost.save_model	passed=2	failed=0	warning=0
+PASS	test_model.R	model: catboost.sum_models	passed=1	failed=0	warning=0
+PASS	test_model.R	model: catboost.train binary classification with character target	passed=1	failed=0	warning=0
+PASS	test_model.R	model: catboost.train binary classification with double target	passed=1	failed=0	warning=0
+PASS	test_model.R	model: catboost.train binary classification with factor target	passed=1	failed=0	warning=0
+PASS	test_model.R	model: catboost.train binary classification with integer target	passed=1	failed=0	warning=0
+PASS	test_model.R	model: catboost.train & catboost.predict multiclass with character target	passed=4	failed=0	warning=0
+PASS	test_model.R	model: catboost.train & catboost.predict multiclass with double target	passed=4	failed=0	warning=0
+PASS	test_model.R	model: catboost.train & catboost.predict multiclass with factor target	passed=4	failed=0	warning=0
+PASS	test_model.R	model: catboost.train & catboost.predict multiclass with integer target	passed=4	failed=0	warning=0
+PASS	test_model.R	model: catboost.train synonyms	passed=5	failed=0	warning=0
+PASS	test_model.R	model: catboost.train with per_float_quantization and ignored_features	passed=1	failed=0	warning=0
+PASS	test_model.R	model: catboost.virtual_ensembles_predict	passed=6	failed=0	warning=0
+PASS	test_model.R	model: feature_count attribute	passed=3	failed=0	warning=0
+PASS	test_model.R	model: full_history	passed=1	failed=0	warning=0
+PASS	test_model.R	model: loss_function = multiclass	passed=1	failed=0	warning=0
+PASS	test_model.R	model: save/load by R	passed=1	failed=0	warning=0
+PASS	test_model.R	model: saveRDS/readRDS by R	passed=1	failed=0	warning=0
+PASS	test_on_trimmed_adult_dataset.R	load adult pool	passed=1	failed=0	warning=0
+PASS	test_on_trimmed_adult_dataset.R	train on adult pool	passed=1	failed=0	warning=0
+PASS	test_pool.R	bad params handled correctly	passed=1	failed=0	warning=0
+PASS	test_pool.R	pool: catboost.save_pool	passed=1	failed=0	warning=0
+PASS	test_pool.R	pool: data.frame vs tibble::tbl_df vs pool	passed=4	failed=0	warning=0
+PASS	test_pool.R	pool: data.frame weights	passed=1	failed=0	warning=0
+PASS	test_pool.R	pool: load_pool from data.frame	passed=2	failed=0	warning=0
+PASS	test_pool.R	pool: load_pool from file multitarget	passed=1	failed=0	warning=0
+PASS	test_pool.R	pool: load_pool from matrix multitarget	passed=3	failed=0	warning=0
+PASS	test_pool.R	pool: load_pool from matrix	passed=4	failed=0	warning=0
+PASS	test_pool.R	pool: nan	passed=1	failed=0	warning=0
+PASS	test_pool.R	pool: text features in data.frame	passed=2	failed=0	warning=0
+PASS	test_version_skew.R	an empty compiled tag (untagged build tree) does not falsely report skew	passed=1	failed=0	warning=0
+PASS	test_version_skew.R	matching compiled tag and package version loads silently	passed=2	failed=0	warning=0
+PASS	test_version_skew.R	mismatched compiled tag and package version raises a named, actionable error	passed=6	failed=0	warning=0

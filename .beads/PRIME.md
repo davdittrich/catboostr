@@ -1,0 +1,1 @@
+Use beads with /planning-with-beads skill for tracking tasks.

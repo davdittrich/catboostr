@@ -45,9 +45,16 @@ target_sources(catboostr PRIVATE
 
 # Same target list upstream's own catboostr links
 # (vendor/catboost/catboost/R-package/src/CMakeLists.linux-x86_64.txt),
-# verified working end-to-end by the catboost-8z4.8 spike.
+# verified working end-to-end by the catboost-8z4.8 spike -- except
+# contrib-libs-linux-headers, which is itself platform-gated upstream
+# (only appears in the linux-x86_64 variant of that file, not the
+# darwin one) and fails "library not found" on macOS if linked
+# unconditionally (P1.13 hosted-CI finding, 2026-07-31).
+if(NOT APPLE)
+  target_link_libraries(catboostr PUBLIC contrib-libs-linux-headers)
+endif()
+
 target_link_libraries(catboostr PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   build-cow-on

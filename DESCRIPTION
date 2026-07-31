@@ -1,0 +1,51 @@
+Package: catboostr
+Title: Gradient Boosting on Decision Trees
+Version: 1.2.10
+Description: Open-source gradient boosting on decision trees with categorical
+    features support out of the box. A fork of the upstream CatBoost R package
+    packaged for CRAN-style installation; the R API is a strict superset of
+    upstream's catboost.* interface.
+License: Apache License (== 2.0)
+Imports: jsonlite
+Suggests: caret, testthat, tibble, e1071
+Authors@R: c(
+    person("Dennis Alexis Valin", "Dittrich", role = c("cre", "aut"),
+      email = "davdittrich@gmail.com",
+      comment = "Fork maintainer"),
+    person("Nikita", "Dmitriev", role = "aut"),
+    person("Andrey", "Gulin", role = "aut",
+      comment = "Chief researcher, author of the algorithm and the first implementation"),
+    person("Anna Veronika", "Dorogush", role = "aut"),
+    person("Stanislav", "Kirillov", role = "aut"),
+    person("Victor", "Omelyanenko", role = "aut"),
+    person("Evgueni", "Petrov", role = "aut"),
+    person("Andrey", "Mishenko", role = "aut"),
+    person("Pavel", "Kalinin", role = "aut"),
+    person("Vyacheslav", "Alipov", role = "aut"),
+    person("Egor", "Samosvat", role = "aut"),
+    person("Alexander", "Kobotov", role = "aut"),
+    person("Dmitry", "Schelchkov", role = "aut"),
+    person("Vasily", "Ershov", role = "aut", comment = "GPU implementation"),
+    person("Vyacheslav", "Murashkin", role = "aut", comment = "R Package"),
+    person("Roman", "Nefyodov", role = "aut", comment = "R Package"),
+    person("Anastasia", "Bezzubtseva", role = "aut", comment = "R Package"),
+    person("Alexey", "Gorchakov", role = "aut", comment = "R Package"),
+    person("Ivan", "Karev", role = "aut", comment = "Visualisation"),
+    person("Sergey", "Berezhnoy", role = "aut", comment = "Visualisation"),
+    person("Roman", "Rybalchenko", role = "aut", comment = "Visualisation"),
+    person("Valeriy", "Babushkin", role = "aut", comment = "Tutorials"),
+    person("Mikhail", "Pershin", role = "aut", comment = "Tutorials"),
+    person("Emil", "Kayumov", role = "aut", comment = "Tutorials"),
+    person("Evgeny", "Eltyshev", role = "aut", comment = "Tutorials"),
+    person("Alexander", "Baranov", role = "aut", comment = "CoreML support"),
+    person("Dmitry", "Oganesyan", role = "aut", comment = "R Package"),
+    person("Dmitry", "Baksheev", role = "aut"),
+    person("CatBoost DevTeam", role = c("aut", "cph")),
+    person("WLOG Solutions", role = "ctb",
+      comment = "R package preparation for CRAN submission")
+    )
+URL: https://github.com/davdittrich/catboostr
+BugReports: https://github.com/davdittrich/catboostr/issues
+Biarch: FALSE
+Encoding: UTF-8
+RoxygenNote: 7.3.2

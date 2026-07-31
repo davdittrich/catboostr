@@ -278,8 +278,13 @@ process-wide `malloc` interposition for one flag. Caveat: load-tested only, not 
 train/predict round-trip.
 
 **CRAN size — CONDITIONALLY viable.** 3902 unique translation units. Pruned tarball
-**16.078 MiB** (16,858,704 bytes) — inside the 30 MiB abort threshold, but **3.2× CRAN's 5 MiB
-guidance**, so this is not a clean pass. About 19.15 MiB of the 94.9 MiB uncompressed pruned
+**16.078 MiB** (16,858,704 bytes). **CORRECTION 2026-07-31: earlier drafts of this spec
+compared that against a '5 MiB CRAN guidance'. That figure was wrong.** The CRAN Repository
+Policy says source tarballs "should if possible not exceed **10MB**", and packages well above
+it are live on CRAN today (`rcdklibs` 19M, `fastrmodels` 16M, `acss.data` 14M). The real
+overshoot is ~1.7×, not 3.2×, and the mechanism for exceeding the figure is a justification in
+`cran-comments.md`, which policy explicitly contemplates for C++ and Rust packages. The wrong
+number was propagated into a design decision before anyone checked the policy text. About 19.15 MiB of the 94.9 MiB uncompressed pruned
 tree is build-system plumbing: the full CMakeLists tree plus 87 unconditionally-configured
 test/tool/benchmark directories that `-DCATBOOST_COMPONENTS=R-package` does not gate. Reducing
 that needs build-system changes and is the obvious next lever.
@@ -598,7 +603,7 @@ and is signed off. Treating this table as a costed multi-quarter plan would be f
 | :--- | :--- | :--- |
 | 0 | **COMPLETE.** Build spike, both oracles, capability inventory, cpp11 registration probe. | Passed. Evidence in `docs/phase-0/`. |
 | 1 | **Build engineering.** Fork-owned CMake target (§4.1, verified by the spike): a `configure` that copies the pinned tree, appends the fork's `add_subdirectory` after upstream's, and drives CMake with the measured flag set. Gate `private/libs/distributed` so openssl leaves the link entirely (§4.1b). Gate the 87 unconditionally-configured test/tool/benchmark directories. Pin and checksum-verify every third-party source that survives. Remove Conan from the install path. Declare Python3 and CMake in `SystemRequirements`. Commit `.Rbuildignore` and `conan.lock`. | A mechanical no-network install test passes **in a fresh container** with no pre-populated Conan cache and no pre-existing build venv, asserting zero network attempts across `R CMD INSTALL`; the upstream R test suite passes against that from-source build (§4.6's baseline, currently untested); **plus the size and build-time gates below.** |
-| 1a | **Size gate (CRAN-decisive). MEASURED 2026-07-31: 16.078 MiB pruned** (§4.1b). | Cleared the 30 MiB abort threshold, but sits at 3.2× CRAN's 5 MiB guidance, so this is not closed. Phase 1's two gating levers exist to reduce it; a re-measurement after gating is a Phase 1 exit criterion. |
+| 1a | **Size gate. MEASURED 2026-07-31: 16.078 MiB pruned** (§4.1b). | ~1.7× the CRAN policy figure of 10MB, not the 3.2× an earlier draft claimed against a wrong 5 MiB number. Not disqualifying — `rcdklibs` (19M) and `fastrmodels` (16M) are live on CRAN. Reduction is still worth pursuing: `xgboost` (1.5M) and `lightgbm` (1.7M) vendor comparable C++ ML cores and stay small by **amalgamating and stripping unused source**, not by linking system libraries. A re-measurement after pruning plus a drafted `cran-comments.md` justification is the Phase 1 exit criterion. |
 | 1b | **Glue layer. DECIDED, no spike: raw `.Call` throughout** (§3, §4.7). | Closed. The spike built the fork target with plain `extern "C"` entry points and needed neither cpp11 nor a generated `init.c`, so §4.7's double-registration trap is designed out rather than mitigated. |
 | 1c | **Build-time gate.** Measure `R CMD INSTALL` wall-clock on a 2-core machine resembling a CRAN check runner. | Measured number recorded. Build time is the second structural CRAN rejection cause and currently has no measurement and no abort threshold; the threshold is set once the first number exists. |
 | 2 | **Classification.** Differential harness + fixtures + the parity matrix as a real join table (§4.3), seeded from the machine-generated inventory. Every one of the 725 rows dispositioned per §4.5's bulk rule. | Matrix exists with every row in a state; **user signs off the classification**; root cause established for multi-target and any other reported breakage. This gate is what converts Phases 3-8 from provisional to planned. |
@@ -623,7 +628,7 @@ shipped package, where unscoped work is a backlog rather than a blocker.
 
 | Alternative | Status |
 | :--- | :--- |
-| **Thin package + system `libcatboost`** (the `sf`/GDAL model) | **ACTIVE CONTINGENCY — reinstated.** An earlier draft retired this on the grounds that Phase 0 proved the vendored build tractable. That was wrong: Phase 0 proved the core *builds*, not that a vendored tarball is *CRAN-shippable*. Unpruned upstream C/C++ source is ~163 MB (contrib alone 141.4 MB) against CRAN's 5 MB guidance, and no phase had scheduled the measurement that matters. Phase 1a now measures the pruned tarball against a 30 MB abort threshold; if it fails, this model becomes the route. Its cost is real — no distro ships `libcatboost`, so we would own conda-forge and homebrew feedstocks and users hit an install wall — but an unshippable tarball is worse. |
+| **Thin package + system `libcatboost`** (the `sf`/GDAL model) | **REFUTED 2026-07-31 by evidence — no longer a contingency.** Selected by the user on 2026-07-31, then withdrawn the same day when research showed it cannot work. No mainstream package manager ships a `libcatboost` development package (shared library plus headers): not Debian, Ubuntu, Fedora, Homebrew, conda-forge, or vcpkg — only source and Python wheels. CRAN policy states software is installed on its Debian check machines only when it is available from Debian repositories for 'testing', and that bundling or vendoring sources is usually the faster path. A `SystemRequirements: libcatboost` would therefore leave the package **uninstallable on CRAN's own check machines** — a harder failure than an oversized tarball, because it fails at build rather than at review. Corroborating precedent: of `xgboost`, `lightgbm`, `duckdb`, `arrow`, `torch`, `tensorflow` and `keras3`, **none** declares a system library CRAN is expected to pre-install; `lightgbm` actively **removed** system-library linking in v3.0.0. |
 | **Raw `.Call` throughout, no binding framework** | **CHOSEN (§3).** Upstream already has the exception safety cpp11 is usually bought for: `R_API_BEGIN`/`R_API_END` wrap every entry point in try/catch and route to `error()` (`vendor/catboost/catboost/R-package/src/catboostr.cpp:45-58`). Choosing cpp11 buys less PROTECT boilerplate but costs a new dependency, the combined-table trap (§4.7), and a documented maintainer footgun. This is what xgboost does. An earlier draft listed this only as a fallback, then as a peer option to be settled by a spike; it is the decision. The spike incidentally confirmed it works — the fork target built with plain `extern "C"` entry points. |
 | **Parity + idiomatic R layer + ecosystem integration** (hardhat, parsnip, mlr3, DALEX, vetiver) | Rejected on explicit user instruction: "First class support in R means that all functions / capabilities available for the cli and python version are also available in R. Beyond that is scope creep." |
 | **CRAN-first** (solve vendoring and size before any feature work) | Partially adopted. Phase 1 and 1a now front-load exactly the packaging and size risk, without blocking feature work behind the whole CRAN process. |
@@ -640,7 +645,7 @@ rows are settled stops being read.
 
 | Risk | Impact | Mitigation |
 | :--- | :--- | :--- |
-| **Vendored source tarball 3.2× CRAN guidance** | MEASURED at 16.078 MiB pruned (§4.1b), inside the 30 MiB abort threshold but well over the 5 MiB guidance. Not fatal; a likely source of CRAN pushback requiring justification or further reduction. | Next levers, in order: gate the 87 unconditionally-configured test/tool/benchmark directories (~19 MiB of plumbing), and gate `private/libs/distributed` (drops openssl entirely). §6's thin-package model stays an active contingency until a submission actually clears. |
+| **Vendored source tarball ~1.7× the CRAN policy figure** | MEASURED at 16.078 MiB pruned (§4.1b) against policy's 10MB. Not fatal and not unprecedented (`rcdklibs` 19M, `fastrmodels` 16M are live). Requires a written justification at submission. | Levers, in order: gate the 87 unconditionally-configured test/tool/benchmark directories (~19 MiB of plumbing); then amalgamate and strip unused source on the `xgboost`/`lightgbm` model, which is how comparable packages reach 1.5-1.7M. §6's thin-package model is REFUTED and is no longer a fallback — if the vendored route fails, there is no cheaper packaging alternative, only a smaller tarball. |
 | **CRAN check-time limits on build machines** | Rejection. The 164 s / 174 s figures are this machine's, on 32 cores. CRAN and r-universe runners have far fewer. | Measure build time on a constrained runner during Phase 1; treat compile time as a CRAN acceptance criterion, not an afterthought. |
 | **No integrity pinning on the C++ dependency chain** | A tampered Conan recipe or vendored source is arbitrary code execution on the build host and a silent backdoor in what users install. `swig`, `ragel`, `bison`, `flex`, `m4` are code generators that execute during the build and emit compiled source. The Python side has 192 sha256 pins; the C++ side has none. | Commit a `conan.lock` for as long as Conan is used anywhere; give every vendored dependency the pin-and-verify contract already used by `tools/vendor/acquire.sh` and `tools/oracle/cli/acquire.sh`; record every external artifact in a `SOURCES.md` inventory. |
 | **Vendoring openssl creates a standing CVE liability** | A frozen openssl 3.0.15 in a CRAN package ages badly and CRAN reviewers have pushed back on exactly this. | Establish during Phase 1 whether openssl is genuinely required by the R-package component — only 2 of 13 packages link at all — and prefer configuring it out over vendoring it. Otherwise accept an explicit CVE-tracking obligation. |
@@ -680,7 +685,7 @@ descope triggers:
 
 | Trigger | Response |
 | :--- | :--- |
-| Phase 1a pruned tarball exceeds 30 MB | Vendored route reconsidered against §6's thin-package contingency before Phase 2 begins. |
+| Phase 1a pruned tarball exceeds 30 MB | Escalate to the user. NOTE: §6's thin-package contingency is REFUTED, so this trigger no longer has a fallback route attached — the only remaining responses are a smaller tarball or abandoning CRAN. |
 | Two consecutive CRAN rejections on grounds that are structural rather than fixable (size, build time, bundled sources) | Stop pursuing CRAN. Ship r-universe only, and record that the stated goal was not reachable on this architecture. |
 | Phase 6 (custom R loss/metric) proves infeasible after one honest attempt | Record the infeasibility with evidence, mark those matrix rows permanently out-of-scope, continue. It does not block anything else. |
 | GPU hardware still unresourced when Phases 1-6 are done | Take the §9.1 decision then, on the terms below. GPU never blocks R1. |
@@ -769,7 +774,7 @@ measurement; the spec is revised once afterwards, against facts.
 ### 10.3 CRAN viability (can fail the whole route)
 
 7. What is the pruned vendored source tarball size? Unpruned C/C++ source is ~163 MB against
-   CRAN's 5 MB guidance. A configure-only CMake run yields a compile database naming every
+   CRAN's guidance (recorded here as 5 MB; the policy text actually says 10MB — see §4.1b). A configure-only CMake run yields a compile database naming every
    translation unit the target compiles — that is the prune set, and it needs none of Phase
    1's other work. **This measurement must run first**, so an abort costs a day rather than a
    phase.
@@ -825,7 +830,7 @@ These are accepted as valid and are deferred to the single post-spike revision, 
 - **Licence provenance.** Vendoring dozens of third-party sources requires
   `inst/COPYRIGHTS`/`LICENSE.note` and `Authors@R` holders — a routine CRAN rejection cause,
   currently absent. `SOURCES.md` is a security SBOM and does not discharge it.
-- **30 MB abort threshold is asserted, not derived**, and sits 6× above the CRAN guidance it
+- **30 MB abort threshold is asserted, not derived** (and was compared against a guidance figure that was itself wrong — see §4.1b), sitting above the CRAN guidance it
   cites, so the gate can pass while the goal still fails.
 - **§9.0 lacks its most likely stop condition**: Phase 2's classification coming back
   multi-quarter and the user declining to fund it.

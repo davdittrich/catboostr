@@ -188,6 +188,30 @@ class TestWorkedExample(unittest.TestCase):
         self.assertFalse(ok)
         self.assertTrue(mismatches)
 
+    def test_both_sides_nan_is_a_match_not_a_mismatch(self):
+        import copy
+        import math
+
+        r_doc = copy.deepcopy(self.r_doc)
+        oracle_doc = copy.deepcopy(self.oracle_doc)
+        r_doc["bins"][1]["mean_target"] = math.nan
+        oracle_doc["buckets"][1]["target_mean"] = math.nan
+        ok, mismatches = sm.compare(self.mapping, r_doc, oracle_doc)
+        self.assertTrue(ok)
+        self.assertEqual(mismatches, [])
+
+    def test_nan_vs_number_is_a_mismatch(self):
+        import copy
+        import math
+
+        r_doc = copy.deepcopy(self.r_doc)
+        oracle_doc = copy.deepcopy(self.oracle_doc)
+        r_doc["bins"][1]["mean_target"] = math.nan
+        # oracle_doc["buckets"][1]["target_mean"] stays a real number (0.42)
+        ok, mismatches = sm.compare(self.mapping, r_doc, oracle_doc)
+        self.assertFalse(ok)
+        self.assertTrue(mismatches)
+
     def test_excluded_field_never_compared(self):
         # generated_at differs between r_doc and oracle_doc by design; must
         # not surface as a mismatch because it is declared excluded.

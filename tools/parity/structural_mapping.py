@@ -248,7 +248,13 @@ def compare(mapping: dict, r_doc: Any, oracle_doc: Any) -> tuple[bool, list[str]
             else:  # numeric
                 r_f, o_f = _float_value(r_v), _float_value(o_v)
                 tol = field["tolerance"]["value"]
-                if not math.isclose(r_f, o_f, rel_tol=tol):
+                # math.isclose(nan, nan) is False (IEEE-754) -- both sides
+                # legitimately producing NaN (e.g. an empty bin) must count
+                # as a match, not a mismatch.
+                is_close = (math.isnan(r_f) and math.isnan(o_f)) or math.isclose(
+                    r_f, o_f, rel_tol=tol
+                )
+                if not is_close:
                     mismatches.append(
                         f"{label}[{idx}]: numeric mismatch {r_f!r} vs {o_f!r} "
                         f"(rel_tol={tol})"

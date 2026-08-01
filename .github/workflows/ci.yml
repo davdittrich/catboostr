@@ -219,14 +219,20 @@ jobs:
           tarball=$(ls catboostr_*.tar.gz)
           # --install-tests: test_check()'s default load_package="installed"
           # looks for tests/testthat inside the INSTALLED package, not the
-          # source tree -- without this flag it reports "No test files
-          # found" regardless of whether the build itself succeeded.
+          # source tree.
           R CMD INSTALL --install-tests "$tarball"
           end=$(date +%s)
           echo "*** install-from-pruned-tree wall-clock seconds: $((end - start))"
 
       - name: Run the full testthat suite against the pruned-tree build
-        run: Rscript tests/testthat.R
+        # test_check()'s test_dir("testthat", ...) resolves that path
+        # against the CURRENT WORKING DIRECTORY, not the installed
+        # package -- R CMD check runs tests/testthat.R from inside
+        # tests/ itself; running it from the repo root (as this job
+        # first did) fails with "No test files found" even though the
+        # tests were installed correctly (reproduced and confirmed
+        # locally with a throwaway dummy package before this fix).
+        run: (cd tests && Rscript testthat.R)
 
       - name: Guard -- vendor/catboost still pristine
         if: always()

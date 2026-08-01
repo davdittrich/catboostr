@@ -217,7 +217,11 @@ jobs:
           set -eux
           start=$(date +%s)
           tarball=$(ls catboostr_*.tar.gz)
-          R CMD INSTALL "$tarball"
+          # --install-tests: test_check()'s default load_package="installed"
+          # looks for tests/testthat inside the INSTALLED package, not the
+          # source tree -- without this flag it reports "No test files
+          # found" regardless of whether the build itself succeeded.
+          R CMD INSTALL --install-tests "$tarball"
           end=$(date +%s)
           echo "*** install-from-pruned-tree wall-clock seconds: $((end - start))"
 

@@ -68,3 +68,31 @@ stages already wrote.
   inventory is what's authoritative. (`spec_crosscheck.py` runs against the
   raw gap list, not the deduplicated count, so this number and the 725
   deduplicated figure above are not directly comparable.)
+
+## Structural-output serializer + field mapping (P2.2)
+
+Spec §4.3: a `matrix.json` row with `method: structural` (currently
+`plot_tree` / `calc_feature_statistics` across the 4 estimator classes)
+"cannot be marked green" without a declared field mapping. `structural_mapping.py`
+is the mechanism; `mappings/example_worked.json` is a fabricated worked
+example, NOT a real mapping for `plot_tree`/`calc_feature_statistics` (that
+is Phase 3+ work, gated on P2.3's classification).
+
+**Plugging in a real capability later (Phase 3+ usage note):**
+1. Add `tools/parity/mappings/<capability>.json` declaring each
+   `r_field → oracle_field` pair, its `compare` type (`exact` | `numeric`,
+   with `tolerance: {oracle, value}` for numeric — reuse `DEFAULT_TOLERANCE`
+   from `build_matrix.py`; do not invent a new tolerance regime), and
+   `exclude`/`exclude_reason` for non-comparable leaves (e.g. timestamps).
+2. In the differential test, serialize R's actual output and the oracle's
+   actual output to the same shape `to_canonical()` expects (plain
+   dict/list/str/num — R's `.Call` glue and the Python client both already
+   produce structures `jsonlite`/`json` can round-trip).
+3. Call `structural_mapping.compare(mapping, r_doc, oracle_doc)`. A
+   `ValueError` means the mapping itself is broken (fix the declaration); a
+   returned `(False, mismatches)` means the differential test is red (the
+   capability doesn't match, fix the R implementation).
+4. Flip the matrix row's `test_id` once `compare()` returns `(True, [])`.
+
+Run: `python3 tools/parity/structural_mapping.py` (worked example) or
+`python3 tools/parity/test_structural_mapping.py` (unit tests).

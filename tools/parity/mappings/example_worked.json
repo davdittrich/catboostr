@@ -1,0 +1,36 @@
+{
+  "capability": "_example.worked_structural_capability",
+  "_note": "FABRICATED worked example for ticket catboost-8z4.35 (P2.2). Not a real capability -- deliberately not named plot_tree/calc_feature_statistics so it cannot be mistaken for a real per-capability mapping (out of scope per ticket boundary).",
+  "schema_version": 1,
+  "fields": [
+    {
+      "r_field": "feature",
+      "oracle_field": "feature_name",
+      "compare": "exact"
+    },
+    {
+      "r_field": "bins[].lower",
+      "oracle_field": "buckets[].lo",
+      "compare": "numeric",
+      "tolerance": {"oracle": "python", "value": 1e-12}
+    },
+    {
+      "r_field": "bins[].upper",
+      "oracle_field": "buckets[].hi",
+      "compare": "numeric",
+      "tolerance": {"oracle": "python", "value": 1e-12}
+    },
+    {
+      "r_field": "bins[].mean_target",
+      "oracle_field": "buckets[].target_mean",
+      "compare": "numeric",
+      "tolerance": {"oracle": "python", "value": 1e-12}
+    },
+    {
+      "r_field": "generated_at",
+      "oracle_field": null,
+      "exclude": true,
+      "exclude_reason": "wall-clock generation timestamp, not a property of the model output -- non-comparable"
+    }
+  ]
+}

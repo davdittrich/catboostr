@@ -72,11 +72,14 @@ jobs:
         run: |
           set -eux
           # clang/clang++/make/perl come from Xcode Command Line Tools,
-          # already present on the hosted runner image. cmake is not
-          # guaranteed present -- install explicitly, harmlessly idempotent
-          # if it already is. No ninja: configure falls back to Unix
-          # Makefiles (proven in docs/phase-1/P1.4-report.md sec. 6).
-          brew install cmake
+          # already present on the hosted runner image. cmake/ninja are
+          # not guaranteed present -- install explicitly, harmlessly
+          # idempotent if they already are. configure auto-selects Ninja
+          # when it's on PATH (configure:361-370); darwin-prune-validation
+          # (below) deliberately omits ninja so both generators get real
+          # darwin coverage across the two jobs, not just Linux's
+          # (catboost-8z4.29, 2026-08-01).
+          brew install cmake ninja
           python3 -m venv "$RUNNER_TEMP/venv"
           "$RUNNER_TEMP/venv/bin/pip" install --quiet cython
           echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"

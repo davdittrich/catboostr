@@ -19,13 +19,31 @@ JSON numbers: JSON numbers get parsed back into R's double (53-bit mantissa)
 by both Python's own json module round-trips through float for some parsers
 and, decisively, by R's jsonlite -- either path would silently truncate
 values above 2^53. Strings round-trip exactly on both ends.
+
+set_group_weight/set_subgroup_id/set_pairs_weight/set_timestamp have no
+matching Python getter, so they cannot be probed by reading a field back.
+Instead each is probed through an observable, comparable side effect that
+only that field can produce (verified against vendor/catboost sources):
+  - group_weight multiplies into every object's effective training weight
+    for any loss (private/libs/target/data_providers.cpp:
+    rawWeights[i]*rawGroupWeights[i]), so it perturbs `predict_full`.
+  - subgroup_id is consumed only by the PFound metric (libs/metrics/
+    metric.cpp TPFoundMetric), so it perturbs `pfound`.
+  - pairs_weight is consumed only by pairwise losses' gradients, so it
+    perturbs `predict_pairlogit` (a PairLogit fit on the same pairs).
+  - timestamp only affects training when has_time=True, which reorders
+    rows by timestamp before boosting (private/libs/algo/preprocess.cpp
+    ReorderByTimestampLearnDataIfNeeded), so it perturbs
+    `predict_timestamp` (a has_time=True fit on a separate, group-free
+    pool -- CheckTimestampsInEachGroup would otherwise reject per-row
+    distinct timestamps inside the 4-row groups used above).
 """
 import json
 import os
 import sys
 
 import catboost
-from catboost import CatBoostClassifier, Pool
+from catboost import CatBoost, CatBoostClassifier, Pool
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.dirname(os.path.dirname(SCRIPT_DIR))
@@ -81,6 +99,34 @@ def main():
     )
     model.fit(pool)
 
+    # --- differential probes for the 4 setters with no matching getter ---
+    # (see module docstring for why each field surfaces through this
+    # particular observable).
+    predict_full = [float(v) for v in model.predict(pool, prediction_type="RawFormulaVal")]
+    pfound = float(model.eval_metrics(pool, ["PFound"])["PFound"][-1])
+
+    pairlogit_model = CatBoost(params={
+        "loss_function": "PairLogit", "iterations": 5, "depth": 2,
+        "random_seed": 42, "thread_count": 1, "verbose": False,
+        "train_dir": os.path.join(SCRIPT_DIR, ".catboost_train_pairlogit"),
+    })
+    pairlogit_model.fit(pool)
+    predict_pairlogit = [
+        float(v) for v in pairlogit_model.predict(pool, prediction_type="RawFormulaVal")
+    ]
+
+    timestamp_pool = Pool([[n] for n in NUM1], LABEL)
+    timestamp_pool.set_timestamp(TIMESTAMP)
+    timestamp_model = CatBoost(params={
+        "loss_function": "Logloss", "iterations": 5, "depth": 2, "has_time": True,
+        "random_seed": 42, "thread_count": 1, "verbose": False,
+        "train_dir": os.path.join(SCRIPT_DIR, ".catboost_train_time"),
+    })
+    timestamp_model.fit(timestamp_pool)
+    predict_timestamp = [
+        float(v) for v in timestamp_model.predict(timestamp_pool, prediction_type="RawFormulaVal")
+    ]
+
     expected = {
         "has_label": bool(pool.has_label()),
         "label": [float(v) for v in pool.get_label()],
@@ -88,6 +134,10 @@ def main():
         "baseline": [[float(v) for v in row] for row in pool.get_baseline()],
         "group_id_hash": [str(int(v)) for v in pool.get_group_id_hash()],
         "num_pairs": int(pool.num_pairs()),
+        "predict_full": predict_full,
+        "pfound": pfound,
+        "predict_pairlogit": predict_pairlogit,
+        "predict_timestamp": predict_timestamp,
     }
 
     fixture = {
@@ -114,6 +164,7 @@ def main():
 
     print(f"catboost.__version__={catboost.__version__}", file=sys.stderr)
     print(f"num_pairs={expected['num_pairs']}", file=sys.stderr)
+    print(f"pfound={expected['pfound']}", file=sys.stderr)
     print("OK", file=sys.stderr)
 
 

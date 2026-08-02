@@ -2,12 +2,21 @@ context("test_pool_metadata.R")
 
 # P3.1 differential test: build the R equivalent of tools/oracle's pinned
 # Python catboost==1.2.10 Pool (tools/oracle/gen_pool_metadata_fixture.py),
-# apply the same sequence of catboost.pool.set_* mutations, and compare every
-# observable catboost.pool.get_*/has_label/num_pairs output against the
-# fixture the oracle script recorded (tests/fixtures/oracle/pool_metadata.json).
+# apply the same sequence of catboost.pool.set_* mutations, and assert the
+# observable catboost.pool.get_*/has_label/num_pairs output matches what the
+# fixture oracle script recorded (tests/fixtures/oracle/pool_metadata.json).
 #
-# Regenerate the fixture with:
-#   uv run --frozen --project tools/oracle python3 tools/oracle/gen_pool_metadata_fixture.py
+# set_group_weight/set_subgroup_id/set_pairs_weight/set_timestamp have no
+# matching getter, so they are instead probed through an observable,
+# comparable side effect that only that field can produce (see the fixture
+# script's docstring for the vendor/catboost source references):
+#   - group_weight -> perturbs trained-model predictions (predict_full).
+#   - subgroup_id  -> perturbs the PFound metric (pfound).
+#   - pairs_weight -> perturbs a PairLogit fit's predictions (predict_pairlogit).
+#   - timestamp    -> perturbs a has_time=TRUE fit's predictions (predict_timestamp).
+#
+# Regenerate fixture with:
+# uv run --frozen --project tools/oracle python3 tools/oracle/gen_pool_metadata_fixture.py
 
 fixture <- jsonlite::fromJSON(
   testthat::test_path("..", "fixtures", "oracle", "pool_metadata.json"),
@@ -19,7 +28,7 @@ build_metadata_pool <- function(fixture) {
   n <- length(inputs$num1)
 
   pool <- catboost.load_pool(
-    data = data.frame(num1 = inputs$num1, cat1 = as.factor(inputs$cat1)),
+    data.frame(num1 = inputs$num1, cat1 = as.factor(inputs$cat1)),
     label = as.double(inputs$label)
   )
 
@@ -28,7 +37,13 @@ build_metadata_pool <- function(fixture) {
   catboost.pool.set_group_id(pool, as.integer(inputs$group_id))
   catboost.pool.set_group_weight(pool, inputs$group_weight)
   catboost.pool.set_subgroup_id(pool, as.integer(inputs$subgroup_id))
-  catboost.pool.set_pairs(pool, matrix(unlist(inputs$pairs), ncol = 2, byrow = TRUE))
+  # inputs$pairs is already an (N x 2) matrix -- jsonlite::fromJSON with
+  # simplifyVector = TRUE auto-simplifies the JSON array-of-pairs into one.
+  # (unlist()-then-reshape here was a bug: unlist() flattens a matrix
+  # column-major, and re-filling byrow = TRUE then reads those column-major
+  # values back out row-major, silently transposing/scrambling pair
+  # identities -- e.g. (0,1),(1,2),(2,3) became (0,1),(2,1),(2,3).)
+  catboost.pool.set_pairs(pool, inputs$pairs)
   catboost.pool.set_pairs_weight(pool, inputs$pairs_weight)
   catboost.pool.set_timestamp(pool, inputs$timestamp)
 
@@ -71,4 +86,49 @@ test_that("pool metadata: has_label is FALSE and get_group_id_hash is NULL on an
   expect_false(catboost.pool.has_label(pool))
   expect_null(catboost.pool.get_group_id_hash(pool))
   expect_equal(catboost.pool.num_pairs(pool), 0)
+})
+
+test_that("pool metadata: set_group_weight/set_baseline/set_weight/set_group_id are observable through trained predictions matching Python oracle", {
+  pool <- build_metadata_pool(fixture)
+  model <- catboost.train(pool, params = list(
+    loss_function = "Logloss", iterations = 5, depth = 2,
+    random_seed = 42, thread_count = 1, logging_level = "Silent"
+  ))
+  prediction <- catboost.predict(model, pool, prediction_type = "RawFormulaVal")
+  expect_equal(as.double(prediction), fixture$expected$predict_full, tolerance = 1e-6)
+})
+
+test_that("pool metadata: set_subgroup_id is observable through the PFound metric matching Python oracle", {
+  pool <- build_metadata_pool(fixture)
+  model <- catboost.train(pool, params = list(
+    loss_function = "Logloss", iterations = 5, depth = 2,
+    random_seed = 42, thread_count = 1, logging_level = "Silent"
+  ))
+  pfound <- catboost.eval_metrics(model, pool, "PFound")[["PFound"]]
+  expect_equal(pfound[length(pfound)], fixture$expected$pfound, tolerance = 1e-6)
+})
+
+test_that("pool metadata: set_pairs_weight is observable through a PairLogit fit's predictions matching Python oracle", {
+  pool <- build_metadata_pool(fixture)
+  model <- catboost.train(pool, params = list(
+    loss_function = "PairLogit", iterations = 5, depth = 2,
+    random_seed = 42, thread_count = 1, logging_level = "Silent"
+  ))
+  prediction <- catboost.predict(model, pool, prediction_type = "RawFormulaVal")
+  expect_equal(as.double(prediction), fixture$expected$predict_pairlogit, tolerance = 1e-6)
+})
+
+test_that("pool metadata: set_timestamp is observable through a has_time fit's predictions matching Python oracle", {
+  inputs <- fixture$inputs
+  timestamp_pool <- catboost.load_pool(
+    data.frame(num1 = inputs$num1),
+    label = as.double(inputs$label)
+  )
+  catboost.pool.set_timestamp(timestamp_pool, inputs$timestamp)
+  model <- catboost.train(timestamp_pool, params = list(
+    loss_function = "Logloss", iterations = 5, depth = 2, has_time = TRUE,
+    random_seed = 42, thread_count = 1, logging_level = "Silent"
+  ))
+  prediction <- catboost.predict(model, timestamp_pool, prediction_type = "RawFormulaVal")
+  expect_equal(as.double(prediction), fixture$expected$predict_timestamp, tolerance = 1e-6)
 })

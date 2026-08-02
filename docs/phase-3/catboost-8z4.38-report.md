@@ -171,3 +171,153 @@ data:
   vendor_clean: true
   error_log: null
 ```
+
+## 6. Fix round (2026-08-02): differential coverage for the 4 getter-less setters
+
+**Finding (Critical, review):** `set_group_weight`, `set_subgroup_id`,
+`set_pairs_weight`, `set_timestamp` had no differential assertion at all —
+`build_metadata_pool()` called all 8 mutators once, but only the 6 fields
+with a matching `get_*`/`has_label`/`num_pairs` were read back and compared.
+A stride/off-by-one/wrong-cast bug in any of the 4 getter-less setters would
+have silently no-op'd or corrupted state and still passed the suite.
+
+### 6.1 Root-cause check: do these 4 fields have *any* observable effect?
+
+None of them has a matching Python getter, so a differential probe has to go
+through some other observable side effect. Verified against
+`vendor/catboost` sources (read via the sibling checkout at
+`/home/dd/Gemini/catboost/vendor/catboost`, since this worktree correctly
+has no `vendor/` per its own guard) before committing to a mechanism:
+
+| Field | Consumed by (source) | Probe added |
+|---|---|---|
+| `group_weight` | `private/libs/target/data_providers.cpp`: `rawWeights[i]*rawGroupWeights[i]` folds into every object's effective training weight for *any* loss | Trained-Logloss-model predictions (`predict_full`) |
+| `subgroup_id` | `libs/metrics/metric.cpp` `TPFoundMetric::EvalSingleThread`: only consumer in the whole tree | `eval_metrics(model, pool, "PFound")` final value (`pfound`) |
+| `pairs_weight` | Consumed only by pairwise-loss gradients (`TQueryInfo` pair weights) | A `PairLogit` fit's predictions (`predict_pairlogit`) |
+| `timestamp` | `private/libs/algo/preprocess.cpp` `ReorderByTimestampLearnDataIfNeeded`: only takes effect when `has_time=TRUE` (and only on groups sharing one timestamp per group, hence a separate group-free pool) | A `has_time=TRUE` Logloss fit's predictions (`predict_timestamp`) |
+
+`tools/oracle/gen_pool_metadata_fixture.py` now records all four as
+additional `expected` fields (`predict_full`, `pfound`,
+`predict_pairlogit`, `predict_timestamp`), and
+`tests/testthat/test_pool_metadata.R` gained 4 new `test_that` blocks that
+train/evaluate the equivalent R model via the existing `catboost.train` /
+`catboost.predict` / `catboost.eval_metrics` wrappers (no new C++ or new
+getters — reuses infrastructure already in scope) and compare against the
+oracle at `tolerance = 1e-6`.
+
+### 6.2 A real bug this coverage caught
+
+Adding the `predict_pairlogit` check failed on the first run (~1% relative
+mismatch on every prediction). Bisecting field-by-field and dataset-size
+(8-row/2-group minimal repro vs. the fixture's 12-row/3-group case) showed
+every individual mutator producing bit-identical R/Python predictions in
+isolation — until the *only* remaining difference was how the test file
+built the `pairs` matrix from the JSON fixture.
+
+Root cause, in `build_metadata_pool()`:
+```r
+catboost.pool.set_pairs(pool, matrix(unlist(inputs$pairs), ncol = 2, byrow = TRUE))
+```
+`jsonlite::fromJSON(..., simplifyVector = TRUE)` already auto-simplifies a
+JSON array-of-pairs into a proper `(N x 2)` R matrix — confirmed directly:
+```
+> fixture$inputs$pairs
+     [,1] [,2]
+[1,]    0    1
+[2,]    1    2
+[3,]    2    3
+```
+`unlist()` flattens that matrix **column-major** (`0,1,2,1,2,3`), and
+`matrix(..., ncol = 2, byrow = TRUE)` then re-fills those column-major
+values **row-major**, silently transposing/scrambling pair identities:
+```
+> matrix(unlist(fixture$inputs$pairs), ncol = 2, byrow = TRUE)
+     [,1] [,2]
+[1,]    0    1
+[2,]    2    1
+[3,]    2    3
+```
+`(0,1),(1,2),(2,3)` became `(0,1),(2,1),(2,3)`. This is a bug in the test
+harness's own helper (present since the original commit), not in
+`CatBoostPoolSetPairs_R` (re-verified correct: 0-indexed winner/loser
+column extraction matches R's column-major matrix layout) or
+`CatBoostPoolSetPairsWeight_R`. It went undetected because
+`catboost.pool.num_pairs()` only checks the pair *count* (3), which is
+unaffected by scrambled identities — exactly the class of bug the review
+finding warned about, just one call earlier than the 4 fields under review.
+`set_pairs` *is* one of the ticket's 14 in-scope methods, so this is
+in-scope.
+
+Fix: `inputs$pairs` is already the correct matrix — drop the
+`unlist()`/reshape entirely:
+```r
+catboost.pool.set_pairs(pool, inputs$pairs)
+```
+
+### 6.3 Also fixed: `.gitignore` for the new training-log dirs
+
+`tools/oracle/.gitignore` only ignored `.catboost_train/` (the original
+sanity-fit's `train_dir`). The two new fixture-generation fits
+(`.catboost_train_pairlogit/`, `.catboost_train_time/`) needed their own
+`train_dir`s to avoid clobbering the original's logs; generalized the
+pattern to `.catboost_train*/`.
+
+### 6.4 Build note (this fix round only)
+
+`R CMD INSTALL --preclean .` failed at configure with the default
+environment (`*** python3 and cython are required at configure time`,
+no `cython` on `PATH`). Fixed by pointing at a throwaway `uv` venv:
+```
+uv venv /tmp/catboostr-fix-venv/.venv --python 3.12
+uv pip install --python /tmp/catboostr-fix-venv/.venv/bin/python cython numpy
+CATBOOSTR_VENDOR_SRC=/home/dd/Gemini/catboost/vendor/catboost \
+CATBOOSTR_THIRDPARTY_SRC=/home/dd/Gemini/catboost/vendor/thirdparty \
+CATBOOSTR_PYTHON3=/tmp/catboostr-fix-venv/.venv/bin/python3 \
+CATBOOSTR_CYTHON=/tmp/catboostr-fix-venv/.venv/bin/cython \
+R CMD INSTALL --preclean .
+...
+* DONE (catboostr)
+```
+(`CATBOOSTR_VENDOR_SRC`/`CATBOOSTR_THIRDPARTY_SRC` point at the sibling
+main-repo checkout's gitignored `vendor/` — this worktree never gains its
+own `vendor/`, consistent with section 4's guard.)
+
+### 6.5 Differential test, after fix
+
+```
+$ Rscript -e 'library(catboostr); testthat::test_file("tests/testthat/test_pool_metadata.R")'
+Pairwise losses don't support object weights.
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 13 ]
+```
+
+Regression check on the pre-existing pool test file:
+```
+$ Rscript -e 'library(catboostr); testthat::test_file("tests/testthat/test_pool.R")'
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 20 ]
+```
+
+`Pairwise losses don't support object weights.` is an expected upstream
+`CATBOOST_WARNING_LOG` (both R and Python builds print it identically for
+this fixture, per `data_providers.cpp:382`) — the pairwise fit still
+respects `group_weight`/`pairs_weight` (verified in section 6.1/6.2), just
+not per-object `Weight`, which is why it appears here and not in the other
+3 new checks.
+
+### 6.6 Guards re-checked
+
+- `ls vendor` in this worktree: `No such file or directory` (still absent).
+- `git status --porcelain=v1`: only
+  `tests/fixtures/oracle/pool_metadata.json`,
+  `tests/testthat/test_pool_metadata.R`, `tools/oracle/.gitignore`,
+  `tools/oracle/gen_pool_metadata_fixture.py` modified — no unrelated
+  files touched.
+
+### 6.7 Definition of Done (fix round)
+
+- [x] All 14 methods now have a differential assertion (10 direct
+      read-back + 4 via the observable-side-effect probes in 6.1).
+- [x] Each passes at default tolerance (`1e-6`).
+- [x] A real, previously-undetected bug (`set_pairs` matrix scrambling in
+      the test harness) was found and fixed as a direct consequence of this
+      coverage, confirming the new checks are not vacuous.
+- [x] `vendor/catboost` guard: still absent, still clean.

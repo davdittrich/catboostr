@@ -7,6 +7,8 @@ src/*.so
 inst/libs/
 .claude/
 .superpowers/
+__pycache__/
+*.pyc
 catboost_info/
 /vendor/
 # CatBoost embeds a training-run timestamp/GUID in .cbm model files, so a

@@ -254,6 +254,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Parity-matrix pipeline unit tests
+        run: |
+          set -eux
+          (cd tools/parity && python3 test_build_matrix.py)
+          (cd tools/parity && python3 test_structural_mapping.py)
+          (cd tools/parity && python3 test_apply_disposition.py)
+
       - name: Third-party pins agree between configure and acquire-thirdparty.sh
         run: tools/vendor/check-pin-sync.sh
 

@@ -1,0 +1,1652 @@
+{
+  "CatBoost.best_iteration_": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoost.best_score_": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoost.calc_leaf_indexes": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "CatBoost.classes_": [
+    "elementwise",
+    85,
+    "label array, exact-compare leaves"
+  ],
+  "CatBoost.compare": [
+    "structural",
+    50,
+    "renders an interactive model-comparison widget; closest of the five categories, low confidence"
+  ],
+  "CatBoost.copy": [
+    "roundtrip",
+    70,
+    "deep-copies the fitted model artifact; parity = copy round-trips to an equivalent model"
+  ],
+  "CatBoost.create_metric_calcer": [
+    "elementwise",
+    55,
+    "returns a calcer object; parity observable via its numeric add()/eval_metrics() results, not the object itself"
+  ],
+  "CatBoost.evals_result_": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoost.feature_importances_": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoost.feature_names_": [
+    "elementwise",
+    85,
+    "string array, exact-compare leaves"
+  ],
+  "CatBoost.fit": [
+    "elementwise",
+    45,
+    "no output of its own; parity is actually established transitively via every other getter/predict row on the fitted model -- flagged low-confidence rather than force-fit"
+  ],
+  "CatBoost.get_all_params": [
+    "elementwise",
+    60,
+    "config dict, not a model output; nearest available bucket"
+  ],
+  "CatBoost.get_best_iteration": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoost.get_best_score": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoost.get_borders": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "CatBoost.get_cat_feature_indices": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "CatBoost.get_embedding_feature_indices": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "CatBoost.get_evals_result": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoost.get_leaf_values": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoost.get_leaf_weights": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoost.get_metadata": [
+    "elementwise",
+    60,
+    "string k/v store, not a model output; nearest available bucket"
+  ],
+  "CatBoost.get_n_features_in": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoost.get_param": [
+    "elementwise",
+    60,
+    "config dict, not a model output; nearest available bucket"
+  ],
+  "CatBoost.get_params": [
+    "elementwise",
+    60,
+    "config dict, not a model output; nearest available bucket"
+  ],
+  "CatBoost.get_scale_and_bias": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoost.get_sklearn_estimator_xfail_checks": [
+    "elementwise",
+    60,
+    "string-list compare; sklearn-compat metadata, not a model output"
+  ],
+  "CatBoost.get_test_eval": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "CatBoost.get_test_evals": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "CatBoost.get_text_feature_indices": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "CatBoost.get_tree_leaf_counts": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "CatBoost.grid_search": [
+    "elementwise",
+    60,
+    "returns numeric CV results + best params dict"
+  ],
+  "CatBoost.is_fitted": [
+    "elementwise",
+    80,
+    "boolean flag, exact-compare"
+  ],
+  "CatBoost.iterate_leaf_indexes": [
+    "elementwise",
+    80,
+    "iterator of numeric arrays"
+  ],
+  "CatBoost.learning_rate_": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoost.n_features_in_": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoost.plot_partial_dependence": [
+    "structural",
+    85,
+    ""
+  ],
+  "CatBoost.plot_predictions": [
+    "structural",
+    85,
+    ""
+  ],
+  "CatBoost.random_seed_": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoost.randomized_search": [
+    "elementwise",
+    60,
+    "returns numeric CV results + best params dict"
+  ],
+  "CatBoost.save_borders": [
+    "roundtrip",
+    85,
+    "writes a borders file artifact"
+  ],
+  "CatBoost.select_features": [
+    "elementwise",
+    60,
+    "returns numeric summary + selected/eliminated feature lists"
+  ],
+  "CatBoost.set_feature_names": [
+    "elementwise",
+    50,
+    "state-mutator; parity only observable via a paired getter"
+  ],
+  "CatBoost.set_leaf_values": [
+    "elementwise",
+    50,
+    "state-mutator; parity only observable via a paired getter"
+  ],
+  "CatBoost.set_params": [
+    "elementwise",
+    50,
+    "state-mutator; parity only observable via a paired getter, not a standalone output"
+  ],
+  "CatBoost.set_scale_and_bias": [
+    "elementwise",
+    50,
+    "state-mutator; parity only observable via a paired getter"
+  ],
+  "CatBoost.tree_count_": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostClassifier.best_iteration_": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostClassifier.best_score_": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostClassifier.calc_leaf_indexes": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "CatBoostClassifier.classes_": [
+    "elementwise",
+    85,
+    "label array, exact-compare leaves"
+  ],
+  "CatBoostClassifier.compare": [
+    "structural",
+    50,
+    "renders an interactive model-comparison widget; closest of the five categories, low confidence"
+  ],
+  "CatBoostClassifier.copy": [
+    "roundtrip",
+    70,
+    "deep-copies the fitted model artifact; parity = copy round-trips to an equivalent model"
+  ],
+  "CatBoostClassifier.create_metric_calcer": [
+    "elementwise",
+    55,
+    "returns a calcer object; parity observable via its numeric add()/eval_metrics() results, not the object itself"
+  ],
+  "CatBoostClassifier.evals_result_": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostClassifier.feature_importances_": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostClassifier.feature_names_": [
+    "elementwise",
+    85,
+    "string array, exact-compare leaves"
+  ],
+  "CatBoostClassifier.fit": [
+    "elementwise",
+    45,
+    "no output of its own; parity is actually established transitively via every other getter/predict row on the fitted model -- flagged low-confidence rather than force-fit"
+  ],
+  "CatBoostClassifier.get_all_params": [
+    "elementwise",
+    60,
+    "config dict, not a model output; nearest available bucket"
+  ],
+  "CatBoostClassifier.get_best_iteration": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostClassifier.get_best_score": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostClassifier.get_borders": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "CatBoostClassifier.get_cat_feature_indices": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "CatBoostClassifier.get_embedding_feature_indices": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "CatBoostClassifier.get_evals_result": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostClassifier.get_leaf_values": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostClassifier.get_leaf_weights": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostClassifier.get_metadata": [
+    "elementwise",
+    60,
+    "string k/v store, not a model output; nearest available bucket"
+  ],
+  "CatBoostClassifier.get_n_features_in": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostClassifier.get_param": [
+    "elementwise",
+    60,
+    "config dict, not a model output; nearest available bucket"
+  ],
+  "CatBoostClassifier.get_params": [
+    "elementwise",
+    60,
+    "config dict, not a model output; nearest available bucket"
+  ],
+  "CatBoostClassifier.get_probability_threshold": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "CatBoostClassifier.get_scale_and_bias": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostClassifier.get_sklearn_estimator_xfail_checks": [
+    "elementwise",
+    60,
+    "string-list compare; sklearn-compat metadata, not a model output"
+  ],
+  "CatBoostClassifier.get_test_eval": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "CatBoostClassifier.get_test_evals": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "CatBoostClassifier.get_text_feature_indices": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "CatBoostClassifier.get_tree_leaf_counts": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "CatBoostClassifier.grid_search": [
+    "elementwise",
+    60,
+    "returns numeric CV results + best params dict"
+  ],
+  "CatBoostClassifier.is_fitted": [
+    "elementwise",
+    80,
+    "boolean flag, exact-compare"
+  ],
+  "CatBoostClassifier.iterate_leaf_indexes": [
+    "elementwise",
+    80,
+    "iterator of numeric arrays"
+  ],
+  "CatBoostClassifier.learning_rate_": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostClassifier.n_features_in_": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostClassifier.plot_partial_dependence": [
+    "structural",
+    85,
+    ""
+  ],
+  "CatBoostClassifier.plot_predictions": [
+    "structural",
+    85,
+    ""
+  ],
+  "CatBoostClassifier.predict_log_proba": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostClassifier.predict_proba": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostClassifier.random_seed_": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostClassifier.randomized_search": [
+    "elementwise",
+    60,
+    "returns numeric CV results + best params dict"
+  ],
+  "CatBoostClassifier.save_borders": [
+    "roundtrip",
+    85,
+    "writes a borders file artifact"
+  ],
+  "CatBoostClassifier.score": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "CatBoostClassifier.select_features": [
+    "elementwise",
+    60,
+    "returns numeric summary + selected/eliminated feature lists"
+  ],
+  "CatBoostClassifier.set_feature_names": [
+    "elementwise",
+    50,
+    "state-mutator; parity only observable via a paired getter"
+  ],
+  "CatBoostClassifier.set_leaf_values": [
+    "elementwise",
+    50,
+    "state-mutator; parity only observable via a paired getter"
+  ],
+  "CatBoostClassifier.set_params": [
+    "elementwise",
+    50,
+    "state-mutator; parity only observable via a paired getter, not a standalone output"
+  ],
+  "CatBoostClassifier.set_probability_threshold": [
+    "elementwise",
+    50,
+    "state-mutator; parity only observable via a paired getter"
+  ],
+  "CatBoostClassifier.set_scale_and_bias": [
+    "elementwise",
+    50,
+    "state-mutator; parity only observable via a paired getter"
+  ],
+  "CatBoostClassifier.staged_predict_log_proba": [
+    "elementwise",
+    80,
+    "iterator of numeric arrays"
+  ],
+  "CatBoostClassifier.staged_predict_proba": [
+    "elementwise",
+    80,
+    "iterator of numeric arrays"
+  ],
+  "CatBoostClassifier.tree_count_": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostRanker.best_iteration_": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostRanker.best_score_": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostRanker.calc_leaf_indexes": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "CatBoostRanker.classes_": [
+    "elementwise",
+    85,
+    "label array, exact-compare leaves"
+  ],
+  "CatBoostRanker.compare": [
+    "structural",
+    50,
+    "renders an interactive model-comparison widget; closest of the five categories, low confidence"
+  ],
+  "CatBoostRanker.copy": [
+    "roundtrip",
+    70,
+    "deep-copies the fitted model artifact; parity = copy round-trips to an equivalent model"
+  ],
+  "CatBoostRanker.create_metric_calcer": [
+    "elementwise",
+    55,
+    "returns a calcer object; parity observable via its numeric add()/eval_metrics() results, not the object itself"
+  ],
+  "CatBoostRanker.evals_result_": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostRanker.feature_importances_": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostRanker.feature_names_": [
+    "elementwise",
+    85,
+    "string array, exact-compare leaves"
+  ],
+  "CatBoostRanker.fit": [
+    "elementwise",
+    45,
+    "no output of its own; parity is actually established transitively via every other getter/predict row on the fitted model -- flagged low-confidence rather than force-fit"
+  ],
+  "CatBoostRanker.get_all_params": [
+    "elementwise",
+    60,
+    "config dict, not a model output; nearest available bucket"
+  ],
+  "CatBoostRanker.get_best_iteration": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostRanker.get_best_score": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostRanker.get_borders": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "CatBoostRanker.get_cat_feature_indices": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "CatBoostRanker.get_embedding_feature_indices": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "CatBoostRanker.get_evals_result": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostRanker.get_leaf_values": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostRanker.get_leaf_weights": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostRanker.get_metadata": [
+    "elementwise",
+    60,
+    "string k/v store, not a model output; nearest available bucket"
+  ],
+  "CatBoostRanker.get_n_features_in": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostRanker.get_param": [
+    "elementwise",
+    60,
+    "config dict, not a model output; nearest available bucket"
+  ],
+  "CatBoostRanker.get_params": [
+    "elementwise",
+    60,
+    "config dict, not a model output; nearest available bucket"
+  ],
+  "CatBoostRanker.get_scale_and_bias": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostRanker.get_sklearn_estimator_xfail_checks": [
+    "elementwise",
+    60,
+    "string-list compare; sklearn-compat metadata, not a model output"
+  ],
+  "CatBoostRanker.get_test_eval": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "CatBoostRanker.get_test_evals": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "CatBoostRanker.get_text_feature_indices": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "CatBoostRanker.get_tree_leaf_counts": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "CatBoostRanker.grid_search": [
+    "elementwise",
+    60,
+    "returns numeric CV results + best params dict"
+  ],
+  "CatBoostRanker.is_fitted": [
+    "elementwise",
+    80,
+    "boolean flag, exact-compare"
+  ],
+  "CatBoostRanker.iterate_leaf_indexes": [
+    "elementwise",
+    80,
+    "iterator of numeric arrays"
+  ],
+  "CatBoostRanker.learning_rate_": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostRanker.n_features_in_": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostRanker.plot_partial_dependence": [
+    "structural",
+    85,
+    ""
+  ],
+  "CatBoostRanker.plot_predictions": [
+    "structural",
+    85,
+    ""
+  ],
+  "CatBoostRanker.random_seed_": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostRanker.randomized_search": [
+    "elementwise",
+    60,
+    "returns numeric CV results + best params dict"
+  ],
+  "CatBoostRanker.save_borders": [
+    "roundtrip",
+    85,
+    "writes a borders file artifact"
+  ],
+  "CatBoostRanker.score": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "CatBoostRanker.select_features": [
+    "elementwise",
+    60,
+    "returns numeric summary + selected/eliminated feature lists"
+  ],
+  "CatBoostRanker.set_feature_names": [
+    "elementwise",
+    50,
+    "state-mutator; parity only observable via a paired getter"
+  ],
+  "CatBoostRanker.set_leaf_values": [
+    "elementwise",
+    50,
+    "state-mutator; parity only observable via a paired getter"
+  ],
+  "CatBoostRanker.set_params": [
+    "elementwise",
+    50,
+    "state-mutator; parity only observable via a paired getter, not a standalone output"
+  ],
+  "CatBoostRanker.set_scale_and_bias": [
+    "elementwise",
+    50,
+    "state-mutator; parity only observable via a paired getter"
+  ],
+  "CatBoostRanker.tree_count_": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostRegressor.best_iteration_": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostRegressor.best_score_": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostRegressor.calc_leaf_indexes": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "CatBoostRegressor.classes_": [
+    "elementwise",
+    85,
+    "label array, exact-compare leaves"
+  ],
+  "CatBoostRegressor.compare": [
+    "structural",
+    50,
+    "renders an interactive model-comparison widget; closest of the five categories, low confidence"
+  ],
+  "CatBoostRegressor.copy": [
+    "roundtrip",
+    70,
+    "deep-copies the fitted model artifact; parity = copy round-trips to an equivalent model"
+  ],
+  "CatBoostRegressor.create_metric_calcer": [
+    "elementwise",
+    55,
+    "returns a calcer object; parity observable via its numeric add()/eval_metrics() results, not the object itself"
+  ],
+  "CatBoostRegressor.evals_result_": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostRegressor.feature_importances_": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostRegressor.feature_names_": [
+    "elementwise",
+    85,
+    "string array, exact-compare leaves"
+  ],
+  "CatBoostRegressor.fit": [
+    "elementwise",
+    45,
+    "no output of its own; parity is actually established transitively via every other getter/predict row on the fitted model -- flagged low-confidence rather than force-fit"
+  ],
+  "CatBoostRegressor.get_all_params": [
+    "elementwise",
+    60,
+    "config dict, not a model output; nearest available bucket"
+  ],
+  "CatBoostRegressor.get_best_iteration": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostRegressor.get_best_score": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostRegressor.get_borders": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "CatBoostRegressor.get_cat_feature_indices": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "CatBoostRegressor.get_embedding_feature_indices": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "CatBoostRegressor.get_evals_result": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostRegressor.get_leaf_values": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostRegressor.get_leaf_weights": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostRegressor.get_metadata": [
+    "elementwise",
+    60,
+    "string k/v store, not a model output; nearest available bucket"
+  ],
+  "CatBoostRegressor.get_n_features_in": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostRegressor.get_param": [
+    "elementwise",
+    60,
+    "config dict, not a model output; nearest available bucket"
+  ],
+  "CatBoostRegressor.get_params": [
+    "elementwise",
+    60,
+    "config dict, not a model output; nearest available bucket"
+  ],
+  "CatBoostRegressor.get_scale_and_bias": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostRegressor.get_sklearn_estimator_xfail_checks": [
+    "elementwise",
+    60,
+    "string-list compare; sklearn-compat metadata, not a model output"
+  ],
+  "CatBoostRegressor.get_test_eval": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "CatBoostRegressor.get_test_evals": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "CatBoostRegressor.get_text_feature_indices": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "CatBoostRegressor.get_tree_leaf_counts": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "CatBoostRegressor.grid_search": [
+    "elementwise",
+    60,
+    "returns numeric CV results + best params dict"
+  ],
+  "CatBoostRegressor.is_fitted": [
+    "elementwise",
+    80,
+    "boolean flag, exact-compare"
+  ],
+  "CatBoostRegressor.iterate_leaf_indexes": [
+    "elementwise",
+    80,
+    "iterator of numeric arrays"
+  ],
+  "CatBoostRegressor.learning_rate_": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostRegressor.n_features_in_": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostRegressor.plot_partial_dependence": [
+    "structural",
+    85,
+    ""
+  ],
+  "CatBoostRegressor.plot_predictions": [
+    "structural",
+    85,
+    ""
+  ],
+  "CatBoostRegressor.random_seed_": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "CatBoostRegressor.randomized_search": [
+    "elementwise",
+    60,
+    "returns numeric CV results + best params dict"
+  ],
+  "CatBoostRegressor.save_borders": [
+    "roundtrip",
+    85,
+    "writes a borders file artifact"
+  ],
+  "CatBoostRegressor.score": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "CatBoostRegressor.select_features": [
+    "elementwise",
+    60,
+    "returns numeric summary + selected/eliminated feature lists"
+  ],
+  "CatBoostRegressor.set_feature_names": [
+    "elementwise",
+    50,
+    "state-mutator; parity only observable via a paired getter"
+  ],
+  "CatBoostRegressor.set_leaf_values": [
+    "elementwise",
+    50,
+    "state-mutator; parity only observable via a paired getter"
+  ],
+  "CatBoostRegressor.set_params": [
+    "elementwise",
+    50,
+    "state-mutator; parity only observable via a paired getter, not a standalone output"
+  ],
+  "CatBoostRegressor.set_scale_and_bias": [
+    "elementwise",
+    50,
+    "state-mutator; parity only observable via a paired getter"
+  ],
+  "CatBoostRegressor.tree_count_": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "FeaturesData.get_cat_feature_count": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "FeaturesData.get_feature_count": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "FeaturesData.get_feature_names": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "FeaturesData.get_num_feature_count": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "FeaturesData.get_object_count": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "Pool.get_baseline": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "Pool.get_cat_feature_indices": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "Pool.get_embedding_feature_indices": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "Pool.get_feature_names": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "Pool.get_features": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "Pool.get_group_id_hash": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "Pool.get_label": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "Pool.get_text_feature_indices": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "Pool.get_weight": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "Pool.has_label": [
+    "elementwise",
+    80,
+    "boolean flag, exact-compare"
+  ],
+  "Pool.is_empty_": [
+    "elementwise",
+    80,
+    "boolean flag, exact-compare"
+  ],
+  "Pool.is_quantized": [
+    "elementwise",
+    80,
+    "boolean flag, exact-compare"
+  ],
+  "Pool.num_col": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "Pool.num_pairs": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "Pool.num_row": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "Pool.quantize": [
+    "roundtrip",
+    70,
+    "produces a quantized Pool artifact"
+  ],
+  "Pool.save": [
+    "roundtrip",
+    85,
+    "writes a Pool file artifact"
+  ],
+  "Pool.save_quantization_borders": [
+    "roundtrip",
+    85,
+    "writes a borders file artifact"
+  ],
+  "Pool.set_baseline": [
+    "elementwise",
+    50,
+    "state-mutator; parity only observable via a paired getter"
+  ],
+  "Pool.set_feature_names": [
+    "elementwise",
+    50,
+    "state-mutator; parity only observable via a paired getter"
+  ],
+  "Pool.set_group_id": [
+    "elementwise",
+    50,
+    "state-mutator; parity only observable via a paired getter"
+  ],
+  "Pool.set_group_weight": [
+    "elementwise",
+    50,
+    "state-mutator; parity only observable via a paired getter"
+  ],
+  "Pool.set_pairs": [
+    "elementwise",
+    50,
+    "state-mutator; parity only observable via a paired getter"
+  ],
+  "Pool.set_pairs_weight": [
+    "elementwise",
+    50,
+    "state-mutator; parity only observable via a paired getter"
+  ],
+  "Pool.set_subgroup_id": [
+    "elementwise",
+    50,
+    "state-mutator; parity only observable via a paired getter"
+  ],
+  "Pool.set_timestamp": [
+    "elementwise",
+    50,
+    "state-mutator; parity only observable via a paired getter"
+  ],
+  "Pool.set_weight": [
+    "elementwise",
+    50,
+    "state-mutator; parity only observable via a paired getter"
+  ],
+  "Pool.shape": [
+    "elementwise",
+    85,
+    "int tuple"
+  ],
+  "Pool.slice": [
+    "elementwise",
+    60,
+    "returns a data-subset Pool; parity compares the subset contents"
+  ],
+  "Pool.train_eval_split": [
+    "elementwise",
+    60,
+    "returns two data-subset Pools; parity compares split contents"
+  ],
+  "catboost.CatBoost": [
+    "roundtrip",
+    65,
+    "class existence/constructibility; no output of its own"
+  ],
+  "catboost.CatBoostClassifier": [
+    "roundtrip",
+    65,
+    "class existence/constructibility; no output of its own"
+  ],
+  "catboost.CatBoostError": [
+    "error_class",
+    90,
+    ""
+  ],
+  "catboost.CatBoostRanker": [
+    "roundtrip",
+    65,
+    "class existence/constructibility; no output of its own"
+  ],
+  "catboost.CatBoostRegressor": [
+    "roundtrip",
+    65,
+    "class existence/constructibility; no output of its own"
+  ],
+  "catboost.CatboostError": [
+    "error_class",
+    85,
+    "lower-case-b alias of CatBoostError -- verify it is intentional backward-compat alias, not a typo, before writing a Phase 3+ test for it"
+  ],
+  "catboost.EFeaturesSelectionAlgorithm": [
+    "elementwise",
+    55,
+    "enum type itself; member values covered individually by enum_member rows"
+  ],
+  "catboost.EFeaturesSelectionGrouping": [
+    "elementwise",
+    55,
+    "enum type itself; member values covered individually by enum_member rows"
+  ],
+  "catboost.EFstrType": [
+    "elementwise",
+    55,
+    "enum type itself; member values covered individually by enum_member rows"
+  ],
+  "catboost.EShapCalcType": [
+    "elementwise",
+    55,
+    "enum type itself; member values covered individually by enum_member rows"
+  ],
+  "catboost.FeaturesData": [
+    "roundtrip",
+    65,
+    "class existence/constructibility; no output of its own"
+  ],
+  "catboost.MultiRegressionCustomMetric": [
+    "roundtrip",
+    45,
+    "ABC for user-supplied custom metric; parity means R can accept an equivalent callback, no direct output of the class itself"
+  ],
+  "catboost.MultiRegressionCustomObjective": [
+    "roundtrip",
+    45,
+    "ABC for user-supplied custom objective; parity means R can accept an equivalent callback"
+  ],
+  "catboost.MultiTargetCustomMetric": [
+    "roundtrip",
+    45,
+    "ABC for user-supplied custom metric; parity means R can accept an equivalent callback"
+  ],
+  "catboost.MultiTargetCustomObjective": [
+    "roundtrip",
+    45,
+    "ABC for user-supplied custom objective; parity means R can accept an equivalent callback"
+  ],
+  "catboost.Pool": [
+    "roundtrip",
+    65,
+    "class existence/constructibility; no output of its own"
+  ],
+  "catboost.datasets.PATH_TYPES": [
+    "elementwise",
+    25,
+    "type-tuple constant; LIKELY INTROSPECTION ARTIFACT: type-tuple constant used internally for isinstance checks, not a catboost capability"
+  ],
+  "catboost.datasets.adult": [
+    "elementwise",
+    80,
+    "returns a fixed sample dataframe"
+  ],
+  "catboost.datasets.amazon": [
+    "elementwise",
+    80,
+    "returns a fixed sample dataframe"
+  ],
+  "catboost.datasets.epsilon": [
+    "elementwise",
+    80,
+    "returns a fixed sample dataframe"
+  ],
+  "catboost.datasets.fspath": [
+    "elementwise",
+    25,
+    "stdlib re-export; LIKELY INTROSPECTION ARTIFACT: stdlib os.fspath leaked into the module namespace via import, not a catboost capability"
+  ],
+  "catboost.datasets.higgs": [
+    "elementwise",
+    80,
+    "returns a fixed sample dataframe"
+  ],
+  "catboost.datasets.imdb": [
+    "elementwise",
+    80,
+    "returns a fixed sample dataframe"
+  ],
+  "catboost.datasets.logger": [
+    "elementwise",
+    25,
+    "logging.Logger instance; LIKELY INTROSPECTION ARTIFACT: a logging.Logger instance module attribute, not a catboost capability"
+  ],
+  "catboost.datasets.monotonic1": [
+    "elementwise",
+    80,
+    "returns a fixed sample dataframe"
+  ],
+  "catboost.datasets.monotonic2": [
+    "elementwise",
+    80,
+    "returns a fixed sample dataframe"
+  ],
+  "catboost.datasets.msrank": [
+    "elementwise",
+    80,
+    "returns a fixed sample dataframe"
+  ],
+  "catboost.datasets.msrank_10k": [
+    "elementwise",
+    80,
+    "returns a fixed sample dataframe"
+  ],
+  "catboost.datasets.rotten_tomatoes": [
+    "elementwise",
+    80,
+    "returns a fixed sample dataframe"
+  ],
+  "catboost.datasets.set_cache_path": [
+    "elementwise",
+    35,
+    "config setter, no comparable output of its own"
+  ],
+  "catboost.datasets.titanic": [
+    "elementwise",
+    80,
+    "returns a fixed sample dataframe"
+  ],
+  "catboost.eval.CaseEvaluationResult": [
+    "elementwise",
+    50,
+    "plain result data-class"
+  ],
+  "catboost.eval.CatBoost": [
+    "roundtrip",
+    50,
+    "re-export of main CatBoost class inside the eval submodule"
+  ],
+  "catboost.eval.CatBoostError": [
+    "error_class",
+    70,
+    "re-export of the same exception class into catboost.eval namespace"
+  ],
+  "catboost.eval.CatboostEvaluation": [
+    "elementwise",
+    50,
+    "main entry class of the feature-evaluation subsystem; result carries numeric fields"
+  ],
+  "catboost.eval.EvalType": [
+    "elementwise",
+    55,
+    "enum class"
+  ],
+  "catboost.eval.EvaluationResults": [
+    "elementwise",
+    50,
+    "plain result data-class"
+  ],
+  "catboost.eval.ExecutionCase": [
+    "elementwise",
+    45,
+    "plain config data-class"
+  ],
+  "catboost.eval.FactorUtils": [
+    "elementwise",
+    40,
+    "internal helper class, unclear if it is public API surface at all"
+  ],
+  "catboost.eval.FoldModelsHandler": [
+    "elementwise",
+    40,
+    "internal helper class, unclear if it is public API surface at all"
+  ],
+  "catboost.eval.LabelMode": [
+    "elementwise",
+    55,
+    "enum class"
+  ],
+  "catboost.eval.MetricEvaluationResult": [
+    "elementwise",
+    50,
+    "plain result data-class"
+  ],
+  "catboost.eval.ScoreConfig": [
+    "elementwise",
+    45,
+    "plain config data-class"
+  ],
+  "catboost.eval.ScoreType": [
+    "elementwise",
+    55,
+    "enum class"
+  ],
+  "catboost.eval.calc_bootstrap_ci_for_mean": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "catboost.eval.calc_wilcoxon_test": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "catboost.eval.compute_wx_test": [
+    "elementwise",
+    70,
+    ""
+  ],
+  "catboost.eval.copy": [
+    "elementwise",
+    25,
+    "stdlib re-export; LIKELY INTROSPECTION ARTIFACT: stdlib copy module leaked into the module namespace via import, not a catboost capability"
+  ],
+  "catboost.eval.make_dirs_if_not_exists": [
+    "elementwise",
+    25,
+    "filesystem side-effect helper, no comparable output; possibly not real API surface"
+  ],
+  "catboost.eval.metric_description_or_str_to_str": [
+    "elementwise",
+    60,
+    "string transform helper"
+  ],
+  "catboost.eval.save_plot": [
+    "roundtrip",
+    55,
+    "writes an image file artifact"
+  ],
+  "catboost.eval.series_to_line": [
+    "elementwise",
+    55,
+    "string formatting helper"
+  ],
+  "catboost.sample_gaussian_process": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "catboost.text_processing.Dictionary": [
+    "elementwise",
+    65,
+    "produces a token/id mapping, exact-compare leaves"
+  ],
+  "catboost.text_processing.Tokenizer": [
+    "elementwise",
+    65,
+    "produces a tokenized array, exact-compare leaves"
+  ],
+  "catboost.to_classifier": [
+    "roundtrip",
+    70,
+    "returns a re-typed model artifact"
+  ],
+  "catboost.to_ranker": [
+    "roundtrip",
+    70,
+    "returns a re-typed model artifact"
+  ],
+  "catboost.to_regressor": [
+    "roundtrip",
+    70,
+    "returns a re-typed model artifact"
+  ],
+  "catboost.utils.ARRAY_TYPES": [
+    "elementwise",
+    25,
+    "type-tuple constant; LIKELY INTROSPECTION ARTIFACT: type-tuple constant used internally for isinstance checks, not a capability"
+  ],
+  "catboost.utils.CatBoostError": [
+    "error_class",
+    70,
+    "re-export of the same exception class into catboost.utils namespace"
+  ],
+  "catboost.utils.DataMetaInfo": [
+    "elementwise",
+    55,
+    "plain result data-class returned by other utils functions"
+  ],
+  "catboost.utils.PATH_TYPES": [
+    "elementwise",
+    25,
+    "type-tuple constant; LIKELY INTROSPECTION ARTIFACT: type-tuple constant used internally for isinstance checks, not a capability"
+  ],
+  "catboost.utils.Pool": [
+    "roundtrip",
+    60,
+    "re-export of the same Pool class into catboost.utils namespace"
+  ],
+  "catboost.utils.TargetStats": [
+    "elementwise",
+    55,
+    "plain result data-class returned by other utils functions"
+  ],
+  "catboost.utils.calculate_quantization_grid": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "catboost.utils.compute_training_options": [
+    "elementwise",
+    50,
+    "introspected as attribute rather than function by the enumerator; likely a real helper returning a dict of resolved training options"
+  ],
+  "catboost.utils.compute_wx_test": [
+    "elementwise",
+    70,
+    ""
+  ],
+  "catboost.utils.contextmanager": [
+    "elementwise",
+    25,
+    "stdlib re-export; LIKELY INTROSPECTION ARTIFACT: stdlib contextlib.contextmanager leaked into the module namespace via import, not a catboost capability"
+  ],
+  "catboost.utils.convert_to_onnx_object": [
+    "roundtrip",
+    75,
+    "produces an ONNX model artifact"
+  ],
+  "catboost.utils.create_cd": [
+    "roundtrip",
+    75,
+    "writes a column-description file artifact"
+  ],
+  "catboost.utils.defaultdict": [
+    "elementwise",
+    25,
+    "stdlib re-export; LIKELY INTROSPECTION ARTIFACT: stdlib collections.defaultdict leaked into the module namespace via import, not a catboost capability"
+  ],
+  "catboost.utils.eval_metric": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "catboost.utils.fspath": [
+    "elementwise",
+    25,
+    "stdlib re-export; LIKELY INTROSPECTION ARTIFACT: stdlib os.fspath leaked into the module namespace via import, not a catboost capability"
+  ],
+  "catboost.utils.get_confusion_matrix": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "catboost.utils.get_fnr_curve": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "catboost.utils.get_fpr_curve": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "catboost.utils.get_gpu_device_count": [
+    "elementwise",
+    60,
+    "scalar count; GPU parity itself is deferred to Phase 7 per epic, this is just a CPU-visible query"
+  ],
+  "catboost.utils.get_roc_curve": [
+    "elementwise",
+    90,
+    ""
+  ],
+  "catboost.utils.pl": [
+    "elementwise",
+    25,
+    "third-party re-export; LIKELY INTROSPECTION ARTIFACT: third-party polars module leaked into the namespace via a conditional import, not a catboost capability"
+  ],
+  "catboost.utils.polars": [
+    "elementwise",
+    25,
+    "third-party re-export; LIKELY INTROSPECTION ARTIFACT: third-party polars module leaked into the namespace via a conditional import, not a catboost capability"
+  ],
+  "catboost.utils.quantize": [
+    "roundtrip",
+    70,
+    "produces a quantized Pool artifact"
+  ],
+  "catboost.utils.read_cd": [
+    "roundtrip",
+    70,
+    "reads a column-description file artifact"
+  ],
+  "catboost.utils.reset_trace_backend": [
+    "elementwise",
+    35,
+    "config setter, no comparable output of its own"
+  ],
+  "catboost.utils.select_threshold": [
+    "elementwise",
+    85,
+    ""
+  ],
+  "mode:calc": [
+    "elementwise",
+    80,
+    "primary output is a numeric prediction column"
+  ],
+  "mode:dataset-statistics": [
+    "elementwise",
+    70,
+    ""
+  ],
+  "mode:dump-options": [
+    "snapshot",
+    75,
+    "dumps resolved options as JSON to console"
+  ],
+  "mode:eval-feature": [
+    "elementwise",
+    65,
+    ""
+  ],
+  "mode:fit": [
+    "roundtrip",
+    80,
+    "primary output is a trained model file artifact"
+  ],
+  "mode:fstr": [
+    "elementwise",
+    80,
+    "feature-importance numeric output"
+  ],
+  "mode:metadata": [
+    "snapshot",
+    60,
+    "prints metadata to console/file"
+  ],
+  "mode:metadata dump": [
+    "snapshot",
+    65,
+    "dumps metadata to console/file"
+  ],
+  "mode:metadata dump-feature-names": [
+    "snapshot",
+    65,
+    "dumps feature names to console/file"
+  ],
+  "mode:metadata get": [
+    "snapshot",
+    65,
+    "prints stored metadata value"
+  ],
+  "mode:metadata set": [
+    "elementwise",
+    55,
+    "state-mutator; parity via a subsequent metadata get"
+  ],
+  "mode:model-based-eval": [
+    "elementwise",
+    55,
+    "CLI mode compares an evaluated model's per-object loss values against a baseline model via bootstrap resampling and prints numeric loss/p-value statistics, so tagged elementwise; confidence kept below 60 because the mode's combined summary-plus-per-fold stdout layout has not been inspected against a real run."
+  ],
+  "mode:model-sum": [
+    "roundtrip",
+    70,
+    "produces a summed model file artifact"
+  ],
+  "mode:normalize-model": [
+    "roundtrip",
+    75,
+    "produces a modified model file artifact"
+  ],
+  "mode:ostr": [
+    "elementwise",
+    75,
+    "object-importance numeric output"
+  ],
+  "mode:roc": [
+    "elementwise",
+    80,
+    "numeric ROC-curve output"
+  ],
+  "mode:run-worker": [
+    "roundtrip",
+    35,
+    "distributed-training worker; no single-node comparable output established yet, low confidence"
+  ],
+  "mode:select-features": [
+    "elementwise",
+    70,
+    "numeric summary + selected/eliminated feature lists"
+  ]
+}

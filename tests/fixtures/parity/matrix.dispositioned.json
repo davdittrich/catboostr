@@ -11601,7 +11601,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.CatBoost",
@@ -11625,7 +11625,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.CatBoostClassifier",
@@ -11649,7 +11649,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.CatBoostError",
@@ -11673,7 +11673,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.CatBoostRanker",
@@ -11697,7 +11697,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.CatBoostRegressor",
@@ -11721,7 +11721,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.CatboostError",
@@ -11741,11 +11741,11 @@
     "oracle": "python",
     "kind": "class",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.EFeaturesSelectionAlgorithm",
@@ -11831,11 +11831,11 @@
     "oracle": "python",
     "kind": "class",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.EFeaturesSelectionGrouping",
@@ -11899,11 +11899,11 @@
     "oracle": "python",
     "kind": "class",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.EFstrType",
@@ -12099,11 +12099,11 @@
     "oracle": "python",
     "kind": "class",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.EShapCalcType",
@@ -12193,7 +12193,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.FeaturesData",
@@ -12217,7 +12217,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.MultiRegressionCustomMetric",
@@ -12241,7 +12241,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.MultiRegressionCustomObjective",
@@ -12265,7 +12265,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.MultiTargetCustomMetric",
@@ -12289,7 +12289,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.MultiTargetCustomObjective",
@@ -12313,7 +12313,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.Pool",
@@ -12333,11 +12333,11 @@
     "oracle": "python",
     "kind": "function",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.sample_gaussian_process",
@@ -12361,7 +12361,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.to_classifier",
@@ -12385,7 +12385,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.to_ranker",
@@ -12409,7 +12409,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.to_regressor",
@@ -12429,11 +12429,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.best_iteration_",
@@ -12453,11 +12453,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.best_score_",
@@ -12501,11 +12501,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.calc_leaf_indexes",
@@ -12525,11 +12525,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.classes_",
@@ -12553,7 +12553,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.compare",
@@ -12577,7 +12577,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.copy",
@@ -12597,11 +12597,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.create_metric_calcer",
@@ -12621,11 +12621,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.evals_result_",
@@ -12645,11 +12645,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.feature_importances_",
@@ -12669,11 +12669,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.feature_names_",
@@ -12693,11 +12693,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.fit",
@@ -12717,11 +12717,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.get_all_params",
@@ -12741,11 +12741,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.get_best_iteration",
@@ -12765,11 +12765,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.get_best_score",
@@ -12789,11 +12789,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.get_borders",
@@ -12813,11 +12813,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.get_cat_feature_indices",
@@ -12837,11 +12837,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.get_embedding_feature_indices",
@@ -12861,11 +12861,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.get_evals_result",
@@ -12885,11 +12885,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.get_leaf_values",
@@ -12909,11 +12909,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.get_leaf_weights",
@@ -12933,11 +12933,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.get_metadata",
@@ -12957,11 +12957,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.get_n_features_in",
@@ -12981,11 +12981,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.get_param",
@@ -13005,11 +13005,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.get_params",
@@ -13029,11 +13029,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.get_scale_and_bias",
@@ -13053,11 +13053,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.get_sklearn_estimator_xfail_checks",
@@ -13077,11 +13077,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.get_test_eval",
@@ -13101,11 +13101,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.get_test_evals",
@@ -13125,11 +13125,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.get_text_feature_indices",
@@ -13149,11 +13149,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.get_tree_leaf_counts",
@@ -13173,11 +13173,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.grid_search",
@@ -13197,11 +13197,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.is_fitted",
@@ -13221,11 +13221,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.iterate_leaf_indexes",
@@ -13245,11 +13245,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.learning_rate_",
@@ -13269,11 +13269,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.n_features_in_",
@@ -13297,7 +13297,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.plot_partial_dependence",
@@ -13321,7 +13321,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.plot_predictions",
@@ -13365,11 +13365,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.random_seed_",
@@ -13389,11 +13389,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.randomized_search",
@@ -13417,7 +13417,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.save_borders",
@@ -13437,11 +13437,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.select_features",
@@ -13461,11 +13461,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.set_feature_names",
@@ -13485,11 +13485,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.set_leaf_values",
@@ -13509,11 +13509,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.set_params",
@@ -13533,11 +13533,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.set_scale_and_bias",
@@ -13557,11 +13557,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.tree_count_",
@@ -13581,11 +13581,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.best_iteration_",
@@ -13605,11 +13605,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.best_score_",
@@ -13653,11 +13653,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.calc_leaf_indexes",
@@ -13677,11 +13677,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.classes_",
@@ -13705,7 +13705,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.compare",
@@ -13729,7 +13729,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.copy",
@@ -13749,11 +13749,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.create_metric_calcer",
@@ -13773,11 +13773,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.evals_result_",
@@ -13797,11 +13797,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.feature_importances_",
@@ -13821,11 +13821,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.feature_names_",
@@ -13845,11 +13845,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.fit",
@@ -13869,11 +13869,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.get_all_params",
@@ -13893,11 +13893,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.get_best_iteration",
@@ -13917,11 +13917,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.get_best_score",
@@ -13941,11 +13941,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.get_borders",
@@ -13965,11 +13965,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.get_cat_feature_indices",
@@ -13989,11 +13989,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.get_embedding_feature_indices",
@@ -14013,11 +14013,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.get_evals_result",
@@ -14037,11 +14037,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.get_leaf_values",
@@ -14061,11 +14061,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.get_leaf_weights",
@@ -14085,11 +14085,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.get_metadata",
@@ -14109,11 +14109,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.get_n_features_in",
@@ -14133,11 +14133,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.get_param",
@@ -14157,11 +14157,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.get_params",
@@ -14181,11 +14181,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.get_probability_threshold",
@@ -14205,11 +14205,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.get_scale_and_bias",
@@ -14229,11 +14229,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.get_sklearn_estimator_xfail_checks",
@@ -14253,11 +14253,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.get_test_eval",
@@ -14277,11 +14277,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.get_test_evals",
@@ -14301,11 +14301,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.get_text_feature_indices",
@@ -14325,11 +14325,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.get_tree_leaf_counts",
@@ -14349,11 +14349,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.grid_search",
@@ -14373,11 +14373,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.is_fitted",
@@ -14397,11 +14397,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.iterate_leaf_indexes",
@@ -14421,11 +14421,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.learning_rate_",
@@ -14445,11 +14445,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.n_features_in_",
@@ -14473,7 +14473,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.plot_partial_dependence",
@@ -14497,7 +14497,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.plot_predictions",
@@ -14541,11 +14541,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.predict_log_proba",
@@ -14565,11 +14565,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.predict_proba",
@@ -14589,11 +14589,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.random_seed_",
@@ -14613,11 +14613,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.randomized_search",
@@ -14641,7 +14641,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.save_borders",
@@ -14661,11 +14661,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.score",
@@ -14685,11 +14685,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.select_features",
@@ -14709,11 +14709,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.set_feature_names",
@@ -14733,11 +14733,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.set_leaf_values",
@@ -14757,11 +14757,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.set_params",
@@ -14781,11 +14781,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.set_probability_threshold",
@@ -14805,11 +14805,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.set_scale_and_bias",
@@ -14829,11 +14829,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.staged_predict_log_proba",
@@ -14853,11 +14853,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.staged_predict_proba",
@@ -14877,11 +14877,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.tree_count_",
@@ -14901,11 +14901,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.best_iteration_",
@@ -14925,11 +14925,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.best_score_",
@@ -14973,11 +14973,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.calc_leaf_indexes",
@@ -14997,11 +14997,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.classes_",
@@ -15025,7 +15025,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.compare",
@@ -15049,7 +15049,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.copy",
@@ -15069,11 +15069,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.create_metric_calcer",
@@ -15093,11 +15093,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.evals_result_",
@@ -15117,11 +15117,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.feature_importances_",
@@ -15141,11 +15141,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.feature_names_",
@@ -15165,11 +15165,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.fit",
@@ -15189,11 +15189,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.get_all_params",
@@ -15213,11 +15213,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.get_best_iteration",
@@ -15237,11 +15237,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.get_best_score",
@@ -15261,11 +15261,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.get_borders",
@@ -15285,11 +15285,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.get_cat_feature_indices",
@@ -15309,11 +15309,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.get_embedding_feature_indices",
@@ -15333,11 +15333,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.get_evals_result",
@@ -15357,11 +15357,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.get_leaf_values",
@@ -15381,11 +15381,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.get_leaf_weights",
@@ -15405,11 +15405,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.get_metadata",
@@ -15429,11 +15429,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.get_n_features_in",
@@ -15453,11 +15453,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.get_param",
@@ -15477,11 +15477,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.get_params",
@@ -15501,11 +15501,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.get_scale_and_bias",
@@ -15525,11 +15525,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.get_sklearn_estimator_xfail_checks",
@@ -15549,11 +15549,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.get_test_eval",
@@ -15573,11 +15573,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.get_test_evals",
@@ -15597,11 +15597,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.get_text_feature_indices",
@@ -15621,11 +15621,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.get_tree_leaf_counts",
@@ -15645,11 +15645,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.grid_search",
@@ -15669,11 +15669,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.is_fitted",
@@ -15693,11 +15693,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.iterate_leaf_indexes",
@@ -15717,11 +15717,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.learning_rate_",
@@ -15741,11 +15741,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.n_features_in_",
@@ -15769,7 +15769,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.plot_partial_dependence",
@@ -15793,7 +15793,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.plot_predictions",
@@ -15837,11 +15837,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.random_seed_",
@@ -15861,11 +15861,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.randomized_search",
@@ -15889,7 +15889,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.save_borders",
@@ -15909,11 +15909,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.score",
@@ -15933,11 +15933,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.select_features",
@@ -15957,11 +15957,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.set_feature_names",
@@ -15981,11 +15981,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.set_leaf_values",
@@ -16005,11 +16005,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.set_params",
@@ -16029,11 +16029,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.set_scale_and_bias",
@@ -16053,11 +16053,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.tree_count_",
@@ -16077,11 +16077,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.best_iteration_",
@@ -16101,11 +16101,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.best_score_",
@@ -16149,11 +16149,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.calc_leaf_indexes",
@@ -16173,11 +16173,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.classes_",
@@ -16201,7 +16201,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.compare",
@@ -16225,7 +16225,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.copy",
@@ -16245,11 +16245,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.create_metric_calcer",
@@ -16269,11 +16269,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.evals_result_",
@@ -16293,11 +16293,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.feature_importances_",
@@ -16317,11 +16317,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.feature_names_",
@@ -16341,11 +16341,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.fit",
@@ -16365,11 +16365,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.get_all_params",
@@ -16389,11 +16389,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.get_best_iteration",
@@ -16413,11 +16413,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.get_best_score",
@@ -16437,11 +16437,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.get_borders",
@@ -16461,11 +16461,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.get_cat_feature_indices",
@@ -16485,11 +16485,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.get_embedding_feature_indices",
@@ -16509,11 +16509,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.get_evals_result",
@@ -16533,11 +16533,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.get_leaf_values",
@@ -16557,11 +16557,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.get_leaf_weights",
@@ -16581,11 +16581,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.get_metadata",
@@ -16605,11 +16605,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.get_n_features_in",
@@ -16629,11 +16629,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.get_param",
@@ -16653,11 +16653,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.get_params",
@@ -16677,11 +16677,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.get_scale_and_bias",
@@ -16701,11 +16701,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.get_sklearn_estimator_xfail_checks",
@@ -16725,11 +16725,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.get_test_eval",
@@ -16749,11 +16749,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.get_test_evals",
@@ -16773,11 +16773,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.get_text_feature_indices",
@@ -16797,11 +16797,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.get_tree_leaf_counts",
@@ -16821,11 +16821,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.grid_search",
@@ -16845,11 +16845,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.is_fitted",
@@ -16869,11 +16869,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.iterate_leaf_indexes",
@@ -16893,11 +16893,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.learning_rate_",
@@ -16917,11 +16917,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.n_features_in_",
@@ -16945,7 +16945,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.plot_partial_dependence",
@@ -16969,7 +16969,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.plot_predictions",
@@ -17013,11 +17013,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.random_seed_",
@@ -17037,11 +17037,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.randomized_search",
@@ -17065,7 +17065,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.save_borders",
@@ -17085,11 +17085,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.score",
@@ -17109,11 +17109,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.select_features",
@@ -17133,11 +17133,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.set_feature_names",
@@ -17157,11 +17157,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.set_leaf_values",
@@ -17181,11 +17181,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.set_params",
@@ -17205,11 +17205,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.set_scale_and_bias",
@@ -17229,11 +17229,11 @@
     "oracle": "python",
     "kind": "property",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.tree_count_",
@@ -17253,11 +17253,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "Pool.get_baseline",
@@ -17277,11 +17277,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "Pool.get_cat_feature_indices",
@@ -17301,11 +17301,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "Pool.get_embedding_feature_indices",
@@ -17325,11 +17325,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "Pool.get_feature_names",
@@ -17349,11 +17349,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "Pool.get_features",
@@ -17373,11 +17373,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "Pool.get_group_id_hash",
@@ -17397,11 +17397,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "Pool.get_label",
@@ -17421,11 +17421,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "Pool.get_text_feature_indices",
@@ -17445,11 +17445,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "Pool.get_weight",
@@ -17469,11 +17469,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "Pool.has_label",
@@ -17493,11 +17493,11 @@
     "oracle": "python",
     "kind": "attribute",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "Pool.is_empty_",
@@ -17517,11 +17517,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "Pool.is_quantized",
@@ -17541,11 +17541,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "Pool.num_col",
@@ -17565,11 +17565,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "Pool.num_pairs",
@@ -17589,11 +17589,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "Pool.num_row",
@@ -17617,7 +17617,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "Pool.quantize",
@@ -17641,7 +17641,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "Pool.save",
@@ -17665,7 +17665,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "Pool.save_quantization_borders",
@@ -17685,11 +17685,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "Pool.set_baseline",
@@ -17709,11 +17709,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "Pool.set_feature_names",
@@ -17733,11 +17733,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "Pool.set_group_id",
@@ -17757,11 +17757,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "Pool.set_group_weight",
@@ -17781,11 +17781,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "Pool.set_pairs",
@@ -17805,11 +17805,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "Pool.set_pairs_weight",
@@ -17829,11 +17829,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "Pool.set_subgroup_id",
@@ -17853,11 +17853,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "Pool.set_timestamp",
@@ -17877,11 +17877,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "Pool.set_weight",
@@ -17901,11 +17901,11 @@
     "oracle": "python",
     "kind": "attribute",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "Pool.shape",
@@ -17925,11 +17925,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "Pool.slice",
@@ -17949,11 +17949,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "Pool.train_eval_split",
@@ -17973,11 +17973,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "FeaturesData.get_cat_feature_count",
@@ -17997,11 +17997,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "FeaturesData.get_feature_count",
@@ -18021,11 +18021,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "FeaturesData.get_feature_names",
@@ -18045,11 +18045,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "FeaturesData.get_num_feature_count",
@@ -18069,11 +18069,11 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "FeaturesData.get_object_count",
@@ -18093,11 +18093,11 @@
     "oracle": "python",
     "kind": "attribute",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.utils.ARRAY_TYPES",
@@ -18121,7 +18121,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.utils.CatBoostError",
@@ -18141,11 +18141,11 @@
     "oracle": "python",
     "kind": "class",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.utils.DataMetaInfo",
@@ -18165,11 +18165,11 @@
     "oracle": "python",
     "kind": "attribute",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.utils.PATH_TYPES",
@@ -18193,7 +18193,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.utils.Pool",
@@ -18213,11 +18213,11 @@
     "oracle": "python",
     "kind": "class",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.utils.TargetStats",
@@ -18237,11 +18237,11 @@
     "oracle": "python",
     "kind": "function",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.utils.calculate_quantization_grid",
@@ -18261,11 +18261,11 @@
     "oracle": "python",
     "kind": "attribute",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.utils.compute_training_options",
@@ -18285,11 +18285,11 @@
     "oracle": "python",
     "kind": "attribute",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.utils.compute_wx_test",
@@ -18309,11 +18309,11 @@
     "oracle": "python",
     "kind": "function",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.utils.contextmanager",
@@ -18337,7 +18337,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.utils.convert_to_onnx_object",
@@ -18361,7 +18361,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.utils.create_cd",
@@ -18381,11 +18381,11 @@
     "oracle": "python",
     "kind": "class",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.utils.defaultdict",
@@ -18405,11 +18405,11 @@
     "oracle": "python",
     "kind": "function",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.utils.eval_metric",
@@ -18429,11 +18429,11 @@
     "oracle": "python",
     "kind": "attribute",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.utils.fspath",
@@ -18453,11 +18453,11 @@
     "oracle": "python",
     "kind": "function",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.utils.get_confusion_matrix",
@@ -18477,11 +18477,11 @@
     "oracle": "python",
     "kind": "function",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.utils.get_fnr_curve",
@@ -18501,11 +18501,11 @@
     "oracle": "python",
     "kind": "function",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.utils.get_fpr_curve",
@@ -18525,11 +18525,11 @@
     "oracle": "python",
     "kind": "function",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.utils.get_gpu_device_count",
@@ -18549,11 +18549,11 @@
     "oracle": "python",
     "kind": "function",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.utils.get_roc_curve",
@@ -18573,11 +18573,11 @@
     "oracle": "python",
     "kind": "class",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.utils.pl",
@@ -18597,11 +18597,11 @@
     "oracle": "python",
     "kind": "class",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.utils.polars",
@@ -18625,7 +18625,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.utils.quantize",
@@ -18649,7 +18649,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.utils.read_cd",
@@ -18669,11 +18669,11 @@
     "oracle": "python",
     "kind": "function",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.utils.reset_trace_backend",
@@ -18693,11 +18693,11 @@
     "oracle": "python",
     "kind": "function",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.utils.select_threshold",
@@ -18717,11 +18717,11 @@
     "oracle": "python",
     "kind": "class",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.eval.CaseEvaluationResult",
@@ -18745,7 +18745,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.eval.CatBoost",
@@ -18769,7 +18769,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.eval.CatBoostError",
@@ -18789,11 +18789,11 @@
     "oracle": "python",
     "kind": "class",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.eval.CatboostEvaluation",
@@ -18813,11 +18813,11 @@
     "oracle": "python",
     "kind": "class",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.eval.EvalType",
@@ -18925,11 +18925,11 @@
     "oracle": "python",
     "kind": "class",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.eval.EvaluationResults",
@@ -18949,11 +18949,11 @@
     "oracle": "python",
     "kind": "class",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.eval.ExecutionCase",
@@ -18973,11 +18973,11 @@
     "oracle": "python",
     "kind": "class",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.eval.FactorUtils",
@@ -18997,11 +18997,11 @@
     "oracle": "python",
     "kind": "class",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.eval.FoldModelsHandler",
@@ -19021,11 +19021,11 @@
     "oracle": "python",
     "kind": "class",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.eval.LabelMode",
@@ -19089,11 +19089,11 @@
     "oracle": "python",
     "kind": "class",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.eval.MetricEvaluationResult",
@@ -19113,11 +19113,11 @@
     "oracle": "python",
     "kind": "class",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.eval.ScoreConfig",
@@ -19137,11 +19137,11 @@
     "oracle": "python",
     "kind": "class",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.eval.ScoreType",
@@ -19205,11 +19205,11 @@
     "oracle": "python",
     "kind": "function",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.eval.calc_bootstrap_ci_for_mean",
@@ -19229,11 +19229,11 @@
     "oracle": "python",
     "kind": "function",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.eval.calc_wilcoxon_test",
@@ -19253,11 +19253,11 @@
     "oracle": "python",
     "kind": "attribute",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.eval.compute_wx_test",
@@ -19277,11 +19277,11 @@
     "oracle": "python",
     "kind": "function",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.eval.copy",
@@ -19301,11 +19301,11 @@
     "oracle": "python",
     "kind": "function",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.eval.make_dirs_if_not_exists",
@@ -19325,11 +19325,11 @@
     "oracle": "python",
     "kind": "function",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.eval.metric_description_or_str_to_str",
@@ -19353,7 +19353,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.eval.save_plot",
@@ -19373,11 +19373,11 @@
     "oracle": "python",
     "kind": "function",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.eval.series_to_line",
@@ -19397,11 +19397,11 @@
     "oracle": "python",
     "kind": "attribute",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.datasets.PATH_TYPES",
@@ -19421,11 +19421,11 @@
     "oracle": "python",
     "kind": "function",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.datasets.adult",
@@ -19445,11 +19445,11 @@
     "oracle": "python",
     "kind": "function",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.datasets.amazon",
@@ -19469,11 +19469,11 @@
     "oracle": "python",
     "kind": "function",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.datasets.epsilon",
@@ -19493,11 +19493,11 @@
     "oracle": "python",
     "kind": "attribute",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.datasets.fspath",
@@ -19517,11 +19517,11 @@
     "oracle": "python",
     "kind": "function",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.datasets.higgs",
@@ -19541,11 +19541,11 @@
     "oracle": "python",
     "kind": "function",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.datasets.imdb",
@@ -19565,11 +19565,11 @@
     "oracle": "python",
     "kind": "attribute",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.datasets.logger",
@@ -19589,11 +19589,11 @@
     "oracle": "python",
     "kind": "function",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.datasets.monotonic1",
@@ -19613,11 +19613,11 @@
     "oracle": "python",
     "kind": "function",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.datasets.monotonic2",
@@ -19637,11 +19637,11 @@
     "oracle": "python",
     "kind": "function",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.datasets.msrank",
@@ -19661,11 +19661,11 @@
     "oracle": "python",
     "kind": "function",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.datasets.msrank_10k",
@@ -19685,11 +19685,11 @@
     "oracle": "python",
     "kind": "function",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.datasets.rotten_tomatoes",
@@ -19709,11 +19709,11 @@
     "oracle": "python",
     "kind": "function",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.datasets.set_cache_path",
@@ -19733,11 +19733,11 @@
     "oracle": "python",
     "kind": "function",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.datasets.titanic",
@@ -19757,11 +19757,11 @@
     "oracle": "python",
     "kind": "class",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.text_processing.Dictionary",
@@ -19781,11 +19781,11 @@
     "oracle": "python",
     "kind": "class",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.text_processing.Tokenizer",
@@ -19809,7 +19809,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "mode:fit",
@@ -19829,11 +19829,11 @@
     "oracle": "cli",
     "kind": "mode",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-09,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "mode:calc",
@@ -19853,11 +19853,11 @@
     "oracle": "cli",
     "kind": "mode",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-09,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "mode:dataset-statistics",
@@ -19877,11 +19877,11 @@
     "oracle": "cli",
     "kind": "mode",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-09,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "mode:fstr",
@@ -19901,11 +19901,11 @@
     "oracle": "cli",
     "kind": "mode",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-09,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "mode:ostr",
@@ -19925,11 +19925,11 @@
     "oracle": "cli",
     "kind": "mode",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-09,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "mode:eval-feature",
@@ -19953,7 +19953,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "mode:metadata",
@@ -19973,11 +19973,11 @@
     "oracle": "cli",
     "kind": "submode",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-09,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "mode:metadata set",
@@ -20001,7 +20001,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "mode:metadata get",
@@ -20025,7 +20025,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "mode:metadata dump",
@@ -20049,7 +20049,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "mode:metadata dump-feature-names",
@@ -20073,7 +20073,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "mode:model-sum",
@@ -20097,7 +20097,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "mode:run-worker",
@@ -20117,11 +20117,11 @@
     "oracle": "cli",
     "kind": "mode",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-09,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "mode:roc",
@@ -20141,11 +20141,11 @@
     "oracle": "cli",
     "kind": "mode",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-09,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "mode:model-based-eval",
@@ -20158,7 +20158,7 @@
     "disposition_confidence": 95,
     "final_method": "elementwise",
     "final_method_confidence": 55,
-    "final_method_note": ""
+    "final_method_note": "CLI mode compares an evaluated model's per-object loss values against a baseline model via bootstrap resampling and prints numeric loss/p-value statistics, so tagged elementwise; confidence kept below 60 because the mode's combined summary-plus-per-fold stdout layout has not been inspected against a real run."
   },
   {
     "inventory_row_id": "mode:normalize-model",
@@ -20169,7 +20169,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "mode:normalize-model",
@@ -20189,11 +20189,11 @@
     "oracle": "cli",
     "kind": "mode",
     "method": "elementwise",
-    "tolerance": null,
+    "tolerance": 1e-09,
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "mode:select-features",
@@ -20217,7 +20217,7 @@
     "test_id": null,
     "state": "red",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "mode:dump-options",

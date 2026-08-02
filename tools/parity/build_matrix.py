@@ -102,9 +102,10 @@ def build_row(inventory_row_id: str, oracle: str, kind: str, universal: bool,
     return row
 
 
-def build_matrix(diff: dict) -> list:
+def build_matrix(diff: dict) -> tuple:
     gaps = diff["gaps"]
-    assert len(gaps) == 1537, f"expected 1537 raw gap rows, got {len(gaps)}"
+    if len(gaps) != 1537:
+        raise ValueError(f"expected 1537 raw gap rows, got {len(gaps)}")
 
     merged_groups: dict[str, list] = {}
     passthrough: list = []
@@ -163,12 +164,13 @@ def build_matrix(diff: dict) -> list:
             members=members,
         ))
 
-    assert len(rows) == 725, f"expected 725 output rows, got {len(rows)}"
+    if len(rows) != 725:
+        raise ValueError(f"expected 725 output rows, got {len(rows)}")
     return rows, len(merged_groups), len(passthrough)
 
 
 def summarize(rows: list, merged_count: int, passthrough_count: int, diff: dict) -> dict:
-    rows_by_oracle: dict = {"python": 0, "cli": 0}
+    rows_by_oracle: dict = {}
     rows_by_method: dict = {}
     rows_by_kind: dict = {}
     for row in rows:

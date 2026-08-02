@@ -96,6 +96,14 @@ catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_d
     } else if (is.matrix(data)) {
         pool <- catboost.from_matrix(data, label, cat_features, NULL, NULL, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight,
                                      baseline, feature_names, graph)
+    } else if (inherits(data, "catboost.FeaturesData")) {
+        for (arg in list("cat_features", "feature_names")) {
+            if (!is.null(get(arg))) {
+                stop("parameter '", arg, "' should be NULL when 'data' parameter has catboost.FeaturesData type")
+            }
+        }
+        pool <- catboost.from_matrix(data, label, NULL, NULL, NULL, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight,
+                                     baseline, NULL, graph)
     } else if (is.data.frame(data)) {
         for (arg in list("column_description")) {
             if (!is.null(get(arg))) {
@@ -109,7 +117,7 @@ catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_d
         pool <- catboost.from_data_frame(data, label, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight,
                                          baseline, feature_names, graph)
     } else {
-        stop("Unsupported data type, expecting string, matrix or dafa.frame, got: ", class(data))
+        stop("Unsupported data type, expecting string, matrix, data.frame or catboost.FeaturesData, got: ", class(data))
     }
     return(pool)
 }
@@ -141,8 +149,33 @@ catboost.from_file <- function(pool_path, cd_path = "", pairs_path = "", delimit
 catboost.from_matrix <- function(float_and_cat_features_data, label = NULL, cat_features_indices = NULL, text_features_data = NULL,
                                  text_features_indices = NULL, pairs = NULL, weight = NULL, group_id = NULL, group_weight = NULL,
                                  subgroup_id = NULL, pairs_weight = NULL, baseline = NULL, feature_names = NULL, graph = NULL) {
+  if (inherits(float_and_cat_features_data, "catboost.FeaturesData")) {
+      if (!is.null(cat_features_indices) || !is.null(text_features_data) || !is.null(text_features_indices) || !is.null(feature_names)) {
+          stop("parameters 'cat_features_indices', 'text_features_data', 'text_features_indices' and 'feature_names' should be NULL",
+               " when 'float_and_cat_features_data' has catboost.FeaturesData type")
+      }
+      features_data <- float_and_cat_features_data
+      num_data <- features_data$num_feature_data
+      cat_data <- features_data$cat_feature_data
+      num_ncol <- catboost.features_data.get_num_feature_count(features_data)
+      cat_ncol <- catboost.features_data.get_cat_feature_count(features_data)
+
+      if (!is.null(cat_data)) {
+          cat_data <- matrix(.Call("CatBoostHashStrings_R", as.character(cat_data)), nrow = nrow(cat_data), ncol = ncol(cat_data))
+      }
+      float_and_cat_features_data <- if (!is.null(num_data) && !is.null(cat_data)) {
+          cbind(num_data, cat_data)
+      } else if (!is.null(num_data)) {
+          num_data
+      } else {
+          cat_data
+      }
+      cat_features_indices <- if (cat_ncol > 0) as.integer(seq.int(num_ncol, num_ncol + cat_ncol - 1)) else integer(0)
+      feature_names <- as.list(catboost.features_data.get_feature_names(features_data))
+  }
+
   if (!is.matrix(float_and_cat_features_data))
-      stop("Unsupported data type, expecting matrix, got: ", class(float_and_cat_features_data))
+      stop("Unsupported data type, expecting matrix or catboost.FeaturesData, got: ", class(float_and_cat_features_data))
 
   float_and_cat_columns <- if (is.null(float_and_cat_features_data)) 0 else ncol(float_and_cat_features_data)
   text_columns <- if (is.null(text_features_data)) 0 else ncol(text_features_data)
@@ -283,6 +316,171 @@ catboost.from_data_frame <- function(data, label = NULL, pairs = NULL, weight = 
     pool <- catboost.from_matrix(as.matrix(float_and_cat_features_data), label, cat_features_indices, as.matrix(text_features_data),
                                  text_features_indices, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names, graph)
     return(pool)
+}
+
+
+.catboost.check_features_data_part <- function(part_name, feature_data, is_numeric_part, feature_names) {
+    if (!is.null(feature_names) && is.null(feature_data)) {
+        stop(part_name, "_feature_names specified with not specified ", part_name, "_feature_data")
+    }
+    if (!is.null(feature_data)) {
+        if (!is.matrix(feature_data)) {
+            stop("only matrix type is supported for ", part_name, "_feature_data")
+        }
+        if (is_numeric_part && !is.numeric(feature_data)) {
+            stop(part_name, "_feature_data element type must be numeric, found ", typeof(feature_data), " instead")
+        }
+        if (!is_numeric_part && !is.character(feature_data)) {
+            stop(part_name, "_feature_data element type must be character, found ", typeof(feature_data), " instead")
+        }
+        if (!is.null(feature_names) && ncol(feature_data) != length(feature_names)) {
+            stop("number of features in ", part_name, "_feature_data (=", ncol(feature_data),
+                ") is different from length(", part_name, "_feature_names) (=", length(feature_names), ")")
+        }
+    }
+    if (is.null(feature_names)) {
+        feature_names <- if (!is.null(feature_data)) as.character(rep("", ncol(feature_data))) else character(0)
+    } else {
+        feature_names <- as.character(feature_names)
+    }
+    feature_names
+}
+
+
+#' @name catboost.FeaturesData
+#' @title Create a FeaturesData container
+#'
+#' @description Store features data in a form that can be passed directly to
+#' \code{catboost.load_pool}/\code{catboost.from_matrix} as the \code{data}/
+#' \code{float_and_cat_features_data} argument, as an alternative to a plain
+#' matrix or data.frame. Numerical features are given as a numeric matrix,
+#' categorical features are given separately as a character matrix, each with
+#' optional column names.
+#'
+#' @param num_feature_data A numeric matrix of numerical feature values, or NULL.
+#'
+#' Default value: NULL
+#' @param cat_feature_data A character matrix of categorical feature values, or NULL.
+#'
+#' Default value: NULL
+#' @param num_feature_names A list/vector of names for the numerical features. Must
+#' be NULL if num_feature_data is NULL. If not specified, empty strings are used.
+#'
+#' Default value: NULL
+#' @param cat_feature_names A list/vector of names for the categorical features. Must
+#' be NULL if cat_feature_data is NULL. If not specified, empty strings are used.
+#'
+#' Default value: NULL
+#' @return catboost.FeaturesData
+#' @export
+catboost.FeaturesData <- function(num_feature_data = NULL, cat_feature_data = NULL,
+                                  num_feature_names = NULL, cat_feature_names = NULL) {
+    if (is.null(num_feature_data) && is.null(cat_feature_data)) {
+        stop("at least one of num_feature_data, cat_feature_data params must be non-NULL")
+    }
+
+    num_feature_names <- .catboost.check_features_data_part("num", num_feature_data, TRUE, num_feature_names)
+    cat_feature_names <- .catboost.check_features_data_part("cat", cat_feature_data, FALSE, cat_feature_names)
+
+    all_feature_count <- (if (!is.null(num_feature_data)) ncol(num_feature_data) else 0) +
+                         (if (!is.null(cat_feature_data)) ncol(cat_feature_data) else 0)
+    if (all_feature_count == 0) {
+        stop("both num_feature_data and cat_feature_data contain 0 features")
+    }
+
+    if (!is.null(num_feature_data) && !is.null(cat_feature_data) && nrow(num_feature_data) != nrow(cat_feature_data)) {
+        stop("object_counts in num_feature_data (", nrow(num_feature_data), ") and in cat_feature_data (",
+            nrow(cat_feature_data), ") are different")
+    }
+
+    structure(
+        list(
+            num_feature_data = num_feature_data,
+            cat_feature_data = cat_feature_data,
+            num_feature_names = num_feature_names,
+            cat_feature_names = cat_feature_names
+        ),
+        class = "catboost.FeaturesData"
+    )
+}
+
+
+#' @name catboost.features_data.get_object_count
+#' @title Number of objects in a FeaturesData
+#' @description Get the number of objects (rows) in a catboost.FeaturesData.
+#' @param features_data A catboost.FeaturesData object.
+#'
+#' Default value: Required argument
+#' @return The number of objects.
+#' @export
+catboost.features_data.get_object_count <- function(features_data) {
+    if (!is.null(features_data$num_feature_data)) {
+        return(nrow(features_data$num_feature_data))
+    }
+    return(nrow(features_data$cat_feature_data))
+}
+
+
+#' @name catboost.features_data.get_num_feature_count
+#' @title Number of numerical features in a FeaturesData
+#' @description Get the number of numerical features in a catboost.FeaturesData.
+#' @param features_data A catboost.FeaturesData object.
+#'
+#' Default value: Required argument
+#' @return The number of numerical features.
+#' @export
+catboost.features_data.get_num_feature_count <- function(features_data) {
+    if (is.null(features_data$num_feature_data)) {
+        return(0L)
+    }
+    return(ncol(features_data$num_feature_data))
+}
+
+
+#' @name catboost.features_data.get_cat_feature_count
+#' @title Number of categorical features in a FeaturesData
+#' @description Get the number of categorical features in a catboost.FeaturesData.
+#' @param features_data A catboost.FeaturesData object.
+#'
+#' Default value: Required argument
+#' @return The number of categorical features.
+#' @export
+catboost.features_data.get_cat_feature_count <- function(features_data) {
+    if (is.null(features_data$cat_feature_data)) {
+        return(0L)
+    }
+    return(ncol(features_data$cat_feature_data))
+}
+
+
+#' @name catboost.features_data.get_feature_count
+#' @title Total number of features in a FeaturesData
+#' @description Get the total number of features (numerical + categorical) in a
+#' catboost.FeaturesData.
+#' @param features_data A catboost.FeaturesData object.
+#'
+#' Default value: Required argument
+#' @return The total number of features.
+#' @export
+catboost.features_data.get_feature_count <- function(features_data) {
+    return(catboost.features_data.get_num_feature_count(features_data) +
+          catboost.features_data.get_cat_feature_count(features_data))
+}
+
+
+#' @name catboost.features_data.get_feature_names
+#' @title Get feature names from a FeaturesData
+#' @description Get the names of the features of a catboost.FeaturesData:
+#' numerical feature names followed by categorical feature names. Unnamed
+#' features are empty strings.
+#' @param features_data A catboost.FeaturesData object.
+#'
+#' Default value: Required argument
+#' @return A character vector of feature names, length equal to
+#' \code{catboost.features_data.get_feature_count(features_data)}.
+#' @export
+catboost.features_data.get_feature_names <- function(features_data) {
+    return(c(features_data$num_feature_names, features_data$cat_feature_names))
 }
 
 

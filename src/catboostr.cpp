@@ -24,6 +24,8 @@
 #include <catboost/private/libs/documents_importance/enums.h>
 #include <catboost/private/libs/options/cross_validation_params.h>
 #include <catboost/private/libs/options/enum_helpers.h>
+#include <catboost/private/libs/options/split_params.h>
+#include <catboost/private/libs/quantized_pool/serialization.h>
 #include <catboost/private/libs/target/data_providers.h>
 
 // P1.16: compiled-in build identifier for R/libcatboostr version-skew detection.
@@ -613,6 +615,166 @@ EXPORT_FUNCTION CatBoostPoolSlice_R(SEXP poolParam, SEXP sizeParam, SEXP offsetP
     R_API_END();
     UNPROTECT(size - offset + 1);
     return result;
+}
+
+// P3.4: R equivalents of Python Pool's train_eval_split and save (Pool
+// structural operations; slice's native entry point is CatBoostPoolSlice_R
+// above, pre-existing, first wired to R via catboost.pool.slice in this
+// ticket). train_eval_split has no existing native entry point -- Python's
+// Pool.train_eval_split (catboost/python-package/catboost/core.py) calls
+// _catboost.pyx's _train_eval_split, which itself calls TrainEvalSplit()
+// (catboost/python-package/catboost/helpers.cpp:252). That function lives in
+// the python-package tree (not a core lib) and includes Python.h, so it
+// cannot be called directly from R; this reimplements its body against the
+// same core NCB entry points it itself calls (catboost/libs/data/
+// objects_grouping.h's Shuffle/TrainTestSplit/StratifiedTrainTestSplit,
+// TDataProvider::GetSubset), which are all already reachable from this file.
+// Only the float-typed-target branch of the stratified path is implemented,
+// matching this fork's existing precedent at CatBoostPoolGetLabel_R: R's own
+// Pool construction paths never produce ERawTargetType::String labels.
+EXPORT_FUNCTION CatBoostPoolTrainEvalSplit_R(
+    SEXP poolParam,
+    SEXP hasTimeParam,
+    SEXP isClassificationParam,
+    SEXP evalFractionParam,
+    SEXP saveEvalPoolParam
+) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    bool hasTime = static_cast<bool>(asLogical(hasTimeParam));
+    bool isClassification = static_cast<bool>(asLogical(isClassificationParam));
+    double evalFraction = asReal(evalFractionParam);
+    bool saveEvalPool = static_cast<bool>(asLogical(saveEvalPoolParam));
+
+    CB_ENSURE(evalFraction > 0.0 && evalFraction < 1.0, "eval_fraction must be in (0,1) range");
+
+    TTrainTestSplitParams splitParams;
+    splitParams.Shuffle = !hasTime;
+    splitParams.Stratified = isClassification;
+    splitParams.TrainPart = 1.0 - evalFraction;
+
+    bool shuffle = splitParams.Shuffle
+        && pool->ObjectsData->GetOrder() != EObjectsOrder::RandomShuffled;
+
+    TObjectsGroupingSubset postShuffleGroupingSubset;
+    if (shuffle) {
+        TRestorableFastRng64 rand(splitParams.PartitionRandSeed);
+        postShuffleGroupingSubset = NCB::Shuffle(pool->ObjectsGrouping, 1, &rand);
+    } else {
+        postShuffleGroupingSubset = GetSubset(
+            pool->ObjectsGrouping,
+            TArraySubsetIndexing<ui32>(TFullSubset<ui32>(pool->ObjectsGrouping->GetGroupCount())),
+            EObjectsOrder::Ordered
+        );
+    }
+    TObjectsGroupingPtr postShuffleGrouping = postShuffleGroupingSubset.GetSubsetGrouping();
+
+    TArraySubsetIndexing<ui32> postShuffleTrainIndices;
+    TArraySubsetIndexing<ui32> postShuffleTestIndices;
+
+    if (splitParams.Stratified) {
+        auto maybeOneDimensionalTarget = pool->RawTargetData.GetOneDimensionalTarget();
+        CB_ENSURE(maybeOneDimensionalTarget, "Cannot do stratified split without one-dimensional target data");
+        const ITypedSequencePtr<float>* typedSequence
+            = std::get_if<ITypedSequencePtr<float>>(&(**maybeOneDimensionalTarget));
+        CB_ENSURE(
+            typedSequence,
+            "CatBoostPoolTrainEvalSplit_R: string labels are not supported for stratified split"
+        );
+        TVector<float> classesVec(pool->GetObjectCount());
+        size_t classesVecIdx = 0;
+        (*typedSequence)->ForEach([&classesVec, &classesVecIdx](float value) { classesVec[classesVecIdx++] = value; });
+        // Mirrors python-package/catboost/helpers.cpp's TrainEvalSplit: the
+        // target array must be re-ordered by the same post-shuffle indexing
+        // used to build postShuffleGrouping before stratifying, otherwise
+        // StratifiedTrainTestSplit pairs shuffled row positions with
+        // pre-shuffle class labels.
+        if (shuffle) {
+            classesVec = NCB::GetSubset<float>(
+                TConstArrayRef<float>(classesVec),
+                postShuffleGroupingSubset.GetObjectsIndexing(),
+                &NPar::LocalExecutor()
+            );
+        }
+        StratifiedTrainTestSplit(
+            *postShuffleGrouping,
+            TConstArrayRef<float>(classesVec),
+            splitParams.TrainPart,
+            &postShuffleTrainIndices,
+            &postShuffleTestIndices
+        );
+    } else {
+        TrainTestSplit(*postShuffleGrouping, splitParams.TrainPart, &postShuffleTrainIndices, &postShuffleTestIndices);
+    }
+
+    auto getSubset = [&](const TArraySubsetIndexing<ui32>& postShuffleIndexing) {
+        return pool->GetSubset(
+            GetSubset(
+                pool->ObjectsGrouping,
+                Compose(postShuffleGroupingSubset.GetGroupsIndexing(), postShuffleIndexing),
+                shuffle ? EObjectsOrder::RandomShuffled : EObjectsOrder::Ordered
+            ),
+            GetMonopolisticFreeCpuRam(),
+            &NPar::LocalExecutor()
+        );
+    };
+
+    TDataProviderPtr trainDataProvider = getSubset(postShuffleTrainIndices);
+    TDataProviderPtr evalDataProvider;
+    if (saveEvalPool) {
+        evalDataProvider = getSubset(postShuffleTestIndices);
+    }
+
+    result = PROTECT(allocVector(VECSXP, 2));
+
+    SEXP trainHandle = PROTECT(R_MakeExternalPtr(trainDataProvider.Get(), R_NilValue, R_NilValue));
+    R_RegisterCFinalizerEx(trainHandle, _Finalizer<TPoolHandle>, TRUE);
+    Y_UNUSED(trainDataProvider.Release());
+    SET_VECTOR_ELT(result, 0, trainHandle);
+    UNPROTECT(1);
+
+    if (saveEvalPool) {
+        SEXP evalHandle = PROTECT(R_MakeExternalPtr(evalDataProvider.Get(), R_NilValue, R_NilValue));
+        R_RegisterCFinalizerEx(evalHandle, _Finalizer<TPoolHandle>, TRUE);
+        Y_UNUSED(evalDataProvider.Release());
+        SET_VECTOR_ELT(result, 1, evalHandle);
+        UNPROTECT(1);
+    } else {
+        SET_VECTOR_ELT(result, 1, R_NilValue);
+    }
+
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+// Mirrors _catboost.pyx _save()/Python's Pool.save(): saves a quantized Pool
+// to CatBoost's own binary quantized-pool format via the same core entry
+// point Python calls (catboost/private/libs/quantized_pool/serialization.h's
+// SaveQuantizedPool(TDataProviderPtr, fname)) -- not the CD/TSV format
+// catboost.save_pool (R/catboost.R) writes, which is a different, older,
+// human-readable format read back by catboost.load_pool's
+// column_description path. Requires the pool to already be quantized, same
+// precondition and error message ("Pool is not quantized") as
+// BuildSrcDataFromDataProvider (serialization.cpp) enforces for Python.
+EXPORT_FUNCTION CatBoostPoolSave_R(SEXP poolParam, SEXP fnameParam) {
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    CB_ENSURE(
+        dynamic_cast<const TQuantizedObjectsDataProvider*>(pool->ObjectsData.Get()),
+        "Pool is not quantized"
+    );
+
+    // Manual refcount bump, same pattern as CatBoostPoolQuantize_R above: the
+    // R external pointer finalizer deletes this object directly, bypassing
+    // intrusive refcounting, so a local TDataProviderPtr must not be allowed
+    // to drop the count to 0 and free it out from under the R handle.
+    pool->Ref();
+    TDataProviderPtr dataProvider(pool);
+    SaveQuantizedPool(dataProvider, TString(CHAR(asChar(fnameParam))));
+    R_API_END();
+    return R_NilValue;
 }
 
 // P3.1: R equivalents of Python Pool's metadata accessor/mutator methods

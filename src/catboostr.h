@@ -245,6 +245,20 @@ EXPORT_FUNCTION CatBoostPoolIsQuantized_R(SEXP poolParam);
 
 EXPORT_FUNCTION CatBoostPoolSaveQuantizationBorders_R(SEXP poolParam, SEXP outputFileParam);
 
+// P3.4: Pool structural operations (R equivalents of Python Pool's
+// train_eval_split/save; slice's native entry point is CatBoostPoolSlice_R
+// above, pre-existing).
+
+EXPORT_FUNCTION CatBoostPoolTrainEvalSplit_R(
+    SEXP poolParam,
+    SEXP hasTimeParam,
+    SEXP isClassificationParam,
+    SEXP evalFractionParam,
+    SEXP saveEvalPoolParam
+);
+
+EXPORT_FUNCTION CatBoostPoolSave_R(SEXP poolParam, SEXP fnameParam);
+
 EXPORT_FUNCTION CatBoostDatasetStatistics_R(
     SEXP poolFileParam,
     SEXP cdFileParam,

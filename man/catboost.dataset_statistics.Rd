@@ -4,10 +4,17 @@
 \alias{catboost.dataset_statistics}
 \title{Calculate dataset statistics}
 \usage{
-catboost.dataset_statistics(pool_path, cd_path = "", pairs_path = "",
-  delimiter = "\t", has_header = FALSE, thread_count = -1,
-  border_count = 254, only_group_statistics = FALSE,
-  only_light_statistics = FALSE)
+catboost.dataset_statistics(
+  pool_path,
+  cd_path = "",
+  pairs_path = "",
+  delimiter = "\\t",
+  has_header = FALSE,
+  thread_count = -1,
+  border_count = 254,
+  only_group_statistics = FALSE,
+  only_light_statistics = FALSE
+)
 }
 \arguments{
 \item{pool_path}{Path to the dataset file (same format \code{catboost.from_file} reads).

@@ -1044,6 +1044,144 @@ catboost.dataset_statistics <- function(pool_path, cd_path = "", pairs_path = ""
 }
 
 
+#' @name catboost.pool.slice
+#' @title Slice a Pool
+#' @description Return a new Pool containing a contiguous range of rows from
+#' \code{pool}: R equivalent of Python's \code{Pool.slice()}. Unlike Python,
+#' which accepts an arbitrary row-index array (\code{rindex}), this wraps the
+#' existing native \code{CatBoostPoolSlice_R} entry point
+#' (\code{src/catboostr.cpp}, pre-existing), which only supports contiguous
+#' \code{[offset, offset + size)} ranges -- a limitation of that native entry
+#' point, not one added here. That entry point also does not support slicing
+#' datasets with categorical, text or embedding features; such pools raise a
+#' clear R error here (surfacing its own \code{CB_ENSURE}) instead of
+#' silently dropping or corrupting those columns.
+#' @param pool A catboost.Pool object with only numeric (float) features.
+#'
+#' Default value: Required argument
+#' @param offset Zero-based index of the first row to include.
+#'
+#' Default value: Required argument
+#' @param size Number of rows to include.
+#'
+#' Default value: Required argument
+#' @return A new catboost.Pool object containing the sliced rows.
+#' @export
+catboost.pool.slice <- function(pool, offset, size) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    if (!is.numeric(offset) || length(offset) != 1 || offset < 0)
+        stop("offset must be a single non-negative number.")
+    if (!is.numeric(size) || length(size) != 1 || size < 0)
+        stop("size must be a single non-negative number.")
+
+    n_features <- dim(pool)[2]
+    rows <- .Call("CatBoostPoolSlice_R", pool, as.integer(size), as.integer(offset))
+    mat <- matrix(unlist(rows), nrow = size, byrow = TRUE)
+    target_count <- ncol(mat) - n_features - 1
+
+    label <- mat[, seq_len(target_count), drop = FALSE]
+    if (target_count == 1)
+        label <- as.vector(label)
+    weight <- mat[, target_count + 1]
+    features <- mat[, (target_count + 2):ncol(mat), drop = FALSE]
+
+    feature_names <- dimnames(pool)[[2]]
+    if (is.null(feature_names) || length(feature_names) != n_features)
+        feature_names <- NULL
+    else
+        feature_names <- as.list(feature_names)
+
+    return(catboost.from_matrix(features, label = label, weight = weight, feature_names = feature_names))
+}
+
+
+#' @name catboost.pool.train_eval_split
+#' @title Split a Pool into train/eval subsets
+#' @description R equivalent of Python's \code{Pool.train_eval_split()}:
+#' splits \code{pool} into a train and (optionally) an eval Pool, with the
+#' same shuffle-then-split(-then-stratify) semantics as the Python method.
+#' Python's own implementation (\code{TrainEvalSplit()} in
+#' \code{catboost/python-package/catboost/helpers.cpp}) lives in the
+#' python-package tree (not a core lib) and includes \code{Python.h}, so it
+#' is not directly callable from R; \code{CatBoostPoolTrainEvalSplit_R}
+#' (\code{src/catboostr.cpp}) reimplements its body against the same core
+#' entry points it itself calls.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @param has_time If \code{TRUE}, disables shuffling before the split
+#' (preserves row order, e.g. for time-ordered data).
+#'
+#' Default value: \code{FALSE}
+#' @param is_classification If \code{TRUE}, performs a stratified split using
+#' the Pool's label as the class column.
+#'
+#' Default value: \code{FALSE}
+#' @param eval_fraction Fraction of rows (in \code{(0, 1)}) to hold out for
+#' eval.
+#'
+#' Default value: \code{0.2}
+#' @param save_eval_pool If \code{FALSE}, the eval Pool is not built and
+#' \code{eval} is \code{NULL} in the returned list.
+#'
+#' Default value: \code{TRUE}
+#' @return A named list with elements \code{train} and \code{eval} (each a
+#' catboost.Pool, or \code{NULL} for \code{eval} if \code{save_eval_pool} is
+#' \code{FALSE}).
+#' @export
+catboost.pool.train_eval_split <- function(pool, has_time = FALSE, is_classification = FALSE,
+                                            eval_fraction = 0.2, save_eval_pool = TRUE) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    if (!is.numeric(eval_fraction) || length(eval_fraction) != 1 || eval_fraction <= 0 || eval_fraction >= 1)
+        stop("eval_fraction must be a single number in (0, 1).")
+
+    result <- .Call("CatBoostPoolTrainEvalSplit_R", pool, has_time, is_classification, eval_fraction, save_eval_pool)
+
+    train_pool <- result[[1]]
+    attributes(train_pool) <- attributes(pool)
+
+    eval_pool <- NULL
+    if (save_eval_pool) {
+        eval_pool <- result[[2]]
+        attributes(eval_pool) <- attributes(pool)
+    }
+
+    return(list(train = train_pool, eval = eval_pool))
+}
+
+
+#' @name catboost.pool.save
+#' @title Save a quantized Pool to CatBoost's binary quantized-pool format
+#' @description R equivalent of Python's \code{Pool.save()}: saves an
+#' already-quantized Pool to CatBoost's own binary quantized-pool format
+#' (\code{catboost/private/libs/quantized_pool/serialization.h}'s
+#' \code{SaveQuantizedPool}, the same core entry point Python's
+#' \code{Pool.save()}/\code{_save()} calls). This is a different, binary
+#' format from \code{catboost.save_pool} (R/catboost.R), which writes CD/TSV
+#' files read back by \code{catboost.load_pool}'s \code{column_description}
+#' path -- \code{catboost.save_pool} does NOT already satisfy Python's
+#' \code{Pool.save()}.
+#' @param pool A catboost.Pool object. Must already be quantized (see
+#' \code{catboost.pool.quantize}).
+#'
+#' Default value: Required argument
+#' @param fname Output file path.
+#'
+#' Default value: Required argument
+#' @return Nothing. Writes \code{fname} as a side effect.
+#' @export
+catboost.pool.save <- function(pool, fname) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    if (!is.character(fname))
+        stop("fname must be a string.")
+    fname <- path.expand(fname)
+    invisible(.Call("CatBoostPoolSave_R", pool, fname))
+}
+
+
 #' @title Print basic information about model
 #' @description Displays the most general characteristics of a CatBoost model.
 #' @param x The model obtained as the result of training.

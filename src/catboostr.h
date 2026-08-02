@@ -217,6 +217,23 @@ EXPORT_FUNCTION CatBoostPoolNumPairs_R(SEXP poolParam);
 EXPORT_FUNCTION CatBoostPoolSetTimestamp_R(SEXP poolParam, SEXP timestampParam);
 
 
+// P3.2: Pool feature/shape introspection (R equivalents of Python Pool's
+// get_feature_names/set_feature_names/get_features/get_cat_feature_indices/
+// get_text_feature_indices/get_embedding_feature_indices). num_row/num_col/
+// shape/is_empty_ reuse CatBoostPoolNumRow_R/CatBoostPoolNumCol_R above.
+
+EXPORT_FUNCTION CatBoostPoolGetFeatureNames_R(SEXP poolParam);
+
+EXPORT_FUNCTION CatBoostPoolSetFeatureNames_R(SEXP poolParam, SEXP featureNamesParam);
+
+EXPORT_FUNCTION CatBoostPoolGetFeatures_R(SEXP poolParam);
+
+EXPORT_FUNCTION CatBoostPoolGetCatFeatureIndices_R(SEXP poolParam);
+
+EXPORT_FUNCTION CatBoostPoolGetTextFeatureIndices_R(SEXP poolParam);
+
+EXPORT_FUNCTION CatBoostPoolGetEmbeddingFeatureIndices_R(SEXP poolParam);
+
 
 #if defined(__cplusplus)
 }

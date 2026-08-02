@@ -927,6 +927,144 @@ EXPORT_FUNCTION CatBoostPoolSetTimestamp_R(SEXP poolParam, SEXP timestampParam) 
     return R_NilValue;
 }
 
+// P3.2: R equivalents of Python Pool's feature/shape introspection methods
+// (catboost/python-package/catboost/_catboost.pyx get_feature_names/
+// _set_feature_names/get_features/get_cat_feature_indices/
+// get_text_feature_indices/get_embedding_feature_indices). R wrappers are
+// catboost.pool.<snake_case_name> in R/catboost.R. num_row/num_col/shape/
+// is_empty_ reuse the pre-existing CatBoostPoolNumRow_R/CatBoostPoolNumCol_R
+// (already wrapped by dim.catboost.Pool) instead of adding new C entry
+// points for them.
+
+// Mirrors _catboost.pyx get_feature_names(): FeaturesLayout's external
+// feature ids, in external (flat) feature order.
+EXPORT_FUNCTION CatBoostPoolGetFeatureNames_R(SEXP poolParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    TVector<TString> featureIds = pool->MetaInfo.FeaturesLayout->GetExternalFeatureIds();
+    result = PROTECT(allocVector(STRSXP, featureIds.size()));
+    for (auto i : xrange(featureIds.size())) {
+        SET_STRING_ELT(result, i, mkChar(featureIds[i].c_str()));
+    }
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+// Mirrors _catboost.pyx _set_feature_names()/TFeaturesLayout::SetExternalFeatureIds().
+EXPORT_FUNCTION CatBoostPoolSetFeatureNames_R(SEXP poolParam, SEXP featureNamesParam) {
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    ui32 featureCount = pool->MetaInfo.GetFeatureCount();
+    CB_ENSURE(
+        static_cast<ui32>(length(featureNamesParam)) == featureCount,
+        "feature_names length (" << length(featureNamesParam) << ") must equal pool column count (" << featureCount << ")"
+    );
+    TVector<TString> featureNames;
+    featureNames.reserve(featureCount);
+    for (auto i : xrange(featureCount)) {
+        featureNames.push_back(TString(CHAR(STRING_ELT(featureNamesParam, i))));
+    }
+    pool->MetaInfo.FeaturesLayout->SetExternalFeatureIds(TConstArrayRef<TString>(featureNames));
+    R_API_END();
+    return R_NilValue;
+}
+
+// Mirrors _catboost.pyx get_cat_feature_indices(): external (flat) feature
+// indices of the categorical features, ascending.
+EXPORT_FUNCTION CatBoostPoolGetCatFeatureIndices_R(SEXP poolParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    TConstArrayRef<ui32> indices = pool->MetaInfo.FeaturesLayout->GetCatFeatureInternalIdxToExternalIdx();
+    result = PROTECT(allocVector(INTSXP, indices.size()));
+    for (auto i : xrange(indices.size())) {
+        INTEGER(result)[i] = static_cast<int>(indices[i]);
+    }
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+// Mirrors _catboost.pyx get_text_feature_indices().
+EXPORT_FUNCTION CatBoostPoolGetTextFeatureIndices_R(SEXP poolParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    TConstArrayRef<ui32> indices = pool->MetaInfo.FeaturesLayout->GetTextFeatureInternalIdxToExternalIdx();
+    result = PROTECT(allocVector(INTSXP, indices.size()));
+    for (auto i : xrange(indices.size())) {
+        INTEGER(result)[i] = static_cast<int>(indices[i]);
+    }
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+// Mirrors _catboost.pyx get_embedding_feature_indices(). Always empty in
+// this fork: CatBoostCreateFromMatrix_R hardcodes an empty embedding-feature
+// index vector (TODO(akhropov) support embedding features in R), so no Pool
+// built through this package can ever have embedding features.
+EXPORT_FUNCTION CatBoostPoolGetEmbeddingFeatureIndices_R(SEXP poolParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    TConstArrayRef<ui32> indices = pool->MetaInfo.FeaturesLayout->GetEmbeddingFeatureInternalIdxToExternalIdx();
+    result = PROTECT(allocVector(INTSXP, indices.size()));
+    for (auto i : xrange(indices.size())) {
+        INTEGER(result)[i] = static_cast<int>(indices[i]);
+    }
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+// Mirrors _catboost.pyx get_features(): (object_count x feature_count)
+// matrix of raw float feature values, 0 for absent (cat/text) columns.
+// Errors like the Python oracle if any feature is non-numeric.
+EXPORT_FUNCTION CatBoostPoolGetFeatures_R(SEXP poolParam) {
+    SEXP result = NULL;
+    SEXP resultDim = NULL;
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    const TRawObjectsDataProvider* rawObjectsData
+        = dynamic_cast<const TRawObjectsDataProvider*>(pool->ObjectsData.Get());
+    CB_ENSURE(rawObjectsData, "CatBoostPoolGetFeatures_R: Pool does not have raw features data, only quantized");
+    const auto& featuresLayout = *(rawObjectsData->GetFeaturesLayout());
+    CB_ENSURE(
+        featuresLayout.GetExternalFeatureCount() == featuresLayout.GetFloatFeatureCount(),
+        "CatBoostPoolGetFeatures_R: Pool has non-numeric features, get_features supports only numeric features"
+    );
+    ui32 objectCount = pool->GetObjectCount();
+    ui32 featureCount = pool->MetaInfo.GetFeatureCount();
+    result = PROTECT(allocVector(REALSXP, (size_t)objectCount * featureCount));
+    double* ptr_result = REAL(result);
+    std::fill(ptr_result, ptr_result + (size_t)objectCount * featureCount, 0.0);
+    for (auto flatFeatureIdx : xrange(featureCount)) {
+        TMaybeData<const TFloatValuesHolder*> maybeFeatureData
+            = rawObjectsData->GetFloatFeature(flatFeatureIdx);
+        if (maybeFeatureData) {
+            if (const auto* arrayColumn = dynamic_cast<const TFloatArrayValuesHolder*>(*maybeFeatureData)) {
+                arrayColumn->GetData()->ForEach(
+                    [&] (ui32 i, float value) {
+                        ptr_result[i + (size_t)objectCount * flatFeatureIdx] = value;
+                    }
+                );
+            } else {
+                CB_ENSURE_INTERNAL(false, "CatBoostPoolGetFeatures_R: Unsupported column type");
+            }
+        }
+    }
+    resultDim = PROTECT(allocVector(INTSXP, 2));
+    INTEGER(resultDim)[0] = objectCount;
+    INTEGER(resultDim)[1] = featureCount;
+    setAttrib(result, R_DimSymbol, resultDim);
+    R_API_END();
+    UNPROTECT(2);
+    return result;
+}
+
 EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitParamsAsJsonParam) {
     SEXP result = NULL;
     R_API_BEGIN();

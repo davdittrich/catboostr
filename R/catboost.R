@@ -752,6 +752,163 @@ catboost.pool.set_timestamp <- function(pool, timestamp) {
 }
 
 
+#' @name catboost.pool.num_row
+#' @title Number of rows in a Pool
+#' @description Get the number of objects (rows) in a Pool.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @return The number of rows.
+#' @export
+catboost.pool.num_row <- function(pool) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    return(.Call("CatBoostPoolNumRow_R", pool))
+}
+
+
+#' @name catboost.pool.num_col
+#' @title Number of columns in a Pool
+#' @description Get the number of features (columns) in a Pool.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @return The number of feature columns.
+#' @export
+catboost.pool.num_col <- function(pool) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    return(.Call("CatBoostPoolNumCol_R", pool))
+}
+
+
+#' @name catboost.pool.shape
+#' @title Shape of a Pool
+#' @description Get the (rows, columns) shape of a Pool.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @return An integer vector of length 2: \code{c(num_row, num_col)}.
+#' @export
+catboost.pool.shape <- function(pool) {
+    return(c(catboost.pool.num_row(pool), catboost.pool.num_col(pool)))
+}
+
+
+#' @name catboost.pool.is_empty
+#' @title Is the Pool empty
+#' @description Check whether the Pool has no objects.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @return \code{TRUE} if the Pool has zero rows, \code{FALSE} otherwise.
+#' @export
+catboost.pool.is_empty <- function(pool) {
+    return(catboost.pool.num_row(pool) == 0)
+}
+
+
+#' @name catboost.pool.get_feature_names
+#' @title Get feature names from a Pool
+#' @description Get the names of the features (columns) of a Pool.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @return A character vector of feature names, length equal to
+#' \code{catboost.pool.num_col(pool)}. Unnamed features are empty strings.
+#' @export
+catboost.pool.get_feature_names <- function(pool) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    return(.Call("CatBoostPoolGetFeatureNames_R", pool))
+}
+
+
+#' @name catboost.pool.set_feature_names
+#' @title Set feature names on a Pool
+#' @description Set the names of the features (columns) of a Pool.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @param feature_names A character vector of feature names, length equal to
+#' \code{catboost.pool.num_col(pool)}.
+#'
+#' Default value: Required argument
+#' @return Nothing. Mutates \code{pool} in place.
+#' @export
+catboost.pool.set_feature_names <- function(pool, feature_names) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    invisible(.Call("CatBoostPoolSetFeatureNames_R", pool, as.character(feature_names)))
+}
+
+
+#' @name catboost.pool.get_cat_feature_indices
+#' @title Get categorical feature indices from a Pool
+#' @description Get the (0-based) column indices of the categorical
+#' features of a Pool.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @return An integer vector of 0-based categorical feature indices.
+#' @export
+catboost.pool.get_cat_feature_indices <- function(pool) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    return(.Call("CatBoostPoolGetCatFeatureIndices_R", pool))
+}
+
+
+#' @name catboost.pool.get_text_feature_indices
+#' @title Get text feature indices from a Pool
+#' @description Get the (0-based) column indices of the text features of a
+#' Pool.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @return An integer vector of 0-based text feature indices.
+#' @export
+catboost.pool.get_text_feature_indices <- function(pool) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    return(.Call("CatBoostPoolGetTextFeatureIndices_R", pool))
+}
+
+
+#' @name catboost.pool.get_embedding_feature_indices
+#' @title Get embedding feature indices from a Pool
+#' @description Get the (0-based) column indices of the embedding features
+#' of a Pool. Always \code{integer(0)}: this package does not support
+#' building Pools with embedding features.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @return An integer vector of 0-based embedding feature indices.
+#' @export
+catboost.pool.get_embedding_feature_indices <- function(pool) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    return(.Call("CatBoostPoolGetEmbeddingFeatureIndices_R", pool))
+}
+
+
+#' @name catboost.pool.get_features
+#' @title Get the feature matrix from a Pool
+#' @description Get the raw numeric feature matrix of a Pool. Only
+#' supported for Pools whose features are all numeric (no categorical or
+#' text features).
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @return A (rows x columns) numeric matrix of feature values.
+#' @export
+catboost.pool.get_features <- function(pool) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    return(.Call("CatBoostPoolGetFeatures_R", pool))
+}
+
+
 #' @title Print basic information about model
 #' @description Displays the most general characteristics of a CatBoost model.
 #' @param x The model obtained as the result of training.

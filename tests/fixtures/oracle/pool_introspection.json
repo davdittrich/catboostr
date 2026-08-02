@@ -1,0 +1,166 @@
+{
+  "catboost_version": "1.2.10",
+  "inputs": {
+    "num1": [
+      0.5,
+      -1.5,
+      2.25,
+      3.0,
+      -4.75,
+      5.5,
+      -6.25,
+      7.0
+    ],
+    "num2": [
+      10.0,
+      20.0,
+      30.0,
+      40.0,
+      50.0,
+      60.0,
+      70.0,
+      80.0
+    ],
+    "cat1": [
+      "a",
+      "b",
+      "a",
+      "c",
+      "b",
+      "a",
+      "c",
+      "b"
+    ],
+    "label": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      1,
+      0
+    ],
+    "numeric_only": [
+      [
+        0.5,
+        10.0,
+        0.0
+      ],
+      [
+        -1.5,
+        20.0,
+        1.0
+      ],
+      [
+        2.25,
+        30.0,
+        2.0
+      ],
+      [
+        3.0,
+        40.0,
+        3.0
+      ],
+      [
+        -4.75,
+        50.0,
+        4.0
+      ],
+      [
+        5.5,
+        60.0,
+        5.0
+      ],
+      [
+        -6.25,
+        70.0,
+        6.0
+      ],
+      [
+        7.0,
+        80.0,
+        7.0
+      ]
+    ],
+    "new_feature_names": [
+      "renamed_num1",
+      "renamed_cat1"
+    ]
+  },
+  "expected": {
+    "before": {
+      "cat_feature_indices": [
+        1
+      ],
+      "text_feature_indices": [],
+      "embedding_feature_indices": [],
+      "feature_names": [
+        "num1",
+        "cat1"
+      ],
+      "num_row": 8,
+      "num_col": 2,
+      "shape": [
+        8,
+        2
+      ],
+      "is_empty_": false
+    },
+    "after_rename": {
+      "feature_names": [
+        "renamed_num1",
+        "renamed_cat1"
+      ]
+    },
+    "numeric_features": [
+      [
+        0.5,
+        10.0,
+        0.0
+      ],
+      [
+        -1.5,
+        20.0,
+        1.0
+      ],
+      [
+        2.25,
+        30.0,
+        2.0
+      ],
+      [
+        3.0,
+        40.0,
+        3.0
+      ],
+      [
+        -4.75,
+        50.0,
+        4.0
+      ],
+      [
+        5.5,
+        60.0,
+        5.0
+      ],
+      [
+        -6.25,
+        70.0,
+        6.0
+      ],
+      [
+        7.0,
+        80.0,
+        7.0
+      ]
+    ],
+    "numeric_shape": [
+      8,
+      3
+    ],
+    "empty_is_empty_": true,
+    "empty_num_row": 0,
+    "nonempty_is_empty_": false
+  }
+}

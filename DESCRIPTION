@@ -50,4 +50,4 @@ URL: https://github.com/davdittrich/catboostr
 BugReports: https://github.com/davdittrich/catboostr/issues
 Biarch: FALSE
 Encoding: UTF-8
-RoxygenNote: 7.3.2
+Config/roxygen2/version: 8.0.0

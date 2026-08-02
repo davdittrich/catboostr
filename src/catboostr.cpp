@@ -612,6 +612,321 @@ EXPORT_FUNCTION CatBoostPoolSlice_R(SEXP poolParam, SEXP sizeParam, SEXP offsetP
     return result;
 }
 
+// P3.1: R equivalents of Python Pool's metadata accessor/mutator methods
+// (catboost/python-package/catboost/_catboost.pyx get_label/get_weight/
+// set_weight/get_baseline/set_baseline/has_label/get_group_id_hash/
+// set_group_id/set_group_weight/set_subgroup_id/set_pairs/set_pairs_weight/
+// num_pairs/set_timestamp). R wrappers are catboost.pool.<snake_case_name>
+// in R/catboost.R.
+
+EXPORT_FUNCTION CatBoostPoolHasLabel_R(SEXP poolParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    result = ScalarLogical(pool->MetaInfo.TargetCount > 0);
+    R_API_END();
+    return result;
+}
+
+// Mirrors _catboost.pyx get_label(): reads RawTargetData via GetNumericTarget
+// into a pre-sized buffer per target dimension. String targets are out of
+// scope for this fork's Pool construction paths (CreateFromMatrix/FromFile
+// only ever set ERawTargetType::Integer/Float/None), so unlike the Python
+// method this does not need an ERawTargetType::String branch.
+EXPORT_FUNCTION CatBoostPoolGetLabel_R(SEXP poolParam) {
+    SEXP result = NULL;
+    SEXP resultDim = NULL;
+    size_t protectedCount = 0;
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    ui32 targetCount = pool->MetaInfo.TargetCount;
+    ui32 objectCount = pool->GetObjectCount();
+    CB_ENSURE(
+        pool->RawTargetData.GetTargetType() != ERawTargetType::String,
+        "CatBoostPoolGetLabel_R: string labels are not supported"
+    );
+    result = PROTECT(allocVector(REALSXP, (size_t)objectCount * targetCount));
+    ++protectedCount;
+    if (targetCount > 0) {
+        TVector<TVector<float>> targetBuffers(targetCount, TVector<float>(objectCount));
+        TVector<TArrayRef<float>> targetRefs(targetCount);
+        for (auto targetIdx : xrange(targetCount)) {
+            targetRefs[targetIdx] = TArrayRef<float>(targetBuffers[targetIdx]);
+        }
+        pool->RawTargetData.GetNumericTarget(TArrayRef<TArrayRef<float>>(targetRefs));
+        double* ptr_result = REAL(result);
+        for (auto targetIdx : xrange(targetCount)) {
+            for (auto objectIdx : xrange(objectCount)) {
+                ptr_result[objectIdx + (size_t)objectCount * targetIdx] = targetBuffers[targetIdx][objectIdx];
+            }
+        }
+        if (targetCount > 1) {
+            resultDim = PROTECT(allocVector(INTSXP, 2));
+            ++protectedCount;
+            INTEGER(resultDim)[0] = objectCount;
+            INTEGER(resultDim)[1] = targetCount;
+            setAttrib(result, R_DimSymbol, resultDim);
+        }
+    }
+    R_API_END();
+    UNPROTECT(protectedCount);
+    return result;
+}
+
+// Mirrors _catboost.pyx get_weight(): TWeights::IsTrivial() means "weight
+// column was never set", in which case every object's effective weight is 1.
+EXPORT_FUNCTION CatBoostPoolGetWeight_R(SEXP poolParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    const TWeights<float>& weights = pool->RawTargetData.GetWeights();
+    result = PROTECT(allocVector(REALSXP, weights.GetSize()));
+    double* ptr_result = REAL(result);
+    if (weights.IsTrivial()) {
+        std::fill(ptr_result, ptr_result + weights.GetSize(), 1.0);
+    } else {
+        TConstArrayRef<float> data = weights.GetNonTrivialData();
+        for (auto i : xrange(data.size())) {
+            ptr_result[i] = data[i];
+        }
+    }
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+// Mirrors _catboost.pyx _set_weight()/TDataProviderTemplate::SetWeights().
+EXPORT_FUNCTION CatBoostPoolSetWeight_R(SEXP poolParam, SEXP weightParam) {
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    TVector<float> weights = GetVectorFromNullableSEXP<float>(weightParam, "weight"_sb);
+    pool->SetWeights(TConstArrayRef<float>(weights));
+    R_API_END();
+    return R_NilValue;
+}
+
+// Mirrors _catboost.pyx get_baseline(): [approxIdx][objectIdx] -> R matrix
+// (objectCount x baselineCount), empty (objectCount x 0) matrix if unset.
+EXPORT_FUNCTION CatBoostPoolGetBaseline_R(SEXP poolParam) {
+    SEXP result = NULL;
+    SEXP resultDim = NULL;
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    ui32 objectCount = pool->GetObjectCount();
+    TMaybeData<TBaselineArrayRef> maybeBaseline = pool->RawTargetData.GetBaseline();
+    size_t baselineCount = maybeBaseline ? maybeBaseline->size() : 0;
+    result = PROTECT(allocVector(REALSXP, (size_t)objectCount * baselineCount));
+    double* ptr_result = REAL(result);
+    if (maybeBaseline) {
+        TBaselineArrayRef baseline = *maybeBaseline;
+        for (auto baselineIdx : xrange(baselineCount)) {
+            for (auto objectIdx : xrange(objectCount)) {
+                ptr_result[objectIdx + (size_t)objectCount * baselineIdx] = baseline[baselineIdx][objectIdx];
+            }
+        }
+    }
+    resultDim = PROTECT(allocVector(INTSXP, 2));
+    INTEGER(resultDim)[0] = objectCount;
+    INTEGER(resultDim)[1] = baselineCount;
+    setAttrib(result, R_DimSymbol, resultDim);
+    R_API_END();
+    UNPROTECT(2);
+    return result;
+}
+
+// Mirrors _catboost.pyx _set_baseline(): baselineParam is an
+// (objectCount x approxDim) R matrix, same [objectIdx, approxIdx] layout
+// CatBoostCreateFromMatrix_R already accepts for its baselineParam.
+EXPORT_FUNCTION CatBoostPoolSetBaseline_R(SEXP poolParam, SEXP baselineParam) {
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    ui32 objectCount = pool->GetObjectCount();
+    SEXP baselineDim = getAttrib(baselineParam, R_DimSymbol);
+    CB_ENSURE(baselineDim != R_NilValue, "baseline must be a matrix");
+    ui32 baselineRows = SafeIntegerCast<ui32>(INTEGER(baselineDim)[0]);
+    size_t approxDimension = SafeIntegerCast<size_t>(INTEGER(baselineDim)[1]);
+    CB_ENSURE(baselineRows == objectCount, "baseline row count must equal pool row count");
+    double* ptr_baseline = REAL(baselineParam);
+
+    TVector<TVector<float>> baselineMatrix(approxDimension, TVector<float>(objectCount));
+    TVector<TConstArrayRef<float>> baselineMatrixView(approxDimension);
+    for (auto approxIdx : xrange(approxDimension)) {
+        for (auto objectIdx : xrange(objectCount)) {
+            baselineMatrix[approxIdx][objectIdx] =
+                static_cast<float>(ptr_baseline[objectIdx + (size_t)objectCount * approxIdx]);
+        }
+        baselineMatrixView[approxIdx] = baselineMatrix[approxIdx];
+    }
+    pool->SetBaseline(TBaselineArrayRef(baselineMatrixView.data(), baselineMatrixView.size()));
+    R_API_END();
+    return R_NilValue;
+}
+
+// Mirrors _catboost.pyx get_group_id_hash(): returns the ui64 TGroupId
+// stored per object, one decimal string per object (R has no native 64-bit
+// integer type; REALSXP's 53-bit mantissa would silently truncate hash
+// values above 2^53, so this returns character to stay exact), or R NULL
+// if the pool has no group ids.
+EXPORT_FUNCTION CatBoostPoolGetGroupIdHash_R(SEXP poolParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    TMaybeData<TConstArrayRef<TGroupId>> maybeGroupIds = pool->ObjectsData->GetGroupIds();
+    if (maybeGroupIds) {
+        TConstArrayRef<TGroupId> groupIds = *maybeGroupIds;
+        result = PROTECT(allocVector(STRSXP, groupIds.size()));
+        for (auto i : xrange(groupIds.size())) {
+            SET_STRING_ELT(result, i, mkChar(ToString<TGroupId>(groupIds[i]).c_str()));
+        }
+        UNPROTECT(1);
+    } else {
+        result = R_NilValue;
+    }
+    R_API_END();
+    return result;
+}
+
+// Mirrors _catboost.pyx _set_group_id()/CalcGroupIdFor(): groupIdParam is a
+// STRSXP of pre-canonicalized tokens (R/catboost.R does the int/string ->
+// decimal-string canonicalization Python's get_id_object_bytes_string_
+// representation() does), each hashed to a TGroupId exactly as
+// CalcGroupIdFor(TStringBuf) does for the Python Pool.
+EXPORT_FUNCTION CatBoostPoolSetGroupId_R(SEXP poolParam, SEXP groupIdParam) {
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    ui32 objectCount = pool->GetObjectCount();
+    CB_ENSURE(
+        static_cast<ui32>(length(groupIdParam)) == objectCount,
+        "group_id length must equal pool row count"
+    );
+    TVector<TGroupId> groupIds;
+    groupIds.reserve(objectCount);
+    for (auto i : xrange(objectCount)) {
+        groupIds.push_back(CalcGroupIdFor(TStringBuf(CHAR(STRING_ELT(groupIdParam, i)))));
+    }
+    pool->SetGroupIds(TConstArrayRef<TGroupId>(groupIds));
+    R_API_END();
+    return R_NilValue;
+}
+
+// Mirrors _catboost.pyx _set_group_weight().
+EXPORT_FUNCTION CatBoostPoolSetGroupWeight_R(SEXP poolParam, SEXP groupWeightParam) {
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    TVector<float> groupWeights = GetVectorFromNullableSEXP<float>(groupWeightParam, "group_weight"_sb);
+    pool->SetGroupWeights(TConstArrayRef<float>(groupWeights));
+    R_API_END();
+    return R_NilValue;
+}
+
+// Mirrors _catboost.pyx _set_subgroup_id()/CalcSubgroupIdFor(): same
+// pre-canonicalized-token convention as CatBoostPoolSetGroupId_R above.
+EXPORT_FUNCTION CatBoostPoolSetSubgroupId_R(SEXP poolParam, SEXP subgroupIdParam) {
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    ui32 objectCount = pool->GetObjectCount();
+    CB_ENSURE(
+        static_cast<ui32>(length(subgroupIdParam)) == objectCount,
+        "subgroup_id length must equal pool row count"
+    );
+    TVector<TSubgroupId> subgroupIds;
+    subgroupIds.reserve(objectCount);
+    for (auto i : xrange(objectCount)) {
+        subgroupIds.push_back(CalcSubgroupIdFor(TStringBuf(CHAR(STRING_ELT(subgroupIdParam, i)))));
+    }
+    pool->SetSubgroupIds(TConstArrayRef<TSubgroupId>(subgroupIds));
+    R_API_END();
+    return R_NilValue;
+}
+
+// Mirrors _catboost.pyx set_pairs()/_make_pairs_vector(): pairsParam is an
+// (N x 2) or (N x 3) integer/double matrix of (winner_id, loser_id[,
+// weight]), 0-indexed object ids -- same convention CatBoostCreateFromMatrix_R
+// already uses for its pairsParam. Missing weight column defaults to 1.0.
+EXPORT_FUNCTION CatBoostPoolSetPairs_R(SEXP poolParam, SEXP pairsParam) {
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    SEXP pairsDim = getAttrib(pairsParam, R_DimSymbol);
+    CB_ENSURE(pairsDim != R_NilValue, "pairs must be a matrix");
+    size_t pairsCount = SafeIntegerCast<size_t>(INTEGER(pairsDim)[0]);
+    int pairsColumns = INTEGER(pairsDim)[1];
+    CB_ENSURE(pairsColumns == 2 || pairsColumns == 3, "pairs must have 2 or 3 columns");
+    double* ptr_pairs = REAL(pairsParam);
+
+    TVector<TPair> pairs;
+    pairs.reserve(pairsCount);
+    for (auto i : xrange(pairsCount)) {
+        float weight = pairsColumns == 3 ? static_cast<float>(ptr_pairs[i + pairsCount * 2]) : 1.0f;
+        pairs.emplace_back(
+            static_cast<ui32>(ptr_pairs[i + pairsCount * 0]),
+            static_cast<ui32>(ptr_pairs[i + pairsCount * 1]),
+            weight
+        );
+    }
+    pool->SetPairs(TConstArrayRef<TPair>(pairs));
+    R_API_END();
+    return R_NilValue;
+}
+
+// Mirrors _catboost.pyx _set_pairs_weight()/GetUngroupedPairs(): keeps the
+// existing (winner, loser) ids, replaces only the per-pair weight.
+EXPORT_FUNCTION CatBoostPoolSetPairsWeight_R(SEXP poolParam, SEXP pairsWeightParam) {
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    const TMaybeData<TRawPairsData>& maybePairsData = pool->RawTargetData.GetPairs();
+    CB_ENSURE(maybePairsData, "Pool has no pairs, call catboost.pool.set_pairs first");
+    const TFlatPairsInfo* oldPairs = std::get_if<TFlatPairsInfo>(&*maybePairsData);
+    CB_ENSURE(oldPairs, "Cannot set pairs weight: pairs data is grouped");
+    CB_ENSURE(
+        static_cast<size_t>(length(pairsWeightParam)) == oldPairs->size(),
+        "pairs_weight length must equal num_pairs()"
+    );
+    double* ptr_pairsWeight = REAL(pairsWeightParam);
+    TVector<TPair> newPairs;
+    newPairs.reserve(oldPairs->size());
+    for (auto i : xrange(oldPairs->size())) {
+        newPairs.emplace_back((*oldPairs)[i].WinnerId, (*oldPairs)[i].LoserId, static_cast<float>(ptr_pairsWeight[i]));
+    }
+    pool->SetPairs(TConstArrayRef<TPair>(newPairs));
+    R_API_END();
+    return R_NilValue;
+}
+
+// Mirrors _catboost.pyx num_pairs()/GetNumPairs().
+EXPORT_FUNCTION CatBoostPoolNumPairs_R(SEXP poolParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    size_t numPairs = 0;
+    const TMaybeData<TRawPairsData>& maybePairsData = pool->RawTargetData.GetPairs();
+    if (maybePairsData) {
+        std::visit([&](const auto& pairs) { numPairs = pairs.size(); }, *maybePairsData);
+    }
+    result = ScalarInteger(static_cast<int>(numPairs));
+    R_API_END();
+    return result;
+}
+
+// Mirrors _catboost.pyx _set_timestamp().
+EXPORT_FUNCTION CatBoostPoolSetTimestamp_R(SEXP poolParam, SEXP timestampParam) {
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    ui32 objectCount = pool->GetObjectCount();
+    CB_ENSURE(
+        static_cast<ui32>(length(timestampParam)) == objectCount,
+        "timestamp length must equal pool row count"
+    );
+    double* ptr_timestamp = REAL(timestampParam);
+    TVector<ui64> timestamps;
+    timestamps.reserve(objectCount);
+    for (auto i : xrange(objectCount)) {
+        timestamps.push_back(static_cast<ui64>(ptr_timestamp[i]));
+    }
+    pool->SetTimestamps(TConstArrayRef<ui64>(timestamps));
+    R_API_END();
+    return R_NilValue;
+}
+
 EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitParamsAsJsonParam) {
     SEXP result = NULL;
     R_API_BEGIN();

@@ -183,6 +183,39 @@ EXPORT_FUNCTION CatBoostEvalMetrics_R(
 
 EXPORT_FUNCTION CatBoostVersion_R(void);
 
+// P3.1: Pool metadata accessors/mutators (R equivalents of Python Pool's
+// get_label/get_weight/set_weight/get_baseline/set_baseline/has_label/
+// get_group_id_hash/set_group_id/set_group_weight/set_subgroup_id/
+// set_pairs/set_pairs_weight/num_pairs/set_timestamp).
+
+EXPORT_FUNCTION CatBoostPoolHasLabel_R(SEXP poolParam);
+
+EXPORT_FUNCTION CatBoostPoolGetLabel_R(SEXP poolParam);
+
+EXPORT_FUNCTION CatBoostPoolGetWeight_R(SEXP poolParam);
+
+EXPORT_FUNCTION CatBoostPoolSetWeight_R(SEXP poolParam, SEXP weightParam);
+
+EXPORT_FUNCTION CatBoostPoolGetBaseline_R(SEXP poolParam);
+
+EXPORT_FUNCTION CatBoostPoolSetBaseline_R(SEXP poolParam, SEXP baselineParam);
+
+EXPORT_FUNCTION CatBoostPoolGetGroupIdHash_R(SEXP poolParam);
+
+EXPORT_FUNCTION CatBoostPoolSetGroupId_R(SEXP poolParam, SEXP groupIdParam);
+
+EXPORT_FUNCTION CatBoostPoolSetGroupWeight_R(SEXP poolParam, SEXP groupWeightParam);
+
+EXPORT_FUNCTION CatBoostPoolSetSubgroupId_R(SEXP poolParam, SEXP subgroupIdParam);
+
+EXPORT_FUNCTION CatBoostPoolSetPairs_R(SEXP poolParam, SEXP pairsParam);
+
+EXPORT_FUNCTION CatBoostPoolSetPairsWeight_R(SEXP poolParam, SEXP pairsWeightParam);
+
+EXPORT_FUNCTION CatBoostPoolNumPairs_R(SEXP poolParam);
+
+EXPORT_FUNCTION CatBoostPoolSetTimestamp_R(SEXP poolParam, SEXP timestampParam);
+
 
 
 #if defined(__cplusplus)

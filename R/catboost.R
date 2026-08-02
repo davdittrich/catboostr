@@ -469,6 +469,289 @@ print.catboost.Pool <- function(x, ...) {
 }
 
 
+# P3.1: canonicalize an id vector (group_id/subgroup_id) to the decimal-
+# string tokens CalcGroupIdFor()/CalcSubgroupIdFor() hash, matching Python's
+# get_id_object_bytes_string_representation(): integral values format as
+# plain decimal (no ".0"), character values pass through unchanged. Floats
+# with a fractional part are rejected, same as the Python method.
+id.tokens.from.vector <- function(ids, arg_name) {
+    if (is.character(ids)) {
+        return(ids)
+    }
+    if (is.numeric(ids)) {
+        if (any(ids != floor(ids))) {
+            stop(arg_name, " must be integral or character valued.")
+        }
+        return(sprintf("%.0f", ids))
+    }
+    stop("Unsupported ", arg_name, " type, expecting character or numeric, got: ", typeof(ids))
+}
+
+
+#' @name catboost.pool.has_label
+#' @title Has the Pool got label data
+#' @description Check whether the Pool has label (target) data.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @return \code{TRUE} if the Pool has label data, \code{FALSE} otherwise.
+#' @export
+catboost.pool.has_label <- function(pool) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    return(.Call("CatBoostPoolHasLabel_R", pool))
+}
+
+
+#' @name catboost.pool.get_label
+#' @title Get labels from a Pool
+#' @description Get the label (target) data of a Pool.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @return A vector of labels if the target is one-dimensional, a
+#' (rows x targets) matrix otherwise. \code{numeric(0)} if the Pool has no
+#' label data.
+#' @export
+catboost.pool.get_label <- function(pool) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    return(.Call("CatBoostPoolGetLabel_R", pool))
+}
+
+
+#' @name catboost.pool.get_weight
+#' @title Get weights from a Pool
+#' @description Get the per-object weight of a Pool. Objects with no weight
+#' set default to weight 1.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @return A numeric vector of per-object weights.
+#' @export
+catboost.pool.get_weight <- function(pool) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    return(.Call("CatBoostPoolGetWeight_R", pool))
+}
+
+
+#' @name catboost.pool.set_weight
+#' @title Set weights on a Pool
+#' @description Set the per-object weight of a Pool.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @param weight A numeric vector of per-object weights, length equal to
+#' \code{nrow(pool)}.
+#'
+#' Default value: Required argument
+#' @return Nothing. Mutates \code{pool} in place.
+#' @export
+catboost.pool.set_weight <- function(pool, weight) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    invisible(.Call("CatBoostPoolSetWeight_R", pool, as.double(weight)))
+}
+
+
+#' @name catboost.pool.get_baseline
+#' @title Get baseline from a Pool
+#' @description Get the baseline data of a Pool.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @return A (rows x baseline_count) numeric matrix. \code{baseline_count}
+#' is 0 if the Pool has no baseline data.
+#' @export
+catboost.pool.get_baseline <- function(pool) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    return(.Call("CatBoostPoolGetBaseline_R", pool))
+}
+
+
+#' @name catboost.pool.set_baseline
+#' @title Set baseline on a Pool
+#' @description Set the baseline data of a Pool.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @param baseline A (rows x baseline_count) numeric matrix, \code{rows}
+#' equal to \code{nrow(pool)}.
+#'
+#' Default value: Required argument
+#' @return Nothing. Mutates \code{pool} in place.
+#' @export
+catboost.pool.set_baseline <- function(pool, baseline) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    if (!is.matrix(baseline))
+        stop("baseline must be a matrix.")
+    invisible(.Call("CatBoostPoolSetBaseline_R", pool, matrix(as.double(baseline), nrow = nrow(baseline))))
+}
+
+
+#' @name catboost.pool.get_group_id_hash
+#' @title Get group id hashes from a Pool
+#' @description Get the hashes generated from a Pool's group ids.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @return A character vector of decimal-formatted 64-bit hash values (one
+#' per object), or \code{NULL} if the Pool has no group ids. Returned as
+#' character rather than numeric because R's double cannot represent the
+#' full 64-bit hash range exactly.
+#' @export
+catboost.pool.get_group_id_hash <- function(pool) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    return(.Call("CatBoostPoolGetGroupIdHash_R", pool))
+}
+
+
+#' @name catboost.pool.set_group_id
+#' @title Set group ids on a Pool
+#' @description Set the group ids of a Pool. Each id is hashed the same way
+#' Python's \code{Pool.set_group_id} hashes it, so the resulting group id
+#' hashes (see \code{\link{catboost.pool.get_group_id_hash}}) match the
+#' Python oracle for the same input values.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @param group_id A character or integral-numeric vector, length equal to
+#' \code{nrow(pool)}.
+#'
+#' Default value: Required argument
+#' @return Nothing. Mutates \code{pool} in place.
+#' @export
+catboost.pool.set_group_id <- function(pool, group_id) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    tokens <- id.tokens.from.vector(group_id, "group_id")
+    invisible(.Call("CatBoostPoolSetGroupId_R", pool, tokens))
+}
+
+
+#' @name catboost.pool.set_group_weight
+#' @title Set group weights on a Pool
+#' @description Set the per-object group weight of a Pool (weights must be
+#' equal within each group).
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @param group_weight A numeric vector of per-object group weights, length
+#' equal to \code{nrow(pool)}.
+#'
+#' Default value: Required argument
+#' @return Nothing. Mutates \code{pool} in place.
+#' @export
+catboost.pool.set_group_weight <- function(pool, group_weight) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    invisible(.Call("CatBoostPoolSetGroupWeight_R", pool, as.double(group_weight)))
+}
+
+
+#' @name catboost.pool.set_subgroup_id
+#' @title Set subgroup ids on a Pool
+#' @description Set the subgroup ids of a Pool. Each id is hashed the same
+#' way Python's \code{Pool.set_subgroup_id} hashes it.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @param subgroup_id A character or integral-numeric vector, length equal
+#' to \code{nrow(pool)}.
+#'
+#' Default value: Required argument
+#' @return Nothing. Mutates \code{pool} in place.
+#' @export
+catboost.pool.set_subgroup_id <- function(pool, subgroup_id) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    tokens <- id.tokens.from.vector(subgroup_id, "subgroup_id")
+    invisible(.Call("CatBoostPoolSetSubgroupId_R", pool, tokens))
+}
+
+
+#' @name catboost.pool.set_pairs
+#' @title Set pairs on a Pool
+#' @description Set the pairwise comparison data of a Pool.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @param pairs An (N x 2) or (N x 3) numeric matrix of
+#' \code{(winner_id, loser_id[, weight])} rows. \code{winner_id}/\code{loser_id}
+#' are 0-indexed object row numbers, matching the \code{pairs} argument of
+#' \code{\link{catboost.from_matrix}}. \code{weight} defaults to 1.0 when the
+#' third column is omitted.
+#'
+#' Default value: Required argument
+#' @return Nothing. Mutates \code{pool} in place.
+#' @export
+catboost.pool.set_pairs <- function(pool, pairs) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    if (!is.matrix(pairs) || !(ncol(pairs) %in% c(2, 3)))
+        stop("pairs must be an (N x 2) or (N x 3) matrix.")
+    invisible(.Call("CatBoostPoolSetPairs_R", pool, matrix(as.double(pairs), nrow = nrow(pairs))))
+}
+
+
+#' @name catboost.pool.set_pairs_weight
+#' @title Set pair weights on a Pool
+#' @description Set the per-pair weight of a Pool's existing pairs, keeping
+#' the (winner_id, loser_id) ids unchanged.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @param pairs_weight A numeric vector of per-pair weights, length equal to
+#' \code{\link{catboost.pool.num_pairs}(pool)}.
+#'
+#' Default value: Required argument
+#' @return Nothing. Mutates \code{pool} in place.
+#' @export
+catboost.pool.set_pairs_weight <- function(pool, pairs_weight) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    invisible(.Call("CatBoostPoolSetPairsWeight_R", pool, as.double(pairs_weight)))
+}
+
+
+#' @name catboost.pool.num_pairs
+#' @title Number of pairs in a Pool
+#' @description Get the number of pairs in a Pool.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @return An integer, the number of pairs.
+#' @export
+catboost.pool.num_pairs <- function(pool) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    return(.Call("CatBoostPoolNumPairs_R", pool))
+}
+
+
+#' @name catboost.pool.set_timestamp
+#' @title Set timestamps on a Pool
+#' @description Set the per-object timestamp of a Pool.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @param timestamp A numeric vector of per-object timestamps, length equal
+#' to \code{nrow(pool)}.
+#'
+#' Default value: Required argument
+#' @return Nothing. Mutates \code{pool} in place.
+#' @export
+catboost.pool.set_timestamp <- function(pool, timestamp) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    invisible(.Call("CatBoostPoolSetTimestamp_R", pool, as.double(timestamp)))
+}
+
+
 #' @title Print basic information about model
 #' @description Displays the most general characteristics of a CatBoost model.
 #' @param x The model obtained as the result of training.

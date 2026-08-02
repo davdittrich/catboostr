@@ -71,6 +71,13 @@ target_link_libraries(catboostr PUBLIC
   private-libs-documents_importance
   private-libs-init
   private-libs-options
+  # P3.3: dataset-statistics CLI mode's own library entry point
+  # (NCB::CalculateDatasetStatisticsSingleHost, catboost/private/libs/
+  # app_helpers/mode_dataset_statistics_helpers.h) -- linked in directly so
+  # catboost.dataset_statistics() calls the same core computation the CLI's
+  # `dataset-statistics` mode uses, instead of shelling out to the CLI binary.
+  catboost-libs-dataset_statistics
+  private-libs-app_helpers
 )
 
 target_allocator(catboostr

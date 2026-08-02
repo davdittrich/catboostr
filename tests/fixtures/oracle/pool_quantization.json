@@ -1,0 +1,43 @@
+{
+  "catboost_version": "1.2.10",
+  "inputs": {
+    "num1": [
+      0.5,
+      -1.5,
+      2.25,
+      3.0,
+      -4.75,
+      5.5,
+      -6.25,
+      7.0
+    ],
+    "num2": [
+      10.0,
+      20.0,
+      30.0,
+      40.0,
+      50.0,
+      60.0,
+      70.0,
+      80.0
+    ],
+    "label": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      1,
+      0
+    ],
+    "border_count": 4
+  },
+  "expected": {
+    "is_quantized_before": false,
+    "is_quantized_after": true,
+    "already_quantized_raises": true,
+    "save_on_unquantized_raises": true,
+    "borders_text": "0\t-5.5\n0\t-3.125\n0\t1.375\n0\t4.25\n1\t15\n1\t25\n1\t45\n1\t65\n"
+  }
+}

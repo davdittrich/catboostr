@@ -909,6 +909,141 @@ catboost.pool.get_features <- function(pool) {
 }
 
 
+#' @name catboost.pool.quantize
+#' @title Quantize a Pool
+#' @description Quantize this Pool in place: build the binarized (quantized)
+#' feature data used by training, same as Python's \code{Pool.quantize()}
+#' (\code{catboost/libs/data/quantization.h}'s
+#' \code{ConstructQuantizedPoolFromRawPool}, the same core entry point
+#' \code{catboost.train} itself uses).
+#' @param pool A catboost.Pool object. Must not already be quantized.
+#'
+#' Default value: Required argument
+#' @param params A named list of quantization parameters (e.g.
+#' \code{border_count}, \code{feature_border_type}, \code{nan_mode},
+#' \code{per_float_feature_quantization}, \code{ignored_features}). Same
+#' names/semantics as \code{catboost.train}'s \code{params}.
+#'
+#' Default value: \code{list()}
+#' @return Nothing. The Pool is quantized in place.
+#' @export
+catboost.pool.quantize <- function(pool, params = list()) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    if (catboost.pool.is_quantized(pool))
+        stop("Pool is already quantized")
+    params <- process_synonyms(params)
+    json_params <- prepare_train_export_parameters(params)
+    invisible(.Call("CatBoostPoolQuantize_R", pool, json_params))
+}
+
+
+#' @name catboost.pool.is_quantized
+#' @title Is the Pool quantized
+#' @description Check whether the Pool's feature data has already been
+#' quantized (either by \code{catboost.pool.quantize} or as a side effect of
+#' \code{catboost.train}).
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @return \code{TRUE} if the Pool is quantized, \code{FALSE} otherwise.
+#' @export
+catboost.pool.is_quantized <- function(pool) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    return(.Call("CatBoostPoolIsQuantized_R", pool))
+}
+
+
+#' @name catboost.pool.save_quantization_borders
+#' @title Save a Pool's quantization borders to a file
+#' @description Save the borders used in numeric feature quantization to a
+#' file, so they can be reused to quantize another Pool identically (via
+#' upstream's \code{input_borders} mechanism). File format is described at
+#' \url{https://catboost.ai/docs/concepts/input-data_custom-borders.html}.
+#' @param pool A catboost.Pool object. Must already be quantized.
+#'
+#' Default value: Required argument
+#' @param output_file Output file path.
+#'
+#' Default value: Required argument
+#' @return Nothing. Writes \code{output_file} as a side effect.
+#' @export
+catboost.pool.save_quantization_borders <- function(pool, output_file) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    if (!is.character(output_file))
+        stop("output_file must be a string.")
+    output_file <- path.expand(output_file)
+    invisible(.Call("CatBoostPoolSaveQuantizationBorders_R", pool, output_file))
+}
+
+
+#' @name catboost.dataset_statistics
+#' @title Calculate dataset statistics
+#' @description R equivalent of CatBoost CLI's \code{dataset-statistics}
+#' mode: computes per-feature statistics (and, unless
+#' \code{only_light_statistics} is set, per-float-feature histograms) for a
+#' dataset read from disk. Calls the same core library entry point the CLI
+#' mode itself calls
+#' (\code{catboost/private/libs/app_helpers/mode_dataset_statistics_helpers.h}'s
+#' \code{NCB::CalculateDatasetStatisticsSingleHost}) directly, in-process --
+#' no CLI binary shell-out.
+#' @param pool_path Path to the dataset file (same format \code{catboost.from_file} reads).
+#'
+#' Default value: Required argument
+#' @param cd_path Path to the column description file.
+#'
+#' Default value: \code{""} (no column description)
+#' @param pairs_path Path to the pairs file.
+#'
+#' Default value: \code{""} (no pairs)
+#' @param delimiter Column delimiter in the dataset file.
+#'
+#' Default value: \code{"\\t"}
+#' @param has_header Whether the dataset file has a header row.
+#'
+#' Default value: \code{FALSE}
+#' @param thread_count Number of threads to use. \code{-1} means use all cores.
+#'
+#' Default value: \code{-1}
+#' @param border_count Number of histogram bins per float feature.
+#'
+#' Default value: \code{254}
+#' @param only_group_statistics Only compute group-related statistics.
+#'
+#' Default value: \code{FALSE}
+#' @param only_light_statistics Skip the second-pass histogram computation.
+#'
+#' Default value: \code{FALSE}
+#' @return A named list with elements \code{statistics} and \code{histograms}
+#' (each the parsed contents of the corresponding CLI JSON output file;
+#' \code{histograms} is \code{NULL} if \code{only_light_statistics} was set).
+#' @export
+catboost.dataset_statistics <- function(pool_path, cd_path = "", pairs_path = "", delimiter = "\t",
+                                         has_header = FALSE, thread_count = -1, border_count = 254,
+                                         only_group_statistics = FALSE, only_light_statistics = FALSE) {
+    if (missing(pool_path))
+        stop("Need to specify pool path.")
+    if (!is.character(pool_path) || !is.character(cd_path) || !is.character(pairs_path))
+        stop("Path must be a string.")
+
+    pool_path <- path.expand(pool_path)
+    cd_path <- path.expand(cd_path)
+    output_path <- tempfile(fileext = ".json")
+    histogram_path <- tempfile(fileext = ".json")
+    on.exit(unlink(c(output_path, histogram_path)))
+
+    .Call("CatBoostDatasetStatistics_R", pool_path, cd_path, pairs_path, delimiter, has_header,
+          thread_count, border_count, only_group_statistics, only_light_statistics,
+          output_path, histogram_path)
+
+    statistics <- jsonlite::fromJSON(output_path, simplifyVector = TRUE)
+    histograms <- if (only_light_statistics) NULL else jsonlite::fromJSON(histogram_path, simplifyVector = TRUE)
+    return(list(statistics = statistics, histograms = histograms))
+}
+
+
 #' @title Print basic information about model
 #' @description Displays the most general characteristics of a CatBoost model.
 #' @param x The model obtained as the result of training.

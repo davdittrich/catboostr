@@ -1,7 +1,9 @@
 #include <catboost/libs/cat_feature/cat_feature.h>
+#include <catboost/libs/data/borders_io.h>
 #include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/data/data_provider_builders.h>
 #include <catboost/libs/data/load_data.h>
+#include <catboost/libs/data/quantization.h>
 #include <catboost/libs/eval_result/eval_helpers.h>
 #include <catboost/libs/fstr/calc_fstr.h>
 #include <catboost/libs/helpers/int_cast.h>
@@ -17,6 +19,7 @@
 #include <catboost/private/libs/algo/helpers.h>
 #include <catboost/private/libs/algo/mvs.h>
 #include <catboost/private/libs/algo/plot.h>
+#include <catboost/private/libs/app_helpers/mode_dataset_statistics_helpers.h>
 #include <catboost/private/libs/documents_importance/docs_importance.h>
 #include <catboost/private/libs/documents_importance/enums.h>
 #include <catboost/private/libs/options/cross_validation_params.h>
@@ -1063,6 +1066,117 @@ EXPORT_FUNCTION CatBoostPoolGetFeatures_R(SEXP poolParam) {
     R_API_END();
     UNPROTECT(2);
     return result;
+}
+
+// P3.3: R equivalents of Python Pool's quantize/is_quantized/
+// save_quantization_borders (_catboost.pyx _quantize/is_quantized/
+// save_quantization_borders) plus the R equivalent of CatBoost CLI's
+// dataset-statistics mode.
+
+// Mirrors _catboost.pyx _quantize(): builds quantized objects data from the
+// pool's raw data via the same core entry point Python's Pool.quantize()
+// calls (catboost/libs/data/quantization.h ConstructQuantizedPoolFromRawPool),
+// then swaps it into the pool in place, same as Python does.
+EXPORT_FUNCTION CatBoostPoolQuantize_R(SEXP poolParam, SEXP paramsAsJsonParam) {
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    CB_ENSURE(
+        !dynamic_cast<const TQuantizedObjectsDataProvider*>(pool->ObjectsData.Get()),
+        "Pool is already quantized"
+    );
+    NJson::TJsonValue plainJsonParams = LoadFitParams(paramsAsJsonParam);
+
+    // Manual refcount bump, mirroring CatBoostFit_R's pools.Learn->Ref(): the
+    // R external pointer finalizer (_Finalizer<TPoolHandle>) deletes this
+    // object directly, bypassing intrusive refcounting, so a local
+    // TDataProviderPtr must not be allowed to drop the count to 0 and free it
+    // out from under the R handle when this function returns.
+    pool->Ref();
+    TDataProviderPtr srcData(pool);
+
+    TQuantizedFeaturesInfoPtr quantizedFeaturesInfo;
+    TQuantizedObjectsDataProviderPtr quantizedObjects =
+        ConstructQuantizedPoolFromRawPool(srcData, plainJsonParams, quantizedFeaturesInfo);
+
+    pool->ObjectsData = quantizedObjects;
+    pool->MetaInfo.FeaturesLayout = quantizedObjects->GetFeaturesLayout();
+    R_API_END();
+    return R_NilValue;
+}
+
+// Mirrors _catboost.pyx is_quantized().
+EXPORT_FUNCTION CatBoostPoolIsQuantized_R(SEXP poolParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    bool isQuantized = dynamic_cast<const TQuantizedObjectsDataProvider*>(pool->ObjectsData.Get()) != nullptr;
+    result = ScalarLogical(isQuantized);
+    R_API_END();
+    return result;
+}
+
+// Mirrors _catboost.pyx save_quantization_borders().
+EXPORT_FUNCTION CatBoostPoolSaveQuantizationBorders_R(SEXP poolParam, SEXP outputFileParam) {
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    const TQuantizedObjectsDataProvider* quantizedObjectsData =
+        dynamic_cast<const TQuantizedObjectsDataProvider*>(pool->ObjectsData.Get());
+    CB_ENSURE(quantizedObjectsData, "Pool is not quantized");
+    TQuantizedFeaturesInfoPtr quantizedFeaturesInfo = quantizedObjectsData->GetQuantizedFeaturesInfo();
+    SaveBordersAndNanModesToFileInMatrixnetFormat(TString(CHAR(asChar(outputFileParam))), *quantizedFeaturesInfo);
+    R_API_END();
+    return R_NilValue;
+}
+
+// R equivalent of CatBoost CLI's `dataset-statistics` mode. Calls the same
+// core library entry point the CLI mode itself calls
+// (catboost/private/libs/app_helpers/mode_dataset_statistics_helpers.h
+// NCB::CalculateDatasetStatisticsSingleHost, invoked from
+// catboost/app/mode_dataset_statistics.cpp) directly -- no shell-out to the
+// CLI binary, no argv parsing: the params struct is filled in-process, same
+// as CatBoostCreateFromFile_R's TPathWithScheme wiring above. Writes its two
+// JSON result files (statistics + histograms) to outputPathParam/
+// histogramPathParam; the R wrapper reads them back with jsonlite.
+EXPORT_FUNCTION CatBoostDatasetStatistics_R(
+    SEXP poolFileParam,
+    SEXP cdFileParam,
+    SEXP pairsFileParam,
+    SEXP delimiterParam,
+    SEXP hasHeaderParam,
+    SEXP threadCountParam,
+    SEXP borderCountParam,
+    SEXP onlyGroupStatisticsParam,
+    SEXP onlyLightStatisticsParam,
+    SEXP outputPathParam,
+    SEXP histogramPathParam
+) {
+    R_API_BEGIN();
+    TCalculateStatisticsParams params;
+
+    params.DatasetReadingParams.PoolPath = TPathWithScheme(CHAR(asChar(poolFileParam)), "dsv");
+
+    TStringBuf cdPathWithScheme(CHAR(asChar(cdFileParam)));
+    if (!cdPathWithScheme.empty()) {
+        params.DatasetReadingParams.ColumnarPoolFormatParams.CdFilePath = TPathWithScheme(cdPathWithScheme, "dsv");
+    }
+    params.DatasetReadingParams.ColumnarPoolFormatParams.DsvFormat =
+        TDsvFormatOptions{static_cast<bool>(asLogical(hasHeaderParam)), CHAR(asChar(delimiterParam))[0]};
+
+    TStringBuf pairsPathWithScheme(CHAR(asChar(pairsFileParam)));
+    if (!pairsPathWithScheme.empty()) {
+        params.DatasetReadingParams.PairsFilePath = TPathWithScheme(pairsPathWithScheme, "dsv-flat");
+    }
+
+    params.ThreadCount = asInteger(threadCountParam);
+    params.BorderCount = static_cast<size_t>(asInteger(borderCountParam));
+    params.OnlyGroupStatistics = static_cast<bool>(asLogical(onlyGroupStatisticsParam));
+    params.OnlyLightStatistics = static_cast<bool>(asLogical(onlyLightStatisticsParam));
+    params.OutputPath = TString(CHAR(asChar(outputPathParam)));
+    params.HistogramPath = TString(CHAR(asChar(histogramPathParam)));
+
+    NCB::CalculateDatasetStatisticsSingleHost(params);
+    R_API_END();
+    return R_NilValue;
 }
 
 EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitParamsAsJsonParam) {

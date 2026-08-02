@@ -235,6 +235,30 @@ EXPORT_FUNCTION CatBoostPoolGetTextFeatureIndices_R(SEXP poolParam);
 EXPORT_FUNCTION CatBoostPoolGetEmbeddingFeatureIndices_R(SEXP poolParam);
 
 
+// P3.3: Pool quantization support (R equivalents of Python Pool's
+// quantize/is_quantized/save_quantization_borders) plus the R equivalent of
+// CatBoost CLI's dataset-statistics mode.
+
+EXPORT_FUNCTION CatBoostPoolQuantize_R(SEXP poolParam, SEXP paramsAsJsonParam);
+
+EXPORT_FUNCTION CatBoostPoolIsQuantized_R(SEXP poolParam);
+
+EXPORT_FUNCTION CatBoostPoolSaveQuantizationBorders_R(SEXP poolParam, SEXP outputFileParam);
+
+EXPORT_FUNCTION CatBoostDatasetStatistics_R(
+    SEXP poolFileParam,
+    SEXP cdFileParam,
+    SEXP pairsFileParam,
+    SEXP delimiterParam,
+    SEXP hasHeaderParam,
+    SEXP threadCountParam,
+    SEXP borderCountParam,
+    SEXP onlyGroupStatisticsParam,
+    SEXP onlyLightStatisticsParam,
+    SEXP outputPathParam,
+    SEXP histogramPathParam
+);
+
 #if defined(__cplusplus)
 }
 #endif

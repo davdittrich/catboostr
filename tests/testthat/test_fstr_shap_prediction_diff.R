@@ -11,6 +11,12 @@ context("test_fstr_shap_prediction_diff.R")
 # -- both wrap the identical C++ engine. This test compares R's numeric output
 # to the pinned Python catboost==1.2.10 oracle fixture, within tolerance.
 #
+# Also covers (fix round 1, review finding): a MultiClass model's
+# ShapInteractionValues output, which exercises the separate `multiClass`
+# 4-nested-loop reordering branch (extra `dim` axis) in
+# CatBoostCalcRegularFeatureEffect_R that the binary Logloss model above
+# never reaches.
+#
 # Regenerate fixture with:
 # uv run --frozen --project tools/oracle python3 tools/oracle/gen_fstr_shap_prediction_diff_fixture.py
 
@@ -70,6 +76,27 @@ test_that("get_feature_importance: PredictionDiff rejects a pool without exactly
   expect_error(
     catboost.get_feature_importance(model, shap_pool, type = "PredictionDiff"),
     "must contain exactly 2 rows"
+  )
+})
+
+build_multiclass_model <- function() {
+  data <- data.frame(num1 = inputs$num1, num2 = inputs$num2)
+  pool <- catboost.load_pool(data, label = inputs$multiclass_label, feature_names = as.list(inputs$feature_names))
+  catboost.train(pool, params = list(
+    iterations = 10, depth = 2, loss_function = "MultiClass",
+    random_seed = 42, thread_count = 1, logging_level = "Silent"
+  ))
+}
+
+test_that("get_feature_importance: ShapInteractionValues matches Python oracle (MultiClass)", {
+  multiclass_model <- build_multiclass_model()
+  result <- catboost.get_feature_importance(multiclass_model, shap_pool, type = "ShapInteractionValues")
+
+  expect_equal(dim(result), dim(expected$multiclass_shap_interaction_values))
+  expect_equal(
+    as.numeric(result),
+    as.numeric(expected$multiclass_shap_interaction_values),
+    tolerance = TOL
   )
 })
 

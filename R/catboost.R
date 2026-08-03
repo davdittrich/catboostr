@@ -3719,6 +3719,107 @@ catboost.compare <- function(model, other, pool, metrics, ntree_start = 0L, ntre
 }
 
 
+#' @name catboost.get_roc_curve
+#' @title Build a ROC curve
+#' @description Build the points of the ROC curve for a binary classification model, matching
+#' Python's \code{catboost.utils.get_roc_curve} and the CLI's \code{roc} mode. Ports the same
+#' engine both wrap (\code{catboost/private/libs/algo/roc_curve.cpp TRocCurve}): raw model
+#' predictions are converted to probabilities, sorted in descending order, and swept once to
+#' accumulate false positive / false negative rates, inserting a synthetic point wherever the
+#' FPR and FNR curves cross.
+#' @param model The model obtained as the result of training on a binary classification task.
+#'
+#' Default value: Required argument
+#' @param pool A \code{catboost.Pool} (or list of \code{catboost.Pool}s) with label data, used
+#' to build the curve. Labels are binarized: values >= 0.5 count as the positive class.
+#'
+#' Default value: Required argument
+#' @return A list with three numeric vectors of equal length, sorted by decreasing
+#' \code{threshold}: \code{fpr} (false positive rate), \code{tpr} (true positive rate), and
+#' \code{threshold} (probability decision boundary, in \code{[0, 1]}).
+#' @export
+#' @seealso \url{https://catboost.ai/docs/concepts/python-reference_utils_get_roc_curve.html}
+catboost.get_roc_curve <- function(model, pool) {
+  if (!inherits(model, "catboost.Model"))
+    stop("Expected catboost.Model, got: ", class(model))
+  catboost.restore_handle(model)
+
+  pools <- if (inherits(pool, "catboost.Pool")) list(pool) else pool
+  if (!is.list(pools) || length(pools) == 0)
+    stop("Expected catboost.Pool or non-empty list of catboost.Pool, got: ", class(pool))
+
+  probability <- numeric(0)
+  target <- integer(0)
+  for (p in pools) {
+    if (!inherits(p, "catboost.Pool"))
+      stop("Expected catboost.Pool, got: ", class(p))
+    if (is.null.handle(p))
+      stop("Pool object is invalid.")
+    label <- catboost.pool.get_label(p)
+    if (length(label) == 0)
+      stop("Pool has no label data.")
+    probability <- c(probability, catboost.predict(model, p, prediction_type = "Probability"))
+    target <- c(target, as.integer(label + 0.5)) # custom round for accuracy, matches TRocCurve::BuildCurve
+  }
+
+  count1 <- sum(target == 1L)
+  count0 <- sum(target == 0L)
+  if (count0 == 0 || count1 == 0)
+    stop("Need documents of both classes 0 and 1 to build a ROC curve.")
+
+  ord <- order(-probability) # stable sort, descending by probability
+  probability <- probability[ord]
+  target <- target[ord]
+
+  n <- length(probability)
+  fnr <- numeric(0)
+  fpr <- numeric(0)
+  boundary <- numeric(0)
+  add_point <- function(newBoundary, newFnr, newFpr) {
+    len <- length(fnr)
+    if (len > 0) {
+      oldFnr <- fnr[len]
+      oldFpr <- fpr[len]
+      if (oldFpr < oldFnr && newFpr > newFnr) {
+        # will happen at least once: first point (1, 1, 0) satisfies first inequality,
+        # last point (0, 0, 1) satisfies second inequality
+        x1 <- boundary[len]; x2 <- newBoundary
+        y11 <- oldFnr; y21 <- newFnr
+        y12 <- oldFpr; y22 <- newFpr
+        eps <- 1e-13
+        x <- x1 + (x1 - x2) * (y11 - y12) / ((y21 - y22) - (y11 - y12))
+        if ((y22 - y12) < eps) {
+          y <- 0.5 * (y12 + y22)
+        } else if ((y11 - y21) < eps) {
+          y <- 0.5 * (y11 + y21)
+        } else {
+          y <- y11 + (x1 - x) * (y21 - y11) / (x1 - x2)
+        }
+        boundary[len + 1] <<- x; fnr[len + 1] <<- y; fpr[len + 1] <<- y
+        len <- len + 1
+      }
+    }
+    boundary[len + 1] <<- newBoundary; fnr[len + 1] <<- newFnr; fpr[len + 1] <<- newFpr
+  }
+
+  add_point(1, 1, 0) # always starts with (1, 1, 0)
+  countTarget1 <- 0L
+  countTarget0 <- 0L
+  for (i in seq_len(n - 1)) {
+    if (target[i] == 1L) countTarget1 <- countTarget1 + 1L else countTarget0 <- countTarget0 + 1L
+    if (probability[i + 1] < (probability[i] - 1e-13)) {
+      newBoundary <- 0.5 * (probability[i] + probability[i + 1])
+      newFnr <- (count1 - countTarget1) / count1
+      newFpr <- countTarget0 / count0
+      add_point(newBoundary, newFnr, newFpr)
+    }
+  }
+  add_point(0, 0, 1) # always ends with (0, 0, 1)
+
+  return(list(fpr = fpr, tpr = 1 - fnr, threshold = boundary))
+}
+
+
 # Not exported: formats the "<hash:...>" fallback label catboost.plot_tree()'s
 # resolve_cat_value() uses when a categorical split's hash can't be resolved back
 # to a string. target_hash is a ui32 (OneHotFeature.Value, up to ~4.29e9) surfaced

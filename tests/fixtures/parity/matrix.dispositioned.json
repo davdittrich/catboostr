@@ -18550,8 +18550,8 @@
     "kind": "function",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_roc_curve.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -20118,8 +20118,8 @@
     "kind": "mode",
     "method": "elementwise",
     "tolerance": 1e-09,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_roc_curve.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [

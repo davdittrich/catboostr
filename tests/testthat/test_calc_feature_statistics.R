@@ -100,6 +100,22 @@ test_that("calc_feature_statistics: single categorical feature (one-hot) matches
   expect_stat_equal(result, expected$single_cat)
 })
 
+test_that("calc_feature_statistics: numeric feature index + plain-vector cat_feature_values matches Python oracle", {
+  # Regression test (task reviewer finding on commit bef3b7d): `feature` given
+  # as a 0-based numeric index (not a name) resolves internally to the pool's
+  # actual feature name ("cat1"); a plain (non-list) `cat_feature_values`
+  # vector must still be picked up under that resolved name, not silently
+  # dropped because it was keyed by the raw index ("2") instead.
+  cat1_idx0 <- match("cat1", inputs$feature_names) - 1L
+  result <- catboost.calc_feature_statistics(
+    model, pool,
+    feature = cat1_idx0, cat_feature_values = inputs$cat1
+  )
+  expect_type(result, "list")
+  expect_true(is.null(result$borders))
+  expect_stat_equal(result, expected$single_cat)
+})
+
 test_that("calc_feature_statistics: rejects an unknown prediction_type", {
   expect_error(
     catboost.calc_feature_statistics(model, pool, feature = "num1", prediction_type = "Bogus"),

@@ -3519,10 +3519,16 @@ catboost.calc_feature_statistics <- function(model, pool, feature = NULL, predic
   if (length(features) == 0)
     stop("feature must select at least one feature.")
 
+  plain_cat_feature_values <- NULL
   if (!is.null(cat_feature_values) && !is.list(cat_feature_values)) {
     if (!single_feature)
       stop("cat_feature_values should be a named list when feature selects more than one feature.")
-    cat_feature_values <- stats::setNames(list(cat_feature_values), as.character(feature))
+    # Deferred: keyed by the *resolved* feature name once known (below), not by
+    # the raw `feature` argument -- a numeric index like `2` resolves to the
+    # pool's actual feature name (e.g. "cat1"), and keying by as.character(2)
+    # here would silently miss that lookup later.
+    plain_cat_feature_values <- cat_feature_values
+    cat_feature_values <- list()
   }
   if (is.null(cat_feature_values))
     cat_feature_values <- list()
@@ -3568,6 +3574,10 @@ catboost.calc_feature_statistics <- function(model, pool, feature = NULL, predic
     } else {
       float_nums <- c(float_nums, type_idx$index)
     }
+  }
+
+  if (!is.null(plain_cat_feature_values) && length(feature_names_out) == 1) {
+    cat_feature_values[[feature_names_out[1]]] <- plain_cat_feature_values
   }
 
   stats_list <- .Call("CatBoostGetBinarizedStatistics_R", model$cpp_obj$handle, pool,

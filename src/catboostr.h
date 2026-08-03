@@ -281,6 +281,66 @@ EXPORT_FUNCTION CatBoostDatasetStatistics_R(
     SEXP histogramPathParam
 );
 
+// P3.6 follow-up (catboost-8z4.48): native tokenizer/dictionary bridges,
+// wrapping NTextProcessing::NTokenizer::TTokenizer and
+// NTextProcessing::NDictionary::TDictionary/TDictionaryBuilder/
+// TBpeDictionary/TBpeDictionaryBuilder -- replacing the pure-R port in
+// R/text_processing.R (catboost-8z4.43).
+
+EXPORT_FUNCTION CatBoostTextTokenizerCreate_R(
+    SEXP lowercasingParam,
+    SEXP lemmatizingParam,
+    SEXP numberProcessPolicyParam,
+    SEXP numberTokenParam,
+    SEXP separatorTypeParam,
+    SEXP delimiterParam,
+    SEXP splitBySetParam,
+    SEXP skipEmptyParam,
+    SEXP tokenTypesParam,
+    SEXP subTokensPolicyParam,
+    SEXP languagesParam
+);
+
+EXPORT_FUNCTION CatBoostTextTokenizerTokenize_R(SEXP tokenizerParam, SEXP stringParam);
+
+EXPORT_FUNCTION CatBoostTextDictionaryFit_R(
+    SEXP linesParam,
+    SEXP tokenLevelTypeParam,
+    SEXP gramOrderParam,
+    SEXP skipStepParam,
+    SEXP startTokenIdParam,
+    SEXP endOfWordPolicyParam,
+    SEXP endOfSentencePolicyParam,
+    SEXP occurenceLowerBoundParam,
+    SEXP maxDictionarySizeParam,
+    SEXP dictionaryTypeParam,
+    SEXP numBpeUnitsParam,
+    SEXP skipUnknownParam
+);
+
+EXPORT_FUNCTION CatBoostTextDictionaryApply_R(SEXP dictionaryParam, SEXP linesParam, SEXP unknownTokenPolicyParam);
+
+EXPORT_FUNCTION CatBoostTextDictionarySize_R(SEXP dictionaryParam);
+
+EXPORT_FUNCTION CatBoostTextDictionaryGetTokens_R(SEXP dictionaryParam, SEXP tokenIdsParam);
+
+EXPORT_FUNCTION CatBoostTextDictionaryGetTopTokens_R(SEXP dictionaryParam, SEXP topSizeParam);
+
+EXPORT_FUNCTION CatBoostTextDictionaryUnknownTokenId_R(SEXP dictionaryParam);
+
+EXPORT_FUNCTION CatBoostTextDictionaryEndOfSentenceTokenId_R(SEXP dictionaryParam);
+
+EXPORT_FUNCTION CatBoostTextDictionaryMinUnusedTokenId_R(SEXP dictionaryParam);
+
+EXPORT_FUNCTION CatBoostTextDictionarySave_R(
+    SEXP dictionaryParam,
+    SEXP dictionaryTypeParam,
+    SEXP frequencyDictPathParam,
+    SEXP bpePathParam
+);
+
+EXPORT_FUNCTION CatBoostTextDictionaryLoad_R(SEXP frequencyDictPathParam, SEXP bpePathParam);
+
 #if defined(__cplusplus)
 }
 #endif

@@ -2,40 +2,49 @@
 % Please edit documentation in R/text_processing.R
 \name{catboost.Dictionary}
 \alias{catboost.Dictionary}
-\title{Create a text Dictionary}
+\title{Create text Dictionary}
 \usage{
 catboost.Dictionary(
   token_level_type = NULL,
   gram_order = NULL,
+  skip_step = NULL,
   start_token_id = NULL,
   end_of_word_policy = NULL,
   end_of_sentence_policy = NULL,
   occurence_lower_bound = NULL,
   max_dictionary_size = NULL,
-  dictionary_type = NULL
+  dictionary_type = NULL,
+  num_bpe_units = NULL,
+  skip_unknown = NULL
 )
 }
 \arguments{
-\item{token_level_type}{Only "Word" is supported.
+\item{token_level_type}{"Word" or "Letter".
 
 Default value: "Word"}
 
-\item{gram_order}{Only 1 is supported.
+\item{gram_order}{The number of words/letters joined into each token
+(multigrams).
 
 Default value: 1}
+
+\item{skip_step}{Number of words/letters skipped when joining them into
+tokens; only takes effect when \code{gram_order > 1}.
+
+Default value: 0}
 
 \item{start_token_id}{Initial shift for assigned token identifiers.
 
 Default value: 0}
 
-\item{end_of_word_policy}{Unused for Word-level dictionaries; accepted for
-interface parity.
+\item{end_of_word_policy}{"Skip" or "Insert"; used with Letter-level
+dictionaries.
 
 Default value: "Insert"}
 
 \item{end_of_sentence_policy}{"Skip" or "Insert"; whether
-\code{catboost.dictionary.apply} appends the end-of-sentence token id
-after each tokenized line.
+\code{catboost.dictionary.apply} appends an end-of-sentence token id
+after a tokenized line.
 
 Default value: "Skip"}
 
@@ -49,20 +58,27 @@ unlimited.
 
 Default value: -1}
 
-\item{dictionary_type}{Only "FrequencyBased" is supported.
+\item{dictionary_type}{"FrequencyBased" or "Bpe".
 
 Default value: "FrequencyBased"}
+
+\item{num_bpe_units}{Number of token-pair merges to perform (Bpe type).
+
+Default value: 0}
+
+\item{skip_unknown}{Skip unknown tokens when building a Bpe dictionary.
+
+Default value: FALSE}
 }
 \value{
-catboost.Dictionary (a mutable object; \code{fit}/\code{load}
+A mutable catboost.Dictionary object (\code{fit}/\code{load}
 update it in place).
 }
 \description{
-Builds a token/id vocabulary from text data, mirroring the
-default (Word-level, unigram, frequency-based) configuration of Python's
-\code{catboost.text_processing.Dictionary}. Use \code{catboost.dictionary.fit}
-to train it and \code{catboost.dictionary.apply} to convert text to token
-ids. Letter-level tokens, multigrams (\code{gram_order > 1}) and
-\code{dictionary_type = "Bpe"} are out of scope and rejected with a clear
-error.
+Builds a token/id vocabulary from text data. Native bridge to
+Python's \code{catboost.text_processing.Dictionary}, backed directly by
+vendor's \code{NTextProcessing::NDictionary::TDictionary}/
+\code{TDictionaryBuilder}/\code{TBpeDictionary}/\code{TBpeDictionaryBuilder}.
+Use \code{catboost.dictionary.fit} to train it and
+\code{catboost.dictionary.apply} to convert text to token ids.
 }

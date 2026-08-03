@@ -7,18 +7,18 @@
 catboost.dictionary.fit(dictionary, data, tokenizer = NULL, verbose = FALSE)
 }
 \arguments{
-\item{dictionary}{A catboost.Dictionary object; updated in place.
+\item{dictionary}{A catboost.Dictionary object.
 
 Default value: Required argument}
 
-\item{data}{A character vector (one document per element; tokenized with
-\code{tokenizer} if given, otherwise each element is treated as a single
-token) or a list of character vectors (already-tokenized documents).
+\item{data}{A character vector, or a list mixing strings and
+already-tokenized character vectors.
 
 Default value: Required argument}
 
 \item{tokenizer}{An optional catboost.Tokenizer used to split each
-element of a character-vector \code{data}.
+length-1 string element of \code{data} into tokens; character vector
+elements of length > 1 are treated as already tokenized regardless.
 
 Default value: NULL}
 
@@ -30,5 +30,5 @@ Default value: FALSE}
 The (mutated) catboost.Dictionary, invisibly.
 }
 \description{
-Build the token/id vocabulary from text data.
+Builds the token/id vocabulary from \code{data}.
 }

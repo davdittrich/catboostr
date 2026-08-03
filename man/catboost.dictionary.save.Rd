@@ -2,18 +2,24 @@
 % Please edit documentation in R/text_processing.R
 \name{catboost.dictionary.save}
 \alias{catboost.dictionary.save}
-\title{Save a Dictionary to a file}
+\title{Save a Dictionary}
 \usage{
-catboost.dictionary.save(dictionary, frequency_dict_path)
+catboost.dictionary.save(dictionary, frequency_dict_path, bpe_path = NULL)
 }
 \arguments{
 \item{dictionary}{A fitted catboost.Dictionary object.
 
 Default value: Required argument}
 
-\item{frequency_dict_path}{Output file path.
+\item{frequency_dict_path}{Output file path for the frequency-based
+alphabet.
 
 Default value: Required argument}
+
+\item{bpe_path}{Output file path for Bpe merge data; required when
+\code{dictionary$dictionary_type == "Bpe"}.
+
+Default value: NULL}
 }
 \value{
 The catboost.Dictionary, invisibly.
@@ -21,6 +27,9 @@ The catboost.Dictionary, invisibly.
 \description{
 Writes the vendor "id_count_token" text format (a JSON
 options header line, a token-count line, then one "id\\tcount\\ttoken"
-line per token), which the pinned Python oracle's
-\code{Dictionary.load} can also read.
+line per token) for "FrequencyBased" dictionaries -- byte-identical to
+the pinned Python oracle's \code{Dictionary.save} because both call the
+same vendor \code{TDictionary::Save}. "Bpe" dictionaries additionally
+require \code{bpe_path} and are written via vendor's
+\code{TBpeDictionary::Save}.
 }

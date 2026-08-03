@@ -2,24 +2,29 @@
 % Please edit documentation in R/text_processing.R
 \name{catboost.dictionary.load}
 \alias{catboost.dictionary.load}
-\title{Load a Dictionary from a file}
+\title{Load a Dictionary}
 \usage{
-catboost.dictionary.load(dictionary, frequency_dict_path)
+catboost.dictionary.load(dictionary, frequency_dict_path, bpe_path = NULL)
 }
 \arguments{
-\item{dictionary}{A catboost.Dictionary object; updated in place.
+\item{dictionary}{A catboost.Dictionary object to load into.
 
 Default value: Required argument}
 
-\item{frequency_dict_path}{Input file path.
+\item{frequency_dict_path}{Input file path for the frequency-based
+alphabet.
 
 Default value: Required argument}
+
+\item{bpe_path}{Input file path for Bpe merge data; when supplied, the
+loaded dictionary is treated as "Bpe".
+
+Default value: NULL}
 }
 \value{
 The (mutated) catboost.Dictionary, invisibly.
 }
 \description{
-Reads the vendor "id_count_token" text format written by
-\code{catboost.dictionary.save} or by the pinned Python oracle's
-\code{Dictionary.save}.
+Reads a dictionary file written by \code{catboost.dictionary.save}
+or Python's \code{Dictionary.save}.
 }

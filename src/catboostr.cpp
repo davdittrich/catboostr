@@ -28,6 +28,18 @@
 #include <catboost/private/libs/quantized_pool/serialization.h>
 #include <catboost/private/libs/target/data_providers.h>
 
+// P3.6 follow-up (catboost-8z4.48): native tokenizer/dictionary bridges.
+#include <library/cpp/langs/langs.h>
+#include <library/cpp/text_processing/dictionary/bpe_builder.h>
+#include <library/cpp/text_processing/dictionary/bpe_dictionary.h>
+#include <library/cpp/text_processing/dictionary/dictionary.h>
+#include <library/cpp/text_processing/dictionary/dictionary_builder.h>
+#include <library/cpp/text_processing/dictionary/frequency_based_dictionary.h>
+#include <library/cpp/text_processing/dictionary/options.h>
+#include <library/cpp/text_processing/dictionary/types.h>
+#include <library/cpp/text_processing/tokenizer/options.h>
+#include <library/cpp/text_processing/tokenizer/tokenizer.h>
+
 // P1.16: compiled-in build identifier for R/libcatboostr version-skew detection.
 // Same __vcs_version__.c mechanism (cmake/common.cmake's vcs_info(), fed by
 // build/scripts/vcs_info.py + generate_vcs_info.py) already linked into this
@@ -35,9 +47,11 @@
 #include <library/cpp/svnversion/svnversion.h>
 
 #include <util/generic/cast.h>
+#include <util/generic/hash.h>
 #include <util/generic/mem_copy.h>
 #include <util/generic/singleton.h>
 #include <util/generic/xrange.h>
+#include <util/stream/file.h>
 #include <util/string/cast.h>
 #include <util/system/info.h>
 
@@ -2027,6 +2041,394 @@ EXPORT_FUNCTION CatBoostEvalMetrics_R(
 
     R_API_END();
     UNPROTECT(protectedCount);
+    return result;
+}
+
+
+// P3.6 follow-up (catboost-8z4.48): native tokenizer/dictionary bridges,
+// replacing the pure-R port in R/text_processing.R. Mirrors the method
+// surface vendor/catboost/catboost/python-package/catboost/_text_processing.pxi
+// wraps around NTextProcessing::NTokenizer::TTokenizer and
+// NTextProcessing::NDictionary::TDictionary/TDictionaryBuilder/
+// TBpeDictionary/TBpeDictionaryBuilder.
+
+static TVector<TString> GetTokensFromSEXP(SEXP lineTokens) {
+    const int tokenCount = length(lineTokens);
+    TVector<TString> tokens(tokenCount);
+    for (int j = 0; j < tokenCount; ++j) {
+        tokens[j] = TString(CHAR(STRING_ELT(lineTokens, j)));
+    }
+    return tokens;
+}
+
+EXPORT_FUNCTION CatBoostTextTokenizerCreate_R(
+    SEXP lowercasingParam,
+    SEXP lemmatizingParam,
+    SEXP numberProcessPolicyParam,
+    SEXP numberTokenParam,
+    SEXP separatorTypeParam,
+    SEXP delimiterParam,
+    SEXP splitBySetParam,
+    SEXP skipEmptyParam,
+    SEXP tokenTypesParam,
+    SEXP subTokensPolicyParam,
+    SEXP languagesParam
+) {
+    using namespace NTextProcessing::NTokenizer;
+    SEXP result = NULL;
+    R_API_BEGIN();
+
+    TTokenizerOptions options;
+    options.Lowercasing = static_cast<bool>(asLogical(lowercasingParam));
+    options.Lemmatizing = static_cast<bool>(asLogical(lemmatizingParam));
+    CB_ENSURE(
+        TryFromString<ETokenProcessPolicy>(CHAR(asChar(numberProcessPolicyParam)), options.NumberProcessPolicy),
+        "catboost.Tokenizer: unsupported number_process_policy '" << CHAR(asChar(numberProcessPolicyParam)) << "'");
+    options.NumberToken = TString(CHAR(asChar(numberTokenParam)));
+    CB_ENSURE(
+        TryFromString<ESeparatorType>(CHAR(asChar(separatorTypeParam)), options.SeparatorType),
+        "catboost.Tokenizer: unsupported separator_type '" << CHAR(asChar(separatorTypeParam)) << "'");
+    options.Delimiter = TString(CHAR(asChar(delimiterParam)));
+    options.SplitBySet = static_cast<bool>(asLogical(splitBySetParam));
+    options.SkipEmpty = static_cast<bool>(asLogical(skipEmptyParam));
+
+    if (!Rf_isNull(tokenTypesParam)) {
+        options.TokenTypes.clear();
+        for (int i = 0; i < length(tokenTypesParam); ++i) {
+            ETokenType tokenType;
+            CB_ENSURE(
+                TryFromString<ETokenType>(CHAR(STRING_ELT(tokenTypesParam, i)), tokenType),
+                "catboost.Tokenizer: unsupported token_types entry '" << CHAR(STRING_ELT(tokenTypesParam, i)) << "'");
+            options.TokenTypes.insert(tokenType);
+        }
+    }
+
+    CB_ENSURE(
+        TryFromString<ESubTokensPolicy>(CHAR(asChar(subTokensPolicyParam)), options.SubTokensPolicy),
+        "catboost.Tokenizer: unsupported sub_tokens_policy '" << CHAR(asChar(subTokensPolicyParam)) << "'");
+
+    if (!Rf_isNull(languagesParam)) {
+        options.Languages.clear();
+        for (int i = 0; i < length(languagesParam); ++i) {
+            options.Languages.push_back(LanguageByNameOrDie(TStringBuf(CHAR(STRING_ELT(languagesParam, i)))));
+        }
+    }
+
+    NTextProcessing::NTokenizer::TTokenizer* tokenizerPtr =
+        new NTextProcessing::NTokenizer::TTokenizer(options);
+
+    result = PROTECT(R_MakeExternalPtr(tokenizerPtr, R_NilValue, R_NilValue));
+    R_RegisterCFinalizerEx(result, _Finalizer<NTextProcessing::NTokenizer::TTokenizer*>, TRUE);
+
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+
+EXPORT_FUNCTION CatBoostTextTokenizerTokenize_R(SEXP tokenizerParam, SEXP stringParam) {
+    using namespace NTextProcessing::NTokenizer;
+    SEXP result = NULL;
+    R_API_BEGIN();
+
+    NTextProcessing::NTokenizer::TTokenizer* tokenizer =
+        static_cast<NTextProcessing::NTokenizer::TTokenizer*>(R_ExternalPtrAddr(tokenizerParam));
+    CB_ENSURE(tokenizer, "catboost.tokenizer.tokenize: tokenizer handle is NULL.");
+    TString input(CHAR(asChar(stringParam)));
+
+    TVector<TString> tokens;
+    TVector<ETokenType> tokenTypes;
+    tokenizer->Tokenize(input, &tokens, &tokenTypes);
+
+    SEXP tokensSexp = PROTECT(allocVector(STRSXP, tokens.size()));
+    SEXP typesSexp = PROTECT(allocVector(STRSXP, tokenTypes.size()));
+    for (size_t i = 0; i < tokens.size(); ++i) {
+        SET_STRING_ELT(tokensSexp, i, mkChar(tokens[i].c_str()));
+        SET_STRING_ELT(typesSexp, i, mkChar(ToString(tokenTypes[i]).c_str()));
+    }
+
+    result = PROTECT(allocVector(VECSXP, 2));
+    SET_VECTOR_ELT(result, 0, tokensSexp);
+    SET_VECTOR_ELT(result, 1, typesSexp);
+    SEXP names = PROTECT(allocVector(STRSXP, 2));
+    SET_STRING_ELT(names, 0, mkChar("tokens"));
+    SET_STRING_ELT(names, 1, mkChar("types"));
+    setAttrib(result, R_NamesSymbol, names);
+
+    R_API_END();
+    UNPROTECT(4);
+    return result;
+}
+
+
+EXPORT_FUNCTION CatBoostTextDictionaryFit_R(
+    SEXP linesParam,
+    SEXP tokenLevelTypeParam,
+    SEXP gramOrderParam,
+    SEXP skipStepParam,
+    SEXP startTokenIdParam,
+    SEXP endOfWordPolicyParam,
+    SEXP endOfSentencePolicyParam,
+    SEXP occurenceLowerBoundParam,
+    SEXP maxDictionarySizeParam,
+    SEXP dictionaryTypeParam,
+    SEXP numBpeUnitsParam,
+    SEXP skipUnknownParam
+) {
+    using namespace NTextProcessing::NDictionary;
+    SEXP result = NULL;
+    R_API_BEGIN();
+
+    TDictionaryOptions dictOptions;
+    CB_ENSURE(
+        TryFromString<ETokenLevelType>(CHAR(asChar(tokenLevelTypeParam)), dictOptions.TokenLevelType),
+        "catboost.Dictionary: unsupported token_level_type '" << CHAR(asChar(tokenLevelTypeParam)) << "'");
+    dictOptions.GramOrder = static_cast<ui32>(asInteger(gramOrderParam));
+    dictOptions.SkipStep = static_cast<ui32>(asInteger(skipStepParam));
+    dictOptions.StartTokenId = static_cast<NTextProcessing::NDictionary::TTokenId>(asInteger(startTokenIdParam));
+    CB_ENSURE(
+        TryFromString<EEndOfWordTokenPolicy>(CHAR(asChar(endOfWordPolicyParam)), dictOptions.EndOfWordTokenPolicy),
+        "catboost.Dictionary: unsupported end_of_word_policy '" << CHAR(asChar(endOfWordPolicyParam)) << "'");
+    CB_ENSURE(
+        TryFromString<EEndOfSentenceTokenPolicy>(
+            CHAR(asChar(endOfSentencePolicyParam)), dictOptions.EndOfSentenceTokenPolicy),
+        "catboost.Dictionary: unsupported end_of_sentence_policy '"
+            << CHAR(asChar(endOfSentencePolicyParam)) << "'");
+
+    TDictionaryBuilderOptions builderOptions;
+    builderOptions.OccurrenceLowerBound = static_cast<ui64>(asReal(occurenceLowerBoundParam));
+    builderOptions.MaxDictionarySize = asInteger(maxDictionarySizeParam);
+
+    EDictionaryType dictionaryType;
+    CB_ENSURE(
+        TryFromString<EDictionaryType>(CHAR(asChar(dictionaryTypeParam)), dictionaryType),
+        "catboost.Dictionary: unsupported dictionary_type '" << CHAR(asChar(dictionaryTypeParam)) << "'");
+
+    const int lineCount = length(linesParam);
+
+    // Matches vendor's own BuildBpeWord/BuildBpeLetter split (library/cpp/
+    // text_processing/app_helpers/app_helpers.cpp): Bpe over a Letter-level
+    // alphabet builds its merge corpus from *unique* tokens weighted by
+    // corpus-wide occurrence count, not from a second per-line pass.
+    const bool needTokenCounts =
+        (dictionaryType == EDictionaryType::Bpe && dictOptions.TokenLevelType == ETokenLevelType::Letter);
+
+    TDictionaryBuilder alphabetBuilder(builderOptions, dictOptions);
+    THashMap<TString, ui64> tokenCounts;
+    for (int i = 0; i < lineCount; ++i) {
+        TVector<TString> tokens = GetTokensFromSEXP(VECTOR_ELT(linesParam, i));
+        alphabetBuilder.Add(TConstArrayRef<TString>(tokens), /*weight*/ 1);
+        if (needTokenCounts) {
+            for (const auto& token : tokens) {
+                ++tokenCounts[token];
+            }
+        }
+    }
+    TIntrusivePtr<TDictionary> alphabet = alphabetBuilder.FinishBuilding();
+
+    IDictionary* dictionaryPtr = nullptr;
+    if (dictionaryType == EDictionaryType::FrequencyBased) {
+        dictionaryPtr = alphabet.Release();
+    } else {
+        const ui32 numBpeUnits = static_cast<ui32>(asInteger(numBpeUnitsParam));
+        const bool skipUnknown = static_cast<bool>(asLogical(skipUnknownParam));
+        TBpeDictionaryBuilder bpeBuilder(numBpeUnits, skipUnknown, alphabet);
+        if (needTokenCounts) {
+            for (const auto& [token, count] : tokenCounts) {
+                bpeBuilder.Add(TVector<TStringBuf>({token}), count);
+            }
+        } else {
+            for (int i = 0; i < lineCount; ++i) {
+                TVector<TString> tokens = GetTokensFromSEXP(VECTOR_ELT(linesParam, i));
+                bpeBuilder.Add(TConstArrayRef<TString>(tokens), /*weight*/ 1);
+            }
+        }
+        TIntrusivePtr<TBpeDictionary> bpeDict = bpeBuilder.FinishBuilding();
+        dictionaryPtr = bpeDict.Release();
+    }
+
+    result = PROTECT(R_MakeExternalPtr(dictionaryPtr, R_NilValue, R_NilValue));
+    R_RegisterCFinalizerEx(result, _Finalizer<NTextProcessing::NDictionary::IDictionary*>, TRUE);
+
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+
+EXPORT_FUNCTION CatBoostTextDictionaryApply_R(SEXP dictionaryParam, SEXP linesParam, SEXP unknownTokenPolicyParam) {
+    using namespace NTextProcessing::NDictionary;
+    SEXP result = NULL;
+    R_API_BEGIN();
+
+    IDictionary* dictionary = static_cast<IDictionary*>(R_ExternalPtrAddr(dictionaryParam));
+    CB_ENSURE(dictionary, "catboost.dictionary.apply: dictionary handle is NULL.");
+    EUnknownTokenPolicy unknownTokenPolicy;
+    CB_ENSURE(
+        TryFromString<EUnknownTokenPolicy>(CHAR(asChar(unknownTokenPolicyParam)), unknownTokenPolicy),
+        "catboost.dictionary.apply: unsupported unknown_token_policy '"
+            << CHAR(asChar(unknownTokenPolicyParam)) << "'");
+
+    const int lineCount = length(linesParam);
+    result = PROTECT(allocVector(VECSXP, lineCount));
+    for (int i = 0; i < lineCount; ++i) {
+        TVector<TString> tokens = GetTokensFromSEXP(VECTOR_ELT(linesParam, i));
+        TVector<NTextProcessing::NDictionary::TTokenId> tokenIds;
+        dictionary->Apply(TConstArrayRef<TString>(tokens), &tokenIds, unknownTokenPolicy);
+
+        SEXP idsSexp = PROTECT(allocVector(INTSXP, tokenIds.size()));
+        for (size_t j = 0; j < tokenIds.size(); ++j) {
+            INTEGER(idsSexp)[j] = static_cast<int>(tokenIds[j]);
+        }
+        SET_VECTOR_ELT(result, i, idsSexp);
+        UNPROTECT(1);
+    }
+
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+
+EXPORT_FUNCTION CatBoostTextDictionarySize_R(SEXP dictionaryParam) {
+    using namespace NTextProcessing::NDictionary;
+    SEXP result = NULL;
+    R_API_BEGIN();
+    IDictionary* dictionary = static_cast<IDictionary*>(R_ExternalPtrAddr(dictionaryParam));
+    CB_ENSURE(dictionary, "catboost.dictionary.size: dictionary handle is NULL.");
+    result = PROTECT(ScalarInteger(static_cast<int>(dictionary->Size())));
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+
+EXPORT_FUNCTION CatBoostTextDictionaryGetTokens_R(SEXP dictionaryParam, SEXP tokenIdsParam) {
+    using namespace NTextProcessing::NDictionary;
+    SEXP result = NULL;
+    R_API_BEGIN();
+    IDictionary* dictionary = static_cast<IDictionary*>(R_ExternalPtrAddr(dictionaryParam));
+    CB_ENSURE(dictionary, "catboost.dictionary.get_tokens: dictionary handle is NULL.");
+    const int n = length(tokenIdsParam);
+    result = PROTECT(allocVector(STRSXP, n));
+    const int* ids = INTEGER(tokenIdsParam);
+    for (int i = 0; i < n; ++i) {
+        TString token = dictionary->GetToken(static_cast<NTextProcessing::NDictionary::TTokenId>(ids[i]));
+        SET_STRING_ELT(result, i, mkChar(token.c_str()));
+    }
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+
+EXPORT_FUNCTION CatBoostTextDictionaryGetTopTokens_R(SEXP dictionaryParam, SEXP topSizeParam) {
+    using namespace NTextProcessing::NDictionary;
+    SEXP result = NULL;
+    R_API_BEGIN();
+    IDictionary* dictionary = static_cast<IDictionary*>(R_ExternalPtrAddr(dictionaryParam));
+    CB_ENSURE(dictionary, "catboost.dictionary.get_top_tokens: dictionary handle is NULL.");
+    TVector<TString> top = dictionary->GetTopTokens(static_cast<ui32>(asInteger(topSizeParam)));
+    result = PROTECT(allocVector(STRSXP, top.size()));
+    for (size_t i = 0; i < top.size(); ++i) {
+        SET_STRING_ELT(result, i, mkChar(top[i].c_str()));
+    }
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+
+EXPORT_FUNCTION CatBoostTextDictionaryUnknownTokenId_R(SEXP dictionaryParam) {
+    using namespace NTextProcessing::NDictionary;
+    SEXP result = NULL;
+    R_API_BEGIN();
+    IDictionary* dictionary = static_cast<IDictionary*>(R_ExternalPtrAddr(dictionaryParam));
+    CB_ENSURE(dictionary, "catboost.dictionary.unknown_token_id: dictionary handle is NULL.");
+    result = PROTECT(ScalarInteger(static_cast<int>(dictionary->GetUnknownTokenId())));
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+
+EXPORT_FUNCTION CatBoostTextDictionaryEndOfSentenceTokenId_R(SEXP dictionaryParam) {
+    using namespace NTextProcessing::NDictionary;
+    SEXP result = NULL;
+    R_API_BEGIN();
+    IDictionary* dictionary = static_cast<IDictionary*>(R_ExternalPtrAddr(dictionaryParam));
+    CB_ENSURE(dictionary, "catboost.dictionary.end_of_sentence_token_id: dictionary handle is NULL.");
+    result = PROTECT(ScalarInteger(static_cast<int>(dictionary->GetEndOfSentenceTokenId())));
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+
+EXPORT_FUNCTION CatBoostTextDictionaryMinUnusedTokenId_R(SEXP dictionaryParam) {
+    using namespace NTextProcessing::NDictionary;
+    SEXP result = NULL;
+    R_API_BEGIN();
+    IDictionary* dictionary = static_cast<IDictionary*>(R_ExternalPtrAddr(dictionaryParam));
+    CB_ENSURE(dictionary, "catboost.dictionary.min_unused_token_id: dictionary handle is NULL.");
+    result = PROTECT(ScalarInteger(static_cast<int>(dictionary->GetMinUnusedTokenId())));
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+
+EXPORT_FUNCTION CatBoostTextDictionarySave_R(
+    SEXP dictionaryParam,
+    SEXP dictionaryTypeParam,
+    SEXP frequencyDictPathParam,
+    SEXP bpePathParam
+) {
+    using namespace NTextProcessing::NDictionary;
+    R_API_BEGIN();
+
+    IDictionary* dictionary = static_cast<IDictionary*>(R_ExternalPtrAddr(dictionaryParam));
+    CB_ENSURE(dictionary, "catboost.dictionary.save: dictionary handle is NULL.");
+    TString dictionaryType(CHAR(asChar(dictionaryTypeParam)));
+    if (dictionaryType == "Bpe") {
+        CB_ENSURE(
+            !Rf_isNull(bpePathParam), "catboost.dictionary.save: bpe_path is required to save a Bpe dictionary.");
+        TBpeDictionary* bpeDictionary = dynamic_cast<TBpeDictionary*>(dictionary);
+        CB_ENSURE(bpeDictionary, "catboost.dictionary.save: dictionary is not a Bpe dictionary.");
+        bpeDictionary->Save(TString(CHAR(asChar(frequencyDictPathParam))), TString(CHAR(asChar(bpePathParam))));
+    } else {
+        TFileOutput out(TString(CHAR(asChar(frequencyDictPathParam))));
+        dictionary->Save(&out);
+    }
+
+    R_API_END();
+    return R_NilValue;
+}
+
+
+EXPORT_FUNCTION CatBoostTextDictionaryLoad_R(SEXP frequencyDictPathParam, SEXP bpePathParam) {
+    using namespace NTextProcessing::NDictionary;
+    SEXP result = NULL;
+    R_API_BEGIN();
+
+    IDictionary* dictionaryPtr = nullptr;
+    TString freqPath(CHAR(asChar(frequencyDictPathParam)));
+    if (!Rf_isNull(bpePathParam)) {
+        TString bpePath(CHAR(asChar(bpePathParam)));
+        THolder<TBpeDictionary> bpeDictionary = MakeHolder<TBpeDictionary>();
+        bpeDictionary->Load(freqPath, bpePath);
+        dictionaryPtr = bpeDictionary.Release();
+    } else {
+        TFileInput in(freqPath);
+        TIntrusivePtr<IDictionary> dictionary = IDictionary::Load(&in);
+        dictionaryPtr = dictionary.Release();
+    }
+
+    result = PROTECT(R_MakeExternalPtr(dictionaryPtr, R_NilValue, R_NilValue));
+    R_RegisterCFinalizerEx(result, _Finalizer<NTextProcessing::NDictionary::IDictionary*>, TRUE);
+
+    R_API_END();
+    UNPROTECT(1);
     return result;
 }
 }

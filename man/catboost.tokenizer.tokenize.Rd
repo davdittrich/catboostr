@@ -15,8 +15,7 @@ Default value: Required argument}
 
 Default value: Required argument}
 
-\item{types}{If TRUE, also return the token type ("Unknown" for every
-token in "ByDelimiter" mode, matching the vendor implementation).
+\item{types}{If TRUE, also return token types.
 
 Default value: FALSE}
 }

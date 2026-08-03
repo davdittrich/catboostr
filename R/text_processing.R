@@ -4,121 +4,126 @@ NULL
 # ---------------------------------------------------------------------------
 # catboost.Tokenizer / catboost.Dictionary
 #
-# Pure-R port of the Python `catboost.text_processing.Tokenizer` and
-# `catboost.text_processing.Dictionary` classes.
-#
-# Underlying logic location: the Python classes are thin Cython wrappers
+# Native bridges (catboost-8z4.48) around Python's
+# catboost.text_processing.Tokenizer / catboost.text_processing.Dictionary.
+# Both Python classes are thin Cython wrappers
 # (vendor/catboost/catboost/python-package/catboost/_text_processing.pxi)
-# around vendor/catboost/library/cpp/text_processing/{tokenizer,dictionary}.
-# catboostr's src/ does not currently link that library and does not expose
-# any tokenizer/dictionary bridge functions (confirmed: zero matches for
-# "tokeniz"/"dictionary" under src/). Reusing the vendor implementation would
-# require adding new Rcpp glue and wiring it into the build; instead this
-# file is a pure-R re-implementation, verified byte-for-byte against the
-# pinned Python oracle for the *default* configuration:
-#   - Tokenizer: SeparatorType == "ByDelimiter" (the library default).
-#     "BySense" mode wraps a large NLP sentence/word-boundary tokenizer
-#     (library/cpp/tokenizer) that is not reasonably reimplementable in pure
-#     R; it is explicitly unsupported here (clear error, not a silent
-#     approximation).
-#   - Dictionary: TokenLevelType == "Word", GramOrder == 1,
-#     dictionary_type == "FrequencyBased" (the library defaults). Letter
-#     n-grams, multigrams (GramOrder > 1) and Bpe dictionaries are out of
-#     scope for this ticket (pure text-preprocessing vocabulary building) and
-#     are rejected with a clear error.
+# around vendor/catboost/library/cpp/text_processing/{tokenizer,dictionary},
+# which src/CMakeLists.txt now links directly into catboostr (same linking
+# pattern P3.3 established for dataset-statistics; see src/catboostr.cpp's
+# CatBoostText*_R bridges). Every option Python exposes -- BySense
+# separation, lemmatizing/token_types/sub_tokens_policy/languages,
+# Letter-level and multigram (gram_order > 1) dictionaries, and the Bpe
+# dictionary type -- is backed by the identical vendor C++ code the pinned
+# Python oracle runs, so R and Python are byte-identical by construction
+# rather than by a hand-verified pure-R reimplementation (the earlier
+# ~643-line pure-R port this replaces only covered each option's default
+# value and explicitly rejected the rest).
 # ---------------------------------------------------------------------------
 
-.catboost.tp.is_number <- function(token) {
-    grepl("^[0-9]+$", token)
-}
-
-.catboost.tp.split_by_delimiter <- function(string, delimiter, split_by_set, skip_empty) {
-    if (nchar(string) == 0 && skip_empty) {
-        return(character(0))
-    }
-    if (split_by_set) {
-        chars <- unique(strsplit(delimiter, "", fixed = TRUE)[[1]])
-        pattern <- paste0("[", paste(gsub("([][{}()*+?.\\^$|])", "\\\\\\1", chars), collapse = ""), "]")
-        tokens <- strsplit(string, pattern, perl = TRUE)[[1]]
-        # strsplit() drops a trailing empty field that SplitBySet() keeps; restore it.
-        if (grepl(pattern, substring(string, nchar(string)), perl = TRUE)) {
-            tokens <- c(tokens, "")
-        }
-    } else {
-        tokens <- strsplit(string, delimiter, fixed = TRUE)[[1]]
-        if (endsWith(string, delimiter) && nchar(delimiter) > 0) {
-            tokens <- c(tokens, "")
-        }
-    }
-    if (length(tokens) == 0) {
-        tokens <- ""
-    }
-    if (skip_empty) {
-        tokens <- tokens[nzchar(tokens)]
-    }
-    tokens
+.catboost.tp.tokenize_line <- function(line, tokenizer) {
+  # Mirrors _text_processing.pxi: a bare (length-1) string is tokenized (if a
+  # tokenizer is given) or treated as a single token (if not); an
+  # already-tokenized character vector/list element is used as-is.
+  if (is.character(line) && length(line) == 1 && !is.null(tokenizer)) {
+    catboost.tokenizer.tokenize(tokenizer, line)
+  } else {
+    as.character(line)
+  }
 }
 
 #' @name catboost.Tokenizer
-#' @title Create a text Tokenizer
+#' @title Create text Tokenizer
 #'
 #' @description Splits a string into tokens ahead of \code{catboost.Dictionary}
-#' fitting/application. This is a pure-R port of Python's
-#' \code{catboost.text_processing.Tokenizer}. Only the default
-#' \code{separator_type = "ByDelimiter"} mode is supported; \code{"BySense"}
-#' (full NLP sentence/word tokenization) is not reimplemented and raises an
-#' error.
+#' fitting/application. Native bridge to Python's
+#' \code{catboost.text_processing.Tokenizer}, backed directly by vendor's
+#' \code{NTextProcessing::NTokenizer::TTokenizer}.
 #'
-#' @param lowercasing Lowercase every token. Default value: FALSE
+#' @param lowercasing Lowercase each token. Default value: FALSE
+#' @param lemmatizing Apply lemmatization to tokens.
+#'
+#' Default value: FALSE
 #' @param number_process_policy One of "Skip", "LeaveAsIs", "Replace".
 #'
 #' Default value: "LeaveAsIs"
 #' @param number_token Replacement token used when \code{number_process_policy}
 #' is "Replace".
 #'
-#' Default value: "\\U0001F522" (matches the vendor default)
-#' @param separator_type Only "ByDelimiter" is supported.
+#' Default value: "\U0001F522" (matches vendor default)
+#' @param separator_type Tokenization method: "ByDelimiter" or "BySense".
 #'
 #' Default value: "ByDelimiter"
-#' @param delimiter Delimiter string used to split tokens.
+#' @param delimiter Delimiter string used to split tokens (ByDelimiter mode).
 #'
 #' Default value: " "
-#' @param split_by_set If TRUE, every individual character in \code{delimiter}
-#' is treated as its own delimiter.
+#' @param split_by_set If TRUE, each individual character in \code{delimiter}
+#' is treated as its own delimiter (ByDelimiter mode).
 #'
 #' Default value: FALSE
-#' @param skip_empty Skip empty tokens produced by adjacent delimiters.
+#' @param skip_empty Skip empty tokens adjacent to delimiters (ByDelimiter mode).
 #'
 #' Default value: TRUE
+#' @param token_types Character vector of token types kept after
+#' tokenization (BySense mode). Possible values: "Word", "Digit",
+#' "Punctuation", "SentenceBreak", "ParagraphBreak", "Unknown".
+#'
+#' Default value: NULL (vendor default: c("Word", "Digit", "Unknown"))
+#' @param sub_tokens_policy Subtoken processing policy (BySense mode): one of
+#' "SingleToken", "SeveralTokens".
+#'
+#' Default value: "SingleToken"
+#' @param languages Character vector of language names used for
+#' lemmatizing/BySense tokenization.
+#'
+#' Default value: NULL (all languages)
 #' @return catboost.Tokenizer
 #' @export
 catboost.Tokenizer <- function(lowercasing = NULL,
+                                lemmatizing = NULL,
                                 number_process_policy = NULL,
                                 number_token = NULL,
                                 separator_type = NULL,
                                 delimiter = NULL,
                                 split_by_set = NULL,
-                                skip_empty = NULL) {
-    if (!is.null(separator_type) && separator_type != "ByDelimiter") {
-        stop("catboost.Tokenizer: separator_type = '", separator_type, "' is not supported; ",
-             "only 'ByDelimiter' (the library default) is implemented in the R port.")
-    }
-    number_process_policy <- if (is.null(number_process_policy)) "LeaveAsIs" else number_process_policy
-    if (!(number_process_policy %in% c("Skip", "LeaveAsIs", "Replace"))) {
-        stop("catboost.Tokenizer: unsupported number_process_policy '", number_process_policy, "'.")
-    }
+                                skip_empty = NULL,
+                                token_types = NULL,
+                                sub_tokens_policy = NULL,
+                                languages = NULL) {
+  lowercasing <- if (is.null(lowercasing)) FALSE else lowercasing
+  lemmatizing <- if (is.null(lemmatizing)) FALSE else lemmatizing
+  number_process_policy <- if (is.null(number_process_policy)) "LeaveAsIs" else number_process_policy
+  number_token <- if (is.null(number_token)) "\U0001F522" else number_token
+  separator_type <- if (is.null(separator_type)) "ByDelimiter" else separator_type
+  delimiter <- if (is.null(delimiter)) " " else delimiter
+  split_by_set <- if (is.null(split_by_set)) FALSE else split_by_set
+  skip_empty <- if (is.null(skip_empty)) TRUE else skip_empty
+  sub_tokens_policy <- if (is.null(sub_tokens_policy)) "SingleToken" else sub_tokens_policy
 
-    structure(
-        list(
-            lowercasing = if (is.null(lowercasing)) FALSE else lowercasing,
-            number_process_policy = number_process_policy,
-            number_token = if (is.null(number_token)) "\U0001F522" else number_token,
-            delimiter = if (is.null(delimiter)) " " else delimiter,
-            split_by_set = if (is.null(split_by_set)) FALSE else split_by_set,
-            skip_empty = if (is.null(skip_empty)) TRUE else skip_empty
-        ),
-        class = "catboost.Tokenizer"
-    )
+  handle <- .Call(
+    "CatBoostTextTokenizerCreate_R",
+    lowercasing, lemmatizing, number_process_policy, number_token,
+    separator_type, delimiter, split_by_set, skip_empty,
+    token_types, sub_tokens_policy, languages
+  )
+
+  structure(
+    list(
+      handle = handle,
+      lowercasing = lowercasing,
+      lemmatizing = lemmatizing,
+      number_process_policy = number_process_policy,
+      number_token = number_token,
+      separator_type = separator_type,
+      delimiter = delimiter,
+      split_by_set = split_by_set,
+      skip_empty = skip_empty,
+      token_types = token_types,
+      sub_tokens_policy = sub_tokens_policy,
+      languages = languages
+    ),
+    class = "catboost.Tokenizer"
+  )
 }
 
 
@@ -133,95 +138,71 @@ catboost.Tokenizer <- function(lowercasing = NULL,
 #' @param string Input string.
 #'
 #' Default value: Required argument
-#' @param types If TRUE, also return the token type ("Unknown" for every
-#' token in "ByDelimiter" mode, matching the vendor implementation).
+#' @param types If TRUE, also return token types.
 #'
 #' Default value: FALSE
 #' @return A character vector of tokens, or (if \code{types = TRUE}) a
 #' data.frame with \code{token} and \code{type} columns.
 #' @export
 catboost.tokenizer.tokenize <- function(tokenizer, string, types = FALSE) {
-    if (!inherits(tokenizer, "catboost.Tokenizer")) {
-        stop("catboost.tokenizer.tokenize: 'tokenizer' must be a catboost.Tokenizer object.")
-    }
-    tokens <- .catboost.tp.split_by_delimiter(
-        string, tokenizer$delimiter, tokenizer$split_by_set, tokenizer$skip_empty
-    )
-
-    if (tokenizer$lowercasing) {
-        tokens <- tolower(tokens)
-    }
-
-    if (tokenizer$number_process_policy == "Replace") {
-        is_num <- .catboost.tp.is_number(tokens)
-        tokens[is_num] <- tokenizer$number_token
-    } else if (tokenizer$number_process_policy == "Skip") {
-        tokens <- tokens[!.catboost.tp.is_number(tokens)]
-    }
-
-    if (types) {
-        return(data.frame(token = tokens, type = rep("Unknown", length(tokens)), stringsAsFactors = FALSE))
-    }
-    tokens
+  if (!inherits(tokenizer, "catboost.Tokenizer")) {
+    stop("catboost.tokenizer.tokenize: 'tokenizer' must be a catboost.Tokenizer object.")
+  }
+  result <- .Call("CatBoostTextTokenizerTokenize_R", tokenizer$handle, as.character(string))
+  if (types) {
+    return(data.frame(token = result$tokens, type = result$types, stringsAsFactors = FALSE))
+  }
+  result$tokens
 }
 
 
-.catboost.tp.tokenize_line <- function(line, tokenizer) {
-    # Mirrors _text_processing.pxi: a bare string is tokenized only when a
-    # tokenizer is supplied; otherwise the whole string is treated as a
-    # single token. An already-tokenized vector/list of tokens is passed
-    # through unchanged, ignoring any tokenizer.
-    if (is.character(line) && length(line) == 1) {
-        if (!is.null(tokenizer)) {
-            catboost.tokenizer.tokenize(tokenizer, line)
-        } else {
-            line
-        }
-    } else {
-        as.character(line)
-    }
-}
-
-.catboost.tp.default_dict_options <- function() {
-    list(
-        token_level_type = "Word",
-        gram_order = 1L,
-        start_token_id = 0L,
-        end_of_word_policy = "Insert",
-        end_of_sentence_policy = "Skip",
-        occurence_lower_bound = 50L,
-        max_dictionary_size = -1L,
-        dictionary_type = "FrequencyBased"
-    )
+.catboost.tp.dictionary_defaults <- function() {
+  list(
+    token_level_type = "Word",
+    gram_order = 1L,
+    skip_step = 0L,
+    start_token_id = 0L,
+    end_of_word_policy = "Insert",
+    end_of_sentence_policy = "Skip",
+    occurence_lower_bound = 50L,
+    max_dictionary_size = -1L,
+    dictionary_type = "FrequencyBased",
+    num_bpe_units = 0L,
+    skip_unknown = FALSE
+  )
 }
 
 #' @name catboost.Dictionary
-#' @title Create a text Dictionary
+#' @title Create text Dictionary
 #'
-#' @description Builds a token/id vocabulary from text data, mirroring the
-#' default (Word-level, unigram, frequency-based) configuration of Python's
-#' \code{catboost.text_processing.Dictionary}. Use \code{catboost.dictionary.fit}
-#' to train it and \code{catboost.dictionary.apply} to convert text to token
-#' ids. Letter-level tokens, multigrams (\code{gram_order > 1}) and
-#' \code{dictionary_type = "Bpe"} are out of scope and rejected with a clear
-#' error.
+#' @description Builds a token/id vocabulary from text data. Native bridge to
+#' Python's \code{catboost.text_processing.Dictionary}, backed directly by
+#' vendor's \code{NTextProcessing::NDictionary::TDictionary}/
+#' \code{TDictionaryBuilder}/\code{TBpeDictionary}/\code{TBpeDictionaryBuilder}.
+#' Use \code{catboost.dictionary.fit} to train it and
+#' \code{catboost.dictionary.apply} to convert text to token ids.
 #'
-#' @param token_level_type Only "Word" is supported.
+#' @param token_level_type "Word" or "Letter".
 #'
 #' Default value: "Word"
-#' @param gram_order Only 1 is supported.
+#' @param gram_order The number of words/letters joined into each token
+#' (multigrams).
 #'
 #' Default value: 1
+#' @param skip_step Number of words/letters skipped when joining them into
+#' tokens; only takes effect when \code{gram_order > 1}.
+#'
+#' Default value: 0
 #' @param start_token_id Initial shift for assigned token identifiers.
 #'
 #' Default value: 0
-#' @param end_of_word_policy Unused for Word-level dictionaries; accepted for
-#' interface parity.
+#' @param end_of_word_policy "Skip" or "Insert"; used with Letter-level
+#' dictionaries.
 #'
 #' Default value: "Insert"
 #' @param end_of_sentence_policy "Skip" or "Insert"; whether
-#' \code{catboost.dictionary.apply} appends the end-of-sentence token id
-#' after each tokenized line.
+#' \code{catboost.dictionary.apply} appends an end-of-sentence token id
+#' after a tokenized line.
 #'
 #' Default value: "Skip"
 #' @param occurence_lower_bound Minimum corpus occurrence count for a token
@@ -232,84 +213,77 @@ catboost.tokenizer.tokenize <- function(tokenizer, string, types = FALSE) {
 #' unlimited.
 #'
 #' Default value: -1
-#' @param dictionary_type Only "FrequencyBased" is supported.
+#' @param dictionary_type "FrequencyBased" or "Bpe".
 #'
 #' Default value: "FrequencyBased"
-#' @return catboost.Dictionary (a mutable object; \code{fit}/\code{load}
+#' @param num_bpe_units Number of token-pair merges to perform (Bpe type).
+#'
+#' Default value: 0
+#' @param skip_unknown Skip unknown tokens when building a Bpe dictionary.
+#'
+#' Default value: FALSE
+#' @return A mutable catboost.Dictionary object (\code{fit}/\code{load}
 #' update it in place).
 #' @export
 catboost.Dictionary <- function(token_level_type = NULL,
                                  gram_order = NULL,
+                                 skip_step = NULL,
                                  start_token_id = NULL,
                                  end_of_word_policy = NULL,
                                  end_of_sentence_policy = NULL,
                                  occurence_lower_bound = NULL,
                                  max_dictionary_size = NULL,
-                                 dictionary_type = NULL) {
-    defaults <- .catboost.tp.default_dict_options()
-    token_level_type <- if (is.null(token_level_type)) defaults$token_level_type else token_level_type
-    gram_order <- if (is.null(gram_order)) defaults$gram_order else as.integer(gram_order)
-    dictionary_type <- if (is.null(dictionary_type)) defaults$dictionary_type else dictionary_type
+                                 dictionary_type = NULL,
+                                 num_bpe_units = NULL,
+                                 skip_unknown = NULL) {
+  defaults <- .catboost.tp.dictionary_defaults()
 
-    if (token_level_type != "Word") {
-        stop("catboost.Dictionary: token_level_type = '", token_level_type, "' is not supported; ",
-             "only 'Word' (the library default) is implemented in the R port.")
-    }
-    if (gram_order != 1L) {
-        stop("catboost.Dictionary: gram_order = ", gram_order, " is not supported; ",
-             "only 1 (unigram) is implemented in the R port.")
-    }
-    if (dictionary_type != "FrequencyBased") {
-        stop("catboost.Dictionary: dictionary_type = '", dictionary_type, "' is not supported; ",
-             "only 'FrequencyBased' is implemented in the R port.")
-    }
-    end_of_sentence_policy <- if (is.null(end_of_sentence_policy)) defaults$end_of_sentence_policy else end_of_sentence_policy
-    if (!(end_of_sentence_policy %in% c("Skip", "Insert"))) {
-        stop("catboost.Dictionary: unsupported end_of_sentence_policy '", end_of_sentence_policy, "'.")
-    }
+  env <- new.env(parent = emptyenv())
+  env$token_level_type <- if (is.null(token_level_type)) defaults$token_level_type else token_level_type
+  env$gram_order <- if (is.null(gram_order)) defaults$gram_order else as.integer(gram_order)
+  env$skip_step <- if (is.null(skip_step)) defaults$skip_step else as.integer(skip_step)
+  env$start_token_id <- if (is.null(start_token_id)) defaults$start_token_id else as.integer(start_token_id)
+  env$end_of_word_policy <- if (is.null(end_of_word_policy)) defaults$end_of_word_policy else end_of_word_policy
+  env$end_of_sentence_policy <-
+    if (is.null(end_of_sentence_policy)) defaults$end_of_sentence_policy else end_of_sentence_policy
+  env$occurence_lower_bound <-
+    if (is.null(occurence_lower_bound)) defaults$occurence_lower_bound else as.integer(occurence_lower_bound)
+  env$max_dictionary_size <-
+    if (is.null(max_dictionary_size)) defaults$max_dictionary_size else as.integer(max_dictionary_size)
+  env$dictionary_type <- if (is.null(dictionary_type)) defaults$dictionary_type else dictionary_type
+  env$num_bpe_units <- if (is.null(num_bpe_units)) defaults$num_bpe_units else as.integer(num_bpe_units)
+  env$skip_unknown <- if (is.null(skip_unknown)) defaults$skip_unknown else skip_unknown
 
-    env <- new.env(parent = emptyenv())
-    env$token_level_type <- token_level_type
-    env$gram_order <- gram_order
-    env$start_token_id <- if (is.null(start_token_id)) defaults$start_token_id else as.integer(start_token_id)
-    env$end_of_word_policy <- if (is.null(end_of_word_policy)) defaults$end_of_word_policy else end_of_word_policy
-    env$end_of_sentence_policy <- end_of_sentence_policy
-    env$occurence_lower_bound <- if (is.null(occurence_lower_bound)) defaults$occurence_lower_bound else as.integer(occurence_lower_bound)
-    env$max_dictionary_size <- if (is.null(max_dictionary_size)) defaults$max_dictionary_size else as.integer(max_dictionary_size)
-    env$dictionary_type <- dictionary_type
+  env$initialized <- FALSE
+  env$handle <- NULL
 
-    env$initialized <- FALSE
-    env$token_to_id <- NULL # named integer vector: names = tokens, values = ids
-    env$id_to_token <- NULL # character vector indexed by (id - start_token_id + 1)
-    env$id_to_count <- NULL # integer vector, same indexing as id_to_token
-    env$unknown_token_id <- NA_integer_
-    env$end_of_sentence_token_id <- NA_integer_
-
-    structure(env, class = "catboost.Dictionary")
+  structure(env, class = "catboost.Dictionary")
 }
 
 .catboost.dictionary.check_initialized <- function(dictionary) {
-    if (!isTRUE(dictionary$initialized)) {
-        stop("catboost.Dictionary should be initialized (call catboost.dictionary.fit or ",
-             "catboost.dictionary.load first).")
-    }
+  if (!isTRUE(dictionary$initialized)) {
+    stop(
+      "catboost.Dictionary is not initialized yet; call catboost.dictionary.fit ",
+      "or catboost.dictionary.load first."
+    )
+  }
 }
 
 #' @name catboost.dictionary.fit
 #' @title Train a Dictionary
 #'
-#' @description Build the token/id vocabulary from text data.
+#' @description Builds the token/id vocabulary from \code{data}.
 #'
-#' @param dictionary A catboost.Dictionary object; updated in place.
+#' @param dictionary A catboost.Dictionary object.
 #'
 #' Default value: Required argument
-#' @param data A character vector (one document per element; tokenized with
-#' \code{tokenizer} if given, otherwise each element is treated as a single
-#' token) or a list of character vectors (already-tokenized documents).
+#' @param data A character vector, or a list mixing strings and
+#' already-tokenized character vectors.
 #'
 #' Default value: Required argument
 #' @param tokenizer An optional catboost.Tokenizer used to split each
-#' element of a character-vector \code{data}.
+#' length-1 string element of \code{data} into tokens; character vector
+#' elements of length > 1 are treated as already tokenized regardless.
 #'
 #' Default value: NULL
 #' @param verbose Unused; accepted for interface parity with the Python API.
@@ -318,111 +292,77 @@ catboost.Dictionary <- function(token_level_type = NULL,
 #' @return The (mutated) catboost.Dictionary, invisibly.
 #' @export
 catboost.dictionary.fit <- function(dictionary, data, tokenizer = NULL, verbose = FALSE) {
-    if (!inherits(dictionary, "catboost.Dictionary")) {
-        stop("catboost.dictionary.fit: 'dictionary' must be a catboost.Dictionary object.")
-    }
-    if (is.character(data)) {
-        data <- as.list(data)
-    }
-    if (!is.list(data)) {
-        stop("catboost.dictionary.fit: 'data' must be a character vector or a list of character vectors.")
-    }
+  if (!inherits(dictionary, "catboost.Dictionary")) {
+    stop("catboost.dictionary.fit: 'dictionary' must be a catboost.Dictionary object.")
+  }
+  if (is.character(data)) {
+    data <- as.list(data)
+  }
+  if (!is.list(data)) {
+    stop("catboost.dictionary.fit: 'data' must be a character vector or a list of character vectors.")
+  }
 
-    counts <- new.env(hash = TRUE, parent = emptyenv())
-    for (line in data) {
-        tokens <- .catboost.tp.tokenize_line(line, tokenizer)
-        for (tok in tokens) {
-            counts[[tok]] <- if (is.null(counts[[tok]])) 1L else counts[[tok]] + 1L
-        }
-    }
+  lines <- lapply(data, .catboost.tp.tokenize_line, tokenizer = tokenizer)
 
-    tokens <- ls(counts, sorted = FALSE)
-    token_counts <- vapply(tokens, function(t) counts[[t]], integer(1))
-
-    keep <- token_counts >= dictionary$occurence_lower_bound
-    tokens <- tokens[keep]
-    token_counts <- token_counts[keep]
-
-    if (length(tokens) > 0) {
-        ord <- order(token_counts, tokens, decreasing = c(TRUE, FALSE), method = "radix")
-    } else {
-        ord <- integer(0)
-    }
-
-    max_size <- if (dictionary$max_dictionary_size == -1L) length(ord) else min(length(ord), dictionary$max_dictionary_size)
-    ord <- ord[seq_len(max_size)]
-
-    id_to_token <- tokens[ord]
-    id_to_count <- token_counts[ord]
-    ids <- dictionary$start_token_id + seq_along(id_to_token) - 1L
-    token_to_id <- stats::setNames(ids, id_to_token)
-
-    dictionary$token_to_id <- token_to_id
-    dictionary$id_to_token <- id_to_token
-    dictionary$id_to_count <- id_to_count
-    dictionary$unknown_token_id <- dictionary$start_token_id + length(id_to_token)
-    dictionary$end_of_sentence_token_id <- dictionary$unknown_token_id + 1L
-    dictionary$initialized <- TRUE
-
-    invisible(dictionary)
+  dictionary$handle <- .Call(
+    "CatBoostTextDictionaryFit_R",
+    lines,
+    dictionary$token_level_type,
+    dictionary$gram_order,
+    dictionary$skip_step,
+    dictionary$start_token_id,
+    dictionary$end_of_word_policy,
+    dictionary$end_of_sentence_policy,
+    dictionary$occurence_lower_bound,
+    dictionary$max_dictionary_size,
+    dictionary$dictionary_type,
+    dictionary$num_bpe_units,
+    dictionary$skip_unknown
+  )
+  dictionary$initialized <- TRUE
+  invisible(dictionary)
 }
 
 #' @name catboost.dictionary.apply
-#' @title Apply a Dictionary to text
+#' @title Apply a Dictionary
 #'
-#' @description Convert text into token ids using a fitted
-#' \code{catboost.Dictionary}.
+#' @description Converts \code{data} into token ids.
 #'
 #' @param dictionary A fitted catboost.Dictionary object.
 #'
 #' Default value: Required argument
-#' @param data A single string, a character vector (one document per
-#' element), or a list of character vectors (already-tokenized documents).
+#' @param data A string, character vector, or list mixing strings and
+#' already-tokenized character vectors.
 #'
 #' Default value: Required argument
-#' @param tokenizer An optional catboost.Tokenizer used to split each raw
-#' string in \code{data}.
+#' @param tokenizer An optional catboost.Tokenizer, see
+#' \code{catboost.dictionary.fit}.
 #'
 #' Default value: NULL
 #' @param unknown_token_policy "Skip" (drop unknown tokens) or "Insert"
 #' (emit \code{unknown_token_id}).
 #'
 #' Default value: "Skip"
-#' @return An integer vector of token ids if \code{data} was a single
+#' @return An integer vector of token ids if \code{data} is a single
 #' string, otherwise a list of integer vectors (one per document).
 #' @export
 catboost.dictionary.apply <- function(dictionary, data, tokenizer = NULL, unknown_token_policy = NULL) {
-    .catboost.dictionary.check_initialized(dictionary)
-    unknown_token_policy <- if (is.null(unknown_token_policy)) "Skip" else unknown_token_policy
-    if (!(unknown_token_policy %in% c("Skip", "Insert"))) {
-        stop("catboost.dictionary.apply: unsupported unknown_token_policy '", unknown_token_policy, "'.")
-    }
+  .catboost.dictionary.check_initialized(dictionary)
+  unknown_token_policy <- if (is.null(unknown_token_policy)) "Skip" else unknown_token_policy
 
-    need_to_extract <- is.character(data) && length(data) == 1
-    lines <- if (is.character(data)) as.list(data) else data
-    if (!is.list(lines)) {
-        stop("catboost.dictionary.apply: 'data' must be a string, a character vector, or a list of character vectors.")
-    }
+  need_to_extract <- is.character(data) && length(data) == 1
+  lines <- if (is.character(data)) as.list(data) else data
+  if (!is.list(lines)) {
+    stop("catboost.dictionary.apply: 'data' must be a string, character vector, or list of character vectors.")
+  }
 
-    apply_one <- function(line) {
-        tokens <- .catboost.tp.tokenize_line(line, tokenizer)
-        ids <- unname(dictionary$token_to_id[tokens])
-        if (unknown_token_policy == "Insert") {
-            ids[is.na(ids)] <- dictionary$unknown_token_id
-        } else {
-            ids <- ids[!is.na(ids)]
-        }
-        if (dictionary$end_of_sentence_policy == "Insert") {
-            ids <- c(ids, dictionary$end_of_sentence_token_id)
-        }
-        as.integer(ids)
-    }
+  tokenized <- lapply(lines, .catboost.tp.tokenize_line, tokenizer = tokenizer)
+  result <- .Call("CatBoostTextDictionaryApply_R", dictionary$handle, tokenized, unknown_token_policy)
 
-    result <- lapply(lines, apply_one)
-    if (need_to_extract) {
-        return(result[[1]])
-    }
-    result
+  if (need_to_extract) {
+    return(result[[1]])
+  }
+  result
 }
 
 #' @name catboost.dictionary.size
@@ -430,11 +370,11 @@ catboost.dictionary.apply <- function(dictionary, data, tokenizer = NULL, unknow
 #' @param dictionary A fitted catboost.Dictionary object.
 #'
 #' Default value: Required argument
-#' @return The number of tokens in the dictionary.
+#' @return An integer.
 #' @export
 catboost.dictionary.size <- function(dictionary) {
-    .catboost.dictionary.check_initialized(dictionary)
-    length(dictionary$id_to_token)
+  .catboost.dictionary.check_initialized(dictionary)
+  .Call("CatBoostTextDictionarySize_R", dictionary$handle)
 }
 
 #' @name catboost.dictionary.get_token
@@ -445,10 +385,10 @@ catboost.dictionary.size <- function(dictionary) {
 #' @param token_id A token id.
 #'
 #' Default value: Required argument
-#' @return The token string.
+#' @return A character string.
 #' @export
 catboost.dictionary.get_token <- function(dictionary, token_id) {
-    catboost.dictionary.get_tokens(dictionary, token_id)[[1]]
+  catboost.dictionary.get_tokens(dictionary, token_id)[[1]]
 }
 
 #' @name catboost.dictionary.get_tokens
@@ -462,20 +402,8 @@ catboost.dictionary.get_token <- function(dictionary, token_id) {
 #' @return A character vector of tokens.
 #' @export
 catboost.dictionary.get_tokens <- function(dictionary, token_ids) {
-    .catboost.dictionary.check_initialized(dictionary)
-    vapply(token_ids, function(id) {
-        if (id == dictionary$end_of_sentence_token_id) {
-            return("_EOS_")
-        }
-        if (id == dictionary$unknown_token_id) {
-            return("_UNK_")
-        }
-        idx <- id - dictionary$start_token_id + 1L
-        if (idx < 1 || idx > length(dictionary$id_to_token)) {
-            stop("catboost.dictionary.get_tokens: invalid token_id ", id, ".")
-        }
-        dictionary$id_to_token[idx]
-    }, character(1))
+  .catboost.dictionary.check_initialized(dictionary)
+  .Call("CatBoostTextDictionaryGetTokens_R", dictionary$handle, as.integer(token_ids))
 }
 
 #' @name catboost.dictionary.get_top_tokens
@@ -489,13 +417,9 @@ catboost.dictionary.get_tokens <- function(dictionary, token_ids) {
 #' @return A character vector of the most frequent tokens, most frequent first.
 #' @export
 catboost.dictionary.get_top_tokens <- function(dictionary, top_size = NULL) {
-    .catboost.dictionary.check_initialized(dictionary)
-    top_size <- if (is.null(top_size)) 10L else as.integer(top_size)
-    n <- min(top_size, length(dictionary$id_to_token))
-    if (n <= 0) {
-        return(character(0))
-    }
-    dictionary$id_to_token[seq_len(n)]
+  .catboost.dictionary.check_initialized(dictionary)
+  top_size <- if (is.null(top_size)) 10L else as.integer(top_size)
+  .Call("CatBoostTextDictionaryGetTopTokens_R", dictionary$handle, top_size)
 }
 
 #' @name catboost.dictionary.unknown_token_id
@@ -506,8 +430,8 @@ catboost.dictionary.get_top_tokens <- function(dictionary, top_size = NULL) {
 #' @return An integer id.
 #' @export
 catboost.dictionary.unknown_token_id <- function(dictionary) {
-    .catboost.dictionary.check_initialized(dictionary)
-    dictionary$unknown_token_id
+  .catboost.dictionary.check_initialized(dictionary)
+  .Call("CatBoostTextDictionaryUnknownTokenId_R", dictionary$handle)
 }
 
 #' @name catboost.dictionary.end_of_sentence_token_id
@@ -518,8 +442,8 @@ catboost.dictionary.unknown_token_id <- function(dictionary) {
 #' @return An integer id.
 #' @export
 catboost.dictionary.end_of_sentence_token_id <- function(dictionary) {
-    .catboost.dictionary.check_initialized(dictionary)
-    dictionary$end_of_sentence_token_id
+  .catboost.dictionary.check_initialized(dictionary)
+  .Call("CatBoostTextDictionaryEndOfSentenceTokenId_R", dictionary$handle)
 }
 
 #' @name catboost.dictionary.min_unused_token_id
@@ -530,114 +454,68 @@ catboost.dictionary.end_of_sentence_token_id <- function(dictionary) {
 #' @return An integer id.
 #' @export
 catboost.dictionary.min_unused_token_id <- function(dictionary) {
-    .catboost.dictionary.check_initialized(dictionary)
-    dictionary$end_of_sentence_token_id + 1L
+  .catboost.dictionary.check_initialized(dictionary)
+  .Call("CatBoostTextDictionaryMinUnusedTokenId_R", dictionary$handle)
 }
 
 #' @name catboost.dictionary.save
-#' @title Save a Dictionary to a file
+#' @title Save a Dictionary
 #'
 #' @description Writes the vendor "id_count_token" text format (a JSON
 #' options header line, a token-count line, then one "id\\tcount\\ttoken"
-#' line per token), which the pinned Python oracle's
-#' \code{Dictionary.load} can also read.
+#' line per token) for "FrequencyBased" dictionaries -- byte-identical to
+#' the pinned Python oracle's \code{Dictionary.save} because both call the
+#' same vendor \code{TDictionary::Save}. "Bpe" dictionaries additionally
+#' require \code{bpe_path} and are written via vendor's
+#' \code{TBpeDictionary::Save}.
 #'
 #' @param dictionary A fitted catboost.Dictionary object.
 #'
 #' Default value: Required argument
-#' @param frequency_dict_path Output file path.
+#' @param frequency_dict_path Output file path for the frequency-based
+#' alphabet.
 #'
 #' Default value: Required argument
+#' @param bpe_path Output file path for Bpe merge data; required when
+#' \code{dictionary$dictionary_type == "Bpe"}.
+#'
+#' Default value: NULL
 #' @return The catboost.Dictionary, invisibly.
 #' @export
-catboost.dictionary.save <- function(dictionary, frequency_dict_path) {
-    .catboost.dictionary.check_initialized(dictionary)
-    options_json <- jsonlite::toJSON(
-        list(
-            token_level_type = dictionary$token_level_type,
-            gram_order = as.character(dictionary$gram_order),
-            skip_step = "0",
-            start_token_id = as.character(dictionary$start_token_id),
-            end_of_word_token_policy = dictionary$end_of_word_policy,
-            dictionary_format = "id_count_token",
-            end_of_sentence_token_policy = dictionary$end_of_sentence_policy
-        ),
-        auto_unbox = TRUE
-    )
-
-    con <- file(frequency_dict_path, open = "wb")
-    on.exit(close(con))
-    writeLines(as.character(options_json), con = con, sep = "\n")
-    writeLines(as.character(length(dictionary$id_to_token)), con = con, sep = "\n")
-    if (length(dictionary$id_to_token) > 0) {
-        ids <- dictionary$start_token_id + seq_along(dictionary$id_to_token) - 1L
-        lines <- paste(ids, dictionary$id_to_count, dictionary$id_to_token, sep = "\t")
-        writeLines(lines, con = con, sep = "\n")
-    }
-
-    invisible(dictionary)
+catboost.dictionary.save <- function(dictionary, frequency_dict_path, bpe_path = NULL) {
+  .catboost.dictionary.check_initialized(dictionary)
+  .Call(
+    "CatBoostTextDictionarySave_R",
+    dictionary$handle, dictionary$dictionary_type, frequency_dict_path, bpe_path
+  )
+  invisible(dictionary)
 }
 
 #' @name catboost.dictionary.load
-#' @title Load a Dictionary from a file
+#' @title Load a Dictionary
 #'
-#' @description Reads the vendor "id_count_token" text format written by
-#' \code{catboost.dictionary.save} or by the pinned Python oracle's
-#' \code{Dictionary.save}.
+#' @description Reads a dictionary file written by \code{catboost.dictionary.save}
+#' or Python's \code{Dictionary.save}.
 #'
-#' @param dictionary A catboost.Dictionary object; updated in place.
-#'
-#' Default value: Required argument
-#' @param frequency_dict_path Input file path.
+#' @param dictionary A catboost.Dictionary object to load into.
 #'
 #' Default value: Required argument
+#' @param frequency_dict_path Input file path for the frequency-based
+#' alphabet.
+#'
+#' Default value: Required argument
+#' @param bpe_path Input file path for Bpe merge data; when supplied, the
+#' loaded dictionary is treated as "Bpe".
+#'
+#' Default value: NULL
 #' @return The (mutated) catboost.Dictionary, invisibly.
 #' @export
-catboost.dictionary.load <- function(dictionary, frequency_dict_path) {
-    if (!inherits(dictionary, "catboost.Dictionary")) {
-        stop("catboost.dictionary.load: 'dictionary' must be a catboost.Dictionary object.")
-    }
-    lines <- readLines(frequency_dict_path, warn = FALSE)
-    if (length(lines) < 2) {
-        stop("catboost.dictionary.load: '", frequency_dict_path, "' is not a valid dictionary file.")
-    }
-    header <- jsonlite::fromJSON(lines[1])
-    if (is.null(header$dictionary_format) || header$dictionary_format != "id_count_token") {
-        stop("catboost.dictionary.load: only the 'id_count_token' dictionary format is supported by the R port.")
-    }
-
-    dict_size <- as.integer(lines[2])
-    id_to_token <- character(dict_size)
-    id_to_count <- integer(dict_size)
-    ids <- integer(dict_size)
-    if (dict_size > 0) {
-        for (i in seq_len(dict_size)) {
-            parts <- strsplit(lines[2 + i], "\t", fixed = TRUE)[[1]]
-            ids[i] <- as.integer(parts[1])
-            id_to_count[i] <- if (length(parts) >= 2 && nzchar(parts[2])) as.integer(parts[2]) else NA_integer_
-            id_to_token[i] <- if (length(parts) > 3) paste(parts[3:length(parts)], collapse = "\t") else parts[3]
-        }
-    }
-    ord <- order(ids)
-    ids <- ids[ord]
-    id_to_token <- id_to_token[ord]
-    id_to_count <- id_to_count[ord]
-
-    start_token_id <- if (!is.null(header$start_token_id)) as.integer(header$start_token_id) else 0L
-
-    dictionary$token_level_type <- if (!is.null(header$token_level_type)) header$token_level_type else "Word"
-    dictionary$gram_order <- if (!is.null(header$gram_order)) as.integer(header$gram_order) else 1L
-    dictionary$start_token_id <- start_token_id
-    dictionary$end_of_word_policy <- if (!is.null(header$end_of_word_token_policy)) header$end_of_word_token_policy else "Insert"
-    dictionary$end_of_sentence_policy <- if (!is.null(header$end_of_sentence_token_policy)) header$end_of_sentence_token_policy else "Skip"
-    dictionary$dictionary_type <- "FrequencyBased"
-
-    dictionary$id_to_token <- id_to_token
-    dictionary$id_to_count <- id_to_count
-    dictionary$token_to_id <- stats::setNames(ids, id_to_token)
-    dictionary$unknown_token_id <- start_token_id + dict_size
-    dictionary$end_of_sentence_token_id <- dictionary$unknown_token_id + 1L
-    dictionary$initialized <- TRUE
-
-    invisible(dictionary)
+catboost.dictionary.load <- function(dictionary, frequency_dict_path, bpe_path = NULL) {
+  if (!inherits(dictionary, "catboost.Dictionary")) {
+    stop("catboost.dictionary.load: 'dictionary' must be a catboost.Dictionary object.")
+  }
+  dictionary$handle <- .Call("CatBoostTextDictionaryLoad_R", frequency_dict_path, bpe_path)
+  dictionary$dictionary_type <- if (is.null(bpe_path)) "FrequencyBased" else "Bpe"
+  dictionary$initialized <- TRUE
+  invisible(dictionary)
 }

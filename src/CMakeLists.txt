@@ -78,6 +78,11 @@ target_link_libraries(catboostr PUBLIC
   # `dataset-statistics` mode uses, instead of shelling out to the CLI binary.
   catboost-libs-dataset_statistics
   private-libs-app_helpers
+  # P3.6 follow-up (catboost-8z4.48): link the vendored tokenizer/dictionary
+  # libraries directly, replacing the earlier pure-R reimplementation, using
+  # the same linking pattern P3.3 established for dataset-statistics above.
+  cpp-text_processing-tokenizer
+  cpp-text_processing-dictionary
 )
 
 target_allocator(catboostr

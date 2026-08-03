@@ -2,7 +2,7 @@
 % Please edit documentation in R/text_processing.R
 \name{catboost.dictionary.apply}
 \alias{catboost.dictionary.apply}
-\title{Apply a Dictionary to text}
+\title{Apply a Dictionary}
 \usage{
 catboost.dictionary.apply(
   dictionary,
@@ -16,13 +16,13 @@ catboost.dictionary.apply(
 
 Default value: Required argument}
 
-\item{data}{A single string, a character vector (one document per
-element), or a list of character vectors (already-tokenized documents).
+\item{data}{A string, character vector, or list mixing strings and
+already-tokenized character vectors.
 
 Default value: Required argument}
 
-\item{tokenizer}{An optional catboost.Tokenizer used to split each raw
-string in \code{data}.
+\item{tokenizer}{An optional catboost.Tokenizer, see
+\code{catboost.dictionary.fit}.
 
 Default value: NULL}
 
@@ -32,10 +32,9 @@ Default value: NULL}
 Default value: "Skip"}
 }
 \value{
-An integer vector of token ids if \code{data} was a single
+An integer vector of token ids if \code{data} is a single
 string, otherwise a list of integer vectors (one per document).
 }
 \description{
-Convert text into token ids using a fitted
-\code{catboost.Dictionary}.
+Converts \code{data} into token ids.
 }

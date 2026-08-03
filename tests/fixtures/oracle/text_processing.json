@@ -2,26 +2,23 @@
   "catboost_version": "1.2.10",
   "inputs": {
     "texts": [
-      "Cats are beautiful animals.",
-      "Dogs are loyal, dogs are great.",
-      "The Cat sat on the mat, and the cat purred."
+      "Cats beautiful animals.",
+      "Dogs loyal, dogs great.",
+      "The Cat sat on mat, cat purred."
     ],
-    "number_string": "I have 12 cats and 3 dogs in 2024"
+    "number_string": "I 12 cats 3 dogs in 2024"
   },
   "expected": {
     "tokenize_default": [
       [
         "Cats",
-        "are",
         "beautiful",
         "animals."
       ],
       [
         "Dogs",
-        "are",
         "loyal,",
         "dogs",
-        "are",
         "great."
       ],
       [
@@ -29,10 +26,7 @@
         "Cat",
         "sat",
         "on",
-        "the",
         "mat,",
-        "and",
-        "the",
         "cat",
         "purred."
       ]
@@ -40,16 +34,13 @@
     "tokenize_lower": [
       [
         "cats",
-        "are",
         "beautiful",
         "animals."
       ],
       [
         "dogs",
-        "are",
         "loyal,",
         "dogs",
-        "are",
         "great."
       ],
       [
@@ -57,28 +48,21 @@
         "cat",
         "sat",
         "on",
-        "the",
         "mat,",
-        "and",
-        "the",
         "cat",
         "purred."
       ]
     ],
     "tokenize_number_skip": [
       "I",
-      "have",
       "cats",
-      "and",
       "dogs",
       "in"
     ],
     "tokenize_number_replace": [
       "I",
-      "have",
       "\ud83d\udd22",
       "cats",
-      "and",
       "\ud83d\udd22",
       "dogs",
       "in",
@@ -86,10 +70,8 @@
     ],
     "tokenize_number_replace_custom": [
       "I",
-      "have",
       "<NUM>",
       "cats",
-      "and",
       "<NUM>",
       "dogs",
       "in",
@@ -114,62 +96,112 @@
       "b",
       "c"
     ],
+    "tokenize_bysense": [
+      [
+        "Cats",
+        "beautiful",
+        "animals"
+      ],
+      [
+        "Dogs",
+        "loyal",
+        "dogs",
+        "great"
+      ],
+      [
+        "The",
+        "Cat",
+        "sat",
+        "on",
+        "mat",
+        "cat",
+        "purred"
+      ]
+    ],
+    "tokenize_bysense_types": {
+      "tokens": [
+        "The",
+        "Cat",
+        "sat",
+        "on",
+        "mat",
+        "cat",
+        "purred"
+      ],
+      "types": [
+        "Word",
+        "Word",
+        "Word",
+        "Word",
+        "Word",
+        "Word",
+        "Word"
+      ]
+    },
+    "tokenize_token_types_word_only": [
+      "The",
+      "Cat",
+      "sat",
+      "on",
+      "mat",
+      "cat",
+      "purred"
+    ],
+    "tokenize_sub_tokens_several": [
+      "U",
+      "S",
+      "A",
+      "cats"
+    ],
     "dictionary_default": {
-      "size": 14,
+      "size": 12,
       "top_tokens": [
-        "are",
-        "the",
         "cat",
         "dogs",
-        "and",
         "animals.",
         "beautiful",
         "cats",
         "great.",
-        "loyal,"
+        "loyal,",
+        "mat,",
+        "on",
+        "purred."
       ],
       "apply": [
         [
-          7,
-          0,
+          4,
+          3,
+          2
+        ],
+        [
+          1,
           6,
+          1,
           5
         ],
         [
-          3,
-          0,
-          9,
-          3,
-          0,
-          8
-        ],
-        [
-          1,
-          2,
-          13,
           11,
-          1,
+          0,
           10,
-          4,
-          1,
-          2,
-          12
+          8,
+          7,
+          0,
+          9
         ]
       ],
-      "unknown_token_id": 14,
-      "end_of_sentence_token_id": 15,
-      "min_unused_token_id": 16,
-      "get_token_0": "are",
+      "unknown_token_id": 12,
+      "end_of_sentence_token_id": 13,
+      "min_unused_token_id": 14,
+      "get_token_0": "cat",
       "get_tokens_0_1_2": [
-        "are",
-        "the",
-        "cat"
+        "cat",
+        "dogs",
+        "animals."
       ],
       "single_string_apply": [
-        7,
-        0,
-        6,
-        5
+        4,
+        3,
+        2
       ]
     },
     "unknown_token_policy": {
@@ -215,49 +247,96 @@
         "c"
       ]
     },
-    "save_load_round_trip": {
-      "size": 14,
+    "letter_level": {
       "top_tokens": [
-        "are",
-        "the",
+        "",
+        " ",
+        "a",
+        "c",
+        "t",
+        "s"
+      ],
+      "size": 6,
+      "apply": [
+        [
+          0,
+          3,
+          2,
+          4,
+          1
+        ]
+      ]
+    },
+    "multigram": {
+      "top_tokens": [
+        "cat dog",
+        "dog bird",
+        "dog fish"
+      ],
+      "size": 3,
+      "apply": [
+        [
+          0,
+          1
+        ]
+      ]
+    },
+    "bpe": {
+      "size": 8,
+      "apply": [
+        [
+          8,
+          9
+        ]
+      ],
+      "tokens_by_id": [
+        "cat",
+        "catfish",
+        "cats",
+        "dog",
+        "dogs",
+        "_UNK_",
+        "_EOS_",
+        "cat cats"
+      ]
+    },
+    "save_load_round_trip": {
+      "size": 12,
+      "top_tokens": [
         "cat",
         "dogs",
-        "and",
         "animals.",
         "beautiful",
         "cats",
         "great.",
-        "loyal,"
+        "loyal,",
+        "mat,",
+        "on",
+        "purred."
       ],
       "apply": [
         [
-          7,
-          0,
+          4,
+          3,
+          2
+        ],
+        [
+          1,
           6,
+          1,
           5
         ],
         [
-          3,
-          0,
-          9,
-          3,
-          0,
-          8
-        ],
-        [
-          1,
-          2,
-          13,
           11,
-          1,
+          0,
           10,
-          4,
-          1,
-          2,
-          12
+          8,
+          7,
+          0,
+          9
         ]
       ]
     },
-    "saved_dictionary_file_contents": "{\"end_of_word_token_policy\":\"Insert\",\"skip_step\":\"0\",\"start_token_id\":\"0\",\"token_level_type\":\"Word\",\"dictionary_format\":\"id_count_token\",\"end_of_sentence_token_policy\":\"Skip\",\"gram_order\":\"1\"}\n14\n0\t3\tare\n1\t3\tthe\n2\t2\tcat\n3\t2\tdogs\n4\t1\tand\n5\t1\tanimals.\n6\t1\tbeautiful\n7\t1\tcats\n8\t1\tgreat.\n9\t1\tloyal,\n10\t1\tmat,\n11\t1\ton\n12\t1\tpurred.\n13\t1\tsat\n"
+    "saved_dictionary_file_contents": "{\"end_of_word_token_policy\":\"Insert\",\"skip_step\":\"0\",\"start_token_id\":\"0\",\"token_level_type\":\"Word\",\"dictionary_format\":\"id_count_token\",\"end_of_sentence_token_policy\":\"Skip\",\"gram_order\":\"1\"}\n12\n0\t2\tcat\n1\t2\tdogs\n2\t1\tanimals.\n3\t1\tbeautiful\n4\t1\tcats\n5\t1\tgreat.\n6\t1\tloyal,\n7\t1\tmat,\n8\t1\ton\n9\t1\tpurred.\n10\t1\tsat\n11\t1\tthe\n"
   }
 }

@@ -1,11 +1,15 @@
 context("test_text_processing.R")
 
-# P3.6 differential test: the R catboost.Tokenizer/catboost.Dictionary port
-# is a pure-R reimplementation (see R/text_processing.R header) of the
-# pinned Python catboost==1.2.10 catboost.text_processing.Tokenizer/
-# Dictionary (tools/oracle/gen_text_processing_fixture.py). This asserts the
-# observable tokenize()/fit()/apply()/get_top_tokens()/save()/load() output
-# matches what the fixture oracle script recorded
+# P3.6 / catboost-8z4.48 differential test: catboost.Tokenizer/
+# catboost.Dictionary (R/text_processing.R) are native bridges around the
+# same vendor C++ (NTextProcessing::NTokenizer::TTokenizer,
+# NTextProcessing::NDictionary::TDictionary/TDictionaryBuilder/
+# TBpeDictionary/TBpeDictionaryBuilder) the pinned Python catboost==1.2.10
+# catboost.text_processing.Tokenizer/Dictionary (tools/oracle/
+# gen_text_processing_fixture.py) links -- so R and Python are expected to
+# be byte-identical, not merely "close". This asserts the observable
+# tokenize()/fit()/apply()/get_top_tokens()/save()/load() output matches
+# what the fixture oracle script recorded
 # (tests/fixtures/oracle/text_processing.json), plus a genuine file-format
 # round trip against a dictionary saved directly by the pinned oracle.
 #
@@ -66,8 +70,37 @@ test_that("Tokenizer: multi-character delimiter matches Python oracle", {
   expect_equal(catboost.tokenizer.tokenize(tok, "a::b::c"), expected$tokenize_multi_delimiter)
 })
 
-test_that("Tokenizer: 'BySense' separator is explicitly rejected, not silently approximated", {
-  expect_error(catboost.Tokenizer(separator_type = "BySense"), "not supported")
+# --- catboost-8z4.48 scope cut 1: BySense tokenization -------------------
+
+test_that("Tokenizer: 'BySense' separator matches Python oracle (catboost-8z4.48)", {
+  tok <- catboost.Tokenizer(separator_type = "BySense")
+  for (i in seq_along(texts)) {
+    expect_equal(catboost.tokenizer.tokenize(tok, texts[i]), expected$tokenize_bysense[[i]])
+  }
+  with_types <- catboost.tokenizer.tokenize(tok, texts[3], types = TRUE)
+  expect_equal(with_types$token, expected$tokenize_bysense_types$tokens)
+  expect_equal(with_types$type, expected$tokenize_bysense_types$types)
+})
+
+# --- catboost-8z4.48 scope cut 2: token_types / sub_tokens_policy --------
+# (lemmatizing/languages are excluded: the pinned catboost==1.2.10 OSS
+# build's Lemmer implementation is an unimplemented stub that aborts the
+# whole process -- vendor/catboost/library/cpp/text_processing/tokenizer/
+# tokenizer.cpp:267, confirmed while generating the fixture -- so there is
+# no Python oracle output to pin. catboost.Tokenizer(lemmatizing = TRUE)
+# reaches that identical vendor code and is expected to error/abort too,
+# since it now links the same C++ implementation instead of the pure-R
+# port, which is the correct byte-parity outcome even though it can't be
+# asserted with expect_error() (an abort, not a catchable condition).
+
+test_that("Tokenizer: token_types filters to the requested types (BySense) matches Python oracle", {
+  tok <- catboost.Tokenizer(separator_type = "BySense", token_types = "Word")
+  expect_equal(catboost.tokenizer.tokenize(tok, texts[3]), expected$tokenize_token_types_word_only)
+})
+
+test_that("Tokenizer: sub_tokens_policy = 'SeveralTokens' matches Python oracle", {
+  tok <- catboost.Tokenizer(separator_type = "BySense", sub_tokens_policy = "SeveralTokens")
+  expect_equal(catboost.tokenizer.tokenize(tok, "U.S.A. cats"), expected$tokenize_sub_tokens_several)
 })
 
 test_that("Dictionary: fit/apply/introspection matches Python oracle", {
@@ -128,6 +161,69 @@ test_that("Dictionary: fit from pre-tokenized data matches Python oracle", {
   d <- catboost.Dictionary(occurence_lower_bound = 0)
   catboost.dictionary.fit(d, list(c("a", "b"), c("a", "c")))
   expect_equal(catboost.dictionary.get_top_tokens(d), expected$pretokenized_fit$top_tokens)
+})
+
+# --- catboost-8z4.48 scope cut 3: Letter-level dictionaries --------------
+
+test_that("Dictionary: token_level_type = 'Letter' matches Python oracle (catboost-8z4.48)", {
+  d <- catboost.Dictionary(token_level_type = "Letter", occurence_lower_bound = 0)
+  catboost.dictionary.fit(d, c("cat", "cats"), catboost.Tokenizer())
+
+  exp <- expected$letter_level
+  expect_equal(catboost.dictionary.get_top_tokens(d), exp$top_tokens)
+  expect_equal(catboost.dictionary.size(d), exp$size)
+  expect_equal(
+    catboost.dictionary.apply(d, list("cat"), catboost.Tokenizer()),
+    list(as.integer(unlist(exp$apply)))
+  )
+})
+
+# --- catboost-8z4.48 scope cut 4: multigram (gram_order > 1) -------------
+
+test_that("Dictionary: gram_order > 1 (multigram) matches Python oracle (catboost-8z4.48)", {
+  d <- catboost.Dictionary(gram_order = 2, occurence_lower_bound = 0)
+  catboost.dictionary.fit(d, c("cat dog bird", "cat dog fish"), catboost.Tokenizer())
+
+  exp <- expected$multigram
+  expect_equal(catboost.dictionary.get_top_tokens(d), exp$top_tokens)
+  expect_equal(catboost.dictionary.size(d), exp$size)
+  expect_equal(
+    catboost.dictionary.apply(d, list("cat dog bird"), catboost.Tokenizer()),
+    list(as.integer(unlist(exp$apply)))
+  )
+})
+
+# --- catboost-8z4.48 scope cut 5: Bpe dictionary type --------------------
+#
+# Python's Dictionary.fit() only supports fitting a Bpe dictionary from a
+# file path (_text_processing.pxi's __fit_bpe raises "Now you can fit
+# dictionary from file." for array-like data -- confirmed while generating
+# the fixture); the oracle was generated by writing this exact corpus to a
+# file and fitting from there with the default (ByDelimiter, delimiter=" ")
+# Tokenizer. R's native bridge is not limited to file input: it builds the
+# same alphabet-then-merge corpus in memory from data tokenized R-side with
+# that same default Tokenizer, so the resulting merges are expected to be
+# byte-identical (both call the same vendor
+# TDictionaryBuilder/TBpeDictionaryBuilder over the same token stream).
+# get_top_tokens()/single-token apply() are unimplemented for TBpeDictionary
+# in vendor C++ itself (Y_ENSURE(false, ...) in
+# library/cpp/text_processing/dictionary/bpe_dictionary.cpp), so this test
+# does not call them.
+
+test_that("Dictionary: dictionary_type = 'Bpe' matches Python oracle (catboost-8z4.48)", {
+  d <- catboost.Dictionary(dictionary_type = "Bpe", occurence_lower_bound = 0, num_bpe_units = 5)
+  catboost.dictionary.fit(d, c("cat cats catfish", "dog dogs"), catboost.Tokenizer())
+
+  exp <- expected$bpe
+  expect_equal(catboost.dictionary.size(d), exp$size)
+  expect_equal(
+    catboost.dictionary.apply(d, list("cat cats catfish dog dogs"), catboost.Tokenizer()),
+    list(as.integer(unlist(exp$apply)))
+  )
+  expect_equal(
+    catboost.dictionary.get_tokens(d, seq_len(exp$size) - 1L),
+    exp$tokens_by_id
+  )
 })
 
 test_that("Dictionary: save() writes the exact format the Python oracle wrote", {

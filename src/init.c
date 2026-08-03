@@ -58,6 +58,18 @@ static const R_CallMethodDef CallEntries[] = {
     {"CatBoostSerializeModel_R",              (DL_FUNC) &CatBoostSerializeModel_R,               1},
     {"CatBoostShrinkModel_R",                 (DL_FUNC) &CatBoostShrinkModel_R,                  3},
     {"CatBoostSumModels_R",                   (DL_FUNC) &CatBoostSumModels_R,                    3},
+    {"CatBoostTextDictionaryApply_R",         (DL_FUNC) &CatBoostTextDictionaryApply_R,          3},
+    {"CatBoostTextDictionaryEndOfSentenceTokenId_R", (DL_FUNC) &CatBoostTextDictionaryEndOfSentenceTokenId_R, 1},
+    {"CatBoostTextDictionaryFit_R",           (DL_FUNC) &CatBoostTextDictionaryFit_R,           12},
+    {"CatBoostTextDictionaryGetTokens_R",     (DL_FUNC) &CatBoostTextDictionaryGetTokens_R,      2},
+    {"CatBoostTextDictionaryGetTopTokens_R",  (DL_FUNC) &CatBoostTextDictionaryGetTopTokens_R,   2},
+    {"CatBoostTextDictionaryLoad_R",          (DL_FUNC) &CatBoostTextDictionaryLoad_R,           2},
+    {"CatBoostTextDictionaryMinUnusedTokenId_R", (DL_FUNC) &CatBoostTextDictionaryMinUnusedTokenId_R, 1},
+    {"CatBoostTextDictionarySave_R",          (DL_FUNC) &CatBoostTextDictionarySave_R,           4},
+    {"CatBoostTextDictionarySize_R",          (DL_FUNC) &CatBoostTextDictionarySize_R,           1},
+    {"CatBoostTextDictionaryUnknownTokenId_R", (DL_FUNC) &CatBoostTextDictionaryUnknownTokenId_R, 1},
+    {"CatBoostTextTokenizerCreate_R",         (DL_FUNC) &CatBoostTextTokenizerCreate_R,         11},
+    {"CatBoostTextTokenizerTokenize_R",       (DL_FUNC) &CatBoostTextTokenizerTokenize_R,        2},
     {"CatBoostVersion_R",                     (DL_FUNC) &CatBoostVersion_R,                      0},
     {NULL, NULL, 0}
 };

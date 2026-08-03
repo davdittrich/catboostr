@@ -2,20 +2,28 @@
 % Please edit documentation in R/text_processing.R
 \name{catboost.Tokenizer}
 \alias{catboost.Tokenizer}
-\title{Create a text Tokenizer}
+\title{Create text Tokenizer}
 \usage{
 catboost.Tokenizer(
   lowercasing = NULL,
+  lemmatizing = NULL,
   number_process_policy = NULL,
   number_token = NULL,
   separator_type = NULL,
   delimiter = NULL,
   split_by_set = NULL,
-  skip_empty = NULL
+  skip_empty = NULL,
+  token_types = NULL,
+  sub_tokens_policy = NULL,
+  languages = NULL
 )
 }
 \arguments{
-\item{lowercasing}{Lowercase every token. Default value: FALSE}
+\item{lowercasing}{Lowercase each token. Default value: FALSE}
+
+\item{lemmatizing}{Apply lemmatization to tokens.
+
+Default value: FALSE}
 
 \item{number_process_policy}{One of "Skip", "LeaveAsIs", "Replace".
 
@@ -24,33 +32,47 @@ Default value: "LeaveAsIs"}
 \item{number_token}{Replacement token used when \code{number_process_policy}
 is "Replace".
 
-Default value: "\\U0001F522" (matches the vendor default)}
+Default value: "\U0001F522" (matches vendor default)}
 
-\item{separator_type}{Only "ByDelimiter" is supported.
+\item{separator_type}{Tokenization method: "ByDelimiter" or "BySense".
 
 Default value: "ByDelimiter"}
 
-\item{delimiter}{Delimiter string used to split tokens.
+\item{delimiter}{Delimiter string used to split tokens (ByDelimiter mode).
 
 Default value: " "}
 
-\item{split_by_set}{If TRUE, every individual character in \code{delimiter}
-is treated as its own delimiter.
+\item{split_by_set}{If TRUE, each individual character in \code{delimiter}
+is treated as its own delimiter (ByDelimiter mode).
 
 Default value: FALSE}
 
-\item{skip_empty}{Skip empty tokens produced by adjacent delimiters.
+\item{skip_empty}{Skip empty tokens adjacent to delimiters (ByDelimiter mode).
 
 Default value: TRUE}
+
+\item{token_types}{Character vector of token types kept after
+tokenization (BySense mode). Possible values: "Word", "Digit",
+"Punctuation", "SentenceBreak", "ParagraphBreak", "Unknown".
+
+Default value: NULL (vendor default: c("Word", "Digit", "Unknown"))}
+
+\item{sub_tokens_policy}{Subtoken processing policy (BySense mode): one of
+"SingleToken", "SeveralTokens".
+
+Default value: "SingleToken"}
+
+\item{languages}{Character vector of language names used for
+lemmatizing/BySense tokenization.
+
+Default value: NULL (all languages)}
 }
 \value{
 catboost.Tokenizer
 }
 \description{
 Splits a string into tokens ahead of \code{catboost.Dictionary}
-fitting/application. This is a pure-R port of Python's
-\code{catboost.text_processing.Tokenizer}. Only the default
-\code{separator_type = "ByDelimiter"} mode is supported; \code{"BySense"}
-(full NLP sentence/word tokenization) is not reimplemented and raises an
-error.
+fitting/application. Native bridge to Python's
+\code{catboost.text_processing.Tokenizer}, backed directly by vendor's
+\code{NTextProcessing::NTokenizer::TTokenizer}.
 }

@@ -132,3 +132,56 @@ test_that("pool metadata: set_timestamp is observable through a has_time fit's p
   prediction <- catboost.predict(model, timestamp_pool, prediction_type = "RawFormulaVal")
   expect_equal(as.double(prediction), fixture$expected$predict_timestamp, tolerance = 1e-6)
 })
+
+# catboost-8z4.49: timestamp= constructor argument parity vs. the
+# already-tested catboost.pool.set_timestamp() setter (catboost-8z4.38).
+test_that("load_pool: timestamp= constructor argument matches catboost.pool.set_timestamp (catboost-8z4.49)", {
+  inputs <- fixture$inputs
+  pool_via_constructor <- catboostr:::catboost.load_pool(
+    data.frame(num1 = inputs$num1), label = as.double(inputs$label),
+    timestamp = inputs$timestamp
+  )
+  pool_via_setter <- catboostr:::catboost.load_pool(
+    data.frame(num1 = inputs$num1), label = as.double(inputs$label)
+  )
+  catboostr:::catboost.pool.set_timestamp(pool_via_setter, inputs$timestamp)
+  params <- list(
+    loss_function = "Logloss", iterations = 5, depth = 2, has_time = TRUE,
+    random_seed = 42, thread_count = 1, logging_level = "Silent"
+  )
+  model_a <- catboostr:::catboost.train(pool_via_constructor, params = params)
+  model_b <- catboostr:::catboost.train(pool_via_setter, params = params)
+  expect_equal(
+    catboostr:::catboost.predict(model_a, pool_via_constructor),
+    catboostr:::catboost.predict(model_b, pool_via_setter)
+  )
+})
+
+test_that("load_pool: timestamp= length must match object count (catboost-8z4.49)", {
+  expect_error(
+    catboostr:::catboost.load_pool(data = matrix(1:20, ncol = 2), label = 1:10, timestamp = 1:5),
+    regexp = "timestamp"
+  )
+})
+
+test_that("load_pool: timestamp= must be numeric, not character/logical (catboost-8z4.49)", {
+  expect_error(
+    catboostr:::catboost.load_pool(data = matrix(1:20, ncol = 2), label = 1:10, timestamp = letters[1:10]),
+    regexp = "timestamp"
+  )
+  expect_error(
+    catboostr:::catboost.load_pool(data = matrix(1:20, ncol = 2), label = 1:10, timestamp = rep(TRUE, 10)),
+    regexp = "timestamp"
+  )
+})
+
+test_that("from_matrix: feature_tags= is rejected, not silently dropped (catboost-8z4.49)", {
+  expect_error(
+    catboostr:::catboost.load_pool(data = matrix(1:20, ncol = 2), label = 1:10, feature_tags = list(a = 1)),
+    regexp = "feature_tags"
+  )
+  expect_error(
+    catboostr:::catboost.from_matrix(matrix(1:20, ncol = 2), label = 1:10, feature_tags = list(a = 1)),
+    regexp = "feature_tags"
+  )
+})

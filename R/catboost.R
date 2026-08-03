@@ -74,6 +74,12 @@ NULL
 #' @param graph A file path, matrix or data.frame that contains the pairs of indices of objects for graph features.
 #' The shape should be Nx2, where N is the pairs of indices count.
 #' If -1, then the number of threads is set to the number of CPU cores.
+#' @param timestamp A numeric vector of per-object timestamps, length equal to the number of
+#' objects. Convenience wrapper around \code{\link{catboost.pool.set_timestamp}}: applied to the
+#' constructed Pool before it is returned, equivalent to calling
+#' \code{catboost.pool.set_timestamp(pool, timestamp)} afterward.
+#' @param feature_tags Not currently supported by catboostr (tracked as catboost-8z4.49); passing
+#' a non-NULL value raises an error rather than being silently ignored.
 #'
 #' @examples
 #' \dontrun{
@@ -102,7 +108,9 @@ catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_d
                                pairs = NULL, delimiter = "\t", has_header = FALSE, weight = NULL,
                                group_id = NULL, group_weight = NULL, subgroup_id = NULL, pairs_weight = NULL,
                                baseline = NULL, feature_names = NULL, thread_count = -1, graph = NULL,
-                               embedding_features = NULL) {
+                               embedding_features = NULL, timestamp = NULL, feature_tags = NULL) {
+    if (!is.null(feature_tags))
+        stop("feature_tags is not currently supported by catboostr; tracked as catboost-8z4.49")
     if (!is.null(pairs) && (is.character(data) != is.character(pairs))) {
         stop("Data and pairs should be the same types.")
     }
@@ -112,11 +120,13 @@ catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_d
     if (!is.null(embedding_features) && !is.matrix(data) && !inherits(data, "sparseMatrix")) {
         stop("parameter 'embedding_features' is only supported when 'data' is a matrix or a sparse matrix")
     }
+    if (!is.numeric(timestamp) && !is.null(timestamp))
+        stop("Unsupported timestamp type, expecting numeric, got: ", typeof(timestamp))
 
     if (is.character(data) && length(data) == 1) {
         for (arg in list("label", "cat_features", "weight", "group_id",
                          "group_weight", "subgroup_id", "pairs_weight",
-                         "baseline")) {
+                         "baseline", "timestamp")) {
             if (!is.null(get(arg))) {
                 stop("parameter '", arg, "' should be NULL when the pool is read from file")
             }
@@ -124,7 +134,7 @@ catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_d
         pool <- catboost.from_file(data, column_description, pairs, delimiter, has_header, thread_count, FALSE, feature_names, graph_path = graph)
     } else if (is.matrix(data) || inherits(data, "sparseMatrix")) {
         pool <- catboost.from_matrix(data, label, cat_features, NULL, NULL, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight,
-                                     baseline, feature_names, graph, embedding_features_data = embedding_features)
+                                     baseline, feature_names, graph, embedding_features_data = embedding_features, timestamp = timestamp)
     } else if (inherits(data, "catboost.FeaturesData")) {
         for (arg in list("cat_features", "feature_names")) {
             if (!is.null(get(arg))) {
@@ -132,7 +142,7 @@ catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_d
             }
         }
         pool <- catboost.from_matrix(data, label, NULL, NULL, NULL, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight,
-                                     baseline, NULL, graph)
+                                     baseline, NULL, graph, timestamp = timestamp)
     } else if (is.data.frame(data)) {
         for (arg in list("column_description")) {
             if (!is.null(get(arg))) {
@@ -145,6 +155,11 @@ catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_d
         }
         pool <- catboost.from_data_frame(data, label, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight,
                                          baseline, feature_names, graph)
+        if (!is.null(timestamp)) {
+            if (length(timestamp) != nrow(data))
+                stop("Data has ", nrow(data), " rows, timestamp vector has ", length(timestamp), " rows.")
+            catboost.pool.set_timestamp(pool, timestamp)
+        }
     } else {
         stop("Unsupported data type, expecting string, matrix, sparse matrix, data.frame or catboost.FeaturesData, got: ", class(data))
     }
@@ -178,7 +193,10 @@ catboost.from_file <- function(pool_path, cd_path = "", pairs_path = "", delimit
 catboost.from_matrix <- function(float_and_cat_features_data, label = NULL, cat_features_indices = NULL, text_features_data = NULL,
                                  text_features_indices = NULL, pairs = NULL, weight = NULL, group_id = NULL, group_weight = NULL,
                                  subgroup_id = NULL, pairs_weight = NULL, baseline = NULL, feature_names = NULL, graph = NULL,
-                                 embedding_features_data = NULL, embedding_features_indices = NULL) {
+                                 embedding_features_data = NULL, embedding_features_indices = NULL, timestamp = NULL,
+                                 feature_tags = NULL) {
+  if (!is.null(feature_tags))
+      stop("feature_tags is not currently supported by catboostr; tracked as catboost-8z4.49")
   if (inherits(float_and_cat_features_data, "sparseMatrix")) {
       # ponytail: densify; CatBoost's sparse column format is a memory optimisation only, stored
       # zeros are ordinary zero values, so the resulting Pool equals the dense one. Upgrade path:
@@ -337,6 +355,11 @@ catboost.from_matrix <- function(float_and_cat_features_data, label = NULL, cat_
   if (!is.null(feature_names) && (length(feature_names) != data_columns))
       stop("Data has ", data_columns, " columns, feature_names has ", length(feature_names), " columns.")
 
+  if (!is.numeric(timestamp) && !is.null(timestamp))
+      stop("Unsupported timestamp type, expecting numeric, got: ", typeof(timestamp))
+  if (length(timestamp) != nrow(float_and_cat_features_data) && !is.null(timestamp))
+      stop("Data has ", nrow(float_and_cat_features_data), " rows, timestamp vector has ", length(timestamp), " rows.")
+
   if (float_and_cat_columns == 0)
       float_and_cat_features_data <- NULL
   if (text_columns == 0)
@@ -346,6 +369,8 @@ catboost.from_matrix <- function(float_and_cat_features_data, label = NULL, cat_
                 group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names, class_labels,
                 embedding_features_data, embedding_features_indices)
   attributes(pool) <- list(.Dimnames = list(NULL, as.character(feature_names)), class = "catboost.Pool")
+  if (!is.null(timestamp))
+      catboost.pool.set_timestamp(pool, timestamp)
   return(pool)
 }
 

@@ -21,7 +21,9 @@ catboost.load_pool(
   feature_names = NULL,
   thread_count = -1,
   graph = NULL,
-  embedding_features = NULL
+  embedding_features = NULL,
+  timestamp = NULL,
+  feature_tags = NULL
 )
 }
 \arguments{
@@ -102,6 +104,14 @@ eigenvector signs and near-degenerate eigenvalue ordering depend on the LAPACK/B
 this package and the Python wheel legitimately disagree. The KNN calcer agrees exactly. For
 parity-sensitive use, pass \code{embedding_processing = list(default = list("KNN"))}.
 Tracked as catboost-8z4.45.}
+
+\item{timestamp}{A numeric vector of per-object timestamps, length equal to the number of
+objects. Convenience wrapper around \code{\link{catboost.pool.set_timestamp}}: applied to the
+constructed Pool before it is returned, equivalent to calling
+\code{catboost.pool.set_timestamp(pool, timestamp)} afterward.}
+
+\item{feature_tags}{Not currently supported by catboostr (tracked as catboost-8z4.49); passing
+a non-NULL value raises an error rather than being silently ignored.}
 }
 \value{
 catboost.Pool

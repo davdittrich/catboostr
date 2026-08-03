@@ -3623,6 +3623,85 @@ catboost.calc_feature_statistics <- function(model, pool, feature = NULL, predic
 }
 
 
+#' @name catboost.compare
+#' @title Compare metrics of two models.
+#'
+#' @description Evaluate \code{metrics} for \code{model} and \code{other} on the same
+#' \code{pool} and return both models' per-iteration metric values for comparison.
+#'
+#' Python's \code{CatBoost.compare(model, data, metrics, ...)} only draws an interactive
+#' Jupyter widget from this data (it returns \code{None}); there is no headless R
+#' equivalent of that widget, so \code{catboost.compare} exposes the widget's underlying
+#' metrics-diff data structure instead -- what \code{compare()} computes internally via
+#' \code{self._eval_metrics(...)} and \code{model._eval_metrics(...)} on the same
+#' pool/metrics (both funnel into the same \code{TMetricsPlotCalcer} vendor entry point
+#' as \code{\link{catboost.eval_metrics}}, which this function calls once per model).
+#'
+#' Named \code{catboost.compare} (not \code{model.compare}, and not an S3 method) because
+#' a dotted name would collide with R's existing S3 dispatch on \code{catboost.Model}
+#' (see \code{\link{predict.catboost.Model}}).
+#'
+#' @param model The first model obtained as a result of training.
+#'
+#' Default value: Required argument
+#' @param other The second (other) model to compare against \code{model}.
+#'
+#' Default value: Required argument
+#' @param pool A catboost.Pool to evaluate both models' metrics on.
+#'
+#' Default value: Required argument
+#' @param metrics A list of metric names to be calculated.
+#' (Full list of supported metrics: https://catboost.ai/docs/references/custom-metric__supported-metrics.html)
+#'
+#' Default value: Required argument
+#' @param ntree_start Each model is applied on the interval [ntree_start, ntree_end) with the
+#' step eval_period (zero-based indexing).
+#'
+#' Default value: 0
+#' @param ntree_end Each model is applied on the interval [ntree_start, ntree_end) with the
+#' step eval_period (zero-based indexing). If value equals 0, this parameter is ignored and
+#' ntree_end is set to that model's own tree_count.
+#'
+#' Default value: 0
+#' @param eval_period Each model is applied on the interval [ntree_start, ntree_end) with the
+#' step eval_period (zero-based indexing).
+#'
+#' Default value: 1
+#' @param thread_count The number of threads to use when applying each model. If -1, then the
+#' number of threads is set to the number of CPU cores.
+#'
+#' Default value: -1
+#' @param tmp_dir The name of the temporary directory for intermediate results. If NULL, the
+#' name is generated with \code{tempdir()}.
+#'
+#' Default value: NULL
+#' @return An object of class \code{catboost.compare} (a list): \code{model} and \code{other},
+#' each the same named-list-of-numeric-vectors (metric name -> per-iteration values) that
+#' \code{\link{catboost.eval_metrics}} returns for that model on \code{pool}.
+#' @export
+#' @seealso \url{https://catboost.ai/docs/concepts/python-reference_catboost_compare.html}
+catboost.compare <- function(model, other, pool, metrics, ntree_start = 0L, ntree_end = 0L,
+                              eval_period = 1, thread_count = -1, tmp_dir = NULL) {
+  if (is.null(model))
+    stop("You should provide a model for comparison.")
+  if (is.null(other))
+    stop("You should provide another model for comparison.")
+  if (is.null(pool))
+    stop("You should provide data for comparison.")
+  if (is.null(metrics))
+    stop("You should provide metrics for comparison.")
+  if (!inherits(other, "catboost.Model"))
+    stop("Expected catboost.Model, got: ", class(other))
+
+  result <- list(
+    model = catboost.eval_metrics(model, pool, metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir),
+    other = catboost.eval_metrics(other, pool, metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir)
+  )
+  class(result) <- "catboost.compare"
+  return(result)
+}
+
+
 #' @name catboost.restore_handle
 #' @title Restore or complete model handle after de-serializing
 #'

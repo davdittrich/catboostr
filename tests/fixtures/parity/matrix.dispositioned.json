@@ -12549,9 +12549,9 @@
     "oracle": "python",
     "kind": "method",
     "method": "structural",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_compare.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -12565,8 +12565,8 @@
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
     "disposition_confidence": 95,
     "final_method": "structural",
-    "final_method_confidence": 50,
-    "final_method_note": "renders an interactive model-comparison widget; closest of the five categories, low confidence"
+    "final_method_confidence": 95,
+    "final_method_note": "P4.2: catboost.compare() exposes the widget's underlying metrics-diff data (per-model catboost.eval_metrics() output) as its comparable/testable surface; widget rendering itself is out of scope"
   },
   {
     "inventory_row_id": "CatBoost.copy",
@@ -13701,9 +13701,9 @@
     "oracle": "python",
     "kind": "method",
     "method": "structural",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_compare.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -13717,8 +13717,8 @@
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
     "disposition_confidence": 95,
     "final_method": "structural",
-    "final_method_confidence": 50,
-    "final_method_note": "renders an interactive model-comparison widget; closest of the five categories, low confidence"
+    "final_method_confidence": 95,
+    "final_method_note": "P4.2: catboost.compare() exposes the widget's underlying metrics-diff data (per-model catboost.eval_metrics() output) as its comparable/testable surface; widget rendering itself is out of scope"
   },
   {
     "inventory_row_id": "CatBoostClassifier.copy",
@@ -15021,9 +15021,9 @@
     "oracle": "python",
     "kind": "method",
     "method": "structural",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_compare.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -15037,8 +15037,8 @@
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
     "disposition_confidence": 95,
     "final_method": "structural",
-    "final_method_confidence": 50,
-    "final_method_note": "renders an interactive model-comparison widget; closest of the five categories, low confidence"
+    "final_method_confidence": 95,
+    "final_method_note": "P4.2: catboost.compare() exposes the widget's underlying metrics-diff data (per-model catboost.eval_metrics() output) as its comparable/testable surface; widget rendering itself is out of scope"
   },
   {
     "inventory_row_id": "CatBoostRegressor.copy",
@@ -16197,9 +16197,9 @@
     "oracle": "python",
     "kind": "method",
     "method": "structural",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_compare.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -16213,8 +16213,8 @@
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
     "disposition_confidence": 95,
     "final_method": "structural",
-    "final_method_confidence": 50,
-    "final_method_note": "renders an interactive model-comparison widget; closest of the five categories, low confidence"
+    "final_method_confidence": 95,
+    "final_method_note": "P4.2: catboost.compare() exposes the widget's underlying metrics-diff data (per-model catboost.eval_metrics() output) as its comparable/testable surface; widget rendering itself is out of scope"
   },
   {
     "inventory_row_id": "CatBoostRanker.copy",

@@ -105,7 +105,7 @@ test_that("tested feature indices are validated against the real dataset", {
     expect_error(mbe("99"), "Feature index 99 is too large; dataset has only 3 features")
 })
 
-test_that("feature names and tags resolve the same way as for the CLI", {
+test_that("feature names resolve the same way as for the CLI", {
     # `cat1` is the only named feature in smoke.cd. Resolving it gets past the
     # name converter and all the way to the GPU library check.
     expect_error(mbe("cat1"), "Can't load GPU learning library|Environment for task type|CUDA")

@@ -31,8 +31,10 @@ Default value: Required argument}
 
 \item{features_to_evaluate}{Feature sets to test, in the CLI's
 \code{--features-to-evaluate} syntax: sets separated by \code{;}, each set a comma-separated
-list of 0-based indices, index ranges (\code{4,78-89,312}), feature names or \code{#tag}
-references.
+list of 0-based indices, index ranges (\code{4,78-89,312}), or feature names. \code{#tag}
+references are not supported by this R wrapper: this function never sets
+\code{poolLoadParams.PoolMetaInfoPath}, which tag resolution requires, so any \code{#tag}
+value errors with "There is no tag '#x' in pool metainfo".
 
 Default value: Required argument}
 

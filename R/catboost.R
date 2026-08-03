@@ -2823,8 +2823,10 @@ catboost.eval_feature <- function(pool,
 #' Default value: Required argument
 #' @param features_to_evaluate Feature sets to test, in the CLI's
 #' \code{--features-to-evaluate} syntax: sets separated by \code{;}, each set a comma-separated
-#' list of 0-based indices, index ranges (\code{4,78-89,312}), feature names or \code{#tag}
-#' references.
+#' list of 0-based indices, index ranges (\code{4,78-89,312}), or feature names. \code{#tag}
+#' references are not supported by this R wrapper: this function never sets
+#' \code{poolLoadParams.PoolMetaInfoPath}, which tag resolution requires, so any \code{#tag}
+#' value errors with "There is no tag '#x' in pool metainfo".
 #'
 #' Default value: Required argument
 #' @param baseline_model_snapshot Path to the snapshot of the baseline model's training
@@ -2910,7 +2912,7 @@ catboost.model_based_eval <- function(learn_set,
           if (is.null(column_description)) "" else column_description,
           delimiter, has_header)
 
-    return(invisible(if (is.null(params$train_dir)) "." else params$train_dir))
+    return(invisible(if (is.null(params$train_dir)) "catboost_info" else params$train_dir))
 }
 
 #' @name catboost.sum_models
@@ -3920,6 +3922,8 @@ catboost.compare <- function(model, other, pool, metrics, ntree_start = 0L, ntre
     stop("You should provide data for comparison.")
   if (is.null(metrics))
     stop("You should provide metrics for comparison.")
+  if (!inherits(model, "catboost.Model"))
+    stop("Expected catboost.Model, got: ", class(model))
   if (!inherits(other, "catboost.Model"))
     stop("Expected catboost.Model, got: ", class(other))
 
@@ -3988,6 +3992,7 @@ catboost.get_roc_curve <- function(model, pool) {
   fnr <- numeric(0)
   fpr <- numeric(0)
   boundary <- numeric(0)
+  eps <- 1e-13
   add_point <- function(newBoundary, newFnr, newFpr) {
     len <- length(fnr)
     if (len > 0) {
@@ -3999,7 +4004,6 @@ catboost.get_roc_curve <- function(model, pool) {
         x1 <- boundary[len]; x2 <- newBoundary
         y11 <- oldFnr; y21 <- newFnr
         y12 <- oldFpr; y22 <- newFpr
-        eps <- 1e-13
         x <- x1 + (x1 - x2) * (y11 - y12) / ((y21 - y22) - (y11 - y12))
         if ((y22 - y12) < eps) {
           y <- 0.5 * (y12 + y22)
@@ -4020,7 +4024,7 @@ catboost.get_roc_curve <- function(model, pool) {
   countTarget0 <- 0L
   for (i in seq_len(n - 1)) {
     if (target[i] == 1L) countTarget1 <- countTarget1 + 1L else countTarget0 <- countTarget0 + 1L
-    if (probability[i + 1] < (probability[i] - 1e-13)) {
+    if (probability[i + 1] < (probability[i] - eps)) {
       newBoundary <- 0.5 * (probability[i] + probability[i + 1])
       newFnr <- (count1 - countTarget1) / count1
       newFpr <- countTarget0 / count0

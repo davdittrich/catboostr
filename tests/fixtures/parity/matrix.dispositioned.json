@@ -19926,9 +19926,9 @@
     "kind": "mode",
     "method": "elementwise",
     "tolerance": 1e-09,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "test_eval_feature.R::eval_feature: summary matches the CatBoost CLI oracle",
+    "state": "green",
+    "tolerance_justification": "Spec section 4.3 CLI-path default, not an override. Confirmed against this mode's own output format: the pinned oracle summary (tests/fixtures/oracle-cli/eval_feature_summary.tsv) prints 0.01189635989 and -0.255249217, i.e. 9-10 significant digits, and eval-feature exposes no --precision flag. Bit-exactness is therefore not asserted. The integer columns (best iteration in each fold, feature set) are compared exactly, which is not a tolerance change.",
     "needs_disposition": false,
     "members": [
       {

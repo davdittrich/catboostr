@@ -15,6 +15,7 @@
 #include <catboost/libs/model/utils.h>
 #include <catboost/libs/train_lib/train_model.h>
 #include <catboost/libs/train_lib/cross_validation.h>
+#include <catboost/libs/train_lib/eval_feature.h>
 #include <catboost/private/libs/algo/apply.h>
 #include <catboost/private/libs/algo/helpers.h>
 #include <catboost/private/libs/algo/mvs.h>
@@ -24,6 +25,7 @@
 #include <catboost/private/libs/documents_importance/enums.h>
 #include <catboost/private/libs/options/cross_validation_params.h>
 #include <catboost/private/libs/options/enum_helpers.h>
+#include <catboost/private/libs/options/feature_eval_options.h>
 #include <catboost/private/libs/options/split_params.h>
 #include <catboost/private/libs/quantized_pool/serialization.h>
 // P4.1: catboost.calc_feature_statistics -- same vendor entry point Python's
@@ -50,6 +52,7 @@
 // target's own vcs_info(catboostr) call in src/CMakeLists.txt.
 #include <library/cpp/svnversion/svnversion.h>
 
+#include <util/generic/algorithm.h>
 #include <util/generic/cast.h>
 #include <util/generic/hash.h>
 #include <util/generic/mem_copy.h>
@@ -1611,6 +1614,146 @@ EXPORT_FUNCTION CatBoostCV_R(SEXP fitParamsAsJsonParam,
 
     R_API_END();
     UNPROTECT(columnCount + 2);
+    return result;
+}
+
+// P4.7 (catboost-8z4.56): R equivalent of the CLI's `eval-feature` mode.
+// Calls the same core entry point the CLI mode calls
+// (EvaluateFeatures, catboost/libs/train_lib/eval_feature.h -- see
+// vendor/catboost/catboost/app/mode_eval_feature.cpp), rather than shelling
+// out to the CLI binary. catboost-libs-train_lib, which already builds
+// eval_feature.cpp, is linked by src/CMakeLists.txt for CatBoostCV_R's sake,
+// so no new link dependency is introduced.
+//
+// The returned list mirrors the columns of the CLI's
+// --feature-eval-output-file TSV (ToString(TFeatureEvaluationSummary),
+// eval_feature.cpp:58) so the two are directly comparable, but carries full
+// double precision instead of the TSV's ~10 significant digits.
+EXPORT_FUNCTION CatBoostEvaluateFeatures_R(
+    SEXP fitParamsAsJsonParam,
+    SEXP poolParam,
+    SEXP featuresToEvaluateParam,
+    SEXP featureEvalModeParam,
+    SEXP offsetParam,
+    SEXP foldCountParam,
+    SEXP foldSizeUnitParam,
+    SEXP foldSizeParam,
+    SEXP relativeFoldSizeParam,
+    SEXP timeSplitQuantileParam
+) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TPoolPtr pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    pool->Ref();
+    auto fitParams = LoadFitParams(fitParamsAsJsonParam);
+
+    NCatboostOptions::TFeatureEvalOptions featureEvalOptions;
+
+    TVector<TVector<ui32>> featureSets;
+    for (R_xlen_t setIdx = 0; setIdx < xlength(featuresToEvaluateParam); ++setIdx) {
+        SEXP featureSetParam = VECTOR_ELT(featuresToEvaluateParam, setIdx);
+        TVector<ui32> featureSet;
+        for (R_xlen_t i = 0; i < xlength(featureSetParam); ++i) {
+            const int featureIdx = INTEGER(featureSetParam)[i];
+            CB_ENSURE(featureIdx >= 0, "Tested feature index must be non-negative, got " << featureIdx);
+            featureSet.push_back(static_cast<ui32>(featureIdx));
+        }
+        featureSets.push_back(std::move(featureSet));
+    }
+    featureEvalOptions.FeaturesToEvaluate = featureSets;
+
+    NCB::EFeatureEvalMode featureEvalMode;
+    CB_ENSURE(TryFromString<NCB::EFeatureEvalMode>(CHAR(asChar(featureEvalModeParam)), featureEvalMode),
+              "unsupported feature evaluation mode: 'OneVsNone', 'OneVsOthers', 'OneVsAll' or "
+              "'OthersVsAll' was expected");
+    featureEvalOptions.FeatureEvalMode = featureEvalMode;
+
+    ESamplingUnit foldSizeUnit;
+    CB_ENSURE(TryFromString<ESamplingUnit>(CHAR(asChar(foldSizeUnitParam)), foldSizeUnit),
+              "unsupported fold size unit: 'Object' or 'Group' was expected");
+    featureEvalOptions.FoldSizeUnit = foldSizeUnit;
+
+    featureEvalOptions.Offset = static_cast<ui32>(asInteger(offsetParam));
+    featureEvalOptions.FoldCount = static_cast<ui32>(asInteger(foldCountParam));
+    featureEvalOptions.FoldSize = static_cast<ui32>(asInteger(foldSizeParam));
+    featureEvalOptions.RelativeFoldSize = static_cast<float>(asReal(relativeFoldSizeParam));
+    featureEvalOptions.TimeSplitQuantile = asReal(timeSplitQuantileParam);
+
+    // Same guards mode_eval_feature.cpp applies before calling EvaluateFeatures.
+    const ui32 featureCount = pool->MetaInfo.GetFeatureCount();
+    for (const auto& featureSet : featureSets) {
+        for (ui32 feature : featureSet) {
+            CB_ENSURE(feature < featureCount,
+                      "Tested feature " << feature << " is not present; dataset contains only "
+                      << featureCount << " features");
+        }
+        CB_ENSURE(Count(featureSets, featureSet) == 1, "All tested feature sets must be different");
+    }
+
+    // Defaults, matching the CLI when --cv is not given: the fold layout then
+    // comes from featureEvalOptions, not from cross-validation parameters
+    // (eval_feature.cpp:1181).
+    TCvDataPartitionParams cvParams;
+
+    const auto summary = EvaluateFeatures(
+        fitParams,
+        featureEvalOptions,
+        /*objectiveDescriptor*/ Nothing(),
+        /*evalMetricDescriptor*/ Nothing(),
+        cvParams,
+        pool);
+
+    const size_t setCount = summary.GetFeatureSetCount();
+    const size_t metricCount = summary.MetricNames.size();
+
+    SEXP pValue = PROTECT(allocVector(REALSXP, setCount));
+    SEXP bestIterations = PROTECT(allocVector(VECSXP, setCount));
+    SEXP metricNames = PROTECT(allocVector(STRSXP, metricCount));
+    SEXP metricDelta = PROTECT(allocMatrix(REALSXP, static_cast<int>(setCount), static_cast<int>(metricCount)));
+    SEXP evaluatedSets = PROTECT(allocVector(VECSXP, setCount));
+
+    for (size_t metricIdx = 0; metricIdx < metricCount; ++metricIdx) {
+        SET_STRING_ELT(metricNames, metricIdx, mkChar(summary.MetricNames[metricIdx].c_str()));
+    }
+    for (size_t setIdx = 0; setIdx < setCount; ++setIdx) {
+        REAL(pValue)[setIdx] = summary.WxTest[setIdx];
+
+        const auto& foldIterations = summary.BestBaselineIterations[setIdx];
+        SEXP iterations = PROTECT(allocVector(INTSXP, foldIterations.size()));
+        for (size_t foldIdx = 0; foldIdx < foldIterations.size(); ++foldIdx) {
+            INTEGER(iterations)[foldIdx] = static_cast<int>(foldIterations[foldIdx]);
+        }
+        SET_VECTOR_ELT(bestIterations, setIdx, iterations);
+        UNPROTECT(1);
+
+        for (size_t metricIdx = 0; metricIdx < metricCount; ++metricIdx) {
+            REAL(metricDelta)[setIdx + metricIdx * setCount] = summary.AverageMetricDelta[setIdx][metricIdx];
+        }
+
+        // FeatureSets is empty in OneVsNone mode with no --features-to-evaluate;
+        // the CLI leaves the "feature set" column empty in that case.
+        SEXP features = PROTECT(allocVector(INTSXP, summary.FeatureSets.empty() ? 0 : summary.FeatureSets[setIdx].size()));
+        if (!summary.FeatureSets.empty()) {
+            for (size_t i = 0; i < summary.FeatureSets[setIdx].size(); ++i) {
+                INTEGER(features)[i] = static_cast<int>(summary.FeatureSets[setIdx][i]);
+            }
+        }
+        SET_VECTOR_ELT(evaluatedSets, setIdx, features);
+        UNPROTECT(1);
+    }
+
+    result = PROTECT(allocVector(VECSXP, 5));
+    SEXP resultNames = PROTECT(allocVector(STRSXP, 5));
+    const char* const names[5] = {"p_value", "best_iterations", "metric_names", "metric_delta", "feature_sets"};
+    SEXP values[5] = {pValue, bestIterations, metricNames, metricDelta, evaluatedSets};
+    for (int i = 0; i < 5; ++i) {
+        SET_VECTOR_ELT(result, i, values[i]);
+        SET_STRING_ELT(resultNames, i, mkChar(names[i]));
+    }
+    setAttrib(result, R_NamesSymbol, resultNames);
+
+    R_API_END();
+    UNPROTECT(7);
     return result;
 }
 

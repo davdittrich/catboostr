@@ -2700,6 +2700,95 @@ catboost.cv <- function(pool,
     return(data.frame(result))
 }
 
+#' @name catboost.eval_feature
+#' @title Evaluate the impact of feature sets.
+#' @description R equivalent of the CatBoost CLI's \code{eval-feature} mode: repeated
+#' cross-validated training that measures how much each tested set of features changes
+#' the loss, and reports a Wilcoxon test p-value per set.
+#'
+#' This calls the same core entry point the CLI mode calls
+#' (\code{EvaluateFeatures}, \code{catboost/libs/train_lib/eval_feature.h}), in process --
+#' no CLI binary is required. There is no Python-side counterpart of this mode;
+#' \code{CatBoost.select_features} is a different algorithm.
+#' @param pool The dataset to evaluate on (a \code{catboost.Pool}). Test sets are not
+#' supported by this mode, matching the CLI.
+#'
+#' Default value: Required argument
+#' @param features_to_evaluate Feature sets to test, as a list of integer vectors of
+#' 0-based feature indices (CLI: \code{--features-to-evaluate}). An empty list evaluates
+#' the baseline only, which is meaningful with \code{eval_mode = "OneVsNone"}.
+#'
+#' Default value: \code{list()}
+#' @param params Parameters for catboost.train.
+#'
+#' Default value: \code{list()}
+#' @param eval_mode One of \code{"OneVsNone"}, \code{"OneVsOthers"}, \code{"OneVsAll"},
+#' \code{"OthersVsAll"} (CLI: \code{--feature-eval-mode}).
+#'
+#' Default value: \code{"OneVsNone"}
+#' @param offset First fold used for feature evaluation (CLI: \code{--offset}).
+#'
+#' Default value: 0
+#' @param fold_count Number of folds used for feature evaluation (CLI: \code{--fold-count}).
+#'
+#' Default value: 3
+#' @param fold_size_unit \code{"Object"} or \code{"Group"} (CLI: \code{--fold-size-unit}).
+#'
+#' Default value: \code{"Object"}
+#' @param fold_size Fold size, in \code{fold_size_unit} units (CLI: \code{--fold-size}).
+#' Exactly one of \code{fold_size} and \code{relative_fold_size} must be non-zero.
+#'
+#' Default value: 0
+#' @param relative_fold_size Fold size as a fraction of the dataset
+#' (CLI: \code{--relative-fold-size}).
+#'
+#' Default value: 0
+#' @param timesplit_quantile Quantile for the time split (CLI: \code{--timesplit-quantile}).
+#'
+#' Default value: 0.5
+#' @return A list with one entry per tested feature set, mirroring the columns of the CLI's
+#' \code{--feature-eval-output-file} TSV but at full double precision:
+#' \itemize{
+#'   \item \code{p_value} -- numeric, Wilcoxon test p-value per feature set.
+#'   \item \code{best_iterations} -- list of integer vectors, best baseline iteration per fold.
+#'   \item \code{metric_names} -- character vector of evaluated metric names.
+#'   \item \code{metric_delta} -- numeric matrix, feature sets by metrics; average metric
+#'     change, signed so that positive always means improvement.
+#'   \item \code{feature_sets} -- list of integer vectors, the evaluated sets echoed back.
+#' }
+#' @export
+catboost.eval_feature <- function(pool,
+                                  features_to_evaluate = list(),
+                                  params = list(),
+                                  eval_mode = "OneVsNone",
+                                  offset = 0,
+                                  fold_count = 3,
+                                  fold_size_unit = "Object",
+                                  fold_size = 0,
+                                  relative_fold_size = 0,
+                                  timesplit_quantile = 0.5) {
+
+    if (!inherits(pool, "catboost.Pool"))
+        stop("Expected catboost.Pool, got: ", class(pool))
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    if (!is.list(features_to_evaluate))
+        stop("features_to_evaluate must be a list of integer vectors of 0-based feature indices.")
+    if ((fold_size > 0) == (relative_fold_size > 0))
+        stop("Exactly one of fold_size and relative_fold_size must be positive.")
+    if (length(params) == 0)
+        message("Training catboost with default parameters! See help(catboost.train).")
+
+    features_to_evaluate <- lapply(features_to_evaluate, as.integer)
+
+    json_params <- prepare_train_export_parameters(params)
+    return(.Call("CatBoostEvaluateFeatures_R", json_params, pool,
+                 features_to_evaluate, eval_mode,
+                 as.integer(offset), as.integer(fold_count),
+                 fold_size_unit, as.integer(fold_size),
+                 as.numeric(relative_fold_size), as.numeric(timesplit_quantile)))
+}
+
 #' @name catboost.sum_models
 #' @title Sum models.
 #' @description Blend trees and counters of two or more trained CatBoost models into a new model.

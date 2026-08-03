@@ -1,0 +1,3 @@
+p-value	best iteration in each fold	Logloss	feature set
+0.5	19,7	0.01189635989	0
+0.5	19,7	-0.255249217	1

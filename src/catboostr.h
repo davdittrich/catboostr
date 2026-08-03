@@ -283,6 +283,20 @@ EXPORT_FUNCTION CatBoostPoolTrainEvalSplit_R(
 
 EXPORT_FUNCTION CatBoostPoolSave_R(SEXP poolParam, SEXP fnameParam);
 
+// P4.7: R equivalent of the CLI's `eval-feature` mode (catboost-8z4.56).
+EXPORT_FUNCTION CatBoostEvaluateFeatures_R(
+    SEXP fitParamsAsJsonParam,
+    SEXP poolParam,
+    SEXP featuresToEvaluateParam,
+    SEXP featureEvalModeParam,
+    SEXP offsetParam,
+    SEXP foldCountParam,
+    SEXP foldSizeUnitParam,
+    SEXP foldSizeParam,
+    SEXP relativeFoldSizeParam,
+    SEXP timeSplitQuantileParam
+);
+
 EXPORT_FUNCTION CatBoostDatasetStatistics_R(
     SEXP poolFileParam,
     SEXP cdFileParam,

@@ -1,0 +1,121 @@
+{
+  "catboost_version": "1.2.10",
+  "inputs": {
+    "num1": [
+      0.5,
+      -1.5,
+      2.25,
+      3.0,
+      -4.75,
+      5.5,
+      -6.25,
+      7.0
+    ],
+    "num2": [
+      10.0,
+      20.0,
+      30.0,
+      40.0,
+      50.0,
+      60.0,
+      70.0,
+      80.0
+    ],
+    "cat1": [
+      "a",
+      "b",
+      "a",
+      "c",
+      "b",
+      "a",
+      "c",
+      "b"
+    ],
+    "cat2": [
+      "x",
+      "y",
+      "x",
+      "x",
+      "y",
+      "y",
+      "x",
+      "y"
+    ],
+    "label": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      1,
+      0
+    ],
+    "num_feature_names": [
+      "num1",
+      "num2"
+    ],
+    "cat_feature_names": [
+      "cat1",
+      "cat2"
+    ]
+  },
+  "expected": {
+    "mixed": {
+      "get_object_count": 8,
+      "get_num_feature_count": 2,
+      "get_cat_feature_count": 2,
+      "get_feature_count": 4,
+      "get_feature_names": [
+        "num1",
+        "num2",
+        "cat1",
+        "cat2"
+      ]
+    },
+    "num_only": {
+      "get_object_count": 8,
+      "get_num_feature_count": 2,
+      "get_cat_feature_count": 0,
+      "get_feature_count": 2,
+      "get_feature_names": [
+        "",
+        ""
+      ]
+    },
+    "cat_only": {
+      "get_object_count": 8,
+      "get_num_feature_count": 0,
+      "get_cat_feature_count": 2,
+      "get_feature_count": 2,
+      "get_feature_names": [
+        "",
+        ""
+      ]
+    },
+    "pool_from_features_data": {
+      "cat_feature_indices": [
+        2,
+        3
+      ],
+      "feature_names": [
+        "num1",
+        "num2",
+        "cat1",
+        "cat2"
+      ],
+      "num_row": 8,
+      "num_col": 4,
+      "get_label": [
+        0.0,
+        1.0,
+        0.0,
+        1.0,
+        0.0,
+        1.0,
+        1.0,
+        0.0
+      ]
+    }
+  }
+}

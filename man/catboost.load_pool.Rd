@@ -20,11 +20,22 @@ catboost.load_pool(
   baseline = NULL,
   feature_names = NULL,
   thread_count = -1,
-  graph = NULL
+  graph = NULL,
+  embedding_features = NULL,
+  timestamp = NULL,
+  feature_tags = NULL
 )
 }
 \arguments{
-\item{data}{A file path, matrix or data.frame with features.
+\item{data}{A file path, matrix, sparse matrix (any \code{Matrix} package
+\code{sparseMatrix}, e.g. \code{dgCMatrix}) or data.frame with features.
+A sparse matrix is densified before being handed to the native Pool builder, so the resulting
+Pool is identical to the one built from \code{as.matrix(data)} (stored zeros are real zeros).
+Caveat: because the sparse layout is not preserved, training on such a Pool reproduces Python's
+\emph{dense} Pool, not its native sparse one. CatBoost breaks ties between equal-scoring split
+candidates differently in its sparse and dense column layouts, so on degenerate/tie-heavy data
+the two can differ (a delta of 0.0298 was measured inside Python itself between its own dense
+and sparse Pools). Tracked as catboost-8z4.46.
 The following column types are supported:
 \itemize{
     \item double
@@ -39,7 +50,11 @@ The following column types are supported:
 
 Default value: Required argument}
 
-\item{label}{The label vector or label matrix}
+\item{label}{The label vector or label matrix.
+A plain (non-factor, non-character) integer label \emph{matrix} with more than one column
+(e.g. a multi-target 0/1 matrix for \code{MultiLogloss}) is automatically read as a float
+target, matching Python's \code{Pool}. A single-column integer label vector keeps its
+existing integer-target behavior (catboost-8z4.47).}
 
 \item{cat_features}{A vector of categorical features indices.
 The indices are zero based and can differ from the given in the Column descriptions file.
@@ -75,6 +90,28 @@ Used in the calculation of final values of trees.}
 \item{graph}{A file path, matrix or data.frame that contains the pairs of indices of objects for graph features.
 The shape should be Nx2, where N is the pairs of indices count.
 If -1, then the number of threads is set to the number of CPU cores.}
+
+\item{embedding_features}{A named list of numeric matrices, one per embedding feature; each matrix
+has one row per object and one column per embedding dimension. R matrix cells cannot hold vectors,
+so embedding features are supplied beside \code{data} instead of inside it (Python's
+\code{Pool(data, embedding_features = [...])} indexes columns of a data frame holding arrays).
+The embedding features are appended after the columns of \code{data}, so their flat feature
+indices are \code{ncol(data)}, \code{ncol(data) + 1}, ...; list names become their feature names.
+Caveat: the \code{embedding_processing} training parameter (given to \code{catboost.train}, not
+here) defaults to \code{list(default = list("LDA", "KNN"))}. The LDA calcer's output is not
+bit-reproducible against the Python package: LDA solves a float32 symmetric eigenproblem whose
+eigenvector signs and near-degenerate eigenvalue ordering depend on the LAPACK/BLAS build, so
+this package and the Python wheel legitimately disagree. The KNN calcer agrees exactly. For
+parity-sensitive use, pass \code{embedding_processing = list(default = list("KNN"))}.
+Tracked as catboost-8z4.45.}
+
+\item{timestamp}{A numeric vector of per-object timestamps, length equal to the number of
+objects. Convenience wrapper around \code{\link{catboost.pool.set_timestamp}}: applied to the
+constructed Pool before it is returned, equivalent to calling
+\code{catboost.pool.set_timestamp(pool, timestamp)} afterward.}
+
+\item{feature_tags}{Not currently supported by catboostr (tracked as catboost-8z4.49); passing
+a non-NULL value raises an error rather than being silently ignored.}
 }
 \value{
 catboost.Pool

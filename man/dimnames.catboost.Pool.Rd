@@ -12,8 +12,14 @@
 Default value: Required argument}
 }
 \value{
-A list with the two elements. The second element contains the column names.
+A list with the two elements. The second element contains the column
+names, or \code{NULL} if the Pool has no feature names.
 }
 \description{
 Get dimension names of a Pool.
+
+Column names are read from the Pool's own (C++-side) feature layout, so
+they stay in sync with \code{catboost.pool.get_feature_names()} after a
+\code{catboost.pool.set_feature_names()} call, which mutates that layout in
+place and cannot update an R-side attribute of the caller's object.
 }

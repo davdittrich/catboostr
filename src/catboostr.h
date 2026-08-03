@@ -40,7 +40,9 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(
     SEXP pairsWeightParam,
     SEXP baselineParam,
     SEXP featureNamesParam,
-    SEXP classLabelsParam
+    SEXP classLabelsParam,
+    SEXP embeddingListParam,
+    SEXP embeddingFeaturesIndicesParam
 );
 
 EXPORT_FUNCTION CatBoostHashStrings_R(SEXP stringsParam);
@@ -58,6 +60,12 @@ EXPORT_FUNCTION CatBoostIsOblivious_R(SEXP modelParam);
 EXPORT_FUNCTION CatBoostIsGroupwiseMetric_R(SEXP modelParam);
 
 EXPORT_FUNCTION CatBoostPoolSlice_R(
+    SEXP poolParam,
+    SEXP sizeParam,
+    SEXP offsetParam
+);
+
+EXPORT_FUNCTION CatBoostPoolSliceSubset_R(
     SEXP poolParam,
     SEXP sizeParam,
     SEXP offsetParam
@@ -183,7 +191,155 @@ EXPORT_FUNCTION CatBoostEvalMetrics_R(
 
 EXPORT_FUNCTION CatBoostVersion_R(void);
 
+// P3.1: Pool metadata accessors/mutators (R equivalents of Python Pool's
+// get_label/get_weight/set_weight/get_baseline/set_baseline/has_label/
+// get_group_id_hash/set_group_id/set_group_weight/set_subgroup_id/
+// set_pairs/set_pairs_weight/num_pairs/set_timestamp).
 
+EXPORT_FUNCTION CatBoostPoolHasLabel_R(SEXP poolParam);
+
+EXPORT_FUNCTION CatBoostPoolGetLabel_R(SEXP poolParam);
+
+EXPORT_FUNCTION CatBoostPoolGetWeight_R(SEXP poolParam);
+
+EXPORT_FUNCTION CatBoostPoolSetWeight_R(SEXP poolParam, SEXP weightParam);
+
+EXPORT_FUNCTION CatBoostPoolGetBaseline_R(SEXP poolParam);
+
+EXPORT_FUNCTION CatBoostPoolSetBaseline_R(SEXP poolParam, SEXP baselineParam);
+
+EXPORT_FUNCTION CatBoostPoolGetGroupIdHash_R(SEXP poolParam);
+
+EXPORT_FUNCTION CatBoostPoolSetGroupId_R(SEXP poolParam, SEXP groupIdParam);
+
+EXPORT_FUNCTION CatBoostPoolSetGroupWeight_R(SEXP poolParam, SEXP groupWeightParam);
+
+EXPORT_FUNCTION CatBoostPoolSetSubgroupId_R(SEXP poolParam, SEXP subgroupIdParam);
+
+EXPORT_FUNCTION CatBoostPoolSetPairs_R(SEXP poolParam, SEXP pairsParam);
+
+EXPORT_FUNCTION CatBoostPoolSetPairsWeight_R(SEXP poolParam, SEXP pairsWeightParam);
+
+EXPORT_FUNCTION CatBoostPoolNumPairs_R(SEXP poolParam);
+
+EXPORT_FUNCTION CatBoostPoolSetTimestamp_R(SEXP poolParam, SEXP timestampParam);
+
+
+// P3.2: Pool feature/shape introspection (R equivalents of Python Pool's
+// get_feature_names/set_feature_names/get_features/get_cat_feature_indices/
+// get_text_feature_indices/get_embedding_feature_indices). num_row/num_col/
+// shape/is_empty_ reuse CatBoostPoolNumRow_R/CatBoostPoolNumCol_R above.
+
+EXPORT_FUNCTION CatBoostPoolGetFeatureNames_R(SEXP poolParam);
+
+EXPORT_FUNCTION CatBoostPoolSetFeatureNames_R(SEXP poolParam, SEXP featureNamesParam);
+
+EXPORT_FUNCTION CatBoostPoolGetFeatures_R(SEXP poolParam);
+
+EXPORT_FUNCTION CatBoostPoolGetCatFeatureIndices_R(SEXP poolParam);
+
+EXPORT_FUNCTION CatBoostPoolGetTextFeatureIndices_R(SEXP poolParam);
+
+EXPORT_FUNCTION CatBoostPoolGetEmbeddingFeatureIndices_R(SEXP poolParam);
+
+
+// P3.3: Pool quantization support (R equivalents of Python Pool's
+// quantize/is_quantized/save_quantization_borders) plus the R equivalent of
+// CatBoost CLI's dataset-statistics mode.
+
+EXPORT_FUNCTION CatBoostPoolQuantize_R(SEXP poolParam, SEXP paramsAsJsonParam);
+
+EXPORT_FUNCTION CatBoostPoolIsQuantized_R(SEXP poolParam);
+
+EXPORT_FUNCTION CatBoostPoolSaveQuantizationBorders_R(SEXP poolParam, SEXP outputFileParam);
+
+// P3.4: Pool structural operations (R equivalents of Python Pool's
+// train_eval_split/save; slice's native entry point is CatBoostPoolSlice_R
+// above, pre-existing).
+
+EXPORT_FUNCTION CatBoostPoolTrainEvalSplit_R(
+    SEXP poolParam,
+    SEXP hasTimeParam,
+    SEXP isClassificationParam,
+    SEXP evalFractionParam,
+    SEXP saveEvalPoolParam
+);
+
+EXPORT_FUNCTION CatBoostPoolSave_R(SEXP poolParam, SEXP fnameParam);
+
+EXPORT_FUNCTION CatBoostDatasetStatistics_R(
+    SEXP poolFileParam,
+    SEXP cdFileParam,
+    SEXP pairsFileParam,
+    SEXP delimiterParam,
+    SEXP hasHeaderParam,
+    SEXP threadCountParam,
+    SEXP borderCountParam,
+    SEXP onlyGroupStatisticsParam,
+    SEXP onlyLightStatisticsParam,
+    SEXP outputPathParam,
+    SEXP histogramPathParam
+);
+
+// P3.6 follow-up (catboost-8z4.48): native tokenizer/dictionary bridges,
+// wrapping NTextProcessing::NTokenizer::TTokenizer and
+// NTextProcessing::NDictionary::TDictionary/TDictionaryBuilder/
+// TBpeDictionary/TBpeDictionaryBuilder -- replacing the pure-R port in
+// R/text_processing.R (catboost-8z4.43).
+
+EXPORT_FUNCTION CatBoostTextTokenizerCreate_R(
+    SEXP lowercasingParam,
+    SEXP lemmatizingParam,
+    SEXP numberProcessPolicyParam,
+    SEXP numberTokenParam,
+    SEXP separatorTypeParam,
+    SEXP delimiterParam,
+    SEXP splitBySetParam,
+    SEXP skipEmptyParam,
+    SEXP tokenTypesParam,
+    SEXP subTokensPolicyParam,
+    SEXP languagesParam
+);
+
+EXPORT_FUNCTION CatBoostTextTokenizerTokenize_R(SEXP tokenizerParam, SEXP stringParam);
+
+EXPORT_FUNCTION CatBoostTextDictionaryFit_R(
+    SEXP linesParam,
+    SEXP tokenLevelTypeParam,
+    SEXP gramOrderParam,
+    SEXP skipStepParam,
+    SEXP startTokenIdParam,
+    SEXP endOfWordPolicyParam,
+    SEXP endOfSentencePolicyParam,
+    SEXP occurenceLowerBoundParam,
+    SEXP maxDictionarySizeParam,
+    SEXP dictionaryTypeParam,
+    SEXP numBpeUnitsParam,
+    SEXP skipUnknownParam
+);
+
+EXPORT_FUNCTION CatBoostTextDictionaryApply_R(SEXP dictionaryParam, SEXP linesParam, SEXP unknownTokenPolicyParam);
+
+EXPORT_FUNCTION CatBoostTextDictionarySize_R(SEXP dictionaryParam);
+
+EXPORT_FUNCTION CatBoostTextDictionaryGetTokens_R(SEXP dictionaryParam, SEXP tokenIdsParam);
+
+EXPORT_FUNCTION CatBoostTextDictionaryGetTopTokens_R(SEXP dictionaryParam, SEXP topSizeParam);
+
+EXPORT_FUNCTION CatBoostTextDictionaryUnknownTokenId_R(SEXP dictionaryParam);
+
+EXPORT_FUNCTION CatBoostTextDictionaryEndOfSentenceTokenId_R(SEXP dictionaryParam);
+
+EXPORT_FUNCTION CatBoostTextDictionaryMinUnusedTokenId_R(SEXP dictionaryParam);
+
+EXPORT_FUNCTION CatBoostTextDictionarySave_R(
+    SEXP dictionaryParam,
+    SEXP dictionaryTypeParam,
+    SEXP frequencyDictPathParam,
+    SEXP bpePathParam
+);
+
+EXPORT_FUNCTION CatBoostTextDictionaryLoad_R(SEXP frequencyDictPathParam, SEXP bpePathParam);
 
 #if defined(__cplusplus)
 }

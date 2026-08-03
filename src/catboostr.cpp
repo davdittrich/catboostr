@@ -1,7 +1,9 @@
 #include <catboost/libs/cat_feature/cat_feature.h>
+#include <catboost/libs/data/borders_io.h>
 #include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/data/data_provider_builders.h>
 #include <catboost/libs/data/load_data.h>
+#include <catboost/libs/data/quantization.h>
 #include <catboost/libs/eval_result/eval_helpers.h>
 #include <catboost/libs/fstr/calc_fstr.h>
 #include <catboost/libs/helpers/int_cast.h>
@@ -17,11 +19,26 @@
 #include <catboost/private/libs/algo/helpers.h>
 #include <catboost/private/libs/algo/mvs.h>
 #include <catboost/private/libs/algo/plot.h>
+#include <catboost/private/libs/app_helpers/mode_dataset_statistics_helpers.h>
 #include <catboost/private/libs/documents_importance/docs_importance.h>
 #include <catboost/private/libs/documents_importance/enums.h>
 #include <catboost/private/libs/options/cross_validation_params.h>
 #include <catboost/private/libs/options/enum_helpers.h>
+#include <catboost/private/libs/options/split_params.h>
+#include <catboost/private/libs/quantized_pool/serialization.h>
 #include <catboost/private/libs/target/data_providers.h>
+
+// P3.6 follow-up (catboost-8z4.48): native tokenizer/dictionary bridges.
+#include <library/cpp/langs/langs.h>
+#include <library/cpp/text_processing/dictionary/bpe_builder.h>
+#include <library/cpp/text_processing/dictionary/bpe_dictionary.h>
+#include <library/cpp/text_processing/dictionary/dictionary.h>
+#include <library/cpp/text_processing/dictionary/dictionary_builder.h>
+#include <library/cpp/text_processing/dictionary/frequency_based_dictionary.h>
+#include <library/cpp/text_processing/dictionary/options.h>
+#include <library/cpp/text_processing/dictionary/types.h>
+#include <library/cpp/text_processing/tokenizer/options.h>
+#include <library/cpp/text_processing/tokenizer/tokenizer.h>
 
 // P1.16: compiled-in build identifier for R/libcatboostr version-skew detection.
 // Same __vcs_version__.c mechanism (cmake/common.cmake's vcs_info(), fed by
@@ -30,9 +47,11 @@
 #include <library/cpp/svnversion/svnversion.h>
 
 #include <util/generic/cast.h>
+#include <util/generic/hash.h>
 #include <util/generic/mem_copy.h>
 #include <util/generic/singleton.h>
 #include <util/generic/xrange.h>
+#include <util/stream/file.h>
 #include <util/string/cast.h>
 #include <util/system/info.h>
 
@@ -245,18 +264,27 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(SEXP floatAndCatMatrixParam,
                                 SEXP pairsWeightParam,
                                 SEXP baselineParam,
                                 SEXP featureNamesParam,
-                                SEXP classLabelsParam) {
+                                SEXP classLabelsParam,
+                                SEXP embeddingListParam,
+                                SEXP embeddingFeaturesIndicesParam) {
     SEXP result = NULL;
     R_API_BEGIN();
+    // Embedding features arrive as a VECSXP whose elements are (objectCount x embeddingDimension)
+    // numeric matrices, one per embedding feature -- an R matrix cell cannot itself hold a vector,
+    // so they travel beside the flat float/cat matrix exactly like text features do.
+    ui32 embeddingColumns = embeddingListParam == R_NilValue ? 0 :
+                       SafeIntegerCast<ui32>(Rf_length(embeddingListParam));
     SEXP dataDim = floatAndCatMatrixParam != R_NilValue ?
                    getAttrib(floatAndCatMatrixParam, R_DimSymbol) :
-                   getAttrib(textMatrixParam, R_DimSymbol);
+                   (textMatrixParam != R_NilValue ?
+                    getAttrib(textMatrixParam, R_DimSymbol) :
+                    getAttrib(VECTOR_ELT(embeddingListParam, 0), R_DimSymbol));
     ui32 dataRows = SafeIntegerCast<ui32>(INTEGER(dataDim)[0]);
     ui32 floatAndCatColumns = floatAndCatMatrixParam == R_NilValue ? 0 :
                        SafeIntegerCast<ui32>(INTEGER(getAttrib(floatAndCatMatrixParam, R_DimSymbol))[1]);
     ui32 textColumns = textMatrixParam == R_NilValue ? 0 :
                        SafeIntegerCast<ui32>(INTEGER(getAttrib(textMatrixParam, R_DimSymbol))[1]);
-    ui32 dataColumns = floatAndCatColumns + textColumns;
+    ui32 dataColumns = floatAndCatColumns + textColumns + embeddingColumns;
     SEXP targetDim = getAttrib(targetParam, R_DimSymbol);
     ui32 targetRows = 0;
     ui32 targetColumns = 0;
@@ -287,7 +315,7 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(SEXP floatAndCatMatrixParam,
             dataColumns,
             ToUnsigned(GetVectorFromNullableSEXP<int>(catFeaturesIndicesParam, "cat_features_indices"_sb)),
             ToUnsigned(GetVectorFromNullableSEXP<int>(textFeaturesIndicesParam, "text_features_indices"_sb)),
-            TVector<ui32>{}, // TODO(akhropov) support embedding features in R
+            ToUnsigned(GetVectorFromNullableSEXP<int>(embeddingFeaturesIndicesParam, "embedding_features_indices"_sb)),
             featureId);
 
         if (!targetColumns) {
@@ -365,9 +393,37 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(SEXP floatAndCatMatrixParam,
 
         double *ptr_floatAndCatMatrixParam = Rf_isNull(floatAndCatMatrixParam)? nullptr : REAL(floatAndCatMatrixParam);
         size_t indexTextMatrix = 0;
+        size_t indexEmbeddingMatrix = 0;
         size_t indexFloatAndCatMatrix = 0;
         for (size_t j = 0; j < dataColumns; ++j){
-            if (metaInfo.FeaturesLayout->GetExternalFeatureType(j) == EFeatureType::Text) {
+            if (metaInfo.FeaturesLayout->GetExternalFeatureType(j) == EFeatureType::Embedding) {
+                SEXP embeddingMatrix = VECTOR_ELT(embeddingListParam, indexEmbeddingMatrix);
+                SEXP embeddingDim = getAttrib(embeddingMatrix, R_DimSymbol);
+                CB_ENSURE(
+                    SafeIntegerCast<ui32>(INTEGER(embeddingDim)[0]) == dataRows,
+                    "embedding feature " << j << " has " << INTEGER(embeddingDim)[0]
+                        << " rows, data has " << dataRows
+                );
+                const size_t embeddingSize = static_cast<size_t>(INTEGER(embeddingDim)[1]);
+                const double* ptr_embeddingMatrix = REAL(embeddingMatrix);
+                TVector<TMaybeOwningConstArrayHolder<float>> embeddingValues;
+                embeddingValues.reserve(dataRows);
+                for (ui32 i = 0; i < dataRows; ++i) {
+                    TVector<float> objectEmbedding;
+                    objectEmbedding.yresize(embeddingSize);
+                    for (size_t k = 0; k < embeddingSize; ++k) {
+                        objectEmbedding[k] = static_cast<float>(ptr_embeddingMatrix[i + dataRows * k]);
+                    }
+                    embeddingValues.push_back(
+                        TMaybeOwningConstArrayHolder<float>::CreateOwning(std::move(objectEmbedding))
+                    );
+                }
+                visitor->AddEmbeddingFeature(
+                    j,
+                    MakeTypeCastArraysHolderFromVector<float, float>(embeddingValues)
+                );
+                indexEmbeddingMatrix++;
+            } else if (metaInfo.FeaturesLayout->GetExternalFeatureType(j) == EFeatureType::Text) {
                 TVector<TString> textValues;
                 textValues.yresize(dataRows);
                 for (ui32 i = 0; i < dataRows; ++i) {
@@ -610,6 +666,770 @@ EXPORT_FUNCTION CatBoostPoolSlice_R(SEXP poolParam, SEXP sizeParam, SEXP offsetP
     R_API_END();
     UNPROTECT(size - offset + 1);
     return result;
+}
+
+// Mirrors _catboost.pyx's _take_slice() (which backs Python's Pool.slice()):
+// builds a new TDataProvider from a row subset via TDataProvider::GetSubset,
+// so every column of the pool -- features (numeric, categorical, text,
+// embedding), all targets, weights, group ids, subgroup ids, baseline, pairs
+// and the feature layout (names) -- is carried through by the core subset
+// machinery. This is what catboost.pool.slice() uses; the older
+// CatBoostPoolSlice_R above flattens rows into a dense numeric matrix and
+// exists only for head()/tail() printing.
+EXPORT_FUNCTION CatBoostPoolSliceSubset_R(SEXP poolParam, SEXP sizeParam, SEXP offsetParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    const size_t objectCount = static_cast<size_t>(pool->GetObjectCount());
+    const size_t offset = std::min(static_cast<size_t>(asInteger(offsetParam)), objectCount);
+    const size_t sliceEnd = std::min(objectCount, offset + static_cast<size_t>(asInteger(sizeParam)));
+
+    TRangesSubset<ui32>::TBlocks subsetBlocks
+        = { TSubsetBlock<ui32>(TIndexRange<ui32>(offset, sliceEnd), 0) };
+    TObjectsGroupingSubset objectsGroupingSubset = GetGroupingSubsetFromObjectsSubset(
+        pool->ObjectsGrouping,
+        TArraySubsetIndexing<ui32>(
+            TRangesSubset<ui32>(subsetBlocks[0].GetSize(), std::move(subsetBlocks))
+        ),
+        EObjectsOrder::Ordered
+    );
+
+    TDataProviderPtr slicedDataProvider = pool->GetSubset(
+        objectsGroupingSubset,
+        GetMonopolisticFreeCpuRam(),
+        &NPar::LocalExecutor()
+    );
+
+    result = PROTECT(R_MakeExternalPtr(slicedDataProvider.Get(), R_NilValue, R_NilValue));
+    R_RegisterCFinalizerEx(result, _Finalizer<TPoolHandle>, TRUE);
+    Y_UNUSED(slicedDataProvider.Release());
+
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+// P3.4: R equivalents of Python Pool's train_eval_split and save (Pool
+// structural operations; slice's native entry point is
+// CatBoostPoolSliceSubset_R above). train_eval_split has no existing native entry point -- Python's
+// Pool.train_eval_split (catboost/python-package/catboost/core.py) calls
+// _catboost.pyx's _train_eval_split, which itself calls TrainEvalSplit()
+// (catboost/python-package/catboost/helpers.cpp:252). That function lives in
+// the python-package tree (not a core lib) and includes Python.h, so it
+// cannot be called directly from R; this reimplements its body against the
+// same core NCB entry points it itself calls (catboost/libs/data/
+// objects_grouping.h's Shuffle/TrainTestSplit/StratifiedTrainTestSplit,
+// TDataProvider::GetSubset), which are all already reachable from this file.
+// Only the float-typed-target branch of the stratified path is implemented,
+// matching this fork's existing precedent at CatBoostPoolGetLabel_R: R's own
+// Pool construction paths never produce ERawTargetType::String labels.
+EXPORT_FUNCTION CatBoostPoolTrainEvalSplit_R(
+    SEXP poolParam,
+    SEXP hasTimeParam,
+    SEXP isClassificationParam,
+    SEXP evalFractionParam,
+    SEXP saveEvalPoolParam
+) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    bool hasTime = static_cast<bool>(asLogical(hasTimeParam));
+    bool isClassification = static_cast<bool>(asLogical(isClassificationParam));
+    double evalFraction = asReal(evalFractionParam);
+    bool saveEvalPool = static_cast<bool>(asLogical(saveEvalPoolParam));
+
+    CB_ENSURE(evalFraction > 0.0 && evalFraction < 1.0, "eval_fraction must be in (0,1) range");
+
+    TTrainTestSplitParams splitParams;
+    splitParams.Shuffle = !hasTime;
+    splitParams.Stratified = isClassification;
+    splitParams.TrainPart = 1.0 - evalFraction;
+
+    bool shuffle = splitParams.Shuffle
+        && pool->ObjectsData->GetOrder() != EObjectsOrder::RandomShuffled;
+
+    TObjectsGroupingSubset postShuffleGroupingSubset;
+    if (shuffle) {
+        TRestorableFastRng64 rand(splitParams.PartitionRandSeed);
+        postShuffleGroupingSubset = NCB::Shuffle(pool->ObjectsGrouping, 1, &rand);
+    } else {
+        postShuffleGroupingSubset = GetSubset(
+            pool->ObjectsGrouping,
+            TArraySubsetIndexing<ui32>(TFullSubset<ui32>(pool->ObjectsGrouping->GetGroupCount())),
+            EObjectsOrder::Ordered
+        );
+    }
+    TObjectsGroupingPtr postShuffleGrouping = postShuffleGroupingSubset.GetSubsetGrouping();
+
+    TArraySubsetIndexing<ui32> postShuffleTrainIndices;
+    TArraySubsetIndexing<ui32> postShuffleTestIndices;
+
+    if (splitParams.Stratified) {
+        auto maybeOneDimensionalTarget = pool->RawTargetData.GetOneDimensionalTarget();
+        CB_ENSURE(maybeOneDimensionalTarget, "Cannot do stratified split without one-dimensional target data");
+        const ITypedSequencePtr<float>* typedSequence
+            = std::get_if<ITypedSequencePtr<float>>(&(**maybeOneDimensionalTarget));
+        CB_ENSURE(
+            typedSequence,
+            "CatBoostPoolTrainEvalSplit_R: string labels are not supported for stratified split"
+        );
+        TVector<float> classesVec(pool->GetObjectCount());
+        size_t classesVecIdx = 0;
+        (*typedSequence)->ForEach([&classesVec, &classesVecIdx](float value) { classesVec[classesVecIdx++] = value; });
+        // Mirrors python-package/catboost/helpers.cpp's TrainEvalSplit: the
+        // target array must be re-ordered by the same post-shuffle indexing
+        // used to build postShuffleGrouping before stratifying, otherwise
+        // StratifiedTrainTestSplit pairs shuffled row positions with
+        // pre-shuffle class labels.
+        if (shuffle) {
+            classesVec = NCB::GetSubset<float>(
+                TConstArrayRef<float>(classesVec),
+                postShuffleGroupingSubset.GetObjectsIndexing(),
+                &NPar::LocalExecutor()
+            );
+        }
+        StratifiedTrainTestSplit(
+            *postShuffleGrouping,
+            TConstArrayRef<float>(classesVec),
+            splitParams.TrainPart,
+            &postShuffleTrainIndices,
+            &postShuffleTestIndices
+        );
+    } else {
+        TrainTestSplit(*postShuffleGrouping, splitParams.TrainPart, &postShuffleTrainIndices, &postShuffleTestIndices);
+    }
+
+    auto getSubset = [&](const TArraySubsetIndexing<ui32>& postShuffleIndexing) {
+        return pool->GetSubset(
+            GetSubset(
+                pool->ObjectsGrouping,
+                Compose(postShuffleGroupingSubset.GetGroupsIndexing(), postShuffleIndexing),
+                shuffle ? EObjectsOrder::RandomShuffled : EObjectsOrder::Ordered
+            ),
+            GetMonopolisticFreeCpuRam(),
+            &NPar::LocalExecutor()
+        );
+    };
+
+    TDataProviderPtr trainDataProvider = getSubset(postShuffleTrainIndices);
+    TDataProviderPtr evalDataProvider;
+    if (saveEvalPool) {
+        evalDataProvider = getSubset(postShuffleTestIndices);
+    }
+
+    result = PROTECT(allocVector(VECSXP, 2));
+
+    SEXP trainHandle = PROTECT(R_MakeExternalPtr(trainDataProvider.Get(), R_NilValue, R_NilValue));
+    R_RegisterCFinalizerEx(trainHandle, _Finalizer<TPoolHandle>, TRUE);
+    Y_UNUSED(trainDataProvider.Release());
+    SET_VECTOR_ELT(result, 0, trainHandle);
+    UNPROTECT(1);
+
+    if (saveEvalPool) {
+        SEXP evalHandle = PROTECT(R_MakeExternalPtr(evalDataProvider.Get(), R_NilValue, R_NilValue));
+        R_RegisterCFinalizerEx(evalHandle, _Finalizer<TPoolHandle>, TRUE);
+        Y_UNUSED(evalDataProvider.Release());
+        SET_VECTOR_ELT(result, 1, evalHandle);
+        UNPROTECT(1);
+    } else {
+        SET_VECTOR_ELT(result, 1, R_NilValue);
+    }
+
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+// Mirrors _catboost.pyx _save()/Python's Pool.save(): saves a quantized Pool
+// to CatBoost's own binary quantized-pool format via the same core entry
+// point Python calls (catboost/private/libs/quantized_pool/serialization.h's
+// SaveQuantizedPool(TDataProviderPtr, fname)) -- not the CD/TSV format
+// catboost.save_pool (R/catboost.R) writes, which is a different, older,
+// human-readable format read back by catboost.load_pool's
+// column_description path. Requires the pool to already be quantized, same
+// precondition and error message ("Pool is not quantized") as
+// BuildSrcDataFromDataProvider (serialization.cpp) enforces for Python.
+EXPORT_FUNCTION CatBoostPoolSave_R(SEXP poolParam, SEXP fnameParam) {
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    CB_ENSURE(
+        dynamic_cast<const TQuantizedObjectsDataProvider*>(pool->ObjectsData.Get()),
+        "Pool is not quantized"
+    );
+
+    // Manual refcount bump, same pattern as CatBoostPoolQuantize_R above: the
+    // R external pointer finalizer deletes this object directly, bypassing
+    // intrusive refcounting, so a local TDataProviderPtr must not be allowed
+    // to drop the count to 0 and free it out from under the R handle.
+    pool->Ref();
+    TDataProviderPtr dataProvider(pool);
+    SaveQuantizedPool(dataProvider, TString(CHAR(asChar(fnameParam))));
+    R_API_END();
+    return R_NilValue;
+}
+
+// P3.1: R equivalents of Python Pool's metadata accessor/mutator methods
+// (catboost/python-package/catboost/_catboost.pyx get_label/get_weight/
+// set_weight/get_baseline/set_baseline/has_label/get_group_id_hash/
+// set_group_id/set_group_weight/set_subgroup_id/set_pairs/set_pairs_weight/
+// num_pairs/set_timestamp). R wrappers are catboost.pool.<snake_case_name>
+// in R/catboost.R.
+
+EXPORT_FUNCTION CatBoostPoolHasLabel_R(SEXP poolParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    result = ScalarLogical(pool->MetaInfo.TargetCount > 0);
+    R_API_END();
+    return result;
+}
+
+// Mirrors _catboost.pyx get_label(): reads RawTargetData via GetNumericTarget
+// into a pre-sized buffer per target dimension. String targets are out of
+// scope for this fork's Pool construction paths (CreateFromMatrix/FromFile
+// only ever set ERawTargetType::Integer/Float/None), so unlike the Python
+// method this does not need an ERawTargetType::String branch.
+EXPORT_FUNCTION CatBoostPoolGetLabel_R(SEXP poolParam) {
+    SEXP result = NULL;
+    SEXP resultDim = NULL;
+    size_t protectedCount = 0;
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    ui32 targetCount = pool->MetaInfo.TargetCount;
+    ui32 objectCount = pool->GetObjectCount();
+    CB_ENSURE(
+        pool->RawTargetData.GetTargetType() != ERawTargetType::String,
+        "CatBoostPoolGetLabel_R: string labels are not supported"
+    );
+    result = PROTECT(allocVector(REALSXP, (size_t)objectCount * targetCount));
+    ++protectedCount;
+    if (targetCount > 0) {
+        TVector<TVector<float>> targetBuffers(targetCount, TVector<float>(objectCount));
+        TVector<TArrayRef<float>> targetRefs(targetCount);
+        for (auto targetIdx : xrange(targetCount)) {
+            targetRefs[targetIdx] = TArrayRef<float>(targetBuffers[targetIdx]);
+        }
+        pool->RawTargetData.GetNumericTarget(TArrayRef<TArrayRef<float>>(targetRefs));
+        double* ptr_result = REAL(result);
+        for (auto targetIdx : xrange(targetCount)) {
+            for (auto objectIdx : xrange(objectCount)) {
+                ptr_result[objectIdx + (size_t)objectCount * targetIdx] = targetBuffers[targetIdx][objectIdx];
+            }
+        }
+        if (targetCount > 1) {
+            resultDim = PROTECT(allocVector(INTSXP, 2));
+            ++protectedCount;
+            INTEGER(resultDim)[0] = objectCount;
+            INTEGER(resultDim)[1] = targetCount;
+            setAttrib(result, R_DimSymbol, resultDim);
+        }
+    }
+    R_API_END();
+    UNPROTECT(protectedCount);
+    return result;
+}
+
+// Mirrors _catboost.pyx get_weight(): TWeights::IsTrivial() means "weight
+// column was never set", in which case every object's effective weight is 1.
+EXPORT_FUNCTION CatBoostPoolGetWeight_R(SEXP poolParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    const TWeights<float>& weights = pool->RawTargetData.GetWeights();
+    result = PROTECT(allocVector(REALSXP, weights.GetSize()));
+    double* ptr_result = REAL(result);
+    if (weights.IsTrivial()) {
+        std::fill(ptr_result, ptr_result + weights.GetSize(), 1.0);
+    } else {
+        TConstArrayRef<float> data = weights.GetNonTrivialData();
+        for (auto i : xrange(data.size())) {
+            ptr_result[i] = data[i];
+        }
+    }
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+// Mirrors _catboost.pyx _set_weight()/TDataProviderTemplate::SetWeights().
+EXPORT_FUNCTION CatBoostPoolSetWeight_R(SEXP poolParam, SEXP weightParam) {
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    TVector<float> weights = GetVectorFromNullableSEXP<float>(weightParam, "weight"_sb);
+    pool->SetWeights(TConstArrayRef<float>(weights));
+    R_API_END();
+    return R_NilValue;
+}
+
+// Mirrors _catboost.pyx get_baseline(): [approxIdx][objectIdx] -> R matrix
+// (objectCount x baselineCount), empty (objectCount x 0) matrix if unset.
+EXPORT_FUNCTION CatBoostPoolGetBaseline_R(SEXP poolParam) {
+    SEXP result = NULL;
+    SEXP resultDim = NULL;
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    ui32 objectCount = pool->GetObjectCount();
+    TMaybeData<TBaselineArrayRef> maybeBaseline = pool->RawTargetData.GetBaseline();
+    size_t baselineCount = maybeBaseline ? maybeBaseline->size() : 0;
+    result = PROTECT(allocVector(REALSXP, (size_t)objectCount * baselineCount));
+    double* ptr_result = REAL(result);
+    if (maybeBaseline) {
+        TBaselineArrayRef baseline = *maybeBaseline;
+        for (auto baselineIdx : xrange(baselineCount)) {
+            for (auto objectIdx : xrange(objectCount)) {
+                ptr_result[objectIdx + (size_t)objectCount * baselineIdx] = baseline[baselineIdx][objectIdx];
+            }
+        }
+    }
+    resultDim = PROTECT(allocVector(INTSXP, 2));
+    INTEGER(resultDim)[0] = objectCount;
+    INTEGER(resultDim)[1] = baselineCount;
+    setAttrib(result, R_DimSymbol, resultDim);
+    R_API_END();
+    UNPROTECT(2);
+    return result;
+}
+
+// Mirrors _catboost.pyx _set_baseline(): baselineParam is an
+// (objectCount x approxDim) R matrix, same [objectIdx, approxIdx] layout
+// CatBoostCreateFromMatrix_R already accepts for its baselineParam.
+EXPORT_FUNCTION CatBoostPoolSetBaseline_R(SEXP poolParam, SEXP baselineParam) {
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    ui32 objectCount = pool->GetObjectCount();
+    SEXP baselineDim = getAttrib(baselineParam, R_DimSymbol);
+    CB_ENSURE(baselineDim != R_NilValue, "baseline must be a matrix");
+    ui32 baselineRows = SafeIntegerCast<ui32>(INTEGER(baselineDim)[0]);
+    size_t approxDimension = SafeIntegerCast<size_t>(INTEGER(baselineDim)[1]);
+    CB_ENSURE(baselineRows == objectCount, "baseline row count must equal pool row count");
+    double* ptr_baseline = REAL(baselineParam);
+
+    TVector<TVector<float>> baselineMatrix(approxDimension, TVector<float>(objectCount));
+    TVector<TConstArrayRef<float>> baselineMatrixView(approxDimension);
+    for (auto approxIdx : xrange(approxDimension)) {
+        for (auto objectIdx : xrange(objectCount)) {
+            baselineMatrix[approxIdx][objectIdx] =
+                static_cast<float>(ptr_baseline[objectIdx + (size_t)objectCount * approxIdx]);
+        }
+        baselineMatrixView[approxIdx] = baselineMatrix[approxIdx];
+    }
+    pool->SetBaseline(TBaselineArrayRef(baselineMatrixView.data(), baselineMatrixView.size()));
+    R_API_END();
+    return R_NilValue;
+}
+
+// Mirrors _catboost.pyx get_group_id_hash(): returns the ui64 TGroupId
+// stored per object, one decimal string per object (R has no native 64-bit
+// integer type; REALSXP's 53-bit mantissa would silently truncate hash
+// values above 2^53, so this returns character to stay exact), or R NULL
+// if the pool has no group ids.
+EXPORT_FUNCTION CatBoostPoolGetGroupIdHash_R(SEXP poolParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    TMaybeData<TConstArrayRef<TGroupId>> maybeGroupIds = pool->ObjectsData->GetGroupIds();
+    if (maybeGroupIds) {
+        TConstArrayRef<TGroupId> groupIds = *maybeGroupIds;
+        result = PROTECT(allocVector(STRSXP, groupIds.size()));
+        for (auto i : xrange(groupIds.size())) {
+            SET_STRING_ELT(result, i, mkChar(ToString<TGroupId>(groupIds[i]).c_str()));
+        }
+        UNPROTECT(1);
+    } else {
+        result = R_NilValue;
+    }
+    R_API_END();
+    return result;
+}
+
+// Mirrors _catboost.pyx _set_group_id()/CalcGroupIdFor(): groupIdParam is a
+// STRSXP of pre-canonicalized tokens (R/catboost.R does the int/string ->
+// decimal-string canonicalization Python's get_id_object_bytes_string_
+// representation() does), each hashed to a TGroupId exactly as
+// CalcGroupIdFor(TStringBuf) does for the Python Pool.
+EXPORT_FUNCTION CatBoostPoolSetGroupId_R(SEXP poolParam, SEXP groupIdParam) {
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    ui32 objectCount = pool->GetObjectCount();
+    CB_ENSURE(
+        static_cast<ui32>(length(groupIdParam)) == objectCount,
+        "group_id length must equal pool row count"
+    );
+    TVector<TGroupId> groupIds;
+    groupIds.reserve(objectCount);
+    for (auto i : xrange(objectCount)) {
+        groupIds.push_back(CalcGroupIdFor(TStringBuf(CHAR(STRING_ELT(groupIdParam, i)))));
+    }
+    pool->SetGroupIds(TConstArrayRef<TGroupId>(groupIds));
+    R_API_END();
+    return R_NilValue;
+}
+
+// Mirrors _catboost.pyx _set_group_weight().
+EXPORT_FUNCTION CatBoostPoolSetGroupWeight_R(SEXP poolParam, SEXP groupWeightParam) {
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    TVector<float> groupWeights = GetVectorFromNullableSEXP<float>(groupWeightParam, "group_weight"_sb);
+    pool->SetGroupWeights(TConstArrayRef<float>(groupWeights));
+    R_API_END();
+    return R_NilValue;
+}
+
+// Mirrors _catboost.pyx _set_subgroup_id()/CalcSubgroupIdFor(): same
+// pre-canonicalized-token convention as CatBoostPoolSetGroupId_R above.
+EXPORT_FUNCTION CatBoostPoolSetSubgroupId_R(SEXP poolParam, SEXP subgroupIdParam) {
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    ui32 objectCount = pool->GetObjectCount();
+    CB_ENSURE(
+        static_cast<ui32>(length(subgroupIdParam)) == objectCount,
+        "subgroup_id length must equal pool row count"
+    );
+    TVector<TSubgroupId> subgroupIds;
+    subgroupIds.reserve(objectCount);
+    for (auto i : xrange(objectCount)) {
+        subgroupIds.push_back(CalcSubgroupIdFor(TStringBuf(CHAR(STRING_ELT(subgroupIdParam, i)))));
+    }
+    pool->SetSubgroupIds(TConstArrayRef<TSubgroupId>(subgroupIds));
+    R_API_END();
+    return R_NilValue;
+}
+
+// Mirrors _catboost.pyx set_pairs()/_make_pairs_vector(): pairsParam is an
+// (N x 2) or (N x 3) integer/double matrix of (winner_id, loser_id[,
+// weight]), 0-indexed object ids -- same convention CatBoostCreateFromMatrix_R
+// already uses for its pairsParam. Missing weight column defaults to 1.0.
+EXPORT_FUNCTION CatBoostPoolSetPairs_R(SEXP poolParam, SEXP pairsParam) {
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    SEXP pairsDim = getAttrib(pairsParam, R_DimSymbol);
+    CB_ENSURE(pairsDim != R_NilValue, "pairs must be a matrix");
+    size_t pairsCount = SafeIntegerCast<size_t>(INTEGER(pairsDim)[0]);
+    int pairsColumns = INTEGER(pairsDim)[1];
+    CB_ENSURE(pairsColumns == 2 || pairsColumns == 3, "pairs must have 2 or 3 columns");
+    double* ptr_pairs = REAL(pairsParam);
+
+    TVector<TPair> pairs;
+    pairs.reserve(pairsCount);
+    for (auto i : xrange(pairsCount)) {
+        float weight = pairsColumns == 3 ? static_cast<float>(ptr_pairs[i + pairsCount * 2]) : 1.0f;
+        pairs.emplace_back(
+            static_cast<ui32>(ptr_pairs[i + pairsCount * 0]),
+            static_cast<ui32>(ptr_pairs[i + pairsCount * 1]),
+            weight
+        );
+    }
+    pool->SetPairs(TConstArrayRef<TPair>(pairs));
+    R_API_END();
+    return R_NilValue;
+}
+
+// Mirrors _catboost.pyx _set_pairs_weight()/GetUngroupedPairs(): keeps the
+// existing (winner, loser) ids, replaces only the per-pair weight.
+EXPORT_FUNCTION CatBoostPoolSetPairsWeight_R(SEXP poolParam, SEXP pairsWeightParam) {
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    const TMaybeData<TRawPairsData>& maybePairsData = pool->RawTargetData.GetPairs();
+    CB_ENSURE(maybePairsData, "Pool has no pairs, call catboost.pool.set_pairs first");
+    const TFlatPairsInfo* oldPairs = std::get_if<TFlatPairsInfo>(&*maybePairsData);
+    CB_ENSURE(oldPairs, "Cannot set pairs weight: pairs data is grouped");
+    CB_ENSURE(
+        static_cast<size_t>(length(pairsWeightParam)) == oldPairs->size(),
+        "pairs_weight length must equal num_pairs()"
+    );
+    double* ptr_pairsWeight = REAL(pairsWeightParam);
+    TVector<TPair> newPairs;
+    newPairs.reserve(oldPairs->size());
+    for (auto i : xrange(oldPairs->size())) {
+        newPairs.emplace_back((*oldPairs)[i].WinnerId, (*oldPairs)[i].LoserId, static_cast<float>(ptr_pairsWeight[i]));
+    }
+    pool->SetPairs(TConstArrayRef<TPair>(newPairs));
+    R_API_END();
+    return R_NilValue;
+}
+
+// Mirrors _catboost.pyx num_pairs()/GetNumPairs().
+EXPORT_FUNCTION CatBoostPoolNumPairs_R(SEXP poolParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    size_t numPairs = 0;
+    const TMaybeData<TRawPairsData>& maybePairsData = pool->RawTargetData.GetPairs();
+    if (maybePairsData) {
+        std::visit([&](const auto& pairs) { numPairs = pairs.size(); }, *maybePairsData);
+    }
+    result = ScalarInteger(static_cast<int>(numPairs));
+    R_API_END();
+    return result;
+}
+
+// Mirrors _catboost.pyx _set_timestamp().
+EXPORT_FUNCTION CatBoostPoolSetTimestamp_R(SEXP poolParam, SEXP timestampParam) {
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    ui32 objectCount = pool->GetObjectCount();
+    CB_ENSURE(
+        static_cast<ui32>(length(timestampParam)) == objectCount,
+        "timestamp length must equal pool row count"
+    );
+    double* ptr_timestamp = REAL(timestampParam);
+    TVector<ui64> timestamps;
+    timestamps.reserve(objectCount);
+    for (auto i : xrange(objectCount)) {
+        timestamps.push_back(static_cast<ui64>(ptr_timestamp[i]));
+    }
+    pool->SetTimestamps(TConstArrayRef<ui64>(timestamps));
+    R_API_END();
+    return R_NilValue;
+}
+
+// P3.2: R equivalents of Python Pool's feature/shape introspection methods
+// (catboost/python-package/catboost/_catboost.pyx get_feature_names/
+// _set_feature_names/get_features/get_cat_feature_indices/
+// get_text_feature_indices/get_embedding_feature_indices). R wrappers are
+// catboost.pool.<snake_case_name> in R/catboost.R. num_row/num_col/shape/
+// is_empty_ reuse the pre-existing CatBoostPoolNumRow_R/CatBoostPoolNumCol_R
+// (already wrapped by dim.catboost.Pool) instead of adding new C entry
+// points for them.
+
+// Mirrors _catboost.pyx get_feature_names(): FeaturesLayout's external
+// feature ids, in external (flat) feature order.
+EXPORT_FUNCTION CatBoostPoolGetFeatureNames_R(SEXP poolParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    TVector<TString> featureIds = pool->MetaInfo.FeaturesLayout->GetExternalFeatureIds();
+    result = PROTECT(allocVector(STRSXP, featureIds.size()));
+    for (auto i : xrange(featureIds.size())) {
+        SET_STRING_ELT(result, i, mkChar(featureIds[i].c_str()));
+    }
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+// Mirrors _catboost.pyx _set_feature_names()/TFeaturesLayout::SetExternalFeatureIds().
+EXPORT_FUNCTION CatBoostPoolSetFeatureNames_R(SEXP poolParam, SEXP featureNamesParam) {
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    ui32 featureCount = pool->MetaInfo.GetFeatureCount();
+    CB_ENSURE(
+        static_cast<ui32>(length(featureNamesParam)) == featureCount,
+        "feature_names length (" << length(featureNamesParam) << ") must equal pool column count (" << featureCount << ")"
+    );
+    TVector<TString> featureNames;
+    featureNames.reserve(featureCount);
+    for (auto i : xrange(featureCount)) {
+        featureNames.push_back(TString(CHAR(STRING_ELT(featureNamesParam, i))));
+    }
+    pool->MetaInfo.FeaturesLayout->SetExternalFeatureIds(TConstArrayRef<TString>(featureNames));
+    R_API_END();
+    return R_NilValue;
+}
+
+// Mirrors _catboost.pyx get_cat_feature_indices(): external (flat) feature
+// indices of the categorical features, ascending.
+EXPORT_FUNCTION CatBoostPoolGetCatFeatureIndices_R(SEXP poolParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    TConstArrayRef<ui32> indices = pool->MetaInfo.FeaturesLayout->GetCatFeatureInternalIdxToExternalIdx();
+    result = PROTECT(allocVector(INTSXP, indices.size()));
+    for (auto i : xrange(indices.size())) {
+        INTEGER(result)[i] = static_cast<int>(indices[i]);
+    }
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+// Mirrors _catboost.pyx get_text_feature_indices().
+EXPORT_FUNCTION CatBoostPoolGetTextFeatureIndices_R(SEXP poolParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    TConstArrayRef<ui32> indices = pool->MetaInfo.FeaturesLayout->GetTextFeatureInternalIdxToExternalIdx();
+    result = PROTECT(allocVector(INTSXP, indices.size()));
+    for (auto i : xrange(indices.size())) {
+        INTEGER(result)[i] = static_cast<int>(indices[i]);
+    }
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+// Mirrors _catboost.pyx get_embedding_feature_indices(). Non-empty for Pools
+// built with catboost.load_pool(embedding_features = ...) /
+// catboost.from_matrix(embedding_features_data = ...), which forward the
+// embedding matrices and their flat indices to CatBoostCreateFromMatrix_R.
+EXPORT_FUNCTION CatBoostPoolGetEmbeddingFeatureIndices_R(SEXP poolParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    TConstArrayRef<ui32> indices = pool->MetaInfo.FeaturesLayout->GetEmbeddingFeatureInternalIdxToExternalIdx();
+    result = PROTECT(allocVector(INTSXP, indices.size()));
+    for (auto i : xrange(indices.size())) {
+        INTEGER(result)[i] = static_cast<int>(indices[i]);
+    }
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+// Mirrors _catboost.pyx get_features(): (object_count x feature_count)
+// matrix of raw float feature values, 0 for absent (cat/text) columns.
+// Errors like the Python oracle if any feature is non-numeric.
+EXPORT_FUNCTION CatBoostPoolGetFeatures_R(SEXP poolParam) {
+    SEXP result = NULL;
+    SEXP resultDim = NULL;
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    const TRawObjectsDataProvider* rawObjectsData
+        = dynamic_cast<const TRawObjectsDataProvider*>(pool->ObjectsData.Get());
+    CB_ENSURE(rawObjectsData, "CatBoostPoolGetFeatures_R: Pool does not have raw features data, only quantized");
+    const auto& featuresLayout = *(rawObjectsData->GetFeaturesLayout());
+    CB_ENSURE(
+        featuresLayout.GetExternalFeatureCount() == featuresLayout.GetFloatFeatureCount(),
+        "CatBoostPoolGetFeatures_R: Pool has non-numeric features, get_features supports only numeric features"
+    );
+    ui32 objectCount = pool->GetObjectCount();
+    ui32 featureCount = pool->MetaInfo.GetFeatureCount();
+    result = PROTECT(allocVector(REALSXP, (size_t)objectCount * featureCount));
+    double* ptr_result = REAL(result);
+    std::fill(ptr_result, ptr_result + (size_t)objectCount * featureCount, 0.0);
+    for (auto flatFeatureIdx : xrange(featureCount)) {
+        TMaybeData<const TFloatValuesHolder*> maybeFeatureData
+            = rawObjectsData->GetFloatFeature(flatFeatureIdx);
+        if (maybeFeatureData) {
+            if (const auto* arrayColumn = dynamic_cast<const TFloatArrayValuesHolder*>(*maybeFeatureData)) {
+                arrayColumn->GetData()->ForEach(
+                    [&] (ui32 i, float value) {
+                        ptr_result[i + (size_t)objectCount * flatFeatureIdx] = value;
+                    }
+                );
+            } else {
+                CB_ENSURE_INTERNAL(false, "CatBoostPoolGetFeatures_R: Unsupported column type");
+            }
+        }
+    }
+    resultDim = PROTECT(allocVector(INTSXP, 2));
+    INTEGER(resultDim)[0] = objectCount;
+    INTEGER(resultDim)[1] = featureCount;
+    setAttrib(result, R_DimSymbol, resultDim);
+    R_API_END();
+    UNPROTECT(2);
+    return result;
+}
+
+// P3.3: R equivalents of Python Pool's quantize/is_quantized/
+// save_quantization_borders (_catboost.pyx _quantize/is_quantized/
+// save_quantization_borders) plus the R equivalent of CatBoost CLI's
+// dataset-statistics mode.
+
+// Mirrors _catboost.pyx _quantize(): builds quantized objects data from the
+// pool's raw data via the same core entry point Python's Pool.quantize()
+// calls (catboost/libs/data/quantization.h ConstructQuantizedPoolFromRawPool),
+// then swaps it into the pool in place, same as Python does.
+EXPORT_FUNCTION CatBoostPoolQuantize_R(SEXP poolParam, SEXP paramsAsJsonParam) {
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    CB_ENSURE(
+        !dynamic_cast<const TQuantizedObjectsDataProvider*>(pool->ObjectsData.Get()),
+        "Pool is already quantized"
+    );
+    NJson::TJsonValue plainJsonParams = LoadFitParams(paramsAsJsonParam);
+
+    // Manual refcount bump, mirroring CatBoostFit_R's pools.Learn->Ref(): the
+    // R external pointer finalizer (_Finalizer<TPoolHandle>) deletes this
+    // object directly, bypassing intrusive refcounting, so a local
+    // TDataProviderPtr must not be allowed to drop the count to 0 and free it
+    // out from under the R handle when this function returns.
+    pool->Ref();
+    TDataProviderPtr srcData(pool);
+
+    TQuantizedFeaturesInfoPtr quantizedFeaturesInfo;
+    TQuantizedObjectsDataProviderPtr quantizedObjects =
+        ConstructQuantizedPoolFromRawPool(srcData, plainJsonParams, quantizedFeaturesInfo);
+
+    pool->ObjectsData = quantizedObjects;
+    pool->MetaInfo.FeaturesLayout = quantizedObjects->GetFeaturesLayout();
+    R_API_END();
+    return R_NilValue;
+}
+
+// Mirrors _catboost.pyx is_quantized().
+EXPORT_FUNCTION CatBoostPoolIsQuantized_R(SEXP poolParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    bool isQuantized = dynamic_cast<const TQuantizedObjectsDataProvider*>(pool->ObjectsData.Get()) != nullptr;
+    result = ScalarLogical(isQuantized);
+    R_API_END();
+    return result;
+}
+
+// Mirrors _catboost.pyx save_quantization_borders().
+EXPORT_FUNCTION CatBoostPoolSaveQuantizationBorders_R(SEXP poolParam, SEXP outputFileParam) {
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    const TQuantizedObjectsDataProvider* quantizedObjectsData =
+        dynamic_cast<const TQuantizedObjectsDataProvider*>(pool->ObjectsData.Get());
+    CB_ENSURE(quantizedObjectsData, "Pool is not quantized");
+    TQuantizedFeaturesInfoPtr quantizedFeaturesInfo = quantizedObjectsData->GetQuantizedFeaturesInfo();
+    SaveBordersAndNanModesToFileInMatrixnetFormat(TString(CHAR(asChar(outputFileParam))), *quantizedFeaturesInfo);
+    R_API_END();
+    return R_NilValue;
+}
+
+// R equivalent of CatBoost CLI's `dataset-statistics` mode. Calls the same
+// core library entry point the CLI mode itself calls
+// (catboost/private/libs/app_helpers/mode_dataset_statistics_helpers.h
+// NCB::CalculateDatasetStatisticsSingleHost, invoked from
+// catboost/app/mode_dataset_statistics.cpp) directly -- no shell-out to the
+// CLI binary, no argv parsing: the params struct is filled in-process, same
+// as CatBoostCreateFromFile_R's TPathWithScheme wiring above. Writes its two
+// JSON result files (statistics + histograms) to outputPathParam/
+// histogramPathParam; the R wrapper reads them back with jsonlite.
+EXPORT_FUNCTION CatBoostDatasetStatistics_R(
+    SEXP poolFileParam,
+    SEXP cdFileParam,
+    SEXP pairsFileParam,
+    SEXP delimiterParam,
+    SEXP hasHeaderParam,
+    SEXP threadCountParam,
+    SEXP borderCountParam,
+    SEXP onlyGroupStatisticsParam,
+    SEXP onlyLightStatisticsParam,
+    SEXP outputPathParam,
+    SEXP histogramPathParam
+) {
+    R_API_BEGIN();
+    TCalculateStatisticsParams params;
+
+    params.DatasetReadingParams.PoolPath = TPathWithScheme(CHAR(asChar(poolFileParam)), "dsv");
+
+    TStringBuf cdPathWithScheme(CHAR(asChar(cdFileParam)));
+    if (!cdPathWithScheme.empty()) {
+        params.DatasetReadingParams.ColumnarPoolFormatParams.CdFilePath = TPathWithScheme(cdPathWithScheme, "dsv");
+    }
+    params.DatasetReadingParams.ColumnarPoolFormatParams.DsvFormat =
+        TDsvFormatOptions{static_cast<bool>(asLogical(hasHeaderParam)), CHAR(asChar(delimiterParam))[0]};
+
+    TStringBuf pairsPathWithScheme(CHAR(asChar(pairsFileParam)));
+    if (!pairsPathWithScheme.empty()) {
+        params.DatasetReadingParams.PairsFilePath = TPathWithScheme(pairsPathWithScheme, "dsv-flat");
+    }
+
+    params.ThreadCount = asInteger(threadCountParam);
+    params.BorderCount = static_cast<size_t>(asInteger(borderCountParam));
+    params.OnlyGroupStatistics = static_cast<bool>(asLogical(onlyGroupStatisticsParam));
+    params.OnlyLightStatistics = static_cast<bool>(asLogical(onlyLightStatisticsParam));
+    params.OutputPath = TString(CHAR(asChar(outputPathParam)));
+    params.HistogramPath = TString(CHAR(asChar(histogramPathParam)));
+
+    NCB::CalculateDatasetStatisticsSingleHost(params);
+    R_API_END();
+    return R_NilValue;
 }
 
 EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitParamsAsJsonParam) {
@@ -1221,6 +2041,394 @@ EXPORT_FUNCTION CatBoostEvalMetrics_R(
 
     R_API_END();
     UNPROTECT(protectedCount);
+    return result;
+}
+
+
+// P3.6 follow-up (catboost-8z4.48): native tokenizer/dictionary bridges,
+// replacing the pure-R port in R/text_processing.R. Mirrors the method
+// surface vendor/catboost/catboost/python-package/catboost/_text_processing.pxi
+// wraps around NTextProcessing::NTokenizer::TTokenizer and
+// NTextProcessing::NDictionary::TDictionary/TDictionaryBuilder/
+// TBpeDictionary/TBpeDictionaryBuilder.
+
+static TVector<TString> GetTokensFromSEXP(SEXP lineTokens) {
+    const int tokenCount = length(lineTokens);
+    TVector<TString> tokens(tokenCount);
+    for (int j = 0; j < tokenCount; ++j) {
+        tokens[j] = TString(CHAR(STRING_ELT(lineTokens, j)));
+    }
+    return tokens;
+}
+
+EXPORT_FUNCTION CatBoostTextTokenizerCreate_R(
+    SEXP lowercasingParam,
+    SEXP lemmatizingParam,
+    SEXP numberProcessPolicyParam,
+    SEXP numberTokenParam,
+    SEXP separatorTypeParam,
+    SEXP delimiterParam,
+    SEXP splitBySetParam,
+    SEXP skipEmptyParam,
+    SEXP tokenTypesParam,
+    SEXP subTokensPolicyParam,
+    SEXP languagesParam
+) {
+    using namespace NTextProcessing::NTokenizer;
+    SEXP result = NULL;
+    R_API_BEGIN();
+
+    TTokenizerOptions options;
+    options.Lowercasing = static_cast<bool>(asLogical(lowercasingParam));
+    options.Lemmatizing = static_cast<bool>(asLogical(lemmatizingParam));
+    CB_ENSURE(
+        TryFromString<ETokenProcessPolicy>(CHAR(asChar(numberProcessPolicyParam)), options.NumberProcessPolicy),
+        "catboost.Tokenizer: unsupported number_process_policy '" << CHAR(asChar(numberProcessPolicyParam)) << "'");
+    options.NumberToken = TString(CHAR(asChar(numberTokenParam)));
+    CB_ENSURE(
+        TryFromString<ESeparatorType>(CHAR(asChar(separatorTypeParam)), options.SeparatorType),
+        "catboost.Tokenizer: unsupported separator_type '" << CHAR(asChar(separatorTypeParam)) << "'");
+    options.Delimiter = TString(CHAR(asChar(delimiterParam)));
+    options.SplitBySet = static_cast<bool>(asLogical(splitBySetParam));
+    options.SkipEmpty = static_cast<bool>(asLogical(skipEmptyParam));
+
+    if (!Rf_isNull(tokenTypesParam)) {
+        options.TokenTypes.clear();
+        for (int i = 0; i < length(tokenTypesParam); ++i) {
+            ETokenType tokenType;
+            CB_ENSURE(
+                TryFromString<ETokenType>(CHAR(STRING_ELT(tokenTypesParam, i)), tokenType),
+                "catboost.Tokenizer: unsupported token_types entry '" << CHAR(STRING_ELT(tokenTypesParam, i)) << "'");
+            options.TokenTypes.insert(tokenType);
+        }
+    }
+
+    CB_ENSURE(
+        TryFromString<ESubTokensPolicy>(CHAR(asChar(subTokensPolicyParam)), options.SubTokensPolicy),
+        "catboost.Tokenizer: unsupported sub_tokens_policy '" << CHAR(asChar(subTokensPolicyParam)) << "'");
+
+    if (!Rf_isNull(languagesParam)) {
+        options.Languages.clear();
+        for (int i = 0; i < length(languagesParam); ++i) {
+            options.Languages.push_back(LanguageByNameOrDie(TStringBuf(CHAR(STRING_ELT(languagesParam, i)))));
+        }
+    }
+
+    NTextProcessing::NTokenizer::TTokenizer* tokenizerPtr =
+        new NTextProcessing::NTokenizer::TTokenizer(options);
+
+    result = PROTECT(R_MakeExternalPtr(tokenizerPtr, R_NilValue, R_NilValue));
+    R_RegisterCFinalizerEx(result, _Finalizer<NTextProcessing::NTokenizer::TTokenizer*>, TRUE);
+
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+
+EXPORT_FUNCTION CatBoostTextTokenizerTokenize_R(SEXP tokenizerParam, SEXP stringParam) {
+    using namespace NTextProcessing::NTokenizer;
+    SEXP result = NULL;
+    R_API_BEGIN();
+
+    NTextProcessing::NTokenizer::TTokenizer* tokenizer =
+        static_cast<NTextProcessing::NTokenizer::TTokenizer*>(R_ExternalPtrAddr(tokenizerParam));
+    CB_ENSURE(tokenizer, "catboost.tokenizer.tokenize: tokenizer handle is NULL.");
+    TString input(CHAR(asChar(stringParam)));
+
+    TVector<TString> tokens;
+    TVector<ETokenType> tokenTypes;
+    tokenizer->Tokenize(input, &tokens, &tokenTypes);
+
+    SEXP tokensSexp = PROTECT(allocVector(STRSXP, tokens.size()));
+    SEXP typesSexp = PROTECT(allocVector(STRSXP, tokenTypes.size()));
+    for (size_t i = 0; i < tokens.size(); ++i) {
+        SET_STRING_ELT(tokensSexp, i, mkChar(tokens[i].c_str()));
+        SET_STRING_ELT(typesSexp, i, mkChar(ToString(tokenTypes[i]).c_str()));
+    }
+
+    result = PROTECT(allocVector(VECSXP, 2));
+    SET_VECTOR_ELT(result, 0, tokensSexp);
+    SET_VECTOR_ELT(result, 1, typesSexp);
+    SEXP names = PROTECT(allocVector(STRSXP, 2));
+    SET_STRING_ELT(names, 0, mkChar("tokens"));
+    SET_STRING_ELT(names, 1, mkChar("types"));
+    setAttrib(result, R_NamesSymbol, names);
+
+    R_API_END();
+    UNPROTECT(4);
+    return result;
+}
+
+
+EXPORT_FUNCTION CatBoostTextDictionaryFit_R(
+    SEXP linesParam,
+    SEXP tokenLevelTypeParam,
+    SEXP gramOrderParam,
+    SEXP skipStepParam,
+    SEXP startTokenIdParam,
+    SEXP endOfWordPolicyParam,
+    SEXP endOfSentencePolicyParam,
+    SEXP occurenceLowerBoundParam,
+    SEXP maxDictionarySizeParam,
+    SEXP dictionaryTypeParam,
+    SEXP numBpeUnitsParam,
+    SEXP skipUnknownParam
+) {
+    using namespace NTextProcessing::NDictionary;
+    SEXP result = NULL;
+    R_API_BEGIN();
+
+    TDictionaryOptions dictOptions;
+    CB_ENSURE(
+        TryFromString<ETokenLevelType>(CHAR(asChar(tokenLevelTypeParam)), dictOptions.TokenLevelType),
+        "catboost.Dictionary: unsupported token_level_type '" << CHAR(asChar(tokenLevelTypeParam)) << "'");
+    dictOptions.GramOrder = static_cast<ui32>(asInteger(gramOrderParam));
+    dictOptions.SkipStep = static_cast<ui32>(asInteger(skipStepParam));
+    dictOptions.StartTokenId = static_cast<NTextProcessing::NDictionary::TTokenId>(asInteger(startTokenIdParam));
+    CB_ENSURE(
+        TryFromString<EEndOfWordTokenPolicy>(CHAR(asChar(endOfWordPolicyParam)), dictOptions.EndOfWordTokenPolicy),
+        "catboost.Dictionary: unsupported end_of_word_policy '" << CHAR(asChar(endOfWordPolicyParam)) << "'");
+    CB_ENSURE(
+        TryFromString<EEndOfSentenceTokenPolicy>(
+            CHAR(asChar(endOfSentencePolicyParam)), dictOptions.EndOfSentenceTokenPolicy),
+        "catboost.Dictionary: unsupported end_of_sentence_policy '"
+            << CHAR(asChar(endOfSentencePolicyParam)) << "'");
+
+    TDictionaryBuilderOptions builderOptions;
+    builderOptions.OccurrenceLowerBound = static_cast<ui64>(asReal(occurenceLowerBoundParam));
+    builderOptions.MaxDictionarySize = asInteger(maxDictionarySizeParam);
+
+    EDictionaryType dictionaryType;
+    CB_ENSURE(
+        TryFromString<EDictionaryType>(CHAR(asChar(dictionaryTypeParam)), dictionaryType),
+        "catboost.Dictionary: unsupported dictionary_type '" << CHAR(asChar(dictionaryTypeParam)) << "'");
+
+    const int lineCount = length(linesParam);
+
+    // Matches vendor's own BuildBpeWord/BuildBpeLetter split (library/cpp/
+    // text_processing/app_helpers/app_helpers.cpp): Bpe over a Letter-level
+    // alphabet builds its merge corpus from *unique* tokens weighted by
+    // corpus-wide occurrence count, not from a second per-line pass.
+    const bool needTokenCounts =
+        (dictionaryType == EDictionaryType::Bpe && dictOptions.TokenLevelType == ETokenLevelType::Letter);
+
+    TDictionaryBuilder alphabetBuilder(builderOptions, dictOptions);
+    THashMap<TString, ui64> tokenCounts;
+    for (int i = 0; i < lineCount; ++i) {
+        TVector<TString> tokens = GetTokensFromSEXP(VECTOR_ELT(linesParam, i));
+        alphabetBuilder.Add(TConstArrayRef<TString>(tokens), /*weight*/ 1);
+        if (needTokenCounts) {
+            for (const auto& token : tokens) {
+                ++tokenCounts[token];
+            }
+        }
+    }
+    TIntrusivePtr<TDictionary> alphabet = alphabetBuilder.FinishBuilding();
+
+    IDictionary* dictionaryPtr = nullptr;
+    if (dictionaryType == EDictionaryType::FrequencyBased) {
+        dictionaryPtr = alphabet.Release();
+    } else {
+        const ui32 numBpeUnits = static_cast<ui32>(asInteger(numBpeUnitsParam));
+        const bool skipUnknown = static_cast<bool>(asLogical(skipUnknownParam));
+        TBpeDictionaryBuilder bpeBuilder(numBpeUnits, skipUnknown, alphabet);
+        if (needTokenCounts) {
+            for (const auto& [token, count] : tokenCounts) {
+                bpeBuilder.Add(TVector<TStringBuf>({token}), count);
+            }
+        } else {
+            for (int i = 0; i < lineCount; ++i) {
+                TVector<TString> tokens = GetTokensFromSEXP(VECTOR_ELT(linesParam, i));
+                bpeBuilder.Add(TConstArrayRef<TString>(tokens), /*weight*/ 1);
+            }
+        }
+        TIntrusivePtr<TBpeDictionary> bpeDict = bpeBuilder.FinishBuilding();
+        dictionaryPtr = bpeDict.Release();
+    }
+
+    result = PROTECT(R_MakeExternalPtr(dictionaryPtr, R_NilValue, R_NilValue));
+    R_RegisterCFinalizerEx(result, _Finalizer<NTextProcessing::NDictionary::IDictionary*>, TRUE);
+
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+
+EXPORT_FUNCTION CatBoostTextDictionaryApply_R(SEXP dictionaryParam, SEXP linesParam, SEXP unknownTokenPolicyParam) {
+    using namespace NTextProcessing::NDictionary;
+    SEXP result = NULL;
+    R_API_BEGIN();
+
+    IDictionary* dictionary = static_cast<IDictionary*>(R_ExternalPtrAddr(dictionaryParam));
+    CB_ENSURE(dictionary, "catboost.dictionary.apply: dictionary handle is NULL.");
+    EUnknownTokenPolicy unknownTokenPolicy;
+    CB_ENSURE(
+        TryFromString<EUnknownTokenPolicy>(CHAR(asChar(unknownTokenPolicyParam)), unknownTokenPolicy),
+        "catboost.dictionary.apply: unsupported unknown_token_policy '"
+            << CHAR(asChar(unknownTokenPolicyParam)) << "'");
+
+    const int lineCount = length(linesParam);
+    result = PROTECT(allocVector(VECSXP, lineCount));
+    for (int i = 0; i < lineCount; ++i) {
+        TVector<TString> tokens = GetTokensFromSEXP(VECTOR_ELT(linesParam, i));
+        TVector<NTextProcessing::NDictionary::TTokenId> tokenIds;
+        dictionary->Apply(TConstArrayRef<TString>(tokens), &tokenIds, unknownTokenPolicy);
+
+        SEXP idsSexp = PROTECT(allocVector(INTSXP, tokenIds.size()));
+        for (size_t j = 0; j < tokenIds.size(); ++j) {
+            INTEGER(idsSexp)[j] = static_cast<int>(tokenIds[j]);
+        }
+        SET_VECTOR_ELT(result, i, idsSexp);
+        UNPROTECT(1);
+    }
+
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+
+EXPORT_FUNCTION CatBoostTextDictionarySize_R(SEXP dictionaryParam) {
+    using namespace NTextProcessing::NDictionary;
+    SEXP result = NULL;
+    R_API_BEGIN();
+    IDictionary* dictionary = static_cast<IDictionary*>(R_ExternalPtrAddr(dictionaryParam));
+    CB_ENSURE(dictionary, "catboost.dictionary.size: dictionary handle is NULL.");
+    result = PROTECT(ScalarInteger(static_cast<int>(dictionary->Size())));
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+
+EXPORT_FUNCTION CatBoostTextDictionaryGetTokens_R(SEXP dictionaryParam, SEXP tokenIdsParam) {
+    using namespace NTextProcessing::NDictionary;
+    SEXP result = NULL;
+    R_API_BEGIN();
+    IDictionary* dictionary = static_cast<IDictionary*>(R_ExternalPtrAddr(dictionaryParam));
+    CB_ENSURE(dictionary, "catboost.dictionary.get_tokens: dictionary handle is NULL.");
+    const int n = length(tokenIdsParam);
+    result = PROTECT(allocVector(STRSXP, n));
+    const int* ids = INTEGER(tokenIdsParam);
+    for (int i = 0; i < n; ++i) {
+        TString token = dictionary->GetToken(static_cast<NTextProcessing::NDictionary::TTokenId>(ids[i]));
+        SET_STRING_ELT(result, i, mkChar(token.c_str()));
+    }
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+
+EXPORT_FUNCTION CatBoostTextDictionaryGetTopTokens_R(SEXP dictionaryParam, SEXP topSizeParam) {
+    using namespace NTextProcessing::NDictionary;
+    SEXP result = NULL;
+    R_API_BEGIN();
+    IDictionary* dictionary = static_cast<IDictionary*>(R_ExternalPtrAddr(dictionaryParam));
+    CB_ENSURE(dictionary, "catboost.dictionary.get_top_tokens: dictionary handle is NULL.");
+    TVector<TString> top = dictionary->GetTopTokens(static_cast<ui32>(asInteger(topSizeParam)));
+    result = PROTECT(allocVector(STRSXP, top.size()));
+    for (size_t i = 0; i < top.size(); ++i) {
+        SET_STRING_ELT(result, i, mkChar(top[i].c_str()));
+    }
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+
+EXPORT_FUNCTION CatBoostTextDictionaryUnknownTokenId_R(SEXP dictionaryParam) {
+    using namespace NTextProcessing::NDictionary;
+    SEXP result = NULL;
+    R_API_BEGIN();
+    IDictionary* dictionary = static_cast<IDictionary*>(R_ExternalPtrAddr(dictionaryParam));
+    CB_ENSURE(dictionary, "catboost.dictionary.unknown_token_id: dictionary handle is NULL.");
+    result = PROTECT(ScalarInteger(static_cast<int>(dictionary->GetUnknownTokenId())));
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+
+EXPORT_FUNCTION CatBoostTextDictionaryEndOfSentenceTokenId_R(SEXP dictionaryParam) {
+    using namespace NTextProcessing::NDictionary;
+    SEXP result = NULL;
+    R_API_BEGIN();
+    IDictionary* dictionary = static_cast<IDictionary*>(R_ExternalPtrAddr(dictionaryParam));
+    CB_ENSURE(dictionary, "catboost.dictionary.end_of_sentence_token_id: dictionary handle is NULL.");
+    result = PROTECT(ScalarInteger(static_cast<int>(dictionary->GetEndOfSentenceTokenId())));
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+
+EXPORT_FUNCTION CatBoostTextDictionaryMinUnusedTokenId_R(SEXP dictionaryParam) {
+    using namespace NTextProcessing::NDictionary;
+    SEXP result = NULL;
+    R_API_BEGIN();
+    IDictionary* dictionary = static_cast<IDictionary*>(R_ExternalPtrAddr(dictionaryParam));
+    CB_ENSURE(dictionary, "catboost.dictionary.min_unused_token_id: dictionary handle is NULL.");
+    result = PROTECT(ScalarInteger(static_cast<int>(dictionary->GetMinUnusedTokenId())));
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+
+EXPORT_FUNCTION CatBoostTextDictionarySave_R(
+    SEXP dictionaryParam,
+    SEXP dictionaryTypeParam,
+    SEXP frequencyDictPathParam,
+    SEXP bpePathParam
+) {
+    using namespace NTextProcessing::NDictionary;
+    R_API_BEGIN();
+
+    IDictionary* dictionary = static_cast<IDictionary*>(R_ExternalPtrAddr(dictionaryParam));
+    CB_ENSURE(dictionary, "catboost.dictionary.save: dictionary handle is NULL.");
+    TString dictionaryType(CHAR(asChar(dictionaryTypeParam)));
+    if (dictionaryType == "Bpe") {
+        CB_ENSURE(
+            !Rf_isNull(bpePathParam), "catboost.dictionary.save: bpe_path is required to save a Bpe dictionary.");
+        TBpeDictionary* bpeDictionary = dynamic_cast<TBpeDictionary*>(dictionary);
+        CB_ENSURE(bpeDictionary, "catboost.dictionary.save: dictionary is not a Bpe dictionary.");
+        bpeDictionary->Save(TString(CHAR(asChar(frequencyDictPathParam))), TString(CHAR(asChar(bpePathParam))));
+    } else {
+        TFileOutput out(TString(CHAR(asChar(frequencyDictPathParam))));
+        dictionary->Save(&out);
+    }
+
+    R_API_END();
+    return R_NilValue;
+}
+
+
+EXPORT_FUNCTION CatBoostTextDictionaryLoad_R(SEXP frequencyDictPathParam, SEXP bpePathParam) {
+    using namespace NTextProcessing::NDictionary;
+    SEXP result = NULL;
+    R_API_BEGIN();
+
+    IDictionary* dictionaryPtr = nullptr;
+    TString freqPath(CHAR(asChar(frequencyDictPathParam)));
+    if (!Rf_isNull(bpePathParam)) {
+        TString bpePath(CHAR(asChar(bpePathParam)));
+        THolder<TBpeDictionary> bpeDictionary = MakeHolder<TBpeDictionary>();
+        bpeDictionary->Load(freqPath, bpePath);
+        dictionaryPtr = bpeDictionary.Release();
+    } else {
+        TFileInput in(freqPath);
+        TIntrusivePtr<IDictionary> dictionary = IDictionary::Load(&in);
+        dictionaryPtr = dictionary.Release();
+    }
+
+    result = PROTECT(R_MakeExternalPtr(dictionaryPtr, R_NilValue, R_NilValue));
+    R_RegisterCFinalizerEx(result, _Finalizer<NTextProcessing::NDictionary::IDictionary*>, TRUE);
+
+    R_API_END();
+    UNPROTECT(1);
     return result;
 }
 }

@@ -13,7 +13,15 @@ NULL
 #'
 #' @description Create a dataset from the given file, matrix or data.frame.
 #'
-#' @param data A file path, matrix or data.frame with features.
+#' @param data A file path, matrix, sparse matrix (any \code{Matrix} package
+#' \code{sparseMatrix}, e.g. \code{dgCMatrix}) or data.frame with features.
+#' A sparse matrix is densified before being handed to the native Pool builder, so the resulting
+#' Pool is identical to the one built from \code{as.matrix(data)} (stored zeros are real zeros).
+#' Caveat: because the sparse layout is not preserved, training on such a Pool reproduces Python's
+#' \emph{dense} Pool, not its native sparse one. CatBoost breaks ties between equal-scoring split
+#' candidates differently in its sparse and dense column layouts, so on degenerate/tie-heavy data
+#' the two can differ (a delta of 0.0298 was measured inside Python itself between its own dense
+#' and sparse Pools). Tracked as catboost-8z4.46.
 #' The following column types are supported:
 #' \itemize{
 #'     \item double
@@ -27,12 +35,29 @@ NULL
 #' }
 #'
 #' Default value: Required argument
-#' @param label The label vector or label matrix
+#' @param label The label vector or label matrix.
+#' A plain (non-factor, non-character) integer label \emph{matrix} with more than one column
+#' (e.g. a multi-target 0/1 matrix for \code{MultiLogloss}) is automatically read as a float
+#' target, matching Python's \code{Pool}. A single-column integer label vector keeps its
+#' existing integer-target behavior (catboost-8z4.47).
 #' @param cat_features A vector of categorical features indices.
 #' The indices are zero based and can differ from the given in the Column descriptions file.
 #' If data parameter is data.frame don't use cat_features, categorical features are determined automatically
 #' from data.frame column types.
 #' @param column_description The path to the input file that contains the column descriptions.
+#' @param embedding_features A named list of numeric matrices, one per embedding feature; each matrix
+#' has one row per object and one column per embedding dimension. R matrix cells cannot hold vectors,
+#' so embedding features are supplied beside \code{data} instead of inside it (Python's
+#' \code{Pool(data, embedding_features = [...])} indexes columns of a data frame holding arrays).
+#' The embedding features are appended after the columns of \code{data}, so their flat feature
+#' indices are \code{ncol(data)}, \code{ncol(data) + 1}, ...; list names become their feature names.
+#' Caveat: the \code{embedding_processing} training parameter (given to \code{catboost.train}, not
+#' here) defaults to \code{list(default = list("LDA", "KNN"))}. The LDA calcer's output is not
+#' bit-reproducible against the Python package: LDA solves a float32 symmetric eigenproblem whose
+#' eigenvector signs and near-degenerate eigenvalue ordering depend on the LAPACK/BLAS build, so
+#' this package and the Python wheel legitimately disagree. The KNN calcer agrees exactly. For
+#' parity-sensitive use, pass \code{embedding_processing = list(default = list("KNN"))}.
+#' Tracked as catboost-8z4.45.
 #' @param pairs A file path, matrix or data.frame that contains the pairs descriptions. The shape should be Nx2, where N is the pairs' count.
 #' The first element of pair is the index of winner document in training set. The second element of pair is the index of loser document in training set.
 #' @param delimiter Delimiter character to use to separate features in a file.
@@ -49,6 +74,12 @@ NULL
 #' @param graph A file path, matrix or data.frame that contains the pairs of indices of objects for graph features.
 #' The shape should be Nx2, where N is the pairs of indices count.
 #' If -1, then the number of threads is set to the number of CPU cores.
+#' @param timestamp A numeric vector of per-object timestamps, length equal to the number of
+#' objects. Convenience wrapper around \code{\link{catboost.pool.set_timestamp}}: applied to the
+#' constructed Pool before it is returned, equivalent to calling
+#' \code{catboost.pool.set_timestamp(pool, timestamp)} afterward.
+#' @param feature_tags Not currently supported by catboostr (tracked as catboost-8z4.49); passing
+#' a non-NULL value raises an error rather than being silently ignored.
 #'
 #' @examples
 #' \dontrun{
@@ -76,26 +107,44 @@ NULL
 catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_description = NULL,
                                pairs = NULL, delimiter = "\t", has_header = FALSE, weight = NULL,
                                group_id = NULL, group_weight = NULL, subgroup_id = NULL, pairs_weight = NULL,
-                               baseline = NULL, feature_names = NULL, thread_count = -1, graph = NULL) {
+                               baseline = NULL, feature_names = NULL, thread_count = -1, graph = NULL,
+                               embedding_features = NULL, timestamp = NULL, feature_tags = NULL) {
+    if (!is.null(feature_tags)) {
+        # catboost-8z4.49
+        stop("feature_tags is not currently supported by catboostr")
+    }
     if (!is.null(pairs) && (is.character(data) != is.character(pairs))) {
         stop("Data and pairs should be the same types.")
     }
     if (!is.null(graph) && (is.character(graph) != is.character(graph))) {
         stop("Data and graph should be the same types.")
     }
+    if (!is.null(embedding_features) && !is.matrix(data) && !inherits(data, "sparseMatrix")) {
+        stop("parameter 'embedding_features' is only supported when 'data' is a matrix or a sparse matrix")
+    }
+    if (!is.numeric(timestamp) && !is.null(timestamp))
+        stop("Unsupported timestamp type, expecting numeric, got: ", typeof(timestamp))
 
     if (is.character(data) && length(data) == 1) {
         for (arg in list("label", "cat_features", "weight", "group_id",
                          "group_weight", "subgroup_id", "pairs_weight",
-                         "baseline")) {
+                         "baseline", "timestamp")) {
             if (!is.null(get(arg))) {
                 stop("parameter '", arg, "' should be NULL when the pool is read from file")
             }
         }
         pool <- catboost.from_file(data, column_description, pairs, delimiter, has_header, thread_count, FALSE, feature_names, graph_path = graph)
-    } else if (is.matrix(data)) {
+    } else if (is.matrix(data) || inherits(data, "sparseMatrix")) {
         pool <- catboost.from_matrix(data, label, cat_features, NULL, NULL, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight,
-                                     baseline, feature_names, graph)
+                                     baseline, feature_names, graph, embedding_features_data = embedding_features, timestamp = timestamp)
+    } else if (inherits(data, "catboost.FeaturesData")) {
+        for (arg in list("cat_features", "feature_names")) {
+            if (!is.null(get(arg))) {
+                stop("parameter '", arg, "' should be NULL when 'data' parameter has catboost.FeaturesData type")
+            }
+        }
+        pool <- catboost.from_matrix(data, label, NULL, NULL, NULL, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight,
+                                     baseline, NULL, graph, timestamp = timestamp)
     } else if (is.data.frame(data)) {
         for (arg in list("column_description")) {
             if (!is.null(get(arg))) {
@@ -108,8 +157,13 @@ catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_d
         }
         pool <- catboost.from_data_frame(data, label, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight,
                                          baseline, feature_names, graph)
+        if (!is.null(timestamp)) {
+            if (length(timestamp) != nrow(data))
+                stop("Data has ", nrow(data), " rows, timestamp vector has ", length(timestamp), " rows.")
+            catboost.pool.set_timestamp(pool, timestamp)
+        }
     } else {
-        stop("Unsupported data type, expecting string, matrix or dafa.frame, got: ", class(data))
+        stop("Unsupported data type, expecting string, matrix, sparse matrix, data.frame or catboost.FeaturesData, got: ", class(data))
     }
     return(pool)
 }
@@ -140,15 +194,82 @@ catboost.from_file <- function(pool_path, cd_path = "", pairs_path = "", delimit
 
 catboost.from_matrix <- function(float_and_cat_features_data, label = NULL, cat_features_indices = NULL, text_features_data = NULL,
                                  text_features_indices = NULL, pairs = NULL, weight = NULL, group_id = NULL, group_weight = NULL,
-                                 subgroup_id = NULL, pairs_weight = NULL, baseline = NULL, feature_names = NULL, graph = NULL) {
+                                 subgroup_id = NULL, pairs_weight = NULL, baseline = NULL, feature_names = NULL, graph = NULL,
+                                 embedding_features_data = NULL, embedding_features_indices = NULL, timestamp = NULL,
+                                 feature_tags = NULL) {
+  # catboost-8z4.49
+  if (!is.null(feature_tags))
+      stop("feature_tags is not currently supported by catboostr")
+  if (inherits(float_and_cat_features_data, "sparseMatrix")) {
+      # ponytail: densify; CatBoost's sparse column format is a memory optimisation only, stored
+      # zeros are ordinary zero values, so the resulting Pool equals the dense one. Upgrade path:
+      # feed the dgCMatrix i/p/x slots to the native visitor's TConstPolymorphicValuesSparseArray
+      # overloads if densification ever becomes the memory bottleneck.
+      float_and_cat_features_data <- as.matrix(float_and_cat_features_data)
+  }
+  if (inherits(float_and_cat_features_data, "catboost.FeaturesData")) {
+      if (!is.null(cat_features_indices) || !is.null(text_features_data) || !is.null(text_features_indices) || !is.null(feature_names)) {
+          stop("parameters 'cat_features_indices', 'text_features_data', 'text_features_indices' and 'feature_names' should be NULL",
+               " when 'float_and_cat_features_data' has catboost.FeaturesData type")
+      }
+      features_data <- float_and_cat_features_data
+      num_data <- features_data$num_feature_data
+      cat_data <- features_data$cat_feature_data
+      num_ncol <- catboost.features_data.get_num_feature_count(features_data)
+      cat_ncol <- catboost.features_data.get_cat_feature_count(features_data)
+
+      if (!is.null(cat_data)) {
+          cat_data <- matrix(.Call("CatBoostHashStrings_R", as.character(cat_data)), nrow = nrow(cat_data), ncol = ncol(cat_data))
+      }
+      float_and_cat_features_data <- if (!is.null(num_data) && !is.null(cat_data)) {
+          cbind(num_data, cat_data)
+      } else if (!is.null(num_data)) {
+          num_data
+      } else {
+          cat_data
+      }
+      cat_features_indices <- if (cat_ncol > 0) as.integer(seq.int(num_ncol, num_ncol + cat_ncol - 1)) else integer(0)
+      feature_names <- as.list(catboost.features_data.get_feature_names(features_data))
+  }
+
   if (!is.matrix(float_and_cat_features_data))
-      stop("Unsupported data type, expecting matrix, got: ", class(float_and_cat_features_data))
+      stop("Unsupported data type, expecting matrix or catboost.FeaturesData, got: ", class(float_and_cat_features_data))
 
   float_and_cat_columns <- if (is.null(float_and_cat_features_data)) 0 else ncol(float_and_cat_features_data)
   text_columns <- if (is.null(text_features_data)) 0 else ncol(text_features_data)
-  data_columns <- float_and_cat_columns + text_columns
+  embedding_columns <- if (is.null(embedding_features_data)) 0 else length(embedding_features_data)
+  data_columns <- float_and_cat_columns + text_columns + embedding_columns
   if (text_columns == 0 && float_and_cat_columns == 0)
       stop("Data has no columns")
+
+  if (!is.null(embedding_features_data)) {
+      if (!is.list(embedding_features_data))
+          stop("Unsupported embedding_features_data type, expecting list of matrices, got: ", class(embedding_features_data))
+      for (embedding_index in seq_along(embedding_features_data)) {
+          embedding <- embedding_features_data[[embedding_index]]
+          if (!is.matrix(embedding) || !is.double(embedding))
+              stop("embedding_features_data[[", embedding_index, "]] must be a double matrix, got: ", class(embedding))
+          if (nrow(embedding) != nrow(float_and_cat_features_data))
+              stop("Data has ", nrow(float_and_cat_features_data), " rows, embedding_features_data[[",
+                   embedding_index, "]] has ", nrow(embedding), " rows.")
+      }
+      if (is.null(embedding_features_indices)) {
+          # Embeddings travel beside the matrix, so they occupy the trailing flat feature indices.
+          embedding_features_indices <- as.integer(seq.int(data_columns - embedding_columns, data_columns - 1))
+      }
+      if (length(embedding_features_indices) != embedding_columns)
+          stop("embedding_features_data has ", embedding_columns, " features, embedding_features_indices has ",
+               length(embedding_features_indices), " entries.")
+      embedding_features_indices <- as.integer(embedding_features_indices)
+      if (is.null(feature_names) && !is.null(names(embedding_features_data)) && text_columns == 0) {
+          base_names <- colnames(float_and_cat_features_data)
+          if (is.null(base_names))
+              base_names <- as.character(seq_len(float_and_cat_columns) - 1L)
+          feature_names <- as.list(c(base_names, names(embedding_features_data)))
+      }
+  } else if (!is.null(embedding_features_indices)) {
+      stop("embedding_features_indices was given without embedding_features_data")
+  }
 
   if (is.character(label))
       label <- as.factor(label)
@@ -163,6 +284,15 @@ catboost.from_matrix <- function(float_and_cat_features_data, label = NULL, cat_
 
   if (!is.null(label) && !is.matrix(label))
       label <- as.matrix(label)
+  # A plain (non-factor, non-character) integer label matrix with more than
+  # one column is a multi-target numeric label (e.g. MultiLogloss/MultiRMSE),
+  # never a class-label encoding -- those only ever produce a single column
+  # via the is.factor() branch above, which sets class_labels and must keep
+  # its Integer storage mode untouched. Coerce to double so C++ dispatches
+  # ERawTargetType::Float here, matching Python's Pool(data, label=<int
+  # ndarray>) target-type semantics (catboost-8z4.47).
+  if (!is.null(label) && is.null(class_labels) && is.integer(label) && ncol(label) > 1L)
+      storage.mode(label) <- "double"
   if (!is.double(label) && !is.integer(label) && !is.null(label))
       stop("Unsupported label type, expecting double or int, got: ", typeof(label))
 
@@ -228,14 +358,22 @@ catboost.from_matrix <- function(float_and_cat_features_data, label = NULL, cat_
   if (!is.null(feature_names) && (length(feature_names) != data_columns))
       stop("Data has ", data_columns, " columns, feature_names has ", length(feature_names), " columns.")
 
+  if (!is.numeric(timestamp) && !is.null(timestamp))
+      stop("Unsupported timestamp type, expecting numeric, got: ", typeof(timestamp))
+  if (length(timestamp) != nrow(float_and_cat_features_data) && !is.null(timestamp))
+      stop("Data has ", nrow(float_and_cat_features_data), " rows, timestamp vector has ", length(timestamp), " rows.")
+
   if (float_and_cat_columns == 0)
       float_and_cat_features_data <- NULL
   if (text_columns == 0)
       text_features_data <- NULL
   pool <- .Call("CatBoostCreateFromMatrix_R",
                 float_and_cat_features_data, label, cat_features_indices, text_features_data, text_features_indices, pairs, graph, weight,
-                group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names, class_labels)
+                group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names, class_labels,
+                embedding_features_data, embedding_features_indices)
   attributes(pool) <- list(.Dimnames = list(NULL, as.character(feature_names)), class = "catboost.Pool")
+  if (!is.null(timestamp))
+      catboost.pool.set_timestamp(pool, timestamp)
   return(pool)
 }
 
@@ -283,6 +421,171 @@ catboost.from_data_frame <- function(data, label = NULL, pairs = NULL, weight = 
     pool <- catboost.from_matrix(as.matrix(float_and_cat_features_data), label, cat_features_indices, as.matrix(text_features_data),
                                  text_features_indices, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names, graph)
     return(pool)
+}
+
+
+.catboost.check_features_data_part <- function(part_name, feature_data, is_numeric_part, feature_names) {
+    if (!is.null(feature_names) && is.null(feature_data)) {
+        stop(part_name, "_feature_names specified with not specified ", part_name, "_feature_data")
+    }
+    if (!is.null(feature_data)) {
+        if (!is.matrix(feature_data)) {
+            stop("only matrix type is supported for ", part_name, "_feature_data")
+        }
+        if (is_numeric_part && !is.numeric(feature_data)) {
+            stop(part_name, "_feature_data element type must be numeric, found ", typeof(feature_data), " instead")
+        }
+        if (!is_numeric_part && !is.character(feature_data)) {
+            stop(part_name, "_feature_data element type must be character, found ", typeof(feature_data), " instead")
+        }
+        if (!is.null(feature_names) && ncol(feature_data) != length(feature_names)) {
+            stop("number of features in ", part_name, "_feature_data (=", ncol(feature_data),
+                ") is different from length(", part_name, "_feature_names) (=", length(feature_names), ")")
+        }
+    }
+    if (is.null(feature_names)) {
+        feature_names <- if (!is.null(feature_data)) as.character(rep("", ncol(feature_data))) else character(0)
+    } else {
+        feature_names <- as.character(feature_names)
+    }
+    feature_names
+}
+
+
+#' @name catboost.FeaturesData
+#' @title Create a FeaturesData container
+#'
+#' @description Store features data in a form that can be passed directly to
+#' \code{catboost.load_pool}/\code{catboost.from_matrix} as the \code{data}/
+#' \code{float_and_cat_features_data} argument, as an alternative to a plain
+#' matrix or data.frame. Numerical features are given as a numeric matrix,
+#' categorical features are given separately as a character matrix, each with
+#' optional column names.
+#'
+#' @param num_feature_data A numeric matrix of numerical feature values, or NULL.
+#'
+#' Default value: NULL
+#' @param cat_feature_data A character matrix of categorical feature values, or NULL.
+#'
+#' Default value: NULL
+#' @param num_feature_names A list/vector of names for the numerical features. Must
+#' be NULL if num_feature_data is NULL. If not specified, empty strings are used.
+#'
+#' Default value: NULL
+#' @param cat_feature_names A list/vector of names for the categorical features. Must
+#' be NULL if cat_feature_data is NULL. If not specified, empty strings are used.
+#'
+#' Default value: NULL
+#' @return catboost.FeaturesData
+#' @export
+catboost.FeaturesData <- function(num_feature_data = NULL, cat_feature_data = NULL,
+                                  num_feature_names = NULL, cat_feature_names = NULL) {
+    if (is.null(num_feature_data) && is.null(cat_feature_data)) {
+        stop("at least one of num_feature_data, cat_feature_data params must be non-NULL")
+    }
+
+    num_feature_names <- .catboost.check_features_data_part("num", num_feature_data, TRUE, num_feature_names)
+    cat_feature_names <- .catboost.check_features_data_part("cat", cat_feature_data, FALSE, cat_feature_names)
+
+    all_feature_count <- (if (!is.null(num_feature_data)) ncol(num_feature_data) else 0) +
+                         (if (!is.null(cat_feature_data)) ncol(cat_feature_data) else 0)
+    if (all_feature_count == 0) {
+        stop("both num_feature_data and cat_feature_data contain 0 features")
+    }
+
+    if (!is.null(num_feature_data) && !is.null(cat_feature_data) && nrow(num_feature_data) != nrow(cat_feature_data)) {
+        stop("object_counts in num_feature_data (", nrow(num_feature_data), ") and in cat_feature_data (",
+            nrow(cat_feature_data), ") are different")
+    }
+
+    structure(
+        list(
+            num_feature_data = num_feature_data,
+            cat_feature_data = cat_feature_data,
+            num_feature_names = num_feature_names,
+            cat_feature_names = cat_feature_names
+        ),
+        class = "catboost.FeaturesData"
+    )
+}
+
+
+#' @name catboost.features_data.get_object_count
+#' @title Number of objects in a FeaturesData
+#' @description Get the number of objects (rows) in a catboost.FeaturesData.
+#' @param features_data A catboost.FeaturesData object.
+#'
+#' Default value: Required argument
+#' @return The number of objects.
+#' @export
+catboost.features_data.get_object_count <- function(features_data) {
+    if (!is.null(features_data$num_feature_data)) {
+        return(nrow(features_data$num_feature_data))
+    }
+    return(nrow(features_data$cat_feature_data))
+}
+
+
+#' @name catboost.features_data.get_num_feature_count
+#' @title Number of numerical features in a FeaturesData
+#' @description Get the number of numerical features in a catboost.FeaturesData.
+#' @param features_data A catboost.FeaturesData object.
+#'
+#' Default value: Required argument
+#' @return The number of numerical features.
+#' @export
+catboost.features_data.get_num_feature_count <- function(features_data) {
+    if (is.null(features_data$num_feature_data)) {
+        return(0L)
+    }
+    return(ncol(features_data$num_feature_data))
+}
+
+
+#' @name catboost.features_data.get_cat_feature_count
+#' @title Number of categorical features in a FeaturesData
+#' @description Get the number of categorical features in a catboost.FeaturesData.
+#' @param features_data A catboost.FeaturesData object.
+#'
+#' Default value: Required argument
+#' @return The number of categorical features.
+#' @export
+catboost.features_data.get_cat_feature_count <- function(features_data) {
+    if (is.null(features_data$cat_feature_data)) {
+        return(0L)
+    }
+    return(ncol(features_data$cat_feature_data))
+}
+
+
+#' @name catboost.features_data.get_feature_count
+#' @title Total number of features in a FeaturesData
+#' @description Get the total number of features (numerical + categorical) in a
+#' catboost.FeaturesData.
+#' @param features_data A catboost.FeaturesData object.
+#'
+#' Default value: Required argument
+#' @return The total number of features.
+#' @export
+catboost.features_data.get_feature_count <- function(features_data) {
+    return(catboost.features_data.get_num_feature_count(features_data) +
+          catboost.features_data.get_cat_feature_count(features_data))
+}
+
+
+#' @name catboost.features_data.get_feature_names
+#' @title Get feature names from a FeaturesData
+#' @description Get the names of the features of a catboost.FeaturesData:
+#' numerical feature names followed by categorical feature names. Unnamed
+#' features are empty strings.
+#' @param features_data A catboost.FeaturesData object.
+#'
+#' Default value: Required argument
+#' @return A character vector of feature names, length equal to
+#' \code{catboost.features_data.get_feature_count(features_data)}.
+#' @export
+catboost.features_data.get_feature_names <- function(features_data) {
+    return(c(features_data$num_feature_names, features_data$cat_feature_names))
 }
 
 
@@ -375,13 +678,24 @@ dim.catboost.Pool <- function(x) {
 #' @title Dimension names of catboost.Pool
 #'
 #' @description Get dimension names of a Pool.
+#'
+#' Column names are read from the Pool's own (C++-side) feature layout, so
+#' they stay in sync with \code{catboost.pool.get_feature_names()} after a
+#' \code{catboost.pool.set_feature_names()} call, which mutates that layout in
+#' place and cannot update an R-side attribute of the caller's object.
 #' @param x The input dataset.
 #'
 #' Default value: Required argument
-#' @return A list with the two elements. The second element contains the column names.
+#' @return A list with the two elements. The second element contains the column
+#' names, or \code{NULL} if the Pool has no feature names.
 #' @export
 dimnames.catboost.Pool <- function(x) {
-    return(attr(x, ".Dimnames"))
+    if (is.null.handle(x))
+        stop("Pool object is invalid.")
+    feature_names <- .Call("CatBoostPoolGetFeatureNames_R", x)
+    if (length(feature_names) == 0 || all(feature_names == ""))
+        feature_names <- NULL
+    return(list(NULL, feature_names))
 }
 
 
@@ -466,6 +780,707 @@ print.catboost.Pool <- function(x, ...) {
     if (is.null.handle(x))
         cat("Warning: pool object is invalid.")
     cat("catboost.Pool\n", nrow(x), " rows, ", ncol(x), " columns", sep = "")
+}
+
+
+# P3.1: canonicalize an id vector (group_id/subgroup_id) to the decimal-
+# string tokens CalcGroupIdFor()/CalcSubgroupIdFor() hash, matching Python's
+# get_id_object_bytes_string_representation(): integral values format as
+# plain decimal (no ".0"), character values pass through unchanged. Floats
+# with a fractional part are rejected, same as the Python method.
+id.tokens.from.vector <- function(ids, arg_name) {
+    if (is.character(ids)) {
+        return(ids)
+    }
+    if (is.numeric(ids)) {
+        if (any(ids != floor(ids))) {
+            stop(arg_name, " must be integral or character valued.")
+        }
+        return(sprintf("%.0f", ids))
+    }
+    stop("Unsupported ", arg_name, " type, expecting character or numeric, got: ", typeof(ids))
+}
+
+
+#' @name catboost.pool.has_label
+#' @title Has the Pool got label data
+#' @description Check whether the Pool has label (target) data.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @return \code{TRUE} if the Pool has label data, \code{FALSE} otherwise.
+#' @export
+catboost.pool.has_label <- function(pool) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    return(.Call("CatBoostPoolHasLabel_R", pool))
+}
+
+
+#' @name catboost.pool.get_label
+#' @title Get labels from a Pool
+#' @description Get the label (target) data of a Pool.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @return A vector of labels if the target is one-dimensional, a
+#' (rows x targets) matrix otherwise. \code{numeric(0)} if the Pool has no
+#' label data.
+#' @export
+catboost.pool.get_label <- function(pool) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    return(.Call("CatBoostPoolGetLabel_R", pool))
+}
+
+
+#' @name catboost.pool.get_weight
+#' @title Get weights from a Pool
+#' @description Get the per-object weight of a Pool. Objects with no weight
+#' set default to weight 1.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @return A numeric vector of per-object weights.
+#' @export
+catboost.pool.get_weight <- function(pool) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    return(.Call("CatBoostPoolGetWeight_R", pool))
+}
+
+
+#' @name catboost.pool.set_weight
+#' @title Set weights on a Pool
+#' @description Set the per-object weight of a Pool.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @param weight A numeric vector of per-object weights, length equal to
+#' \code{nrow(pool)}.
+#'
+#' Default value: Required argument
+#' @return Nothing. Mutates \code{pool} in place.
+#' @export
+catboost.pool.set_weight <- function(pool, weight) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    invisible(.Call("CatBoostPoolSetWeight_R", pool, as.double(weight)))
+}
+
+
+#' @name catboost.pool.get_baseline
+#' @title Get baseline from a Pool
+#' @description Get the baseline data of a Pool.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @return A (rows x baseline_count) numeric matrix. \code{baseline_count}
+#' is 0 if the Pool has no baseline data.
+#' @export
+catboost.pool.get_baseline <- function(pool) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    return(.Call("CatBoostPoolGetBaseline_R", pool))
+}
+
+
+#' @name catboost.pool.set_baseline
+#' @title Set baseline on a Pool
+#' @description Set the baseline data of a Pool.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @param baseline A (rows x baseline_count) numeric matrix, \code{rows}
+#' equal to \code{nrow(pool)}.
+#'
+#' Default value: Required argument
+#' @return Nothing. Mutates \code{pool} in place.
+#' @export
+catboost.pool.set_baseline <- function(pool, baseline) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    if (!is.matrix(baseline))
+        stop("baseline must be a matrix.")
+    invisible(.Call("CatBoostPoolSetBaseline_R", pool, matrix(as.double(baseline), nrow = nrow(baseline))))
+}
+
+
+#' @name catboost.pool.get_group_id_hash
+#' @title Get group id hashes from a Pool
+#' @description Get the hashes generated from a Pool's group ids.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @return A character vector of decimal-formatted 64-bit hash values (one
+#' per object), or \code{NULL} if the Pool has no group ids. Returned as
+#' character rather than numeric because R's double cannot represent the
+#' full 64-bit hash range exactly.
+#' @export
+catboost.pool.get_group_id_hash <- function(pool) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    return(.Call("CatBoostPoolGetGroupIdHash_R", pool))
+}
+
+
+#' @name catboost.pool.set_group_id
+#' @title Set group ids on a Pool
+#' @description Set the group ids of a Pool. Each id is hashed the same way
+#' Python's \code{Pool.set_group_id} hashes it, so the resulting group id
+#' hashes (see \code{\link{catboost.pool.get_group_id_hash}}) match the
+#' Python oracle for the same input values.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @param group_id A character or integral-numeric vector, length equal to
+#' \code{nrow(pool)}.
+#'
+#' Default value: Required argument
+#' @return Nothing. Mutates \code{pool} in place.
+#' @export
+catboost.pool.set_group_id <- function(pool, group_id) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    tokens <- id.tokens.from.vector(group_id, "group_id")
+    invisible(.Call("CatBoostPoolSetGroupId_R", pool, tokens))
+}
+
+
+#' @name catboost.pool.set_group_weight
+#' @title Set group weights on a Pool
+#' @description Set the per-object group weight of a Pool (weights must be
+#' equal within each group).
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @param group_weight A numeric vector of per-object group weights, length
+#' equal to \code{nrow(pool)}.
+#'
+#' Default value: Required argument
+#' @return Nothing. Mutates \code{pool} in place.
+#' @export
+catboost.pool.set_group_weight <- function(pool, group_weight) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    invisible(.Call("CatBoostPoolSetGroupWeight_R", pool, as.double(group_weight)))
+}
+
+
+#' @name catboost.pool.set_subgroup_id
+#' @title Set subgroup ids on a Pool
+#' @description Set the subgroup ids of a Pool. Each id is hashed the same
+#' way Python's \code{Pool.set_subgroup_id} hashes it.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @param subgroup_id A character or integral-numeric vector, length equal
+#' to \code{nrow(pool)}.
+#'
+#' Default value: Required argument
+#' @return Nothing. Mutates \code{pool} in place.
+#' @export
+catboost.pool.set_subgroup_id <- function(pool, subgroup_id) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    tokens <- id.tokens.from.vector(subgroup_id, "subgroup_id")
+    invisible(.Call("CatBoostPoolSetSubgroupId_R", pool, tokens))
+}
+
+
+#' @name catboost.pool.set_pairs
+#' @title Set pairs on a Pool
+#' @description Set the pairwise comparison data of a Pool.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @param pairs An (N x 2) or (N x 3) numeric matrix of
+#' \code{(winner_id, loser_id[, weight])} rows. \code{winner_id}/\code{loser_id}
+#' are 0-indexed object row numbers, matching the \code{pairs} argument of
+#' \code{\link{catboost.from_matrix}}. \code{weight} defaults to 1.0 when the
+#' third column is omitted.
+#'
+#' Default value: Required argument
+#' @return Nothing. Mutates \code{pool} in place.
+#' @export
+catboost.pool.set_pairs <- function(pool, pairs) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    if (!is.matrix(pairs) || !(ncol(pairs) %in% c(2, 3)))
+        stop("pairs must be an (N x 2) or (N x 3) matrix.")
+    invisible(.Call("CatBoostPoolSetPairs_R", pool, matrix(as.double(pairs), nrow = nrow(pairs))))
+}
+
+
+#' @name catboost.pool.set_pairs_weight
+#' @title Set pair weights on a Pool
+#' @description Set the per-pair weight of a Pool's existing pairs, keeping
+#' the (winner_id, loser_id) ids unchanged.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @param pairs_weight A numeric vector of per-pair weights, length equal to
+#' \code{\link{catboost.pool.num_pairs}(pool)}.
+#'
+#' Default value: Required argument
+#' @return Nothing. Mutates \code{pool} in place.
+#' @export
+catboost.pool.set_pairs_weight <- function(pool, pairs_weight) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    invisible(.Call("CatBoostPoolSetPairsWeight_R", pool, as.double(pairs_weight)))
+}
+
+
+#' @name catboost.pool.num_pairs
+#' @title Number of pairs in a Pool
+#' @description Get the number of pairs in a Pool.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @return An integer, the number of pairs.
+#' @export
+catboost.pool.num_pairs <- function(pool) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    return(.Call("CatBoostPoolNumPairs_R", pool))
+}
+
+
+#' @name catboost.pool.set_timestamp
+#' @title Set timestamps on a Pool
+#' @description Set the per-object timestamp of a Pool.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @param timestamp A numeric vector of per-object timestamps, length equal
+#' to \code{nrow(pool)}.
+#'
+#' Default value: Required argument
+#' @return Nothing. Mutates \code{pool} in place.
+#' @export
+catboost.pool.set_timestamp <- function(pool, timestamp) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    invisible(.Call("CatBoostPoolSetTimestamp_R", pool, as.double(timestamp)))
+}
+
+
+#' @name catboost.pool.num_row
+#' @title Number of rows in a Pool
+#' @description Get the number of objects (rows) in a Pool.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @return The number of rows.
+#' @export
+catboost.pool.num_row <- function(pool) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    return(.Call("CatBoostPoolNumRow_R", pool))
+}
+
+
+#' @name catboost.pool.num_col
+#' @title Number of columns in a Pool
+#' @description Get the number of features (columns) in a Pool.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @return The number of feature columns.
+#' @export
+catboost.pool.num_col <- function(pool) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    return(.Call("CatBoostPoolNumCol_R", pool))
+}
+
+
+#' @name catboost.pool.shape
+#' @title Shape of a Pool
+#' @description Get the (rows, columns) shape of a Pool.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @return An integer vector of length 2: \code{c(num_row, num_col)}.
+#' @export
+catboost.pool.shape <- function(pool) {
+    return(c(catboost.pool.num_row(pool), catboost.pool.num_col(pool)))
+}
+
+
+#' @name catboost.pool.is_empty
+#' @title Is the Pool empty
+#' @description Check whether the Pool has no objects.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @return \code{TRUE} if the Pool has zero rows, \code{FALSE} otherwise.
+#' @export
+catboost.pool.is_empty <- function(pool) {
+    return(catboost.pool.num_row(pool) == 0)
+}
+
+
+#' @name catboost.pool.get_feature_names
+#' @title Get feature names from a Pool
+#' @description Get the names of the features (columns) of a Pool.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @return A character vector of feature names, length equal to
+#' \code{catboost.pool.num_col(pool)}. Unnamed features are empty strings.
+#' @export
+catboost.pool.get_feature_names <- function(pool) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    return(.Call("CatBoostPoolGetFeatureNames_R", pool))
+}
+
+
+#' @name catboost.pool.set_feature_names
+#' @title Set feature names on a Pool
+#' @description Set the names of the features (columns) of a Pool.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @param feature_names A character vector of feature names, length equal to
+#' \code{catboost.pool.num_col(pool)}.
+#'
+#' Default value: Required argument
+#' @return Nothing. Mutates \code{pool} in place.
+#' @export
+catboost.pool.set_feature_names <- function(pool, feature_names) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    invisible(.Call("CatBoostPoolSetFeatureNames_R", pool, as.character(feature_names)))
+}
+
+
+#' @name catboost.pool.get_cat_feature_indices
+#' @title Get categorical feature indices from a Pool
+#' @description Get the (0-based) column indices of the categorical
+#' features of a Pool.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @return An integer vector of 0-based categorical feature indices.
+#' @export
+catboost.pool.get_cat_feature_indices <- function(pool) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    return(.Call("CatBoostPoolGetCatFeatureIndices_R", pool))
+}
+
+
+#' @name catboost.pool.get_text_feature_indices
+#' @title Get text feature indices from a Pool
+#' @description Get the (0-based) column indices of the text features of a
+#' Pool.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @return An integer vector of 0-based text feature indices.
+#' @export
+catboost.pool.get_text_feature_indices <- function(pool) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    return(.Call("CatBoostPoolGetTextFeatureIndices_R", pool))
+}
+
+
+#' @name catboost.pool.get_embedding_feature_indices
+#' @title Get embedding feature indices from a Pool
+#' @description Get the (0-based) column indices of the embedding features
+#' of a Pool. Always \code{integer(0)}: this package does not support
+#' building Pools with embedding features.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @return An integer vector of 0-based embedding feature indices.
+#' @export
+catboost.pool.get_embedding_feature_indices <- function(pool) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    return(.Call("CatBoostPoolGetEmbeddingFeatureIndices_R", pool))
+}
+
+
+#' @name catboost.pool.get_features
+#' @title Get the feature matrix from a Pool
+#' @description Get the raw numeric feature matrix of a Pool. Only
+#' supported for Pools whose features are all numeric (no categorical or
+#' text features).
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @return A (rows x columns) numeric matrix of feature values.
+#' @export
+catboost.pool.get_features <- function(pool) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    return(.Call("CatBoostPoolGetFeatures_R", pool))
+}
+
+
+#' @name catboost.pool.quantize
+#' @title Quantize a Pool
+#' @description Quantize this Pool in place: build the binarized (quantized)
+#' feature data used by training, same as Python's \code{Pool.quantize()}
+#' (\code{catboost/libs/data/quantization.h}'s
+#' \code{ConstructQuantizedPoolFromRawPool}, the same core entry point
+#' \code{catboost.train} itself uses).
+#' @param pool A catboost.Pool object. Must not already be quantized.
+#'
+#' Default value: Required argument
+#' @param params A named list of quantization parameters (e.g.
+#' \code{border_count}, \code{feature_border_type}, \code{nan_mode},
+#' \code{per_float_feature_quantization}, \code{ignored_features}). Same
+#' names/semantics as \code{catboost.train}'s \code{params}.
+#'
+#' Default value: \code{list()}
+#' @return Nothing. The Pool is quantized in place.
+#' @export
+catboost.pool.quantize <- function(pool, params = list()) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    if (catboost.pool.is_quantized(pool))
+        stop("Pool is already quantized")
+    params <- process_synonyms(params)
+    json_params <- prepare_train_export_parameters(params)
+    invisible(.Call("CatBoostPoolQuantize_R", pool, json_params))
+}
+
+
+#' @name catboost.pool.is_quantized
+#' @title Is the Pool quantized
+#' @description Check whether the Pool's feature data has already been
+#' quantized (either by \code{catboost.pool.quantize} or as a side effect of
+#' \code{catboost.train}).
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @return \code{TRUE} if the Pool is quantized, \code{FALSE} otherwise.
+#' @export
+catboost.pool.is_quantized <- function(pool) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    return(.Call("CatBoostPoolIsQuantized_R", pool))
+}
+
+
+#' @name catboost.pool.save_quantization_borders
+#' @title Save a Pool's quantization borders to a file
+#' @description Save the borders used in numeric feature quantization to a
+#' file, so they can be reused to quantize another Pool identically (via
+#' upstream's \code{input_borders} mechanism). File format is described at
+#' \url{https://catboost.ai/docs/concepts/input-data_custom-borders.html}.
+#' @param pool A catboost.Pool object. Must already be quantized.
+#'
+#' Default value: Required argument
+#' @param output_file Output file path.
+#'
+#' Default value: Required argument
+#' @return Nothing. Writes \code{output_file} as a side effect.
+#' @export
+catboost.pool.save_quantization_borders <- function(pool, output_file) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    if (!is.character(output_file))
+        stop("output_file must be a string.")
+    output_file <- path.expand(output_file)
+    invisible(.Call("CatBoostPoolSaveQuantizationBorders_R", pool, output_file))
+}
+
+
+#' @name catboost.dataset_statistics
+#' @title Calculate dataset statistics
+#' @description R equivalent of CatBoost CLI's \code{dataset-statistics}
+#' mode: computes per-feature statistics (and, unless
+#' \code{only_light_statistics} is set, per-float-feature histograms) for a
+#' dataset read from disk. Calls the same core library entry point the CLI
+#' mode itself calls
+#' (\code{catboost/private/libs/app_helpers/mode_dataset_statistics_helpers.h}'s
+#' \code{NCB::CalculateDatasetStatisticsSingleHost}) directly, in-process --
+#' no CLI binary shell-out.
+#' @param pool_path Path to the dataset file (same format \code{catboost.from_file} reads).
+#'
+#' Default value: Required argument
+#' @param cd_path Path to the column description file.
+#'
+#' Default value: \code{""} (no column description)
+#' @param pairs_path Path to the pairs file.
+#'
+#' Default value: \code{""} (no pairs)
+#' @param delimiter Column delimiter in the dataset file.
+#'
+#' Default value: \code{"\\t"}
+#' @param has_header Whether the dataset file has a header row.
+#'
+#' Default value: \code{FALSE}
+#' @param thread_count Number of threads to use. \code{-1} means use all cores.
+#'
+#' Default value: \code{-1}
+#' @param border_count Number of histogram bins per float feature.
+#'
+#' Default value: \code{254}
+#' @param only_group_statistics Only compute group-related statistics.
+#'
+#' Default value: \code{FALSE}
+#' @param only_light_statistics Skip the second-pass histogram computation.
+#'
+#' Default value: \code{FALSE}
+#' @return A named list with elements \code{statistics} and \code{histograms}
+#' (each the parsed contents of the corresponding CLI JSON output file;
+#' \code{histograms} is \code{NULL} if \code{only_light_statistics} was set).
+#' @export
+catboost.dataset_statistics <- function(pool_path, cd_path = "", pairs_path = "", delimiter = "\t",
+                                         has_header = FALSE, thread_count = -1, border_count = 254,
+                                         only_group_statistics = FALSE, only_light_statistics = FALSE) {
+    if (missing(pool_path))
+        stop("Need to specify pool path.")
+    if (!is.character(pool_path) || !is.character(cd_path) || !is.character(pairs_path))
+        stop("Path must be a string.")
+
+    pool_path <- path.expand(pool_path)
+    cd_path <- path.expand(cd_path)
+    output_path <- tempfile(fileext = ".json")
+    histogram_path <- tempfile(fileext = ".json")
+    on.exit(unlink(c(output_path, histogram_path)))
+
+    .Call("CatBoostDatasetStatistics_R", pool_path, cd_path, pairs_path, delimiter, has_header,
+          thread_count, border_count, only_group_statistics, only_light_statistics,
+          output_path, histogram_path)
+
+    statistics <- jsonlite::fromJSON(output_path, simplifyVector = TRUE)
+    histograms <- if (only_light_statistics) NULL else jsonlite::fromJSON(histogram_path, simplifyVector = TRUE)
+    return(list(statistics = statistics, histograms = histograms))
+}
+
+
+#' @name catboost.pool.slice
+#' @title Slice a Pool
+#' @description Return a new Pool containing a contiguous range of rows from
+#' \code{pool}: R equivalent of Python's \code{Pool.slice()}. Like Python's
+#' \code{Pool.slice()} (which calls \code{_take_slice()} in
+#' \code{catboost/python-package/catboost/_catboost.pyx}), this builds the new
+#' Pool with the core \code{TDataProvider::GetSubset} machinery via
+#' \code{CatBoostPoolSliceSubset_R} (\code{src/catboostr.cpp}), so all column
+#' kinds -- numeric, categorical, text and embedding features, every target
+#' column, weights, group ids, subgroup ids, baseline, pairs and feature names
+#' -- are preserved in the sliced Pool.
+#'
+#' The only difference from Python is the row selector: Python accepts an
+#' arbitrary row-index array (\code{rindex}), whereas this exposes a contiguous
+#' \code{[offset, offset + size)} range.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @param offset Zero-based index of the first row to include.
+#'
+#' Default value: Required argument
+#' @param size Number of rows to include.
+#'
+#' Default value: Required argument
+#' @return A new catboost.Pool object containing the sliced rows.
+#' @export
+catboost.pool.slice <- function(pool, offset, size) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    if (!is.numeric(offset) || length(offset) != 1 || offset < 0)
+        stop("offset must be a single non-negative number.")
+    if (!is.numeric(size) || length(size) != 1 || size < 0)
+        stop("size must be a single non-negative number.")
+
+    sliced <- .Call("CatBoostPoolSliceSubset_R", pool, as.integer(size), as.integer(offset))
+    attributes(sliced) <- attributes(pool)
+    return(sliced)
+}
+
+
+#' @name catboost.pool.train_eval_split
+#' @title Split a Pool into train/eval subsets
+#' @description R equivalent of Python's \code{Pool.train_eval_split()}:
+#' splits \code{pool} into a train and (optionally) an eval Pool, with the
+#' same shuffle-then-split(-then-stratify) semantics as the Python method.
+#' Python's own implementation (\code{TrainEvalSplit()} in
+#' \code{catboost/python-package/catboost/helpers.cpp}) lives in the
+#' python-package tree (not a core lib) and includes \code{Python.h}, so it
+#' is not directly callable from R; \code{CatBoostPoolTrainEvalSplit_R}
+#' (\code{src/catboostr.cpp}) reimplements its body against the same core
+#' entry points it itself calls.
+#' @param pool A catboost.Pool object.
+#'
+#' Default value: Required argument
+#' @param has_time If \code{TRUE}, disables shuffling before the split
+#' (preserves row order, e.g. for time-ordered data).
+#'
+#' Default value: \code{FALSE}
+#' @param is_classification If \code{TRUE}, performs a stratified split using
+#' the Pool's label as the class column.
+#'
+#' Default value: \code{FALSE}
+#' @param eval_fraction Fraction of rows (in \code{(0, 1)}) to hold out for
+#' eval.
+#'
+#' Default value: \code{0.2}
+#' @param save_eval_pool If \code{FALSE}, the eval Pool is not built and
+#' \code{eval} is \code{NULL} in the returned list.
+#'
+#' Default value: \code{TRUE}
+#' @return A named list with elements \code{train} and \code{eval} (each a
+#' catboost.Pool, or \code{NULL} for \code{eval} if \code{save_eval_pool} is
+#' \code{FALSE}).
+#' @export
+catboost.pool.train_eval_split <- function(pool, has_time = FALSE, is_classification = FALSE,
+                                            eval_fraction = 0.2, save_eval_pool = TRUE) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    if (!is.numeric(eval_fraction) || length(eval_fraction) != 1 || eval_fraction <= 0 || eval_fraction >= 1)
+        stop("eval_fraction must be a single number in (0, 1).")
+
+    result <- .Call("CatBoostPoolTrainEvalSplit_R", pool, has_time, is_classification, eval_fraction, save_eval_pool)
+
+    train_pool <- result[[1]]
+    attributes(train_pool) <- attributes(pool)
+
+    eval_pool <- NULL
+    if (save_eval_pool) {
+        eval_pool <- result[[2]]
+        attributes(eval_pool) <- attributes(pool)
+    }
+
+    return(list(train = train_pool, eval = eval_pool))
+}
+
+
+#' @name catboost.pool.save
+#' @title Save a quantized Pool to CatBoost's binary quantized-pool format
+#' @description R equivalent of Python's \code{Pool.save()}: saves an
+#' already-quantized Pool to CatBoost's own binary quantized-pool format
+#' (\code{catboost/private/libs/quantized_pool/serialization.h}'s
+#' \code{SaveQuantizedPool}, the same core entry point Python's
+#' \code{Pool.save()}/\code{_save()} calls). This is a different, binary
+#' format from \code{catboost.save_pool} (R/catboost.R), which writes CD/TSV
+#' files read back by \code{catboost.load_pool}'s \code{column_description}
+#' path -- \code{catboost.save_pool} does NOT already satisfy Python's
+#' \code{Pool.save()}.
+#' @param pool A catboost.Pool object. Must already be quantized (see
+#' \code{catboost.pool.quantize}).
+#'
+#' Default value: Required argument
+#' @param fname Output file path.
+#'
+#' Default value: Required argument
+#' @return Nothing. Writes \code{fname} as a side effect.
+#' @export
+catboost.pool.save <- function(pool, fname) {
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    if (!is.character(fname))
+        stop("fname must be a string.")
+    fname <- path.expand(fname)
+    invisible(.Call("CatBoostPoolSave_R", pool, fname))
 }
 
 

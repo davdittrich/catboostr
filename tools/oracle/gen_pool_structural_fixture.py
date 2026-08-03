@@ -7,13 +7,13 @@ Run via: uv run --frozen --project tools/oracle python3 tools/oracle/gen_pool_st
 
 slice():
   Python's Pool.slice(rindex) accepts an arbitrary row-index array. The R
-  equivalent (catboost.pool.slice) wraps the pre-existing native
-  CatBoostPoolSlice_R entry point (src/catboostr.cpp), which only supports
-  contiguous [offset, offset + size) ranges -- so the fixture's rindex is
-  always a contiguous range, comparable to both. Also records the
-  CatBoostError raised when slicing a Pool with a categorical feature
-  (Pool.slice's own non-numeric-feature restriction, mirrored by
-  CatBoostPoolSlice_R's CB_ENSURE).
+  equivalent (catboost.pool.slice) exposes a contiguous [offset, offset + size)
+  range instead, so the fixture's rindex is always a contiguous range,
+  comparable to both. Both sides build the sliced Pool with the same core
+  TDataProvider::GetSubset machinery (_catboost.pyx's _take_slice() in Python,
+  CatBoostPoolSliceSubset_R in src/catboostr.cpp for R), so every column kind
+  survives the slice on both sides. The recorded slice_on_categorical entry is
+  kept only for historical comparison; neither side rejects categorical pools.
 
 train_eval_split():
   Recorded for two configurations: has_time=True (no shuffle -- a pure,
@@ -30,9 +30,11 @@ save():
   SaveQuantizedPool(TDataProviderPtr, fname), catboost/private/libs/
   quantized_pool/serialization.h). The fixture quantizes and saves a Pool,
   then re-loads the saved file (Pool(data="quantized://...")) and records
-  its observable shape/label -- the only way to compare R's writer against
-  Python's reader (R's own loader can't read "quantized://" paths; see the
-  ticket report for why byte-identity was not asserted).
+  its observable shape/label, so R's writer can be checked against an
+  independently built, pinned Python reader (R's own loader does read
+  "quantized://" paths, but re-reading with the same in-tree build would show
+  only self-consistency; see the ticket report for why byte-identity was not
+  asserted).
 """
 import json
 import os

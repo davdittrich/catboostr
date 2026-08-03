@@ -121,3 +121,57 @@ Empty output -- vendor untouched, as required (read-only pin).
 No rebuild of the compiled R package (`src/catboostr.cpp`/`.h`/`init.c` or
 any R export signature) was needed -- this was a test-file and doc-only
 change.
+
+## Fix round: review findings addressed
+
+Task review of the initial commit (`06f510e`) found two deviations from the
+plan's Task 1, Step 2/3 (`docs/superpowers/plans/2026-08-03-phase3-parity-debt.md`):
+
+1. **Bound deviation.** The committed test used `abs(diff) < 1.5`, but the
+   plan's Task 1 Step 2 code block specifies `expect_lt(delta, 1.0)`
+   verbatim. No new evidence surfaced that `1.0` is unsafe -- the observed
+   real max divergence is `0.403294` (see above), well under `1.0` -- so the
+   bound was reverted to the plan's literal value rather than re-justified.
+2. **Missing Step 3 diagnostic.** Plan Task 1 Step 3 requires a `message()`
+   call, conditioned on `delta > 0`, referencing catboost-8z4.45, to confirm
+   the test exercises the real divergence rather than a no-op. This was
+   absent from the initial commit; added now.
+
+`tests/testthat/test_pool_embeddings.R` was changed to: compute
+`delta <- max(abs(prediction - oracle_lda))`, assert `expect_lt(delta, 1.0)`,
+and emit the required `message()` when `delta > 0`. The `sign()` and
+KNN-divergence assertions from the initial commit are unchanged (the plan
+does not forbid them; they are additional regression guards, not deviations).
+
+### STATUS
+
+DONE
+
+### COMMITS
+
+```
+$ git log --oneline -3
+00cb550 fix(phase-3): restore plan-specified 1.0 delta bound and diagnostic message
+06f510e test(phase-3): add bounded-divergence differential test for default LDA+KNN embedding_processing (catboost-8z4.45)
+51ab131 docs(phase-3): record the final whole-branch review fix wave
+```
+
+### TEST_SUMMARY
+
+```
+$ Rscript -e 'library(catboostr); testthat::test_file("tests/testthat/test_pool_embeddings.R")'
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 20 ]
+
+$ Rscript -e 'library(catboostr); testthat::test_dir("tests/testthat")'
+[ FAIL 0 | WARN 0 | SKIP 1 | PASS 273 ]
+```
+
+### REPORT
+
+`docs/phase-3/catboost-8z4.45-report.md` (this file).
+
+### CONCERNS
+
+None. Both findings were literal-value/missing-code deviations from the
+plan's own code block, not judgment calls; no evidence contradicts the
+plan's `1.0` bound.

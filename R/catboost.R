@@ -109,8 +109,10 @@ catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_d
                                group_id = NULL, group_weight = NULL, subgroup_id = NULL, pairs_weight = NULL,
                                baseline = NULL, feature_names = NULL, thread_count = -1, graph = NULL,
                                embedding_features = NULL, timestamp = NULL, feature_tags = NULL) {
-    if (!is.null(feature_tags))
-        stop("feature_tags is not currently supported by catboostr; tracked as catboost-8z4.49")
+    if (!is.null(feature_tags)) {
+        # catboost-8z4.49
+        stop("feature_tags is not currently supported by catboostr")
+    }
     if (!is.null(pairs) && (is.character(data) != is.character(pairs))) {
         stop("Data and pairs should be the same types.")
     }
@@ -195,8 +197,9 @@ catboost.from_matrix <- function(float_and_cat_features_data, label = NULL, cat_
                                  subgroup_id = NULL, pairs_weight = NULL, baseline = NULL, feature_names = NULL, graph = NULL,
                                  embedding_features_data = NULL, embedding_features_indices = NULL, timestamp = NULL,
                                  feature_tags = NULL) {
+  # catboost-8z4.49
   if (!is.null(feature_tags))
-      stop("feature_tags is not currently supported by catboostr; tracked as catboost-8z4.49")
+      stop("feature_tags is not currently supported by catboostr")
   if (inherits(float_and_cat_features_data, "sparseMatrix")) {
       # ponytail: densify; CatBoost's sparse column format is a memory optimisation only, stored
       # zeros are ordinary zero values, so the resulting Pool equals the dense one. Upgrade path:

@@ -12,7 +12,7 @@ catboost.dictionary.size(dictionary)
 Default value: Required argument}
 }
 \value{
-The number of tokens in the dictionary.
+An integer.
 }
 \description{
 Dictionary size

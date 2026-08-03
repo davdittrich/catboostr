@@ -47,7 +47,7 @@ NULL
 #' @param number_token Replacement token used when \code{number_process_policy}
 #' is "Replace".
 #'
-#' Default value: "\U0001F522" (matches vendor default)
+#' Default value: "🔢" (matches vendor default)
 #' @param separator_type Tokenization method: "ByDelimiter" or "BySense".
 #'
 #' Default value: "ByDelimiter"

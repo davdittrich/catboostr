@@ -16,7 +16,7 @@ Default value: Required argument}
 Default value: Required argument}
 }
 \value{
-The token string.
+A character string.
 }
 \description{
 Get a single token by id

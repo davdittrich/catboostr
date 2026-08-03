@@ -7,7 +7,6 @@
 catboost.Dictionary(
   token_level_type = NULL,
   gram_order = NULL,
-  skip_step = NULL,
   start_token_id = NULL,
   end_of_word_policy = NULL,
   end_of_sentence_policy = NULL,
@@ -15,7 +14,8 @@ catboost.Dictionary(
   max_dictionary_size = NULL,
   dictionary_type = NULL,
   num_bpe_units = NULL,
-  skip_unknown = NULL
+  skip_unknown = NULL,
+  skip_step = NULL
 )
 }
 \arguments{
@@ -27,11 +27,6 @@ Default value: "Word"}
 (multigrams).
 
 Default value: 1}
-
-\item{skip_step}{Number of words/letters skipped when joining them into
-tokens; only takes effect when \code{gram_order > 1}.
-
-Default value: 0}
 
 \item{start_token_id}{Initial shift for assigned token identifiers.
 
@@ -69,6 +64,11 @@ Default value: 0}
 \item{skip_unknown}{Skip unknown tokens when building a Bpe dictionary.
 
 Default value: FALSE}
+
+\item{skip_step}{Number of words/letters skipped when joining them into
+tokens; only takes effect when \code{gram_order > 1}.
+
+Default value: 0}
 }
 \value{
 A mutable catboost.Dictionary object (\code{fit}/\code{load}

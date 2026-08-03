@@ -83,15 +83,20 @@ test_that("Tokenizer: 'BySense' separator matches Python oracle (catboost-8z4.48
 })
 
 # --- catboost-8z4.48 scope cut 2: token_types / sub_tokens_policy --------
-# (lemmatizing/languages are excluded: the pinned catboost==1.2.10 OSS
-# build's Lemmer implementation is an unimplemented stub that aborts the
-# whole process -- vendor/catboost/library/cpp/text_processing/tokenizer/
-# tokenizer.cpp:267, confirmed while generating the fixture -- so there is
-# no Python oracle output to pin. catboost.Tokenizer(lemmatizing = TRUE)
-# reaches that identical vendor code and is expected to error/abort too,
-# since it now links the same C++ implementation instead of the pure-R
-# port, which is the correct byte-parity outcome even though it can't be
-# asserted with expect_error() (an abort, not a catchable condition).
+# (lemmatizing is excluded from oracle parity: the pinned catboost==1.2.10
+# OSS build's Lemmer implementation is an unimplemented stub --
+# vendor/catboost/library/cpp/text_processing/tokenizer/tokenizer.cpp:267,
+# confirmed while generating the fixture -- so there is no Python oracle
+# output to pin. catboost.Tokenizer(lemmatizing = TRUE) reaches that
+# identical vendor Y_ENSURE via TTokenizer's constructor, which
+# src/catboostr.cpp's CatBoostTextTokenizerCreate_R runs inside
+# R_API_BEGIN()/R_API_END(); R_API_END() catches std::exception (yexception
+# is a subclass) and converts it to a normal, catchable R error(), so the
+# failure is asserted below with expect_error() rather than skipped.)
+
+test_that("Tokenizer: lemmatizing = TRUE surfaces the vendor 'not implemented' error", {
+  expect_error(catboost.Tokenizer(lemmatizing = TRUE), "Lemmer isn't implemented yet")
+})
 
 test_that("Tokenizer: token_types filters to the requested types (BySense) matches Python oracle", {
   tok <- catboost.Tokenizer(separator_type = "BySense", token_types = "Word")

@@ -41,9 +41,6 @@ NULL
 #' \code{NTextProcessing::NTokenizer::TTokenizer}.
 #'
 #' @param lowercasing Lowercase each token. Default value: FALSE
-#' @param lemmatizing Apply lemmatization to tokens.
-#'
-#' Default value: FALSE
 #' @param number_process_policy One of "Skip", "LeaveAsIs", "Replace".
 #'
 #' Default value: "LeaveAsIs"
@@ -77,10 +74,12 @@ NULL
 #' lemmatizing/BySense tokenization.
 #'
 #' Default value: NULL (all languages)
+#' @param lemmatizing Apply lemmatization to tokens.
+#'
+#' Default value: FALSE
 #' @return catboost.Tokenizer
 #' @export
 catboost.Tokenizer <- function(lowercasing = NULL,
-                                lemmatizing = NULL,
                                 number_process_policy = NULL,
                                 number_token = NULL,
                                 separator_type = NULL,
@@ -89,7 +88,8 @@ catboost.Tokenizer <- function(lowercasing = NULL,
                                 skip_empty = NULL,
                                 token_types = NULL,
                                 sub_tokens_policy = NULL,
-                                languages = NULL) {
+                                languages = NULL,
+                                lemmatizing = NULL) {
   lowercasing <- if (is.null(lowercasing)) FALSE else lowercasing
   lemmatizing <- if (is.null(lemmatizing)) FALSE else lemmatizing
   number_process_policy <- if (is.null(number_process_policy)) "LeaveAsIs" else number_process_policy
@@ -189,10 +189,6 @@ catboost.tokenizer.tokenize <- function(tokenizer, string, types = FALSE) {
 #' (multigrams).
 #'
 #' Default value: 1
-#' @param skip_step Number of words/letters skipped when joining them into
-#' tokens; only takes effect when \code{gram_order > 1}.
-#'
-#' Default value: 0
 #' @param start_token_id Initial shift for assigned token identifiers.
 #'
 #' Default value: 0
@@ -222,12 +218,15 @@ catboost.tokenizer.tokenize <- function(tokenizer, string, types = FALSE) {
 #' @param skip_unknown Skip unknown tokens when building a Bpe dictionary.
 #'
 #' Default value: FALSE
+#' @param skip_step Number of words/letters skipped when joining them into
+#' tokens; only takes effect when \code{gram_order > 1}.
+#'
+#' Default value: 0
 #' @return A mutable catboost.Dictionary object (\code{fit}/\code{load}
 #' update it in place).
 #' @export
 catboost.Dictionary <- function(token_level_type = NULL,
                                  gram_order = NULL,
-                                 skip_step = NULL,
                                  start_token_id = NULL,
                                  end_of_word_policy = NULL,
                                  end_of_sentence_policy = NULL,
@@ -235,7 +234,8 @@ catboost.Dictionary <- function(token_level_type = NULL,
                                  max_dictionary_size = NULL,
                                  dictionary_type = NULL,
                                  num_bpe_units = NULL,
-                                 skip_unknown = NULL) {
+                                 skip_unknown = NULL,
+                                 skip_step = NULL) {
   defaults <- .catboost.tp.dictionary_defaults()
 
   env <- new.env(parent = emptyenv())

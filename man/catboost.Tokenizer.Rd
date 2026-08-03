@@ -6,7 +6,6 @@
 \usage{
 catboost.Tokenizer(
   lowercasing = NULL,
-  lemmatizing = NULL,
   number_process_policy = NULL,
   number_token = NULL,
   separator_type = NULL,
@@ -15,15 +14,12 @@ catboost.Tokenizer(
   skip_empty = NULL,
   token_types = NULL,
   sub_tokens_policy = NULL,
-  languages = NULL
+  languages = NULL,
+  lemmatizing = NULL
 )
 }
 \arguments{
 \item{lowercasing}{Lowercase each token. Default value: FALSE}
-
-\item{lemmatizing}{Apply lemmatization to tokens.
-
-Default value: FALSE}
 
 \item{number_process_policy}{One of "Skip", "LeaveAsIs", "Replace".
 
@@ -66,6 +62,10 @@ Default value: "SingleToken"}
 lemmatizing/BySense tokenization.
 
 Default value: NULL (all languages)}
+
+\item{lemmatizing}{Apply lemmatization to tokens.
+
+Default value: FALSE}
 }
 \value{
 catboost.Tokenizer

@@ -65,6 +65,12 @@ EXPORT_FUNCTION CatBoostPoolSlice_R(
     SEXP offsetParam
 );
 
+EXPORT_FUNCTION CatBoostPoolSliceSubset_R(
+    SEXP poolParam,
+    SEXP sizeParam,
+    SEXP offsetParam
+);
+
 EXPORT_FUNCTION CatBoostFit_R(
     SEXP learnPoolParam,
     SEXP testPoolParam,

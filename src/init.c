@@ -49,6 +49,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"CatBoostPoolSetWeight_R",               (DL_FUNC) &CatBoostPoolSetWeight_R,                2},
     {"CatBoostPoolSave_R",                    (DL_FUNC) &CatBoostPoolSave_R,                     2},
     {"CatBoostPoolSlice_R",                   (DL_FUNC) &CatBoostPoolSlice_R,                    3},
+    {"CatBoostPoolSliceSubset_R",             (DL_FUNC) &CatBoostPoolSliceSubset_R,              3},
     {"CatBoostPoolTrainEvalSplit_R",          (DL_FUNC) &CatBoostPoolTrainEvalSplit_R,           5},
     {"CatBoostPredictMulti_R",                (DL_FUNC) &CatBoostPredictMulti_R,                 7},
     {"CatBoostPredictVirtualEnsembles_R",     (DL_FUNC) &CatBoostPredictVirtualEnsembles_R,      7},

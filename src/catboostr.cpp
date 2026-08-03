@@ -654,10 +654,50 @@ EXPORT_FUNCTION CatBoostPoolSlice_R(SEXP poolParam, SEXP sizeParam, SEXP offsetP
     return result;
 }
 
+// Mirrors _catboost.pyx's _take_slice() (which backs Python's Pool.slice()):
+// builds a new TDataProvider from a row subset via TDataProvider::GetSubset,
+// so every column of the pool -- features (numeric, categorical, text,
+// embedding), all targets, weights, group ids, subgroup ids, baseline, pairs
+// and the feature layout (names) -- is carried through by the core subset
+// machinery. This is what catboost.pool.slice() uses; the older
+// CatBoostPoolSlice_R above flattens rows into a dense numeric matrix and
+// exists only for head()/tail() printing.
+EXPORT_FUNCTION CatBoostPoolSliceSubset_R(SEXP poolParam, SEXP sizeParam, SEXP offsetParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    const size_t objectCount = static_cast<size_t>(pool->GetObjectCount());
+    const size_t offset = std::min(static_cast<size_t>(asInteger(offsetParam)), objectCount);
+    const size_t sliceEnd = std::min(objectCount, offset + static_cast<size_t>(asInteger(sizeParam)));
+
+    TRangesSubset<ui32>::TBlocks subsetBlocks
+        = { TSubsetBlock<ui32>(TIndexRange<ui32>(offset, sliceEnd), 0) };
+    TObjectsGroupingSubset objectsGroupingSubset = GetGroupingSubsetFromObjectsSubset(
+        pool->ObjectsGrouping,
+        TArraySubsetIndexing<ui32>(
+            TRangesSubset<ui32>(subsetBlocks[0].GetSize(), std::move(subsetBlocks))
+        ),
+        EObjectsOrder::Ordered
+    );
+
+    TDataProviderPtr slicedDataProvider = pool->GetSubset(
+        objectsGroupingSubset,
+        GetMonopolisticFreeCpuRam(),
+        &NPar::LocalExecutor()
+    );
+
+    result = PROTECT(R_MakeExternalPtr(slicedDataProvider.Get(), R_NilValue, R_NilValue));
+    R_RegisterCFinalizerEx(result, _Finalizer<TPoolHandle>, TRUE);
+    Y_UNUSED(slicedDataProvider.Release());
+
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
 // P3.4: R equivalents of Python Pool's train_eval_split and save (Pool
-// structural operations; slice's native entry point is CatBoostPoolSlice_R
-// above, pre-existing, first wired to R via catboost.pool.slice in this
-// ticket). train_eval_split has no existing native entry point -- Python's
+// structural operations; slice's native entry point is
+// CatBoostPoolSliceSubset_R above). train_eval_split has no existing native entry point -- Python's
 // Pool.train_eval_split (catboost/python-package/catboost/core.py) calls
 // _catboost.pyx's _train_eval_split, which itself calls TrainEvalSplit()
 // (catboost/python-package/catboost/helpers.cpp:252). That function lives in

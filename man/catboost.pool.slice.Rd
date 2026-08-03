@@ -7,7 +7,7 @@
 catboost.pool.slice(pool, offset, size)
 }
 \arguments{
-\item{pool}{A catboost.Pool object with only numeric (float) features.
+\item{pool}{A catboost.Pool object.
 
 Default value: Required argument}
 
@@ -24,13 +24,16 @@ A new catboost.Pool object containing the sliced rows.
 }
 \description{
 Return a new Pool containing a contiguous range of rows from
-\code{pool}: R equivalent of Python's \code{Pool.slice()}. Unlike Python,
-which accepts an arbitrary row-index array (\code{rindex}), this wraps the
-existing native \code{CatBoostPoolSlice_R} entry point
-(\code{src/catboostr.cpp}, pre-existing), which only supports contiguous
-\code{[offset, offset + size)} ranges -- a limitation of that native entry
-point, not one added here. That entry point also does not support slicing
-datasets with categorical, text or embedding features; such pools raise a
-clear R error here (surfacing its own \code{CB_ENSURE}) instead of
-silently dropping or corrupting those columns.
+\code{pool}: R equivalent of Python's \code{Pool.slice()}. Like Python's
+\code{Pool.slice()} (which calls \code{_take_slice()} in
+\code{catboost/python-package/catboost/_catboost.pyx}), this builds the new
+Pool with the core \code{TDataProvider::GetSubset} machinery via
+\code{CatBoostPoolSliceSubset_R} (\code{src/catboostr.cpp}), so all column
+kinds -- numeric, categorical, text and embedding features, every target
+column, weights, group ids, subgroup ids, baseline, pairs and feature names
+-- are preserved in the sliced Pool.
+
+The only difference from Python is the row selector: Python accepts an
+arbitrary row-index array (\code{rindex}), whereas this exposes a contiguous
+\code{[offset, offset + size)} range.
 }

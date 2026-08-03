@@ -643,13 +643,24 @@ dim.catboost.Pool <- function(x) {
 #' @title Dimension names of catboost.Pool
 #'
 #' @description Get dimension names of a Pool.
+#'
+#' Column names are read from the Pool's own (C++-side) feature layout, so
+#' they stay in sync with \code{catboost.pool.get_feature_names()} after a
+#' \code{catboost.pool.set_feature_names()} call, which mutates that layout in
+#' place and cannot update an R-side attribute of the caller's object.
 #' @param x The input dataset.
 #'
 #' Default value: Required argument
-#' @return A list with the two elements. The second element contains the column names.
+#' @return A list with the two elements. The second element contains the column
+#' names, or \code{NULL} if the Pool has no feature names.
 #' @export
 dimnames.catboost.Pool <- function(x) {
-    return(attr(x, ".Dimnames"))
+    if (is.null.handle(x))
+        stop("Pool object is invalid.")
+    feature_names <- .Call("CatBoostPoolGetFeatureNames_R", x)
+    if (length(feature_names) == 0 || all(feature_names == ""))
+        feature_names <- NULL
+    return(list(NULL, feature_names))
 }
 
 
@@ -1315,16 +1326,19 @@ catboost.dataset_statistics <- function(pool_path, cd_path = "", pairs_path = ""
 #' @name catboost.pool.slice
 #' @title Slice a Pool
 #' @description Return a new Pool containing a contiguous range of rows from
-#' \code{pool}: R equivalent of Python's \code{Pool.slice()}. Unlike Python,
-#' which accepts an arbitrary row-index array (\code{rindex}), this wraps the
-#' existing native \code{CatBoostPoolSlice_R} entry point
-#' (\code{src/catboostr.cpp}, pre-existing), which only supports contiguous
-#' \code{[offset, offset + size)} ranges -- a limitation of that native entry
-#' point, not one added here. That entry point also does not support slicing
-#' datasets with categorical, text or embedding features; such pools raise a
-#' clear R error here (surfacing its own \code{CB_ENSURE}) instead of
-#' silently dropping or corrupting those columns.
-#' @param pool A catboost.Pool object with only numeric (float) features.
+#' \code{pool}: R equivalent of Python's \code{Pool.slice()}. Like Python's
+#' \code{Pool.slice()} (which calls \code{_take_slice()} in
+#' \code{catboost/python-package/catboost/_catboost.pyx}), this builds the new
+#' Pool with the core \code{TDataProvider::GetSubset} machinery via
+#' \code{CatBoostPoolSliceSubset_R} (\code{src/catboostr.cpp}), so all column
+#' kinds -- numeric, categorical, text and embedding features, every target
+#' column, weights, group ids, subgroup ids, baseline, pairs and feature names
+#' -- are preserved in the sliced Pool.
+#'
+#' The only difference from Python is the row selector: Python accepts an
+#' arbitrary row-index array (\code{rindex}), whereas this exposes a contiguous
+#' \code{[offset, offset + size)} range.
+#' @param pool A catboost.Pool object.
 #'
 #' Default value: Required argument
 #' @param offset Zero-based index of the first row to include.
@@ -1343,24 +1357,9 @@ catboost.pool.slice <- function(pool, offset, size) {
     if (!is.numeric(size) || length(size) != 1 || size < 0)
         stop("size must be a single non-negative number.")
 
-    n_features <- dim(pool)[2]
-    rows <- .Call("CatBoostPoolSlice_R", pool, as.integer(size), as.integer(offset))
-    mat <- matrix(unlist(rows), nrow = size, byrow = TRUE)
-    target_count <- ncol(mat) - n_features - 1
-
-    label <- mat[, seq_len(target_count), drop = FALSE]
-    if (target_count == 1)
-        label <- as.vector(label)
-    weight <- mat[, target_count + 1]
-    features <- mat[, (target_count + 2):ncol(mat), drop = FALSE]
-
-    feature_names <- dimnames(pool)[[2]]
-    if (is.null(feature_names) || length(feature_names) != n_features)
-        feature_names <- NULL
-    else
-        feature_names <- as.list(feature_names)
-
-    return(catboost.from_matrix(features, label = label, weight = weight, feature_names = feature_names))
+    sliced <- .Call("CatBoostPoolSliceSubset_R", pool, as.integer(size), as.integer(offset))
+    attributes(sliced) <- attributes(pool)
+    return(sliced)
 }
 
 

@@ -73,3 +73,50 @@ test_that("pool sparse: a row-major sparse matrix (dgRMatrix) is accepted too", 
   expect_equal(catboost.pool.get_features(pool), fixture$expected$features,
                tolerance = 1e-6, check.attributes = FALSE)
 })
+
+# catboost-8z4.46: on the non-degenerate fixture above, the Python oracle's own
+# sparse and dense training paths happen to agree, which is what makes R's
+# densify-on-load strategy (R/catboost.R:184-190) observationally equivalent
+# to a true native sparse path. That agreement is NOT general: on degenerate,
+# tie-heavy data, CatBoost's split tie-breaking differs between its sparse and
+# dense column layouts, and Python's own dense-Pool and
+# scipy.sparse.csr_matrix-Pool predictions diverge (measured entirely inside
+# Python, not an R defect). Because R always densifies sparse input before
+# training, R's dense and "sparse" Pools are byte-identical regardless, so
+# R's own delta must be exactly 0 even on this degenerate fixture -- the
+# fixture's recorded Python-side delta documents the divergence R cannot see.
+#
+# Regenerate fixture with:
+# uv run --frozen --project tools/oracle python3 tools/oracle/gen_pool_sparse_fixture.py --degenerate
+
+degenerate_fixture <- jsonlite::fromJSON(
+  testthat::test_path("..", "fixtures", "oracle", "pool_sparse_degenerate.json"),
+  simplifyVector = TRUE
+)
+
+test_that("sparse: degenerate tie-heavy input diverges from Python's native-sparse tie-breaking within documented bounds (catboost-8z4.46)", {
+  skip_if_not_installed("Matrix")
+  dense_pool <- catboost.load_pool(
+    as.matrix(degenerate_fixture$inputs$dense),
+    label = as.double(degenerate_fixture$inputs$label)
+  )
+  sparse_pool <- catboost.load_pool(
+    Matrix::Matrix(as.matrix(degenerate_fixture$inputs$dense), sparse = TRUE),
+    label = as.double(degenerate_fixture$inputs$label)
+  )
+  params <- degenerate_fixture$params
+  params$verbose <- NULL
+  params$logging_level <- "Silent"
+  model_dense <- catboost.train(dense_pool, params = params)
+  pred_dense <- catboost.predict(model_dense, dense_pool, prediction_type = "RawFormulaVal")
+  model_sparse <- catboost.train(sparse_pool, params = params)
+  pred_sparse <- catboost.predict(model_sparse, sparse_pool, prediction_type = "RawFormulaVal")
+  r_delta <- max(abs(as.double(pred_dense) - as.double(pred_sparse)))
+  # R always densifies sparse input (R/catboost.R:184-190), so R's dense and
+  # "sparse" Pools train identically -- r_delta should be exactly 0.
+  expect_equal(r_delta, 0, tolerance = 1e-9)
+  # Document that Python's own dense-vs-native-sparse paths DO diverge on this
+  # exact degenerate data (catboost-8z4.46 root cause, measured entirely
+  # inside Python, not an R defect):
+  expect_gt(degenerate_fixture$expected$max_sparse_dense_delta, 0)
+})

@@ -13,7 +13,10 @@ NULL
 #'
 #' @description Create a dataset from the given file, matrix or data.frame.
 #'
-#' @param data A file path, matrix or data.frame with features.
+#' @param data A file path, matrix, sparse matrix (any \code{Matrix} package
+#' \code{sparseMatrix}, e.g. \code{dgCMatrix}) or data.frame with features.
+#' A sparse matrix is densified before being handed to the native Pool builder, so the resulting
+#' Pool is identical to the one built from \code{as.matrix(data)} (stored zeros are real zeros).
 #' The following column types are supported:
 #' \itemize{
 #'     \item double
@@ -33,6 +36,12 @@ NULL
 #' If data parameter is data.frame don't use cat_features, categorical features are determined automatically
 #' from data.frame column types.
 #' @param column_description The path to the input file that contains the column descriptions.
+#' @param embedding_features A named list of numeric matrices, one per embedding feature; each matrix
+#' has one row per object and one column per embedding dimension. R matrix cells cannot hold vectors,
+#' so embedding features are supplied beside \code{data} instead of inside it (Python's
+#' \code{Pool(data, embedding_features = [...])} indexes columns of a data frame holding arrays).
+#' The embedding features are appended after the columns of \code{data}, so their flat feature
+#' indices are \code{ncol(data)}, \code{ncol(data) + 1}, ...; list names become their feature names.
 #' @param pairs A file path, matrix or data.frame that contains the pairs descriptions. The shape should be Nx2, where N is the pairs' count.
 #' The first element of pair is the index of winner document in training set. The second element of pair is the index of loser document in training set.
 #' @param delimiter Delimiter character to use to separate features in a file.
@@ -76,12 +85,16 @@ NULL
 catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_description = NULL,
                                pairs = NULL, delimiter = "\t", has_header = FALSE, weight = NULL,
                                group_id = NULL, group_weight = NULL, subgroup_id = NULL, pairs_weight = NULL,
-                               baseline = NULL, feature_names = NULL, thread_count = -1, graph = NULL) {
+                               baseline = NULL, feature_names = NULL, thread_count = -1, graph = NULL,
+                               embedding_features = NULL) {
     if (!is.null(pairs) && (is.character(data) != is.character(pairs))) {
         stop("Data and pairs should be the same types.")
     }
     if (!is.null(graph) && (is.character(graph) != is.character(graph))) {
         stop("Data and graph should be the same types.")
+    }
+    if (!is.null(embedding_features) && !is.matrix(data) && !inherits(data, "sparseMatrix")) {
+        stop("parameter 'embedding_features' is only supported when 'data' is a matrix or a sparse matrix")
     }
 
     if (is.character(data) && length(data) == 1) {
@@ -93,9 +106,9 @@ catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_d
             }
         }
         pool <- catboost.from_file(data, column_description, pairs, delimiter, has_header, thread_count, FALSE, feature_names, graph_path = graph)
-    } else if (is.matrix(data)) {
+    } else if (is.matrix(data) || inherits(data, "sparseMatrix")) {
         pool <- catboost.from_matrix(data, label, cat_features, NULL, NULL, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight,
-                                     baseline, feature_names, graph)
+                                     baseline, feature_names, graph, embedding_features_data = embedding_features)
     } else if (inherits(data, "catboost.FeaturesData")) {
         for (arg in list("cat_features", "feature_names")) {
             if (!is.null(get(arg))) {
@@ -117,7 +130,7 @@ catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_d
         pool <- catboost.from_data_frame(data, label, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight,
                                          baseline, feature_names, graph)
     } else {
-        stop("Unsupported data type, expecting string, matrix, data.frame or catboost.FeaturesData, got: ", class(data))
+        stop("Unsupported data type, expecting string, matrix, sparse matrix, data.frame or catboost.FeaturesData, got: ", class(data))
     }
     return(pool)
 }
@@ -148,7 +161,15 @@ catboost.from_file <- function(pool_path, cd_path = "", pairs_path = "", delimit
 
 catboost.from_matrix <- function(float_and_cat_features_data, label = NULL, cat_features_indices = NULL, text_features_data = NULL,
                                  text_features_indices = NULL, pairs = NULL, weight = NULL, group_id = NULL, group_weight = NULL,
-                                 subgroup_id = NULL, pairs_weight = NULL, baseline = NULL, feature_names = NULL, graph = NULL) {
+                                 subgroup_id = NULL, pairs_weight = NULL, baseline = NULL, feature_names = NULL, graph = NULL,
+                                 embedding_features_data = NULL, embedding_features_indices = NULL) {
+  if (inherits(float_and_cat_features_data, "sparseMatrix")) {
+      # ponytail: densify; CatBoost's sparse column format is a memory optimisation only, stored
+      # zeros are ordinary zero values, so the resulting Pool equals the dense one. Upgrade path:
+      # feed the dgCMatrix i/p/x slots to the native visitor's TConstPolymorphicValuesSparseArray
+      # overloads if densification ever becomes the memory bottleneck.
+      float_and_cat_features_data <- as.matrix(float_and_cat_features_data)
+  }
   if (inherits(float_and_cat_features_data, "catboost.FeaturesData")) {
       if (!is.null(cat_features_indices) || !is.null(text_features_data) || !is.null(text_features_indices) || !is.null(feature_names)) {
           stop("parameters 'cat_features_indices', 'text_features_data', 'text_features_indices' and 'feature_names' should be NULL",
@@ -179,9 +200,39 @@ catboost.from_matrix <- function(float_and_cat_features_data, label = NULL, cat_
 
   float_and_cat_columns <- if (is.null(float_and_cat_features_data)) 0 else ncol(float_and_cat_features_data)
   text_columns <- if (is.null(text_features_data)) 0 else ncol(text_features_data)
-  data_columns <- float_and_cat_columns + text_columns
+  embedding_columns <- if (is.null(embedding_features_data)) 0 else length(embedding_features_data)
+  data_columns <- float_and_cat_columns + text_columns + embedding_columns
   if (text_columns == 0 && float_and_cat_columns == 0)
       stop("Data has no columns")
+
+  if (!is.null(embedding_features_data)) {
+      if (!is.list(embedding_features_data))
+          stop("Unsupported embedding_features_data type, expecting list of matrices, got: ", class(embedding_features_data))
+      for (embedding_index in seq_along(embedding_features_data)) {
+          embedding <- embedding_features_data[[embedding_index]]
+          if (!is.matrix(embedding) || !is.double(embedding))
+              stop("embedding_features_data[[", embedding_index, "]] must be a double matrix, got: ", class(embedding))
+          if (nrow(embedding) != nrow(float_and_cat_features_data))
+              stop("Data has ", nrow(float_and_cat_features_data), " rows, embedding_features_data[[",
+                   embedding_index, "]] has ", nrow(embedding), " rows.")
+      }
+      if (is.null(embedding_features_indices)) {
+          # Embeddings travel beside the matrix, so they occupy the trailing flat feature indices.
+          embedding_features_indices <- as.integer(seq.int(data_columns - embedding_columns, data_columns - 1))
+      }
+      if (length(embedding_features_indices) != embedding_columns)
+          stop("embedding_features_data has ", embedding_columns, " features, embedding_features_indices has ",
+               length(embedding_features_indices), " entries.")
+      embedding_features_indices <- as.integer(embedding_features_indices)
+      if (is.null(feature_names) && !is.null(names(embedding_features_data)) && text_columns == 0) {
+          base_names <- colnames(float_and_cat_features_data)
+          if (is.null(base_names))
+              base_names <- as.character(seq_len(float_and_cat_columns) - 1L)
+          feature_names <- as.list(c(base_names, names(embedding_features_data)))
+      }
+  } else if (!is.null(embedding_features_indices)) {
+      stop("embedding_features_indices was given without embedding_features_data")
+  }
 
   if (is.character(label))
       label <- as.factor(label)
@@ -267,7 +318,8 @@ catboost.from_matrix <- function(float_and_cat_features_data, label = NULL, cat_
       text_features_data <- NULL
   pool <- .Call("CatBoostCreateFromMatrix_R",
                 float_and_cat_features_data, label, cat_features_indices, text_features_data, text_features_indices, pairs, graph, weight,
-                group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names, class_labels)
+                group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names, class_labels,
+                embedding_features_data, embedding_features_indices)
   attributes(pool) <- list(.Dimnames = list(NULL, as.character(feature_names)), class = "catboost.Pool")
   return(pool)
 }

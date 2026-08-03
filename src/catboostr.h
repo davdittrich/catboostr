@@ -40,7 +40,9 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(
     SEXP pairsWeightParam,
     SEXP baselineParam,
     SEXP featureNamesParam,
-    SEXP classLabelsParam
+    SEXP classLabelsParam,
+    SEXP embeddingListParam,
+    SEXP embeddingFeaturesIndicesParam
 );
 
 EXPORT_FUNCTION CatBoostHashStrings_R(SEXP stringsParam);

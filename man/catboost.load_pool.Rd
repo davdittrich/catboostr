@@ -20,11 +20,15 @@ catboost.load_pool(
   baseline = NULL,
   feature_names = NULL,
   thread_count = -1,
-  graph = NULL
+  graph = NULL,
+  embedding_features = NULL
 )
 }
 \arguments{
-\item{data}{A file path, matrix or data.frame with features.
+\item{data}{A file path, matrix, sparse matrix (any \code{Matrix} package
+\code{sparseMatrix}, e.g. \code{dgCMatrix}) or data.frame with features.
+A sparse matrix is densified before being handed to the native Pool builder, so the resulting
+Pool is identical to the one built from \code{as.matrix(data)} (stored zeros are real zeros).
 The following column types are supported:
 \itemize{
     \item double
@@ -75,6 +79,13 @@ Used in the calculation of final values of trees.}
 \item{graph}{A file path, matrix or data.frame that contains the pairs of indices of objects for graph features.
 The shape should be Nx2, where N is the pairs of indices count.
 If -1, then the number of threads is set to the number of CPU cores.}
+
+\item{embedding_features}{A named list of numeric matrices, one per embedding feature; each matrix
+has one row per object and one column per embedding dimension. R matrix cells cannot hold vectors,
+so embedding features are supplied beside \code{data} instead of inside it (Python's
+\code{Pool(data, embedding_features = [...])} indexes columns of a data frame holding arrays).
+The embedding features are appended after the columns of \code{data}, so their flat feature
+indices are \code{ncol(data)}, \code{ncol(data) + 1}, ...; list names become their feature names.}
 }
 \value{
 catboost.Pool

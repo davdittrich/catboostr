@@ -7,7 +7,7 @@ Description: Open-source gradient boosting on decision trees with categorical
     upstream's catboost.* interface.
 License: Apache License (== 2.0)
 Imports: jsonlite
-Suggests: caret, testthat, tibble, e1071
+Suggests: caret, testthat, tibble, e1071, Matrix
 SystemRequirements: CMake (>= 3.15), C++20, clang and clang++ compiler,
     Python3, Cython, Perl, GNU Make or Ninja
 Authors@R: c(

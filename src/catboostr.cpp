@@ -250,18 +250,27 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(SEXP floatAndCatMatrixParam,
                                 SEXP pairsWeightParam,
                                 SEXP baselineParam,
                                 SEXP featureNamesParam,
-                                SEXP classLabelsParam) {
+                                SEXP classLabelsParam,
+                                SEXP embeddingListParam,
+                                SEXP embeddingFeaturesIndicesParam) {
     SEXP result = NULL;
     R_API_BEGIN();
+    // Embedding features arrive as a VECSXP whose elements are (objectCount x embeddingDimension)
+    // numeric matrices, one per embedding feature -- an R matrix cell cannot itself hold a vector,
+    // so they travel beside the flat float/cat matrix exactly like text features do.
+    ui32 embeddingColumns = embeddingListParam == R_NilValue ? 0 :
+                       SafeIntegerCast<ui32>(Rf_length(embeddingListParam));
     SEXP dataDim = floatAndCatMatrixParam != R_NilValue ?
                    getAttrib(floatAndCatMatrixParam, R_DimSymbol) :
-                   getAttrib(textMatrixParam, R_DimSymbol);
+                   (textMatrixParam != R_NilValue ?
+                    getAttrib(textMatrixParam, R_DimSymbol) :
+                    getAttrib(VECTOR_ELT(embeddingListParam, 0), R_DimSymbol));
     ui32 dataRows = SafeIntegerCast<ui32>(INTEGER(dataDim)[0]);
     ui32 floatAndCatColumns = floatAndCatMatrixParam == R_NilValue ? 0 :
                        SafeIntegerCast<ui32>(INTEGER(getAttrib(floatAndCatMatrixParam, R_DimSymbol))[1]);
     ui32 textColumns = textMatrixParam == R_NilValue ? 0 :
                        SafeIntegerCast<ui32>(INTEGER(getAttrib(textMatrixParam, R_DimSymbol))[1]);
-    ui32 dataColumns = floatAndCatColumns + textColumns;
+    ui32 dataColumns = floatAndCatColumns + textColumns + embeddingColumns;
     SEXP targetDim = getAttrib(targetParam, R_DimSymbol);
     ui32 targetRows = 0;
     ui32 targetColumns = 0;
@@ -292,7 +301,7 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(SEXP floatAndCatMatrixParam,
             dataColumns,
             ToUnsigned(GetVectorFromNullableSEXP<int>(catFeaturesIndicesParam, "cat_features_indices"_sb)),
             ToUnsigned(GetVectorFromNullableSEXP<int>(textFeaturesIndicesParam, "text_features_indices"_sb)),
-            TVector<ui32>{}, // TODO(akhropov) support embedding features in R
+            ToUnsigned(GetVectorFromNullableSEXP<int>(embeddingFeaturesIndicesParam, "embedding_features_indices"_sb)),
             featureId);
 
         if (!targetColumns) {
@@ -370,9 +379,37 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(SEXP floatAndCatMatrixParam,
 
         double *ptr_floatAndCatMatrixParam = Rf_isNull(floatAndCatMatrixParam)? nullptr : REAL(floatAndCatMatrixParam);
         size_t indexTextMatrix = 0;
+        size_t indexEmbeddingMatrix = 0;
         size_t indexFloatAndCatMatrix = 0;
         for (size_t j = 0; j < dataColumns; ++j){
-            if (metaInfo.FeaturesLayout->GetExternalFeatureType(j) == EFeatureType::Text) {
+            if (metaInfo.FeaturesLayout->GetExternalFeatureType(j) == EFeatureType::Embedding) {
+                SEXP embeddingMatrix = VECTOR_ELT(embeddingListParam, indexEmbeddingMatrix);
+                SEXP embeddingDim = getAttrib(embeddingMatrix, R_DimSymbol);
+                CB_ENSURE(
+                    SafeIntegerCast<ui32>(INTEGER(embeddingDim)[0]) == dataRows,
+                    "embedding feature " << j << " has " << INTEGER(embeddingDim)[0]
+                        << " rows, data has " << dataRows
+                );
+                const size_t embeddingSize = static_cast<size_t>(INTEGER(embeddingDim)[1]);
+                const double* ptr_embeddingMatrix = REAL(embeddingMatrix);
+                TVector<TMaybeOwningConstArrayHolder<float>> embeddingValues;
+                embeddingValues.reserve(dataRows);
+                for (ui32 i = 0; i < dataRows; ++i) {
+                    TVector<float> objectEmbedding;
+                    objectEmbedding.yresize(embeddingSize);
+                    for (size_t k = 0; k < embeddingSize; ++k) {
+                        objectEmbedding[k] = static_cast<float>(ptr_embeddingMatrix[i + dataRows * k]);
+                    }
+                    embeddingValues.push_back(
+                        TMaybeOwningConstArrayHolder<float>::CreateOwning(std::move(objectEmbedding))
+                    );
+                }
+                visitor->AddEmbeddingFeature(
+                    j,
+                    MakeTypeCastArraysHolderFromVector<float, float>(embeddingValues)
+                );
+                indexEmbeddingMatrix++;
+            } else if (metaInfo.FeaturesLayout->GetExternalFeatureType(j) == EFeatureType::Text) {
                 TVector<TString> textValues;
                 textValues.yresize(dataRows);
                 for (ui32 i = 0; i < dataRows; ++i) {
@@ -1167,10 +1204,10 @@ EXPORT_FUNCTION CatBoostPoolGetTextFeatureIndices_R(SEXP poolParam) {
     return result;
 }
 
-// Mirrors _catboost.pyx get_embedding_feature_indices(). Always empty in
-// this fork: CatBoostCreateFromMatrix_R hardcodes an empty embedding-feature
-// index vector (TODO(akhropov) support embedding features in R), so no Pool
-// built through this package can ever have embedding features.
+// Mirrors _catboost.pyx get_embedding_feature_indices(). Non-empty for Pools
+// built with catboost.load_pool(embedding_features = ...) /
+// catboost.from_matrix(embedding_features_data = ...), which forward the
+// embedding matrices and their flat indices to CatBoostCreateFromMatrix_R.
 EXPORT_FUNCTION CatBoostPoolGetEmbeddingFeatureIndices_R(SEXP poolParam) {
     SEXP result = NULL;
     R_API_BEGIN();

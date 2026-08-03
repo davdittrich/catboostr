@@ -57,15 +57,32 @@ test_that("multitarget: MultiLogloss pool construction matches Python oracle", {
 })
 
 test_that("multitarget: MultiLogloss fit/predict matches Python oracle", {
-  # The oracle passes an integer 0/1 label matrix; keep it double on the R
-  # side so the target is read as Float exactly as Python's does (an integer
-  # matrix would be routed through the class-label path instead).
-  label <- matrix(as.double(fixture$inputs$multilogloss_label),
-                  nrow = nrow(fixture$inputs$multilogloss_label))
+  # The oracle's label is a genuine integer 0/1 matrix (catboost-8z4.47);
+  # catboost.load_pool now coerces multi-column integer label matrices to
+  # double automatically, so no manual as.double() workaround is needed
+  # here -- passing the raw integer matrix already matches Python's Pool.
+  label <- fixture$inputs$multilogloss_label
+  expect_true(is.integer(label))
   pool <- catboost.load_pool(fixture$inputs$features, label = label)
   model <- catboost.train(pool, params = multitarget_params("MultiLogloss"))
   prediction <- catboost.predict(model, pool, prediction_type = "RawFormulaVal")
   expect_equal(dim(prediction), dim(fixture$expected$multilogloss_predict))
   expect_equal(prediction, fixture$expected$multilogloss_predict,
                tolerance = 1e-6, check.attributes = FALSE)
+})
+
+test_that("catboost-8z4.47: single-column integer label vector keeps working for regression", {
+  # Scope guard: catboost.load_pool's multi-target integer-matrix coercion
+  # (added for catboost-8z4.47) must not touch single-column integer label
+  # vectors -- those stay on the pre-existing Integer-target path used by
+  # regression/classification/ranking.
+  features <- fixture$inputs$features
+  label <- seq_len(nrow(features))
+  expect_true(is.integer(label))
+  pool <- catboost.load_pool(features, label = label)
+  params <- multitarget_params("RMSE")
+  model <- catboost.train(pool, params = params)
+  prediction <- catboost.predict(model, pool, prediction_type = "RawFormulaVal")
+  expect_equal(length(prediction), nrow(features))
+  expect_true(all(is.finite(prediction)))
 })

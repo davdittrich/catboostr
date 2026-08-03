@@ -1,0 +1,263 @@
+{
+  "catboost_version": "1.2.10",
+  "inputs": {
+    "texts": [
+      "Cats are beautiful animals.",
+      "Dogs are loyal, dogs are great.",
+      "The Cat sat on the mat, and the cat purred."
+    ],
+    "number_string": "I have 12 cats and 3 dogs in 2024"
+  },
+  "expected": {
+    "tokenize_default": [
+      [
+        "Cats",
+        "are",
+        "beautiful",
+        "animals."
+      ],
+      [
+        "Dogs",
+        "are",
+        "loyal,",
+        "dogs",
+        "are",
+        "great."
+      ],
+      [
+        "The",
+        "Cat",
+        "sat",
+        "on",
+        "the",
+        "mat,",
+        "and",
+        "the",
+        "cat",
+        "purred."
+      ]
+    ],
+    "tokenize_lower": [
+      [
+        "cats",
+        "are",
+        "beautiful",
+        "animals."
+      ],
+      [
+        "dogs",
+        "are",
+        "loyal,",
+        "dogs",
+        "are",
+        "great."
+      ],
+      [
+        "the",
+        "cat",
+        "sat",
+        "on",
+        "the",
+        "mat,",
+        "and",
+        "the",
+        "cat",
+        "purred."
+      ]
+    ],
+    "tokenize_number_skip": [
+      "I",
+      "have",
+      "cats",
+      "and",
+      "dogs",
+      "in"
+    ],
+    "tokenize_number_replace": [
+      "I",
+      "have",
+      "\ud83d\udd22",
+      "cats",
+      "and",
+      "\ud83d\udd22",
+      "dogs",
+      "in",
+      "\ud83d\udd22"
+    ],
+    "tokenize_number_replace_custom": [
+      "I",
+      "have",
+      "<NUM>",
+      "cats",
+      "and",
+      "<NUM>",
+      "dogs",
+      "in",
+      "<NUM>"
+    ],
+    "tokenize_split_by_set": [
+      "a",
+      "b",
+      "c",
+      "d"
+    ],
+    "tokenize_no_skip_empty": [
+      "a",
+      "",
+      "b",
+      "",
+      "",
+      "c"
+    ],
+    "tokenize_multi_delimiter": [
+      "a",
+      "b",
+      "c"
+    ],
+    "dictionary_default": {
+      "size": 14,
+      "top_tokens": [
+        "are",
+        "the",
+        "cat",
+        "dogs",
+        "and",
+        "animals.",
+        "beautiful",
+        "cats",
+        "great.",
+        "loyal,"
+      ],
+      "apply": [
+        [
+          7,
+          0,
+          6,
+          5
+        ],
+        [
+          3,
+          0,
+          9,
+          3,
+          0,
+          8
+        ],
+        [
+          1,
+          2,
+          13,
+          11,
+          1,
+          10,
+          4,
+          1,
+          2,
+          12
+        ]
+      ],
+      "unknown_token_id": 14,
+      "end_of_sentence_token_id": 15,
+      "min_unused_token_id": 16,
+      "get_token_0": "are",
+      "get_tokens_0_1_2": [
+        "are",
+        "the",
+        "cat"
+      ],
+      "single_string_apply": [
+        7,
+        0,
+        6,
+        5
+      ]
+    },
+    "unknown_token_policy": {
+      "insert": [
+        [
+          0,
+          2,
+          4
+        ]
+      ],
+      "skip": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    "eos_apply": [
+      [
+        0,
+        2,
+        5
+      ]
+    ],
+    "max_dictionary_size": {
+      "top_tokens": [
+        "cat",
+        "bird"
+      ],
+      "size": 2
+    },
+    "no_tokenizer_fit": {
+      "top_tokens": [
+        "hello",
+        "world"
+      ],
+      "size": 2
+    },
+    "pretokenized_fit": {
+      "top_tokens": [
+        "a",
+        "b",
+        "c"
+      ]
+    },
+    "save_load_round_trip": {
+      "size": 14,
+      "top_tokens": [
+        "are",
+        "the",
+        "cat",
+        "dogs",
+        "and",
+        "animals.",
+        "beautiful",
+        "cats",
+        "great.",
+        "loyal,"
+      ],
+      "apply": [
+        [
+          7,
+          0,
+          6,
+          5
+        ],
+        [
+          3,
+          0,
+          9,
+          3,
+          0,
+          8
+        ],
+        [
+          1,
+          2,
+          13,
+          11,
+          1,
+          10,
+          4,
+          1,
+          2,
+          12
+        ]
+      ]
+    },
+    "saved_dictionary_file_contents": "{\"end_of_word_token_policy\":\"Insert\",\"skip_step\":\"0\",\"start_token_id\":\"0\",\"token_level_type\":\"Word\",\"dictionary_format\":\"id_count_token\",\"end_of_sentence_token_policy\":\"Skip\",\"gram_order\":\"1\"}\n14\n0\t3\tare\n1\t3\tthe\n2\t2\tcat\n3\t2\tdogs\n4\t1\tand\n5\t1\tanimals.\n6\t1\tbeautiful\n7\t1\tcats\n8\t1\tgreat.\n9\t1\tloyal,\n10\t1\tmat,\n11\t1\ton\n12\t1\tpurred.\n13\t1\tsat\n"
+  }
+}

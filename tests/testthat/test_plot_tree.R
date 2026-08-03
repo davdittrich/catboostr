@@ -97,6 +97,41 @@ test_that("plot_tree: float-only tree, without pool, matches Python oracle", {
   expect_nodes_edges_match(result, fixture$float_only$expected$without_pool)
 })
 
+build_file_cat_pool_and_model <- function() {
+  # catboost.load_pool()'s data.frame/matrix paths pre-hash categorical columns
+  # into floats before the vendor pool is built (see build_cat_pool_and_model()
+  # above), so they never retain a hash-to-string dictionary. The file-loading
+  # path (CatBoostCreateFromFile_R) parses categorical strings natively in the
+  # vendor pool loader and does retain that dictionary -- use it here so
+  # resolve_cat_value() has real candidate strings to re-hash and match against,
+  # exercising the actual match branch (not just the "<hash:...>" fallback that
+  # build_cat_pool_and_model()'s test already covers).
+  cat1 <- rep(c("A", "B"), 10)
+  label <- ifelse(cat1 == "A", 1, 0)
+  num1 <- round(seq(0, 10, length.out = 20), 2)
+  data_path <- tempfile(fileext = ".tsv")
+  cd_path <- tempfile(fileext = ".cd")
+  writeLines(paste(label, num1, cat1, sep = "\t"), data_path)
+  writeLines(c("0\tLabel", "2\tCateg"), cd_path)
+
+  pool <- catboost.load_pool(data_path, column_description = cd_path)
+  model <- catboost.train(pool, params = list(
+    iterations = 1, depth = 1, loss_function = "Logloss",
+    random_seed = 1, thread_count = 1, logging_level = "Silent",
+    one_hot_max_size = 10
+  ))
+  list(pool = pool, model = model)
+}
+
+test_that("plot_tree: categorical split resolves the real category string when the pool retains it", {
+  built <- build_file_cat_pool_and_model()
+  result <- catboost.plot_tree(built$model, 0, built$pool)
+  cat_nodes <- result$nodes[grepl(", value=", result$nodes$label), ]
+  expect_true(nrow(cat_nodes) > 0)
+  expect_true(any(grepl(", value=(A|B)$", cat_nodes$label)))
+  expect_false(any(grepl("<hash:", cat_nodes$label)))
+})
+
 test_that("plot_tree: categorical (one-hot) tree, with pool, matches Python oracle structure", {
   built <- build_cat_pool_and_model()
   result <- catboost.plot_tree(built$model, built$tree_idx, built$pool)

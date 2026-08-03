@@ -512,6 +512,20 @@ EXPORT_FUNCTION CatBoostHashStrings_R(SEXP stringsParam) {
    return result;
 }
 
+// Raw CalcCatFeatureHash() result (ui32, exposed as double -- exact up to 2^53),
+// matching the hash stored in exported JSON models' TOneHotSplit::Value. Distinct
+// from CatBoostCalcCatFeaturePerfectHash_R, which returns an index into the
+// one-hot feature's unique-values list, not a hash.
+EXPORT_FUNCTION CatBoostCalcCatFeatureHash_R(SEXP stringParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    ui32 hash = CalcCatFeatureHash(TString(CHAR(asChar(stringParam))));
+    result = PROTECT(ScalarReal(static_cast<double>(hash)));
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
 EXPORT_FUNCTION CatBoostPoolNumRow_R(SEXP poolParam) {
     SEXP result = NULL;
     R_API_BEGIN();

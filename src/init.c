@@ -4,6 +4,8 @@
 #include "catboostr.h"
 
 static const R_CallMethodDef CallEntries[] = {
+    {"CatBoostCalcCatFeatureHash_R",          (DL_FUNC) &CatBoostCalcCatFeatureHash_R,           1},
+    {"CatBoostCalcCatFeaturePerfectHash_R",   (DL_FUNC) &CatBoostCalcCatFeaturePerfectHash_R,    3},
     {"CatBoostCalcRegularFeatureEffect_R",    (DL_FUNC) &CatBoostCalcRegularFeatureEffect_R,     4},
     {"CatBoostCreateFromFile_R",              (DL_FUNC) &CatBoostCreateFromFile_R,              10},
     {"CatBoostCreateFromMatrix_R",            (DL_FUNC) &CatBoostCreateFromMatrix_R,            17},
@@ -15,7 +17,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"CatBoostEvaluateFeatures_R",            (DL_FUNC) &CatBoostEvaluateFeatures_R,            10},
     {"CatBoostEvaluateObjectImportances_R",   (DL_FUNC) &CatBoostEvaluateObjectImportances_R,    7},
     {"CatBoostFit_R",                         (DL_FUNC) &CatBoostFit_R,                          3},
-    {"CatBoostCalcCatFeaturePerfectHash_R",   (DL_FUNC) &CatBoostCalcCatFeaturePerfectHash_R,    3},
     {"CatBoostGetBinarizedStatistics_R",      (DL_FUNC) &CatBoostGetBinarizedStatistics_R,       6},
     {"CatBoostGetCatFeatureValues_R",         (DL_FUNC) &CatBoostGetCatFeatureValues_R,          2},
     {"CatBoostGetFeatureTypeAndInternalIndex_R", (DL_FUNC) &CatBoostGetFeatureTypeAndInternalIndex_R, 2},

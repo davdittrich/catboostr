@@ -47,6 +47,8 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(
 
 EXPORT_FUNCTION CatBoostHashStrings_R(SEXP stringsParam);
 
+EXPORT_FUNCTION CatBoostCalcCatFeatureHash_R(SEXP stringParam);
+
 EXPORT_FUNCTION CatBoostPoolNumRow_R(SEXP poolParam);
 
 EXPORT_FUNCTION CatBoostPoolNumCol_R(SEXP poolParam);

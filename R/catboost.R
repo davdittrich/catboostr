@@ -4076,8 +4076,9 @@ catboost.plot_tree.format_hash_fallback <- function(target_hash) {
 #' \code{plot_tree}, which raises if a categorical split is present and no pool is given);
 #' optional for float-only trees, in which case node labels fall back to the 0-based flat
 #' feature index -- again mirroring Python's own \code{pool = NULL} fallback. Categorical
-#' split values are decoded via the same native calls \code{\link{catboost.calc_feature_statistics}}
-#' uses (\code{CatBoostGetCatFeatureValues_R}/\code{CatBoostCalcCatFeaturePerfectHash_R}); when
+#' split values are decoded by re-hashing the pool's raw string values with
+#' \code{CatBoostCalcCatFeatureHash_R} (the same raw \code{CalcCatFeatureHash()} stored in the
+#' exported JSON model's \code{TOneHotSplit::Value}) until the split's hash is matched; when
 #' \code{pool} was built by \code{\link{catboost.load_pool}}/\code{\link{catboost.from_matrix}}
 #' (which pre-hash categorical columns into floats before the vendor pool is built, so no
 #' hash-to-string dictionary survives -- see \code{\link{catboost.calc_feature_statistics}}'s
@@ -4131,17 +4132,25 @@ catboost.plot_tree <- function(model, tree_idx, pool = NULL) {
   # ever reaches the vendor pool builder, so the pool's ObjectsData never gets a
   # hash-to-string dictionary to export (same root cause catboost.calc_feature_statistics
   # documents for CatBoostGetCatFeatureValues_R -- see test_calc_feature_statistics.R).
-  # Resolve categorical values the same way calc_feature_statistics does: ask the
-  # pool for its (possibly empty) set of raw string values and re-hash each one with
-  # the model's own perfect-hash function until the split's hash is matched. When the
-  # pool cannot supply any candidate strings, fall back to a deterministic
+  # Resolve categorical values by asking the pool for its (possibly empty) set of raw
+  # string values and re-hashing each one with the raw CalcCatFeatureHash() function
+  # (CatBoostCalcCatFeatureHash_R) until the split's hash (TOneHotSplit::Value, the raw
+  # hash -- NOT the perfect-hash index CatBoostCalcCatFeaturePerfectHash_R returns) is
+  # matched. When the pool cannot supply any candidate strings, fall back to a deterministic
   # "<hash:...>" label instead of silently mis-labelling or hard-failing the whole
   # plot for a categorical model built from an R Pool.
-  resolve_cat_value <- function(internal_idx, flat_idx, target_hash) {
+  resolve_cat_value <- function(flat_idx, target_hash) {
+    # TOneHotSplit::Value (vendor online_ctr.h) is a signed `int` that stores the ui32
+    # CalcCatFeatureHash() result bit-reinterpreted, so the JSON export's "value" field
+    # comes back negative whenever the true hash is >= 2^31. CatBoostCalcCatFeatureHash_R
+    # always returns the unsigned ui32, so canonicalize target_hash to the same unsigned
+    # range before comparing; the (possibly negative) original is kept for the fallback
+    # label so its format stays unchanged.
+    target_hash_unsigned <- if (target_hash < 0) target_hash + 2^32 else target_hash
     candidates <- .Call("CatBoostGetCatFeatureValues_R", pool, flat_idx)
     for (v in candidates) {
-      h <- as.numeric(.Call("CatBoostCalcCatFeaturePerfectHash_R", model$cpp_obj$handle, v, internal_idx))
-      if (isTRUE(all.equal(h, target_hash)))
+      h <- as.numeric(.Call("CatBoostCalcCatFeatureHash_R", v))
+      if (isTRUE(all.equal(h, target_hash_unsigned)))
         return(v)
     }
     catboost.plot_tree.format_hash_fallback(target_hash)
@@ -4172,7 +4181,7 @@ catboost.plot_tree <- function(model, tree_idx, pool = NULL) {
         stop("No categorical feature metadata for feature_index ", split$cat_feature_index)
       fid <- entry$feature_id
       name <- if (!is.null(fid) && nzchar(fid)) fid else as.character(entry$flat_feature_index)
-      cat_value <- resolve_cat_value(entry$feature_index, entry$flat_feature_index, as.numeric(split$value))
+      cat_value <- resolve_cat_value(entry$flat_feature_index, as.numeric(split$value))
       paste0(name, ", value=", cat_value)
     } else {
       stop("catboost.plot_tree does not support split_type '", split$split_type, "'.")

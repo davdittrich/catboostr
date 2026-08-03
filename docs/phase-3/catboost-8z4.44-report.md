@@ -163,6 +163,15 @@ feature removed both sides produce identical predictions
 out of this ticket's scope; the default-processing oracle predictions are
 still recorded in the fixture as `predict_default_lda` for a follow-up.
 
+**Filed as catboost-8z4.45** (parity debt). Root cause, confirmed on review:
+LDA solves a float32 symmetric eigenproblem (LAPACK `ssyev`) whose eigenvector
+signs and near-degenerate eigenvalue ordering are not canonicalized and are
+therefore BLAS/build-sensitive — not a defect in the new embedding-matrix glue.
+Because `embedding_processing` defaults to `["LDA","KNN"]`, a user who does not
+set it explicitly hits the divergent path; the `catboost.load_pool`
+`embedding_features` documentation now carries that caveat and recommends
+`embedding_processing = list(default = list("KNN"))` for parity-sensitive use.
+
 ## IV.4 — Sparse / CSR support (part c)
 
 `catboost.from_matrix` (and therefore `catboost.load_pool`) now accepts any
@@ -205,6 +214,25 @@ non-degenerate ~40 %-filled matrix, on which the oracle's own sparse and dense
 paths agree exactly (`max_sparse_dense_delta = 0.0`, asserted in the test).
 This is what makes densification in R observationally equivalent here, and the
 test records it rather than assuming it.
+
+**Filed as catboost-8z4.46** (parity debt): because R densifies, an R Pool
+built from a `sparseMatrix` reproduces Python's *dense* Pool, never its native
+sparse one, so it cannot match Python's sparse-layout tie-breaking on
+degenerate data. The `catboost.load_pool` `data` documentation now says so; the
+upgrade path (feed the `dgCMatrix` `i/p/x` slots to
+`TConstPolymorphicValuesSparseArray`) is recorded in the ticket.
+
+### Finding: integer label matrices take the class-label path (filed as catboost-8z4.47)
+
+`tests/testthat/test_multitarget_differential.R:59-65` casts the oracle's
+integer 0/1 MultiLogloss label matrix to double. That workaround is required
+because `R/catboost.R:237-251` keeps an integer label integer and
+`src/catboostr.cpp:307-320` dispatches the target type on the R *storage mode*
+(`Rf_isInteger(targetParam)` → `ERawTargetType::Integer` + `SetClassLabels`),
+whereas Python decides by loss/target semantics rather than numpy dtype. Not
+fixed here — changing that dispatch touches every label path (binary,
+multiclass, regression, ranking, factor labels) and is scope creep for a Pool
+construction ticket; it is now tracked instead.
 
 ## IV.5 — Build and test output (verbatim)
 

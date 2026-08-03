@@ -17,6 +17,11 @@ NULL
 #' \code{sparseMatrix}, e.g. \code{dgCMatrix}) or data.frame with features.
 #' A sparse matrix is densified before being handed to the native Pool builder, so the resulting
 #' Pool is identical to the one built from \code{as.matrix(data)} (stored zeros are real zeros).
+#' Caveat: because the sparse layout is not preserved, training on such a Pool reproduces Python's
+#' \emph{dense} Pool, not its native sparse one. CatBoost breaks ties between equal-scoring split
+#' candidates differently in its sparse and dense column layouts, so on degenerate/tie-heavy data
+#' the two can differ (a delta of 0.0298 was measured inside Python itself between its own dense
+#' and sparse Pools). Tracked as catboost-8z4.46.
 #' The following column types are supported:
 #' \itemize{
 #'     \item double
@@ -42,6 +47,13 @@ NULL
 #' \code{Pool(data, embedding_features = [...])} indexes columns of a data frame holding arrays).
 #' The embedding features are appended after the columns of \code{data}, so their flat feature
 #' indices are \code{ncol(data)}, \code{ncol(data) + 1}, ...; list names become their feature names.
+#' Caveat: the \code{embedding_processing} training parameter (given to \code{catboost.train}, not
+#' here) defaults to \code{list(default = list("LDA", "KNN"))}. The LDA calcer's output is not
+#' bit-reproducible against the Python package: LDA solves a float32 symmetric eigenproblem whose
+#' eigenvector signs and near-degenerate eigenvalue ordering depend on the LAPACK/BLAS build, so
+#' this package and the Python wheel legitimately disagree. The KNN calcer agrees exactly. For
+#' parity-sensitive use, pass \code{embedding_processing = list(default = list("KNN"))}.
+#' Tracked as catboost-8z4.45.
 #' @param pairs A file path, matrix or data.frame that contains the pairs descriptions. The shape should be Nx2, where N is the pairs' count.
 #' The first element of pair is the index of winner document in training set. The second element of pair is the index of loser document in training set.
 #' @param delimiter Delimiter character to use to separate features in a file.

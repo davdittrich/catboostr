@@ -3702,6 +3702,17 @@ catboost.compare <- function(model, other, pool, metrics, ntree_start = 0L, ntre
 }
 
 
+# Not exported: formats the "<hash:...>" fallback label catboost.plot_tree()'s
+# resolve_cat_value() uses when a categorical split's hash can't be resolved back
+# to a string. target_hash is a ui32 (OneHotFeature.Value, up to ~4.29e9) surfaced
+# as an R double via as.numeric() -- doubles are exact up to 2^53, so %.0f (not
+# %d/as.integer(), whose ceiling is 2147483647) is required to avoid silently
+# collapsing every hash above 2^31 to the same "<hash:NA>" label.
+catboost.plot_tree.format_hash_fallback <- function(target_hash) {
+  sprintf("<hash:%.0f>", target_hash)
+}
+
+
 #' @name catboost.plot_tree
 #' @title Plot a single tree's structure.
 #'
@@ -3802,7 +3813,7 @@ catboost.plot_tree <- function(model, tree_idx, pool = NULL) {
       if (isTRUE(all.equal(h, target_hash)))
         return(v)
     }
-    sprintf("<hash:%d>", as.integer(target_hash))
+    catboost.plot_tree.format_hash_fallback(target_hash)
   }
 
   find_by_index <- function(entries, field, idx) {

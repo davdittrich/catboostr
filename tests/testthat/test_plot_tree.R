@@ -139,3 +139,15 @@ test_that("plot_tree: categorical split without pool raises the parity error", {
     "training dataset is required if categorical features are present"
   )
 })
+
+test_that("plot_tree's hash fallback label survives ui32 hashes above 2^31", {
+  # OneHotFeature.Value is a vendor ui32 (up to ~4.29e9), well past R's
+  # as.integer() ceiling of 2147483647. Construct an out-of-range hash directly
+  # rather than relying on a fitted model happening to produce one.
+  big_hash <- 3000000000  # > .Machine$integer.max, exact as a double
+  expect_equal(
+    catboostr:::catboost.plot_tree.format_hash_fallback(big_hash),
+    "<hash:3000000000>"
+  )
+  expect_false(grepl("NA", catboostr:::catboost.plot_tree.format_hash_fallback(big_hash)))
+})

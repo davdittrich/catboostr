@@ -48,7 +48,13 @@ The following column types are supported:
 
 Default value: Required argument}
 
-\item{label}{The label vector or label matrix}
+\item{label}{The label vector or label matrix.
+Caveat: an integer 0/1 label \emph{matrix} intended for multi-target numeric labels (e.g.
+\code{MultiLogloss}) is dispatched by R's storage-mode detection to the class-label path
+instead of the numeric multi-target path, unlike Python's \code{Pool}, which reads such a
+matrix as a float target. For multi-target numeric labels, pass a double/numeric matrix,
+e.g. \code{matrix(as.double(label_matrix), nrow = nrow(label_matrix))}. Tracked as
+catboost-8z4.47.}
 
 \item{cat_features}{A vector of categorical features indices.
 The indices are zero based and can differ from the given in the Column descriptions file.

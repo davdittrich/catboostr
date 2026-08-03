@@ -35,7 +35,13 @@ NULL
 #' }
 #'
 #' Default value: Required argument
-#' @param label The label vector or label matrix
+#' @param label The label vector or label matrix.
+#' Caveat: an integer 0/1 label \emph{matrix} intended for multi-target numeric labels (e.g.
+#' \code{MultiLogloss}) is dispatched by R's storage-mode detection to the class-label path
+#' instead of the numeric multi-target path, unlike Python's \code{Pool}, which reads such a
+#' matrix as a float target. For multi-target numeric labels, pass a double/numeric matrix,
+#' e.g. \code{matrix(as.double(label_matrix), nrow = nrow(label_matrix))}. Tracked as
+#' catboost-8z4.47.
 #' @param cat_features A vector of categorical features indices.
 #' The indices are zero based and can differ from the given in the Column descriptions file.
 #' If data parameter is data.frame don't use cat_features, categorical features are determined automatically

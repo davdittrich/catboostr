@@ -313,6 +313,22 @@ this machine.)
 | `tests/fixtures/oracle/multitarget.json`, `pool_embeddings.json`, `pool_sparse.json` | new pinned fixtures |
 | `tests/testthat/test_multitarget_differential.R`, `test_pool_embeddings.R`, `test_pool_sparse.R` | new differential tests |
 
+## Addendum — catboost-8z4.47 `@param label` caveat added (doc-only)
+
+Re-review found the `@param label` roxygen block (`R/catboost.R:38`, `catboost.load_pool`)
+was missing the same style of caveat already added for catboost-8z4.45 (LDA) and
+catboost-8z4.46 (sparse). Added: an integer 0/1 label matrix intended for multi-target
+numeric labels (e.g. `MultiLogloss`) is dispatched by R's storage-mode detection to the
+class-label path instead of the numeric multi-target path; recommends passing a
+double/numeric matrix instead. `man/catboost.load_pool.Rd` regenerated via
+`roxygen2::roxygenise(load_code = roxygen2::load_source)`. No rebuild, no NAMESPACE change.
+
+```
+STATUS: DONE
+COMMITS: --oneline
+CONCERNS: none — doc-only, matches existing .45/.46 caveat style, cites catboost-8z4.47
+```
+
 ## Confidence
 
 | Claim | Score |

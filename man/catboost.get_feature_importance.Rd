@@ -48,6 +48,15 @@ Possible values:
 
     Calculate SHAP Values for every object.
 
+  \item 'ShapInteractionValues'
+
+    Calculate SHAP Interaction Values between each pair of features for every object. \code{pool} is required.
+
+  \item 'PredictionDiff'
+
+    Calculate the most important features explaining the difference in predictions for a pair of documents.
+    \code{pool} is required and must contain exactly 2 rows.
+
 }
 
 Default value: 'FeatureImportance'}

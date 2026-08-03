@@ -1826,7 +1826,56 @@ EXPORT_FUNCTION CatBoostCalcRegularFeatureEffect_R(SEXP modelParam, SEXP poolPar
     const bool multiClass = model->GetDimensionsCount() > 1;
     const bool verbose = false;
     // TODO(akhropov): make prettified mode as in python-package
-    if (fstrType == EFstrType::ShapValues && multiClass) {
+    if (fstrType == EFstrType::ShapInteractionValues) {
+        // ShapInteractionValues[featureIdx1][featureIdx2][dim][documentIdx], reordered below to
+        // match python-package's (doc[, dim], feature1, feature2) axis order (parity: catboost-8z4.53).
+        TVector<TVector<TVector<TVector<double>>>> fstr = CalcShapFeatureInteractionMulti(
+            fstrType,
+            *model,
+            pool,
+            /*pairOfFeatures*/ Nothing(),
+            threadCount,
+            EPreCalcShapValues::Auto,
+            /*logPeriod*/ 0,
+            ECalcTypeShapValues::Regular
+        );
+        size_t featuresCount = fstr.size();
+        size_t approxDimension = featuresCount > 0 ? fstr[0][0].size() : 0;
+        size_t docCount = approxDimension > 0 ? fstr[0][0][0].size() : 0;
+        if (multiClass) {
+            result = PROTECT(allocVector(REALSXP, docCount * approxDimension * featuresCount * featuresCount));
+            double *ptr_result = REAL(result);
+            for (size_t f2 = 0; f2 < featuresCount; ++f2) {
+                for (size_t f1 = 0; f1 < featuresCount; ++f1) {
+                    for (size_t dim = 0; dim < approxDimension; ++dim) {
+                        for (size_t doc = 0; doc < docCount; ++doc) {
+                            ptr_result[doc + docCount * (dim + approxDimension * (f1 + featuresCount * f2))] = fstr[f1][f2][dim][doc];
+                        }
+                    }
+                }
+            }
+            PROTECT(resultDim = allocVector(INTSXP, 4));
+            INTEGER(resultDim)[0] = docCount;
+            INTEGER(resultDim)[1] = approxDimension;
+            INTEGER(resultDim)[2] = featuresCount;
+            INTEGER(resultDim)[3] = featuresCount;
+        } else {
+            result = PROTECT(allocVector(REALSXP, docCount * featuresCount * featuresCount));
+            double *ptr_result = REAL(result);
+            for (size_t f2 = 0; f2 < featuresCount; ++f2) {
+                for (size_t f1 = 0; f1 < featuresCount; ++f1) {
+                    for (size_t doc = 0; doc < docCount; ++doc) {
+                        ptr_result[doc + docCount * (f1 + featuresCount * f2)] = fstr[f1][f2][0][doc];
+                    }
+                }
+            }
+            PROTECT(resultDim = allocVector(INTSXP, 3));
+            INTEGER(resultDim)[0] = docCount;
+            INTEGER(resultDim)[1] = featuresCount;
+            INTEGER(resultDim)[2] = featuresCount;
+        }
+        setAttrib(result, R_DimSymbol, resultDim);
+    } else if (fstrType == EFstrType::ShapValues && multiClass) {
         TVector<TVector<TVector<double>>> fstr = GetFeatureImportancesMulti(fstrType,
                                                                             *model,
                                                                             pool,

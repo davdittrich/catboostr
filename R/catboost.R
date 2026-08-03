@@ -3115,6 +3115,15 @@ catboost.virtual_ensembles_predict <- function(model, pool, verbose = FALSE, pre
 #'
 #'     Calculate SHAP Values for every object.
 #'
+#'   \item 'ShapInteractionValues'
+#'
+#'     Calculate SHAP Interaction Values between each pair of features for every object. \code{pool} is required.
+#'
+#'   \item 'PredictionDiff'
+#'
+#'     Calculate the most important features explaining the difference in predictions for a pair of documents.
+#'     \code{pool} is required and must contain exactly 2 rows.
+#'
 #' }
 #'
 #' Default value: 'FeatureImportance'
@@ -3137,8 +3146,10 @@ catboost.get_feature_importance <- function(model, pool = NULL, type = "FeatureI
         stop("Expected catboost.Pool, got: ", class(pool))
     if (!is.null(pool) && is.null.handle(pool))
         stop("Pool object is invalid.")
-    if ( (type == "ShapValues" || type == "LossFunctionChange") && length(pool) == 0)
+    if ( (type == "ShapValues" || type == "LossFunctionChange" || type == "ShapInteractionValues" || type == "PredictionDiff") && length(pool) == 0)
         stop("For `", type, "` type of feature importance, the pool is required")
+    if (type == "PredictionDiff" && nrow(pool) != 2)
+        stop("For `PredictionDiff` type of feature importance, the pool must contain exactly 2 rows, got: ", nrow(pool))
     if ( (type == "PredictionValuesChange" || type == "FeatureImportance") && is.null(pool) && !is.null(model$feature_importances))
         return(model$feature_importances)
 
@@ -3151,7 +3162,13 @@ catboost.get_feature_importance <- function(model, pool = NULL, type = "FeatureI
         if (is.list(colnames(importances))) {
             dimnames(importances)[[length(dim(importances))]] <- c(colnames(pool), "<base>")
         }
-    } else if (type == "PredictionValuesChange" || type == "FeatureImportance" || type == "LossFunctionChange") {
+    } else if (type == "ShapInteractionValues") {
+        if (is.list(colnames(importances))) {
+            nd <- length(dim(importances))
+            dimnames(importances)[[nd - 1]] <- c(colnames(pool), "<base>")
+            dimnames(importances)[[nd]] <- c(colnames(pool), "<base>")
+        }
+    } else if (type == "PredictionValuesChange" || type == "FeatureImportance" || type == "LossFunctionChange" || type == "PredictionDiff") {
         # TODO: incorrect pool and ignored_features lead to incorrect column names; testing length is not enough
         if (!is.null(pool) && dim(importances)[1] == length(colnames(pool))) {
             rownames(importances) <- colnames(pool)

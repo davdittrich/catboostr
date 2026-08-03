@@ -20142,9 +20142,9 @@
     "kind": "mode",
     "method": "elementwise",
     "tolerance": 1e-09,
-    "test_id": null,
+    "test_id": "tests/testthat/test_model_based_eval.R",
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "BLOCKED, not green. catboost.model_based_eval() is implemented in process over the same core entry point the CLI mode drives (ModelBasedEval, catboost/libs/train_lib/train_model.h:147), but the mode is GPU-only: the CPU trainer refuses it (train_model.cpp:942) and PlainJsonToOptions only maps its options when task_type is GPU (plain_options_helper.cpp:394). No CUDA device is available to this project (design spec 9.1), and the pinned CLI oracle itself dies with 'CUDA error 35: CUDA driver version is insufficient' on this host, so no numbers exist on either side to compare. The declared CLI tolerance (relative 1e-9, spec 4.3, never bit-exact) stands but is unexercised. Per spec 4.4 a skipped test never counts as green, so this row stays red. tests/testthat/test_model_based_eval.R covers everything reachable without CUDA (option pipeline, dataset load, feature-name/range resolution, ignored-feature guards, and the specific GPU-requested-but-unavailable error). See docs/phase-4/P4.8-report.md.",
     "needs_disposition": false,
     "members": [
       {
@@ -20157,8 +20157,8 @@
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
     "disposition_confidence": 95,
     "final_method": "elementwise",
-    "final_method_confidence": 55,
-    "final_method_note": "CLI mode compares an evaluated model's per-object loss values against a baseline model via bootstrap resampling and prints numeric loss/p-value statistics, so tagged elementwise; confidence kept below 60 because the mode's combined summary-plus-per-fold stdout layout has not been inspected against a real run."
+    "final_method_confidence": 95,
+    "final_method_note": "CLI mode continues a baseline model's training in short experiments with and without each tested feature set and writes per-experiment error logs into train_dir, so elementwise numeric comparison is the right method. Confidence raised from 55 after inspecting mode_model_based_eval.cpp and running the pinned binary: the mode is GPU-only, which is why the row cannot be verified here."
   },
   {
     "inventory_row_id": "mode:normalize-model",

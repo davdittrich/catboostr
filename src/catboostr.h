@@ -297,6 +297,16 @@ EXPORT_FUNCTION CatBoostEvaluateFeatures_R(
     SEXP timeSplitQuantileParam
 );
 
+// P4.8: R equivalent of the CLI's `model-based-eval` mode (catboost-8z4.57).
+EXPORT_FUNCTION CatBoostModelBasedEval_R(
+    SEXP fitParamsAsJsonParam,
+    SEXP learnSetPathParam,
+    SEXP testSetPathParam,
+    SEXP cdPathParam,
+    SEXP delimiterParam,
+    SEXP hasHeaderParam
+);
+
 EXPORT_FUNCTION CatBoostDatasetStatistics_R(
     SEXP poolFileParam,
     SEXP cdFileParam,

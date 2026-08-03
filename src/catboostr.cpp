@@ -21,12 +21,15 @@
 #include <catboost/private/libs/algo/helpers.h>
 #include <catboost/private/libs/algo/mvs.h>
 #include <catboost/private/libs/algo/plot.h>
+#include <catboost/private/libs/app_helpers/bind_options.h>
 #include <catboost/private/libs/app_helpers/mode_dataset_statistics_helpers.h>
 #include <catboost/private/libs/documents_importance/docs_importance.h>
 #include <catboost/private/libs/documents_importance/enums.h>
+#include <catboost/private/libs/options/catboost_options.h>
 #include <catboost/private/libs/options/cross_validation_params.h>
 #include <catboost/private/libs/options/enum_helpers.h>
 #include <catboost/private/libs/options/feature_eval_options.h>
+#include <catboost/private/libs/options/plain_options_helper.h>
 #include <catboost/private/libs/options/split_params.h>
 #include <catboost/private/libs/quantized_pool/serialization.h>
 // P4.1: catboost.calc_feature_statistics -- same vendor entry point Python's
@@ -1775,6 +1778,102 @@ EXPORT_FUNCTION CatBoostEvaluateFeatures_R(
     R_API_END();
     UNPROTECT(7);
     return result;
+}
+
+// P4.8 (catboost-8z4.57): R equivalent of the CLI's `model-based-eval` mode.
+//
+// Transcribes vendor/catboost/catboost/app/mode_model_based_eval.cpp:26-52 with
+// the command-line parsing replaced by arguments; the core call
+// ModelBasedEval(poolLoadParams, outputOptions, catBoostJsonOptions)
+// (catboost/libs/train_lib/train_model.h:147) is the same one the CLI mode
+// makes, in process -- no CLI binary is required. catboost-libs-train_lib and
+// private-libs-app_helpers are both already linked by src/CMakeLists.txt, so
+// this adds no link dependency and no CMake change.
+//
+// This mode is file-driven rather than pool-driven because the only *public*
+// core entry point takes TPoolLoadParams (file paths). The in-memory overload
+// (train_model.cpp:1421) is `static` and therefore not linkable, and the mode
+// reads a baseline training snapshot from disk and writes its per-experiment
+// error logs into train_dir anyway, so a file-oriented API is the faithful one.
+//
+// Every mode-specific flag of the CLI (--features-to-evaluate,
+// --baseline-model-snapshot, --offset, --experiment-count, --experiment-size,
+// --use-evaluated-features-in-baseline-model) is a plain-JSON option key
+// (plain_options_helper.cpp:393-404), so they arrive inside fitParamsAsJson
+// and need no per-option handling here.
+//
+// NOTE: model-based eval is GPU-only. The CPU trainer refuses it outright
+// (train_model.cpp:942, "Model based eval is not implemented for CPU") and
+// PlainJsonToOptions only maps the mode's options at all when task_type is GPU
+// (plain_options_helper.cpp:394), so on a CPU-only build or a CPU task type the
+// call cannot succeed. See docs/phase-4/P4.8-report.md.
+EXPORT_FUNCTION CatBoostModelBasedEval_R(
+    SEXP fitParamsAsJsonParam,
+    SEXP learnSetPathParam,
+    SEXP testSetPathParam,
+    SEXP cdPathParam,
+    SEXP delimiterParam,
+    SEXP hasHeaderParam
+) {
+    R_API_BEGIN();
+
+    NCatboostOptions::TPoolLoadParams poolLoadParams;
+    poolLoadParams.LearnSetPath = TPathWithScheme(CHAR(asChar(learnSetPathParam)), "dsv");
+    poolLoadParams.TestSetPaths = {TPathWithScheme(CHAR(asChar(testSetPathParam)), "dsv")};
+    poolLoadParams.ColumnarPoolFormatParams.DsvFormat.HasHeader =
+        static_cast<bool>(asLogical(hasHeaderParam));
+    poolLoadParams.ColumnarPoolFormatParams.DsvFormat.Delimiter = CHAR(asChar(delimiterParam))[0];
+    TStringBuf cdPath(CHAR(asChar(cdPathParam)));
+    if (!cdPath.empty()) {
+        poolLoadParams.ColumnarPoolFormatParams.CdFilePath = TPathWithScheme(cdPath, "dsv");
+    }
+
+    NJson::TJsonValue catBoostFlatJsonOptions = LoadFitParams(fitParamsAsJsonParam);
+
+    // Deviation from mode_model_based_eval.cpp:40, deliberate: the CLI asserts
+    // task_type == GPU *after* PlainJsonToOptions, which on a CPU task type
+    // instead dies inside the option parser with the unhelpful
+    // `Unknown option {features_to_evaluate}` (reproduced against the pinned
+    // v1.2.10 binary). Checking the flat options first yields the specific,
+    // tested error §4.4 of the design spec requires for a GPU-only capability,
+    // and reaches the identical verdict one step earlier.
+    CB_ENSURE(NCatboostOptions::GetTaskType(catBoostFlatJsonOptions) == ETaskType::GPU,
+              "Model based eval is not implemented for CPU: "
+              "params must set task_type = \"GPU\"");
+
+    NJson::TJsonValue catBoostJsonOptions;
+    NJson::TJsonValue outputOptionsJson;
+    // InitOptions(paramsFile = "", ...) with an empty params file, as the CLI
+    // does when --params-file is absent (bind_options.cpp:36-52).
+    InitOptions(/*optionsFile*/ TString(), &catBoostJsonOptions, &outputOptionsJson);
+    ConvertIgnoredFeaturesFromStringToIndices(poolLoadParams, &catBoostFlatJsonOptions);
+    ConvertFeaturesToEvaluateFromStringToIndices(poolLoadParams, &catBoostFlatJsonOptions);
+    NCatboostOptions::PlainJsonToOptions(catBoostFlatJsonOptions, &catBoostJsonOptions, &outputOptionsJson);
+    ConvertParamsToCanonicalFormat(poolLoadParams, &catBoostJsonOptions);
+    CopyIgnoredFeaturesToPoolParams(catBoostJsonOptions, &poolLoadParams);
+    NCatboostOptions::TOutputFilesOptions outputOptions;
+    outputOptions.Load(outputOptionsJson);
+
+    // Same restrictions the CLI mode checks (mode_model_based_eval.cpp:41-50).
+    const auto featuresToEvaluate = GetOptionFeaturesToEvaluate(catBoostJsonOptions);
+    CB_ENSURE(!featuresToEvaluate.empty(), "Error: no features to evaluate");
+    for (ui32 feature : featuresToEvaluate) {
+        CB_ENSURE(Count(poolLoadParams.IgnoredFeatures, feature) == 0,
+                  "Error: feature " + ToString(feature) + " is ignored");
+    }
+    if (outputOptions.IsMetricPeriodSet() && outputOptions.GetMetricPeriod() > 1) {
+        CATBOOST_WARNING_LOG << "Warning: metric_period is ignored because "
+            "model-based feature evaluation needs metric values on each iteration" << Endl;
+    }
+    outputOptions.SetMetricPeriod(1);
+
+    ModelBasedEval(poolLoadParams, outputOptions, catBoostJsonOptions);
+
+    R_API_END();
+    // Results are files written into train_dir (per-experiment error logs),
+    // exactly as for the CLI mode; there is no in-memory summary object to
+    // return. The R wrapper returns the train_dir path invisibly.
+    return R_NilValue;
 }
 
 EXPORT_FUNCTION CatBoostOutputModel_R(SEXP modelParam, SEXP fileParam,

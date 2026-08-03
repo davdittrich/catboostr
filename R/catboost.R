@@ -2794,6 +2794,125 @@ catboost.eval_feature <- function(pool,
                  as.numeric(relative_fold_size), as.numeric(timesplit_quantile)))
 }
 
+#' @name catboost.model_based_eval
+#' @title Model-based feature evaluation.
+#' @description R equivalent of the CatBoost CLI's \code{model-based-eval} mode: continue a
+#' pre-trained baseline model's training in repeated short experiments, with and without the
+#' tested feature sets, and write the resulting per-experiment error logs into
+#' \code{train_dir}.
+#'
+#' This calls the same core entry point the CLI mode calls
+#' (\code{ModelBasedEval}, \code{catboost/libs/train_lib/train_model.h}), in process -- no
+#' CLI binary is required. There is no Python-side counterpart of this mode.
+#'
+#' \strong{This mode is GPU-only.} CatBoost's CPU trainer refuses it outright
+#' ("Model based eval is not implemented for CPU"), and the mode's options are only
+#' recognised when \code{task_type = "GPU"}. On a build or machine without a working CUDA
+#' device the call fails with a specific error rather than falling back to CPU.
+#'
+#' Unlike \code{\link{catboost.eval_feature}} this function takes dataset \emph{file paths}
+#' rather than a \code{catboost.Pool}: the only public core entry point for this mode is
+#' file-driven, it reads the baseline model's training snapshot from disk, and it writes its
+#' results to disk.
+#' @param learn_set Path to the learn dataset file (CLI: \code{--learn-set}).
+#'
+#' Default value: Required argument
+#' @param test_set Path to the test dataset file (CLI: \code{--test-set}). Required: the mode
+#' evaluates the change in \emph{test} error.
+#'
+#' Default value: Required argument
+#' @param features_to_evaluate Feature sets to test, in the CLI's
+#' \code{--features-to-evaluate} syntax: sets separated by \code{;}, each set a comma-separated
+#' list of 0-based indices, index ranges (\code{4,78-89,312}), feature names or \code{#tag}
+#' references.
+#'
+#' Default value: Required argument
+#' @param baseline_model_snapshot Path to the snapshot of the baseline model's training
+#' (CLI: \code{--baseline-model-snapshot}).
+#'
+#' Default value: \code{"baseline_model_snapshot"}
+#' @param column_description Path to the column description file (CLI:
+#' \code{--column-description}). \code{NULL} means none.
+#'
+#' Default value: \code{NULL}
+#' @param params Parameters for catboost.train. Must include \code{task_type = "GPU"};
+#' \code{train_dir} selects where the results are written.
+#'
+#' Default value: \code{list(task_type = "GPU")}
+#' @param offset Number of last iterations of the baseline model's training to evaluate over
+#' (CLI: \code{--offset}). Must be at least \code{experiment_count * experiment_size}.
+#'
+#' Default value: 1000
+#' @param experiment_count Number of experiments (CLI: \code{--experiment-count}).
+#'
+#' Default value: 200
+#' @param experiment_size Number of iterations in one experiment (CLI:
+#' \code{--experiment-size}).
+#'
+#' Default value: 5
+#' @param use_evaluated_features_in_baseline_model Keep the evaluated features in the baseline
+#' model instead of zeroing them out (CLI:
+#' \code{--use-evaluated-features-in-baseline-model}).
+#'
+#' Default value: FALSE
+#' @param delimiter Field delimiter of the dataset files (CLI: \code{--delimiter}).
+#'
+#' Default value: \code{"\t"}
+#' @param has_header Whether the dataset files have a header line (CLI: \code{--has-header}).
+#'
+#' Default value: FALSE
+#' @return The \code{train_dir} the per-experiment error logs were written to, invisibly.
+#' @seealso \code{\link{catboost.eval_feature}} for the CPU-capable \code{eval-feature} mode.
+#' @export
+catboost.model_based_eval <- function(learn_set,
+                                      test_set,
+                                      features_to_evaluate,
+                                      baseline_model_snapshot = "baseline_model_snapshot",
+                                      column_description = NULL,
+                                      params = list(task_type = "GPU"),
+                                      offset = 1000,
+                                      experiment_count = 200,
+                                      experiment_size = 5,
+                                      use_evaluated_features_in_baseline_model = FALSE,
+                                      delimiter = "\t",
+                                      has_header = FALSE) {
+
+    if (!is.character(learn_set) || length(learn_set) != 1L)
+        stop("learn_set must be a single file path.")
+    if (!is.character(test_set) || length(test_set) != 1L)
+        stop("test_set must be a single file path.")
+    if (!file.exists(learn_set))
+        stop("learn_set file does not exist: ", learn_set)
+    if (!file.exists(test_set))
+        stop("test_set file does not exist: ", test_set)
+    if (!is.character(features_to_evaluate) || length(features_to_evaluate) != 1L ||
+        !nzchar(features_to_evaluate))
+        stop("features_to_evaluate must be a single non-empty string in the CLI's ",
+             "--features-to-evaluate syntax, e.g. \"0,3-5;7\".")
+    if (!is.null(column_description) && !file.exists(column_description))
+        stop("column_description file does not exist: ", column_description)
+    # TModelBasedEvalOptions::Validate(), model_based_eval_options.cpp:70. Checked here as
+    # well so the failure arrives before the datasets are loaded.
+    if (experiment_count * experiment_size > offset)
+        stop("offset must be greater than or equal to experiment_count * experiment_size.")
+
+    params$features_to_evaluate <- features_to_evaluate
+    params$baseline_model_snapshot <- baseline_model_snapshot
+    params$offset <- as.integer(offset)
+    params$experiment_count <- as.integer(experiment_count)
+    params$experiment_size <- as.integer(experiment_size)
+    params$use_evaluated_features_in_baseline_model <-
+        as.logical(use_evaluated_features_in_baseline_model)
+
+    json_params <- prepare_train_export_parameters(params)
+    .Call("CatBoostModelBasedEval_R", json_params,
+          learn_set, test_set,
+          if (is.null(column_description)) "" else column_description,
+          delimiter, has_header)
+
+    return(invisible(if (is.null(params$train_dir)) "." else params$train_dir))
+}
+
 #' @name catboost.sum_models
 #' @title Sum models.
 #' @description Blend trees and counters of two or more trained CatBoost models into a new model.

@@ -12478,8 +12478,8 @@
     "kind": "method",
     "method": "structural",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_calc_feature_statistics.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -13630,8 +13630,8 @@
     "kind": "method",
     "method": "structural",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_calc_feature_statistics.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -14950,8 +14950,8 @@
     "kind": "method",
     "method": "structural",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_calc_feature_statistics.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -16126,8 +16126,8 @@
     "kind": "method",
     "method": "structural",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_calc_feature_statistics.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [

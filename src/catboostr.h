@@ -174,6 +174,22 @@ EXPORT_FUNCTION CatBoostEvaluateObjectImportances_R(
     SEXP threadCountParam
 );
 
+// P4.1 (catboost-8z4.50): catboost.calc_feature_statistics native glue.
+EXPORT_FUNCTION CatBoostGetBinarizedStatistics_R(
+    SEXP modelParam,
+    SEXP poolParam,
+    SEXP catFeaturesNumsParam,
+    SEXP floatFeaturesNumsParam,
+    SEXP predictionTypeParam,
+    SEXP threadCountParam
+);
+
+EXPORT_FUNCTION CatBoostGetFeatureTypeAndInternalIndex_R(SEXP modelParam, SEXP flatFeatureIndexParam);
+
+EXPORT_FUNCTION CatBoostCalcCatFeaturePerfectHash_R(SEXP modelParam, SEXP valueParam, SEXP featureNumParam);
+
+EXPORT_FUNCTION CatBoostGetCatFeatureValues_R(SEXP poolParam, SEXP flatFeatureIndexParam);
+
 EXPORT_FUNCTION CatBoostIsNullHandle_R(SEXP handleParam);
 
 

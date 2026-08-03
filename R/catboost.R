@@ -3426,6 +3426,193 @@ catboost.eval_metrics <- function(model, pool, metrics, ntree_start = 0L, ntree_
 }
 
 
+#' @name catboost.calc_feature_statistics
+#' @title Calculate feature statistics.
+#'
+#' @description Get statistics for a feature using the model, dataset and target
+#'              (see \url{https://catboost.ai/docs/concepts/python-reference_catboost_calc_feature_statistics.html}).
+#'              The catboost model has borders for the float features used in it. The borders divide
+#'              feature values into bins, and the model's prediction depends on the number of the bin
+#'              where the feature value falls in.
+#'
+#'              For float features this function takes the model's borders and computes
+#'              1) Mean target value for every bin;
+#'              2) Mean model prediction for every bin;
+#'              3) The number of objects in the dataset which fall into each bin;
+#'              4) Predictions on varying feature: for every object, varies the feature value
+#'              so that it falls into bin #0, bin #1, ... and counts model predictions, then
+#'              averages that over each bin.
+#'
+#'              For categorical features (one-hot encoded only -- pass \code{one_hot_max_size}
+#'              at training time to keep a feature one-hot) does the same, but with the
+#'              feature's unique values (from \code{pool}, or \code{cat_feature_values}) taking
+#'              the role of bins.
+#'
+#' @param model The model obtained as the result of training.
+#'
+#' Default value: Required argument
+#' @param pool A catboost.Pool. Provides both the dataset to compute statistics on and (via
+#' \code{\link{catboost.pool.get_label}}) the target.
+#'
+#' Default value: Required argument
+#' @param feature NULL, a single feature name (character scalar) or 0-based feature index
+#' (numeric scalar), or a vector/list of names/indices. NULL computes statistics for every
+#' feature in \code{pool}. A single name/index returns that feature's statistics list directly;
+#' anything else returns a named list of per-feature statistics lists.
+#'
+#' Default value: NULL
+#' @param prediction_type Prediction type used for \code{mean_prediction}: one of 'Class',
+#' 'Probability', 'RawFormulaVal' or 'Exponent'. If NULL, derived from the model's loss function
+#' ('Probability' for CrossEntropy/Logloss, 'RawFormulaVal' otherwise).
+#'
+#' Default value: NULL
+#' @param cat_feature_values A named list (feature name -> vector of values) of the categorical
+#' feature values to compute statistics on. When \code{feature} names/selects a single
+#' categorical feature, a plain (non-list) vector is also accepted for that feature. If NULL,
+#' the feature's unique values already present in \code{pool} are used.
+#'
+#' Default value: NULL
+#' @param thread_count The number of threads to use for getting statistics. If -1, then the
+#' number of threads is set to the number of CPU cores.
+#'
+#' Default value: -1
+#' @return A list (single feature) or a named list of lists (multiple features). For a float
+#' feature, the list has \code{borders}, \code{binarized_feature}, \code{mean_target},
+#' \code{mean_weighted_target}, \code{mean_prediction}, \code{objects_per_bin},
+#' \code{predictions_on_varying_feature}. A one-hot categorical feature has the same, but
+#' \code{cat_values} instead of \code{borders}.
+#' @seealso \url{https://catboost.ai/docs/concepts/python-reference_catboost_calc_feature_statistics.html}
+#' @export
+catboost.calc_feature_statistics <- function(model, pool, feature = NULL, prediction_type = NULL,
+                                              cat_feature_values = NULL, thread_count = -1) {
+  if (!inherits(model, "catboost.Model"))
+    stop("Expected catboost.Model, got: ", class(model))
+  if (!inherits(pool, "catboost.Pool"))
+    stop("Expected catboost.Pool, got: ", class(pool))
+  if (is.null.handle(pool))
+    stop("Pool object is invalid.")
+  catboost.restore_handle(model)
+
+  num_col <- catboost.pool.num_col(pool)
+  pool_feature_names <- catboost.pool.get_feature_names(pool)
+
+  if (is.null(prediction_type)) {
+    loss_function <- catboost.get_plain_params(model)$loss_function
+    prediction_type <- if (!is.null(loss_function) && loss_function %in% c("CrossEntropy", "Logloss")) {
+      "Probability"
+    } else {
+      "RawFormulaVal"
+    }
+  }
+  if (!(prediction_type %in% c("Class", "Probability", "RawFormulaVal", "Exponent")))
+    stop('Unknown prediction type "', prediction_type, '"')
+
+  single_feature <- !is.null(feature) && !is.list(feature) &&
+    (is.character(feature) || is.numeric(feature)) && length(feature) == 1
+  if (is.null(feature)) {
+    features <- as.list(seq_len(num_col) - 1L)
+  } else if (is.list(feature)) {
+    features <- feature
+  } else {
+    features <- as.list(feature)
+  }
+  if (length(features) == 0)
+    stop("feature must select at least one feature.")
+
+  if (!is.null(cat_feature_values) && !is.list(cat_feature_values)) {
+    if (!single_feature)
+      stop("cat_feature_values should be a named list when feature selects more than one feature.")
+    cat_feature_values <- stats::setNames(list(cat_feature_values), as.character(feature))
+  }
+  if (is.null(cat_feature_values))
+    cat_feature_values <- list()
+
+  resolve_feature <- function(feat) {
+    if (is.character(feat)) {
+      idx0 <- match(feat, pool_feature_names) - 1L
+      if (is.na(idx0))
+        stop('No feature named "', feat, '" in model')
+      name <- feat
+    } else {
+      idx0 <- as.integer(feat)
+      if (idx0 < 0 || idx0 >= num_col)
+        stop("Feature index out of range: ", feat)
+      name <- if (!is.null(pool_feature_names) && length(pool_feature_names) > idx0 &&
+                    pool_feature_names[idx0 + 1L] != "") {
+        pool_feature_names[idx0 + 1L]
+      } else {
+        as.character(idx0)
+      }
+    }
+    list(name = name, idx0 = idx0)
+  }
+
+  feature_names_out <- character(0)
+  idx0_out <- integer(0)
+  type_mapper <- character(0)
+  cat_nums <- integer(0)
+  float_nums <- integer(0)
+
+  for (feat in features) {
+    resolved <- resolve_feature(feat)
+    if (resolved$name %in% feature_names_out)
+      next
+    type_idx <- .Call("CatBoostGetFeatureTypeAndInternalIndex_R", model$cpp_obj$handle, resolved$idx0)
+    if (!(type_idx$type %in% c("float", "categorical")))
+      stop("Unsupported feature type for feature '", resolved$name, "'")
+    feature_names_out <- c(feature_names_out, resolved$name)
+    idx0_out <- c(idx0_out, resolved$idx0)
+    type_mapper <- c(type_mapper, type_idx$type)
+    if (type_idx$type == "categorical") {
+      cat_nums <- c(cat_nums, type_idx$index)
+    } else {
+      float_nums <- c(float_nums, type_idx$index)
+    }
+  }
+
+  stats_list <- .Call("CatBoostGetBinarizedStatistics_R", model$cpp_obj$handle, pool,
+                       as.integer(cat_nums), as.integer(float_nums), prediction_type, thread_count)
+
+  n_cat <- length(cat_nums)
+  cat_cursor <- 0L
+  float_cursor <- n_cat
+  statistics_by_feature <- list()
+
+  for (i in seq_along(feature_names_out)) {
+    fname <- feature_names_out[i]
+    idx0 <- idx0_out[i]
+    if (type_mapper[i] == "categorical") {
+      cat_cursor <- cat_cursor + 1L
+      stat <- stats_list[[cat_cursor]]
+      internal_idx <- cat_nums[cat_cursor]
+      if (!is.null(cat_feature_values[[fname]])) {
+        cat_vals <- unique(as.character(cat_feature_values[[fname]]))
+      } else {
+        cat_vals <- .Call("CatBoostGetCatFeatureValues_R", pool, idx0)
+      }
+      if (length(cat_vals) > 0) {
+        hashes <- vapply(
+          cat_vals,
+          function(v) .Call("CatBoostCalcCatFeaturePerfectHash_R", model$cpp_obj$handle, v, internal_idx),
+          numeric(1)
+        )
+        cat_vals <- cat_vals[order(hashes)]
+      }
+      stat$cat_values <- cat_vals
+      stat$borders <- NULL
+    } else {
+      float_cursor <- float_cursor + 1L
+      stat <- stats_list[[float_cursor]]
+    }
+    statistics_by_feature[[fname]] <- stat
+  }
+
+  if (single_feature)
+    return(statistics_by_feature[[feature_names_out[1]]])
+  return(statistics_by_feature)
+}
+
+
 #' @name catboost.restore_handle
 #' @title Restore or complete model handle after de-serializing
 #'

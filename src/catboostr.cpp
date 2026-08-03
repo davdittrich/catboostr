@@ -26,6 +26,10 @@
 #include <catboost/private/libs/options/enum_helpers.h>
 #include <catboost/private/libs/options/split_params.h>
 #include <catboost/private/libs/quantized_pool/serialization.h>
+// P4.1: catboost.calc_feature_statistics -- same vendor entry point Python's
+// _catboost.pyx _get_binarized_statistics/_get_feature_type_and_internal_index/
+// _calc_cat_feature_perfect_hash/_get_cat_feature_values cpdef wrappers call.
+#include <catboost/private/libs/quantized_pool_analysis/quantized_pool_analysis.h>
 #include <catboost/private/libs/target/data_providers.h>
 
 // P3.6 follow-up (catboost-8z4.48): native tokenizer/dictionary bridges.
@@ -1925,6 +1929,175 @@ EXPORT_FUNCTION CatBoostEvaluateObjectImportances_R(
         for (size_t j = 0; j < dstrResult.Scores[0].size(); ++j) {
             ptr_result[k++] = dstrResult.Scores[i][j];
         }
+    }
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+// P4.1 (catboost-8z4.50): catboost.calc_feature_statistics native glue.
+// Thin wrappers around catboost/private/libs/quantized_pool_analysis --
+// the SAME vendor functions Python's _catboost.pyx _get_binarized_statistics/
+// _get_feature_type_and_internal_index/_calc_cat_feature_perfect_hash/
+// _get_cat_feature_values cpdef methods call. All orchestration logic
+// (feature resolution, prediction_type defaulting, cat-value-to-hash
+// ordering) lives in R (R/catboost.R catboost.calc_feature_statistics),
+// mirroring catboost.core.CatBoost.calc_feature_statistics -- these 4
+// entry points expose only the primitives that logic needs.
+EXPORT_FUNCTION CatBoostGetBinarizedStatistics_R(
+    SEXP modelParam,
+    SEXP poolParam,
+    SEXP catFeaturesNumsParam,
+    SEXP floatFeaturesNumsParam,
+    SEXP predictionTypeParam,
+    SEXP threadCountParam
+) {
+    SEXP result = NULL;
+    size_t protectedCount = 0;
+    R_API_BEGIN();
+    TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+
+    TVector<size_t> catFeaturesNums;
+    for (int i = 0; i < length(catFeaturesNumsParam); ++i) {
+        catFeaturesNums.push_back(static_cast<size_t>(INTEGER(catFeaturesNumsParam)[i]));
+    }
+    TVector<size_t> floatFeaturesNums;
+    for (int i = 0; i < length(floatFeaturesNumsParam); ++i) {
+        floatFeaturesNums.push_back(static_cast<size_t>(INTEGER(floatFeaturesNumsParam)[i]));
+    }
+
+    EPredictionType predictionType;
+    CB_ENSURE(
+        TryFromString<EPredictionType>(CHAR(asChar(predictionTypeParam)), predictionType),
+        "CatBoostGetBinarizedStatistics_R: unknown prediction type " << CHAR(asChar(predictionTypeParam))
+    );
+    const int threadCount = UpdateThreadCount(asInteger(threadCountParam));
+
+    TVector<TBinarizedFeatureStatistics> statistics = GetBinarizedStatistics(
+        *model, *pool, catFeaturesNums, floatFeaturesNums, predictionType, threadCount
+    );
+
+    static const char* const kFieldNames[] = {
+        "borders", "binarized_feature", "mean_target", "mean_weighted_target",
+        "mean_prediction", "objects_per_bin", "predictions_on_varying_feature"
+    };
+    const size_t kNumFields = 7;
+
+    result = PROTECT(allocVector(VECSXP, statistics.size()));
+    ++protectedCount;
+
+    for (size_t s = 0; s < statistics.size(); ++s) {
+        const TBinarizedFeatureStatistics& stat = statistics[s];
+        SEXP statList = PROTECT(allocVector(VECSXP, kNumFields));
+        ++protectedCount;
+        SEXP statNames = PROTECT(allocVector(STRSXP, kNumFields));
+        ++protectedCount;
+
+        SEXP borders = PROTECT(allocVector(REALSXP, stat.Borders.size()));
+        ++protectedCount;
+        for (size_t i = 0; i < stat.Borders.size(); ++i) {
+            REAL(borders)[i] = stat.Borders[i];
+        }
+        SET_VECTOR_ELT(statList, 0, borders);
+
+        SEXP binarizedFeature = PROTECT(allocVector(INTSXP, stat.BinarizedFeature.size()));
+        ++protectedCount;
+        for (size_t i = 0; i < stat.BinarizedFeature.size(); ++i) {
+            INTEGER(binarizedFeature)[i] = stat.BinarizedFeature[i];
+        }
+        SET_VECTOR_ELT(statList, 1, binarizedFeature);
+
+        SEXP meanTarget = PROTECT(allocVector(REALSXP, stat.MeanTarget.size()));
+        ++protectedCount;
+        for (size_t i = 0; i < stat.MeanTarget.size(); ++i) {
+            REAL(meanTarget)[i] = stat.MeanTarget[i];
+        }
+        SET_VECTOR_ELT(statList, 2, meanTarget);
+
+        SEXP meanWeightedTarget = PROTECT(allocVector(REALSXP, stat.MeanWeightedTarget.size()));
+        ++protectedCount;
+        for (size_t i = 0; i < stat.MeanWeightedTarget.size(); ++i) {
+            REAL(meanWeightedTarget)[i] = stat.MeanWeightedTarget[i];
+        }
+        SET_VECTOR_ELT(statList, 3, meanWeightedTarget);
+
+        SEXP meanPrediction = PROTECT(allocVector(REALSXP, stat.MeanPrediction.size()));
+        ++protectedCount;
+        for (size_t i = 0; i < stat.MeanPrediction.size(); ++i) {
+            REAL(meanPrediction)[i] = stat.MeanPrediction[i];
+        }
+        SET_VECTOR_ELT(statList, 4, meanPrediction);
+
+        SEXP objectsPerBin = PROTECT(allocVector(INTSXP, stat.ObjectsPerBin.size()));
+        ++protectedCount;
+        for (size_t i = 0; i < stat.ObjectsPerBin.size(); ++i) {
+            INTEGER(objectsPerBin)[i] = static_cast<int>(stat.ObjectsPerBin[i]);
+        }
+        SET_VECTOR_ELT(statList, 5, objectsPerBin);
+
+        SEXP predictionsOnVaryingFeature = PROTECT(allocVector(REALSXP, stat.PredictionsOnVaryingFeature.size()));
+        ++protectedCount;
+        for (size_t i = 0; i < stat.PredictionsOnVaryingFeature.size(); ++i) {
+            REAL(predictionsOnVaryingFeature)[i] = stat.PredictionsOnVaryingFeature[i];
+        }
+        SET_VECTOR_ELT(statList, 6, predictionsOnVaryingFeature);
+
+        for (size_t i = 0; i < kNumFields; ++i) {
+            SET_STRING_ELT(statNames, i, mkChar(kFieldNames[i]));
+        }
+        setAttrib(statList, R_NamesSymbol, statNames);
+        SET_VECTOR_ELT(result, s, statList);
+    }
+
+    R_API_END();
+    UNPROTECT(protectedCount);
+    return result;
+}
+
+EXPORT_FUNCTION CatBoostGetFeatureTypeAndInternalIndex_R(SEXP modelParam, SEXP flatFeatureIndexParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    TFeatureTypeAndInternalIndex typeAndIndex = GetFeatureTypeAndInternalIndex(*model, asInteger(flatFeatureIndexParam));
+    const char* typeStr = "unknown";
+    if (typeAndIndex.Type == EFeatureType::Float) {
+        typeStr = "float";
+    } else if (typeAndIndex.Type == EFeatureType::Categorical) {
+        typeStr = "categorical";
+    }
+    result = PROTECT(allocVector(VECSXP, 2));
+    SEXP names = PROTECT(allocVector(STRSXP, 2));
+    SET_VECTOR_ELT(result, 0, mkString(typeStr));
+    SET_VECTOR_ELT(result, 1, ScalarInteger(typeAndIndex.Index));
+    SET_STRING_ELT(names, 0, mkChar("type"));
+    SET_STRING_ELT(names, 1, mkChar("index"));
+    setAttrib(result, R_NamesSymbol, names);
+    R_API_END();
+    UNPROTECT(2);
+    return result;
+}
+
+EXPORT_FUNCTION CatBoostCalcCatFeaturePerfectHash_R(SEXP modelParam, SEXP valueParam, SEXP featureNumParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    TString value = CHAR(asChar(valueParam));
+    ui32 hash = GetCatFeaturePerfectHash(*model, value, static_cast<size_t>(asInteger(featureNumParam)));
+    result = PROTECT(ScalarReal(static_cast<double>(hash)));
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+EXPORT_FUNCTION CatBoostGetCatFeatureValues_R(SEXP poolParam, SEXP flatFeatureIndexParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    TVector<TString> values = GetCatFeatureValues(*pool, static_cast<size_t>(asInteger(flatFeatureIndexParam)));
+    result = PROTECT(allocVector(STRSXP, values.size()));
+    for (size_t i = 0; i < values.size(); ++i) {
+        SET_STRING_ELT(result, i, mkChar(values[i].c_str()));
     }
     R_API_END();
     UNPROTECT(1);

@@ -45,17 +45,17 @@ test_that("init_model: continued training matches Python oracle predictions", {
   base_model <- catboost.train(base_pool, params = base_params())
 
   base_predict <- catboost.predict(base_model, base_pool, prediction_type = "RawFormulaVal")
-  expect_equal(base_predict, fixture$expected$base_predict, tolerance = 1e-6, check.attributes = FALSE)
+  expect_equal(base_predict, fixture$expected$base_predict, tolerance = 1e-12, check.attributes = FALSE)
 
   continue_pool <- as_pool(continue_rows)
   continued_model <- catboost.train(continue_pool, params = continue_params(), init_model = base_model)
 
   continued_predict <- catboost.predict(continued_model, continue_pool, prediction_type = "RawFormulaVal")
-  expect_equal(continued_predict, fixture$expected$continued_predict, tolerance = 1e-6, check.attributes = FALSE)
+  expect_equal(continued_predict, fixture$expected$continued_predict, tolerance = 1e-12, check.attributes = FALSE)
 
   all_pool <- as_pool(seq_len(nrow(fixture$inputs$features)))
   continued_predict_all <- catboost.predict(continued_model, all_pool, prediction_type = "RawFormulaVal")
-  expect_equal(continued_predict_all, fixture$expected$continued_predict_all, tolerance = 1e-6, check.attributes = FALSE)
+  expect_equal(continued_predict_all, fixture$expected$continued_predict_all, tolerance = 1e-12, check.attributes = FALSE)
 })
 
 test_that("init_model: tree count accumulates across the continuation, matching the oracle", {
@@ -79,7 +79,7 @@ test_that("init_model accepts a model file path, same as a catboost.Model object
   continued_from_path <- catboost.train(continue_pool, params = continue_params(), init_model = model_path)
 
   continued_predict <- catboost.predict(continued_from_path, continue_pool, prediction_type = "RawFormulaVal")
-  expect_equal(continued_predict, fixture$expected$continued_predict, tolerance = 1e-6, check.attributes = FALSE)
+  expect_equal(continued_predict, fixture$expected$continued_predict, tolerance = 1e-12, check.attributes = FALSE)
 })
 
 test_that("init_model rejects invalid argument types with a clear error", {
@@ -97,6 +97,6 @@ test_that("catboost-8z4.58: catboost.train without init_model is unaffected (bac
   pool <- as_pool(base_rows)
   model <- catboost.train(pool, NULL, base_params())
   prediction <- catboost.predict(model, pool, prediction_type = "RawFormulaVal")
-  expect_equal(prediction, fixture$expected$base_predict, tolerance = 1e-6, check.attributes = FALSE)
+  expect_equal(prediction, fixture$expected$base_predict, tolerance = 1e-12, check.attributes = FALSE)
   expect_equal(model$tree_count, fixture$expected$base_tree_count)
 })

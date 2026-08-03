@@ -792,7 +792,7 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": 1e-06,
+    "tolerance": 1e-12,
     "test_id": "tests/testthat/test_init_model.R",
     "state": "green",
     "tolerance_justification": "",

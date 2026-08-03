@@ -2,6 +2,7 @@
 #include <catboost/libs/data/borders_io.h>
 #include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/data/data_provider_builders.h>
+#include <catboost/libs/data/feature_names_converter.h>
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/data/quantization.h>
 #include <catboost/libs/eval_result/eval_helpers.h>
@@ -15,17 +16,26 @@
 #include <catboost/libs/model/utils.h>
 #include <catboost/libs/train_lib/train_model.h>
 #include <catboost/libs/train_lib/cross_validation.h>
+#include <catboost/libs/train_lib/eval_feature.h>
 #include <catboost/private/libs/algo/apply.h>
 #include <catboost/private/libs/algo/helpers.h>
 #include <catboost/private/libs/algo/mvs.h>
 #include <catboost/private/libs/algo/plot.h>
+#include <catboost/private/libs/app_helpers/bind_options.h>
 #include <catboost/private/libs/app_helpers/mode_dataset_statistics_helpers.h>
 #include <catboost/private/libs/documents_importance/docs_importance.h>
 #include <catboost/private/libs/documents_importance/enums.h>
+#include <catboost/private/libs/options/catboost_options.h>
 #include <catboost/private/libs/options/cross_validation_params.h>
 #include <catboost/private/libs/options/enum_helpers.h>
+#include <catboost/private/libs/options/feature_eval_options.h>
+#include <catboost/private/libs/options/plain_options_helper.h>
 #include <catboost/private/libs/options/split_params.h>
 #include <catboost/private/libs/quantized_pool/serialization.h>
+// P4.1: catboost.calc_feature_statistics -- same vendor entry point Python's
+// _catboost.pyx _get_binarized_statistics/_get_feature_type_and_internal_index/
+// _calc_cat_feature_perfect_hash/_get_cat_feature_values cpdef wrappers call.
+#include <catboost/private/libs/quantized_pool_analysis/quantized_pool_analysis.h>
 #include <catboost/private/libs/target/data_providers.h>
 
 // P3.6 follow-up (catboost-8z4.48): native tokenizer/dictionary bridges.
@@ -46,6 +56,7 @@
 // target's own vcs_info(catboostr) call in src/CMakeLists.txt.
 #include <library/cpp/svnversion/svnversion.h>
 
+#include <util/generic/algorithm.h>
 #include <util/generic/cast.h>
 #include <util/generic/hash.h>
 #include <util/generic/mem_copy.h>
@@ -499,6 +510,20 @@ EXPORT_FUNCTION CatBoostHashStrings_R(SEXP stringsParam) {
    }
    UNPROTECT(1);
    return result;
+}
+
+// Raw CalcCatFeatureHash() result (ui32, exposed as double -- exact up to 2^53),
+// matching the hash stored in exported JSON models' TOneHotSplit::Value. Distinct
+// from CatBoostCalcCatFeaturePerfectHash_R, which returns an index into the
+// one-hot feature's unique-values list, not a hash.
+EXPORT_FUNCTION CatBoostCalcCatFeatureHash_R(SEXP stringParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    ui32 hash = CalcCatFeatureHash(TString(CHAR(asChar(stringParam))));
+    result = PROTECT(ScalarReal(static_cast<double>(hash)));
+    R_API_END();
+    UNPROTECT(1);
+    return result;
 }
 
 EXPORT_FUNCTION CatBoostPoolNumRow_R(SEXP poolParam) {
@@ -1610,6 +1635,261 @@ EXPORT_FUNCTION CatBoostCV_R(SEXP fitParamsAsJsonParam,
     return result;
 }
 
+// P4.7 (catboost-8z4.56): R equivalent of the CLI's `eval-feature` mode.
+// Calls the same core entry point the CLI mode calls
+// (EvaluateFeatures, catboost/libs/train_lib/eval_feature.h -- see
+// vendor/catboost/catboost/app/mode_eval_feature.cpp), rather than shelling
+// out to the CLI binary. catboost-libs-train_lib, which already builds
+// eval_feature.cpp, is linked by src/CMakeLists.txt for CatBoostCV_R's sake,
+// so no new link dependency is introduced.
+//
+// The returned list mirrors the columns of the CLI's
+// --feature-eval-output-file TSV (ToString(TFeatureEvaluationSummary),
+// eval_feature.cpp:58) so the two are directly comparable, but carries full
+// double precision instead of the TSV's ~10 significant digits.
+EXPORT_FUNCTION CatBoostEvaluateFeatures_R(
+    SEXP fitParamsAsJsonParam,
+    SEXP poolParam,
+    SEXP featuresToEvaluateParam,
+    SEXP featureEvalModeParam,
+    SEXP offsetParam,
+    SEXP foldCountParam,
+    SEXP foldSizeUnitParam,
+    SEXP foldSizeParam,
+    SEXP relativeFoldSizeParam,
+    SEXP timeSplitQuantileParam
+) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TPoolPtr pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    pool->Ref();
+    auto fitParams = LoadFitParams(fitParamsAsJsonParam);
+
+    // EvaluateFeatures is the one core entry point that does NOT resolve feature
+    // names / string indices in `ignored_features` itself: TrainModel
+    // (train_model.cpp:1628) and CrossValidate (cross_validation.cpp:359,569)
+    // both call this converter internally, whereas for eval-feature the CLI mode
+    // does it externally before the call (mode_eval_feature.cpp:50). R always
+    // serialises ignored_features as an array of strings
+    // (prepare_train_export_parameters' I(as.character(...))), so without this
+    // any ignored_features value would die inside the option parser with
+    // `Can't parse parameter "ignored_features"` -- where catboost.train and
+    // catboost.cv accept the very same value.
+    ConvertIgnoredFeaturesFromStringToIndices(pool->MetaInfo, &fitParams);
+
+    TVector<ui32> ignoredFeatures;
+    if (fitParams.Has("ignored_features")) {
+        TJsonFieldHelper<TVector<ui32>>::Read(fitParams["ignored_features"], &ignoredFeatures);
+    }
+
+    NCatboostOptions::TFeatureEvalOptions featureEvalOptions;
+
+    TVector<TVector<ui32>> featureSets;
+    for (R_xlen_t setIdx = 0; setIdx < xlength(featuresToEvaluateParam); ++setIdx) {
+        SEXP featureSetParam = VECTOR_ELT(featuresToEvaluateParam, setIdx);
+        TVector<ui32> featureSet;
+        for (R_xlen_t i = 0; i < xlength(featureSetParam); ++i) {
+            const int featureIdx = INTEGER(featureSetParam)[i];
+            CB_ENSURE(featureIdx >= 0, "Tested feature index must be non-negative, got " << featureIdx);
+            featureSet.push_back(static_cast<ui32>(featureIdx));
+        }
+        featureSets.push_back(std::move(featureSet));
+    }
+    featureEvalOptions.FeaturesToEvaluate = featureSets;
+
+    NCB::EFeatureEvalMode featureEvalMode;
+    CB_ENSURE(TryFromString<NCB::EFeatureEvalMode>(CHAR(asChar(featureEvalModeParam)), featureEvalMode),
+              "unsupported feature evaluation mode: 'OneVsNone', 'OneVsOthers', 'OneVsAll' or "
+              "'OthersVsAll' was expected");
+    featureEvalOptions.FeatureEvalMode = featureEvalMode;
+
+    ESamplingUnit foldSizeUnit;
+    CB_ENSURE(TryFromString<ESamplingUnit>(CHAR(asChar(foldSizeUnitParam)), foldSizeUnit),
+              "unsupported fold size unit: 'Object' or 'Group' was expected");
+    featureEvalOptions.FoldSizeUnit = foldSizeUnit;
+
+    featureEvalOptions.Offset = static_cast<ui32>(asInteger(offsetParam));
+    featureEvalOptions.FoldCount = static_cast<ui32>(asInteger(foldCountParam));
+    featureEvalOptions.FoldSize = static_cast<ui32>(asInteger(foldSizeParam));
+    featureEvalOptions.RelativeFoldSize = static_cast<float>(asReal(relativeFoldSizeParam));
+    featureEvalOptions.TimeSplitQuantile = asReal(timeSplitQuantileParam);
+
+    // Same guards mode_eval_feature.cpp applies before calling EvaluateFeatures.
+    const ui32 featureCount = pool->MetaInfo.GetFeatureCount();
+    for (const auto& featureSet : featureSets) {
+        for (ui32 feature : featureSet) {
+            CB_ENSURE(feature < featureCount,
+                      "Tested feature " << feature << " is not present; dataset contains only "
+                      << featureCount << " features");
+            CB_ENSURE(Count(ignoredFeatures, feature) == 0,
+                      "Tested feature " << feature << " should not be ignored");
+        }
+        CB_ENSURE(Count(featureSets, featureSet) == 1, "All tested feature sets must be different");
+    }
+
+    // Defaults, matching the CLI when --cv is not given: the fold layout then
+    // comes from featureEvalOptions, not from cross-validation parameters
+    // (eval_feature.cpp:1181).
+    TCvDataPartitionParams cvParams;
+
+    const auto summary = EvaluateFeatures(
+        fitParams,
+        featureEvalOptions,
+        /*objectiveDescriptor*/ Nothing(),
+        /*evalMetricDescriptor*/ Nothing(),
+        cvParams,
+        pool);
+
+    const size_t setCount = summary.GetFeatureSetCount();
+    const size_t metricCount = summary.MetricNames.size();
+
+    SEXP pValue = PROTECT(allocVector(REALSXP, setCount));
+    SEXP bestIterations = PROTECT(allocVector(VECSXP, setCount));
+    SEXP metricNames = PROTECT(allocVector(STRSXP, metricCount));
+    SEXP metricDelta = PROTECT(allocMatrix(REALSXP, static_cast<int>(setCount), static_cast<int>(metricCount)));
+    SEXP evaluatedSets = PROTECT(allocVector(VECSXP, setCount));
+
+    for (size_t metricIdx = 0; metricIdx < metricCount; ++metricIdx) {
+        SET_STRING_ELT(metricNames, metricIdx, mkChar(summary.MetricNames[metricIdx].c_str()));
+    }
+    for (size_t setIdx = 0; setIdx < setCount; ++setIdx) {
+        REAL(pValue)[setIdx] = summary.WxTest[setIdx];
+
+        const auto& foldIterations = summary.BestBaselineIterations[setIdx];
+        SEXP iterations = PROTECT(allocVector(INTSXP, foldIterations.size()));
+        for (size_t foldIdx = 0; foldIdx < foldIterations.size(); ++foldIdx) {
+            INTEGER(iterations)[foldIdx] = static_cast<int>(foldIterations[foldIdx]);
+        }
+        SET_VECTOR_ELT(bestIterations, setIdx, iterations);
+        UNPROTECT(1);
+
+        for (size_t metricIdx = 0; metricIdx < metricCount; ++metricIdx) {
+            REAL(metricDelta)[setIdx + metricIdx * setCount] = summary.AverageMetricDelta[setIdx][metricIdx];
+        }
+
+        // FeatureSets is empty in OneVsNone mode with no --features-to-evaluate;
+        // the CLI leaves the "feature set" column empty in that case.
+        SEXP features = PROTECT(allocVector(INTSXP, summary.FeatureSets.empty() ? 0 : summary.FeatureSets[setIdx].size()));
+        if (!summary.FeatureSets.empty()) {
+            for (size_t i = 0; i < summary.FeatureSets[setIdx].size(); ++i) {
+                INTEGER(features)[i] = static_cast<int>(summary.FeatureSets[setIdx][i]);
+            }
+        }
+        SET_VECTOR_ELT(evaluatedSets, setIdx, features);
+        UNPROTECT(1);
+    }
+
+    result = PROTECT(allocVector(VECSXP, 5));
+    SEXP resultNames = PROTECT(allocVector(STRSXP, 5));
+    const char* const names[5] = {"p_value", "best_iterations", "metric_names", "metric_delta", "feature_sets"};
+    SEXP values[5] = {pValue, bestIterations, metricNames, metricDelta, evaluatedSets};
+    for (int i = 0; i < 5; ++i) {
+        SET_VECTOR_ELT(result, i, values[i]);
+        SET_STRING_ELT(resultNames, i, mkChar(names[i]));
+    }
+    setAttrib(result, R_NamesSymbol, resultNames);
+
+    R_API_END();
+    UNPROTECT(7);
+    return result;
+}
+
+// P4.8 (catboost-8z4.57): R equivalent of the CLI's `model-based-eval` mode.
+//
+// Transcribes vendor/catboost/catboost/app/mode_model_based_eval.cpp:26-52 with
+// the command-line parsing replaced by arguments; the core call
+// ModelBasedEval(poolLoadParams, outputOptions, catBoostJsonOptions)
+// (catboost/libs/train_lib/train_model.h:147) is the same one the CLI mode
+// makes, in process -- no CLI binary is required. catboost-libs-train_lib and
+// private-libs-app_helpers are both already linked by src/CMakeLists.txt, so
+// this adds no link dependency and no CMake change.
+//
+// This mode is file-driven rather than pool-driven because the only *public*
+// core entry point takes TPoolLoadParams (file paths). The in-memory overload
+// (train_model.cpp:1421) is `static` and therefore not linkable, and the mode
+// reads a baseline training snapshot from disk and writes its per-experiment
+// error logs into train_dir anyway, so a file-oriented API is the faithful one.
+//
+// Every mode-specific flag of the CLI (--features-to-evaluate,
+// --baseline-model-snapshot, --offset, --experiment-count, --experiment-size,
+// --use-evaluated-features-in-baseline-model) is a plain-JSON option key
+// (plain_options_helper.cpp:393-404), so they arrive inside fitParamsAsJson
+// and need no per-option handling here.
+//
+// NOTE: model-based eval is GPU-only. The CPU trainer refuses it outright
+// (train_model.cpp:942, "Model based eval is not implemented for CPU") and
+// PlainJsonToOptions only maps the mode's options at all when task_type is GPU
+// (plain_options_helper.cpp:394), so on a CPU-only build or a CPU task type the
+// call cannot succeed. See docs/phase-4/P4.8-report.md.
+EXPORT_FUNCTION CatBoostModelBasedEval_R(
+    SEXP fitParamsAsJsonParam,
+    SEXP learnSetPathParam,
+    SEXP testSetPathParam,
+    SEXP cdPathParam,
+    SEXP delimiterParam,
+    SEXP hasHeaderParam
+) {
+    R_API_BEGIN();
+
+    NCatboostOptions::TPoolLoadParams poolLoadParams;
+    poolLoadParams.LearnSetPath = TPathWithScheme(CHAR(asChar(learnSetPathParam)), "dsv");
+    poolLoadParams.TestSetPaths = {TPathWithScheme(CHAR(asChar(testSetPathParam)), "dsv")};
+    poolLoadParams.ColumnarPoolFormatParams.DsvFormat.HasHeader =
+        static_cast<bool>(asLogical(hasHeaderParam));
+    poolLoadParams.ColumnarPoolFormatParams.DsvFormat.Delimiter = CHAR(asChar(delimiterParam))[0];
+    TStringBuf cdPath(CHAR(asChar(cdPathParam)));
+    if (!cdPath.empty()) {
+        poolLoadParams.ColumnarPoolFormatParams.CdFilePath = TPathWithScheme(cdPath, "dsv");
+    }
+
+    NJson::TJsonValue catBoostFlatJsonOptions = LoadFitParams(fitParamsAsJsonParam);
+
+    // Deviation from mode_model_based_eval.cpp:40, deliberate: the CLI asserts
+    // task_type == GPU *after* PlainJsonToOptions, which on a CPU task type
+    // instead dies inside the option parser with the unhelpful
+    // `Unknown option {features_to_evaluate}` (reproduced against the pinned
+    // v1.2.10 binary). Checking the flat options first yields the specific,
+    // tested error §4.4 of the design spec requires for a GPU-only capability,
+    // and reaches the identical verdict one step earlier.
+    CB_ENSURE(NCatboostOptions::GetTaskType(catBoostFlatJsonOptions) == ETaskType::GPU,
+              "Model based eval is not implemented for CPU: "
+              "params must set task_type = \"GPU\"");
+
+    NJson::TJsonValue catBoostJsonOptions;
+    NJson::TJsonValue outputOptionsJson;
+    // InitOptions(paramsFile = "", ...) with an empty params file, as the CLI
+    // does when --params-file is absent (bind_options.cpp:36-52).
+    InitOptions(/*optionsFile*/ TString(), &catBoostJsonOptions, &outputOptionsJson);
+    ConvertIgnoredFeaturesFromStringToIndices(poolLoadParams, &catBoostFlatJsonOptions);
+    ConvertFeaturesToEvaluateFromStringToIndices(poolLoadParams, &catBoostFlatJsonOptions);
+    NCatboostOptions::PlainJsonToOptions(catBoostFlatJsonOptions, &catBoostJsonOptions, &outputOptionsJson);
+    ConvertParamsToCanonicalFormat(poolLoadParams, &catBoostJsonOptions);
+    CopyIgnoredFeaturesToPoolParams(catBoostJsonOptions, &poolLoadParams);
+    NCatboostOptions::TOutputFilesOptions outputOptions;
+    outputOptions.Load(outputOptionsJson);
+
+    // Same restrictions the CLI mode checks (mode_model_based_eval.cpp:41-50).
+    const auto featuresToEvaluate = GetOptionFeaturesToEvaluate(catBoostJsonOptions);
+    CB_ENSURE(!featuresToEvaluate.empty(), "Error: no features to evaluate");
+    for (ui32 feature : featuresToEvaluate) {
+        CB_ENSURE(Count(poolLoadParams.IgnoredFeatures, feature) == 0,
+                  "Error: feature " + ToString(feature) + " is ignored");
+    }
+    if (outputOptions.IsMetricPeriodSet() && outputOptions.GetMetricPeriod() > 1) {
+        CATBOOST_WARNING_LOG << "Warning: metric_period is ignored because "
+            "model-based feature evaluation needs metric values on each iteration" << Endl;
+    }
+    outputOptions.SetMetricPeriod(1);
+
+    ModelBasedEval(poolLoadParams, outputOptions, catBoostJsonOptions);
+
+    R_API_END();
+    // Results are files written into train_dir (per-experiment error logs),
+    // exactly as for the CLI mode; there is no in-memory summary object to
+    // return. The R wrapper returns the train_dir path invisibly.
+    return R_NilValue;
+}
+
 EXPORT_FUNCTION CatBoostOutputModel_R(SEXP modelParam, SEXP fileParam,
                            SEXP formatParam, SEXP exportParametersParam, SEXP poolParam) {
     R_API_BEGIN();
@@ -1822,7 +2102,56 @@ EXPORT_FUNCTION CatBoostCalcRegularFeatureEffect_R(SEXP modelParam, SEXP poolPar
     const bool multiClass = model->GetDimensionsCount() > 1;
     const bool verbose = false;
     // TODO(akhropov): make prettified mode as in python-package
-    if (fstrType == EFstrType::ShapValues && multiClass) {
+    if (fstrType == EFstrType::ShapInteractionValues) {
+        // ShapInteractionValues[featureIdx1][featureIdx2][dim][documentIdx], reordered below to
+        // match python-package's (doc[, dim], feature1, feature2) axis order (parity: catboost-8z4.53).
+        TVector<TVector<TVector<TVector<double>>>> fstr = CalcShapFeatureInteractionMulti(
+            fstrType,
+            *model,
+            pool,
+            /*pairOfFeatures*/ Nothing(),
+            threadCount,
+            EPreCalcShapValues::Auto,
+            /*logPeriod*/ 0,
+            ECalcTypeShapValues::Regular
+        );
+        size_t featuresCount = fstr.size();
+        size_t approxDimension = featuresCount > 0 ? fstr[0][0].size() : 0;
+        size_t docCount = approxDimension > 0 ? fstr[0][0][0].size() : 0;
+        if (multiClass) {
+            result = PROTECT(allocVector(REALSXP, docCount * approxDimension * featuresCount * featuresCount));
+            double *ptr_result = REAL(result);
+            for (size_t f2 = 0; f2 < featuresCount; ++f2) {
+                for (size_t f1 = 0; f1 < featuresCount; ++f1) {
+                    for (size_t dim = 0; dim < approxDimension; ++dim) {
+                        for (size_t doc = 0; doc < docCount; ++doc) {
+                            ptr_result[doc + docCount * (dim + approxDimension * (f1 + featuresCount * f2))] = fstr[f1][f2][dim][doc];
+                        }
+                    }
+                }
+            }
+            PROTECT(resultDim = allocVector(INTSXP, 4));
+            INTEGER(resultDim)[0] = docCount;
+            INTEGER(resultDim)[1] = approxDimension;
+            INTEGER(resultDim)[2] = featuresCount;
+            INTEGER(resultDim)[3] = featuresCount;
+        } else {
+            result = PROTECT(allocVector(REALSXP, docCount * featuresCount * featuresCount));
+            double *ptr_result = REAL(result);
+            for (size_t f2 = 0; f2 < featuresCount; ++f2) {
+                for (size_t f1 = 0; f1 < featuresCount; ++f1) {
+                    for (size_t doc = 0; doc < docCount; ++doc) {
+                        ptr_result[doc + docCount * (f1 + featuresCount * f2)] = fstr[f1][f2][0][doc];
+                    }
+                }
+            }
+            PROTECT(resultDim = allocVector(INTSXP, 3));
+            INTEGER(resultDim)[0] = docCount;
+            INTEGER(resultDim)[1] = featuresCount;
+            INTEGER(resultDim)[2] = featuresCount;
+        }
+        setAttrib(result, R_DimSymbol, resultDim);
+    } else if (fstrType == EFstrType::ShapValues && multiClass) {
         TVector<TVector<TVector<double>>> fstr = GetFeatureImportancesMulti(fstrType,
                                                                             *model,
                                                                             pool,
@@ -1925,6 +2254,175 @@ EXPORT_FUNCTION CatBoostEvaluateObjectImportances_R(
         for (size_t j = 0; j < dstrResult.Scores[0].size(); ++j) {
             ptr_result[k++] = dstrResult.Scores[i][j];
         }
+    }
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+// P4.1 (catboost-8z4.50): catboost.calc_feature_statistics native glue.
+// Thin wrappers around catboost/private/libs/quantized_pool_analysis --
+// the SAME vendor functions Python's _catboost.pyx _get_binarized_statistics/
+// _get_feature_type_and_internal_index/_calc_cat_feature_perfect_hash/
+// _get_cat_feature_values cpdef methods call. All orchestration logic
+// (feature resolution, prediction_type defaulting, cat-value-to-hash
+// ordering) lives in R (R/catboost.R catboost.calc_feature_statistics),
+// mirroring catboost.core.CatBoost.calc_feature_statistics -- these 4
+// entry points expose only the primitives that logic needs.
+EXPORT_FUNCTION CatBoostGetBinarizedStatistics_R(
+    SEXP modelParam,
+    SEXP poolParam,
+    SEXP catFeaturesNumsParam,
+    SEXP floatFeaturesNumsParam,
+    SEXP predictionTypeParam,
+    SEXP threadCountParam
+) {
+    SEXP result = NULL;
+    size_t protectedCount = 0;
+    R_API_BEGIN();
+    TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+
+    TVector<size_t> catFeaturesNums;
+    for (int i = 0; i < length(catFeaturesNumsParam); ++i) {
+        catFeaturesNums.push_back(static_cast<size_t>(INTEGER(catFeaturesNumsParam)[i]));
+    }
+    TVector<size_t> floatFeaturesNums;
+    for (int i = 0; i < length(floatFeaturesNumsParam); ++i) {
+        floatFeaturesNums.push_back(static_cast<size_t>(INTEGER(floatFeaturesNumsParam)[i]));
+    }
+
+    EPredictionType predictionType;
+    CB_ENSURE(
+        TryFromString<EPredictionType>(CHAR(asChar(predictionTypeParam)), predictionType),
+        "CatBoostGetBinarizedStatistics_R: unknown prediction type " << CHAR(asChar(predictionTypeParam))
+    );
+    const int threadCount = UpdateThreadCount(asInteger(threadCountParam));
+
+    TVector<TBinarizedFeatureStatistics> statistics = GetBinarizedStatistics(
+        *model, *pool, catFeaturesNums, floatFeaturesNums, predictionType, threadCount
+    );
+
+    static const char* const kFieldNames[] = {
+        "borders", "binarized_feature", "mean_target", "mean_weighted_target",
+        "mean_prediction", "objects_per_bin", "predictions_on_varying_feature"
+    };
+    const size_t kNumFields = 7;
+
+    result = PROTECT(allocVector(VECSXP, statistics.size()));
+    ++protectedCount;
+
+    for (size_t s = 0; s < statistics.size(); ++s) {
+        const TBinarizedFeatureStatistics& stat = statistics[s];
+        SEXP statList = PROTECT(allocVector(VECSXP, kNumFields));
+        ++protectedCount;
+        SEXP statNames = PROTECT(allocVector(STRSXP, kNumFields));
+        ++protectedCount;
+
+        SEXP borders = PROTECT(allocVector(REALSXP, stat.Borders.size()));
+        ++protectedCount;
+        for (size_t i = 0; i < stat.Borders.size(); ++i) {
+            REAL(borders)[i] = stat.Borders[i];
+        }
+        SET_VECTOR_ELT(statList, 0, borders);
+
+        SEXP binarizedFeature = PROTECT(allocVector(INTSXP, stat.BinarizedFeature.size()));
+        ++protectedCount;
+        for (size_t i = 0; i < stat.BinarizedFeature.size(); ++i) {
+            INTEGER(binarizedFeature)[i] = stat.BinarizedFeature[i];
+        }
+        SET_VECTOR_ELT(statList, 1, binarizedFeature);
+
+        SEXP meanTarget = PROTECT(allocVector(REALSXP, stat.MeanTarget.size()));
+        ++protectedCount;
+        for (size_t i = 0; i < stat.MeanTarget.size(); ++i) {
+            REAL(meanTarget)[i] = stat.MeanTarget[i];
+        }
+        SET_VECTOR_ELT(statList, 2, meanTarget);
+
+        SEXP meanWeightedTarget = PROTECT(allocVector(REALSXP, stat.MeanWeightedTarget.size()));
+        ++protectedCount;
+        for (size_t i = 0; i < stat.MeanWeightedTarget.size(); ++i) {
+            REAL(meanWeightedTarget)[i] = stat.MeanWeightedTarget[i];
+        }
+        SET_VECTOR_ELT(statList, 3, meanWeightedTarget);
+
+        SEXP meanPrediction = PROTECT(allocVector(REALSXP, stat.MeanPrediction.size()));
+        ++protectedCount;
+        for (size_t i = 0; i < stat.MeanPrediction.size(); ++i) {
+            REAL(meanPrediction)[i] = stat.MeanPrediction[i];
+        }
+        SET_VECTOR_ELT(statList, 4, meanPrediction);
+
+        SEXP objectsPerBin = PROTECT(allocVector(INTSXP, stat.ObjectsPerBin.size()));
+        ++protectedCount;
+        for (size_t i = 0; i < stat.ObjectsPerBin.size(); ++i) {
+            INTEGER(objectsPerBin)[i] = static_cast<int>(stat.ObjectsPerBin[i]);
+        }
+        SET_VECTOR_ELT(statList, 5, objectsPerBin);
+
+        SEXP predictionsOnVaryingFeature = PROTECT(allocVector(REALSXP, stat.PredictionsOnVaryingFeature.size()));
+        ++protectedCount;
+        for (size_t i = 0; i < stat.PredictionsOnVaryingFeature.size(); ++i) {
+            REAL(predictionsOnVaryingFeature)[i] = stat.PredictionsOnVaryingFeature[i];
+        }
+        SET_VECTOR_ELT(statList, 6, predictionsOnVaryingFeature);
+
+        for (size_t i = 0; i < kNumFields; ++i) {
+            SET_STRING_ELT(statNames, i, mkChar(kFieldNames[i]));
+        }
+        setAttrib(statList, R_NamesSymbol, statNames);
+        SET_VECTOR_ELT(result, s, statList);
+    }
+
+    R_API_END();
+    UNPROTECT(protectedCount);
+    return result;
+}
+
+EXPORT_FUNCTION CatBoostGetFeatureTypeAndInternalIndex_R(SEXP modelParam, SEXP flatFeatureIndexParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    TFeatureTypeAndInternalIndex typeAndIndex = GetFeatureTypeAndInternalIndex(*model, asInteger(flatFeatureIndexParam));
+    const char* typeStr = "unknown";
+    if (typeAndIndex.Type == EFeatureType::Float) {
+        typeStr = "float";
+    } else if (typeAndIndex.Type == EFeatureType::Categorical) {
+        typeStr = "categorical";
+    }
+    result = PROTECT(allocVector(VECSXP, 2));
+    SEXP names = PROTECT(allocVector(STRSXP, 2));
+    SET_VECTOR_ELT(result, 0, mkString(typeStr));
+    SET_VECTOR_ELT(result, 1, ScalarInteger(typeAndIndex.Index));
+    SET_STRING_ELT(names, 0, mkChar("type"));
+    SET_STRING_ELT(names, 1, mkChar("index"));
+    setAttrib(result, R_NamesSymbol, names);
+    R_API_END();
+    UNPROTECT(2);
+    return result;
+}
+
+EXPORT_FUNCTION CatBoostCalcCatFeaturePerfectHash_R(SEXP modelParam, SEXP valueParam, SEXP featureNumParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    TString value = CHAR(asChar(valueParam));
+    ui32 hash = GetCatFeaturePerfectHash(*model, value, static_cast<size_t>(asInteger(featureNumParam)));
+    result = PROTECT(ScalarReal(static_cast<double>(hash)));
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+EXPORT_FUNCTION CatBoostGetCatFeatureValues_R(SEXP poolParam, SEXP flatFeatureIndexParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    TVector<TString> values = GetCatFeatureValues(*pool, static_cast<size_t>(asInteger(flatFeatureIndexParam)));
+    result = PROTECT(allocVector(STRSXP, values.size()));
+    for (size_t i = 0; i < values.size(); ++i) {
+        SET_STRING_ELT(result, i, mkChar(values[i].c_str()));
     }
     R_API_END();
     UNPROTECT(1);

@@ -47,6 +47,8 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(
 
 EXPORT_FUNCTION CatBoostHashStrings_R(SEXP stringsParam);
 
+EXPORT_FUNCTION CatBoostCalcCatFeatureHash_R(SEXP stringParam);
+
 EXPORT_FUNCTION CatBoostPoolNumRow_R(SEXP poolParam);
 
 EXPORT_FUNCTION CatBoostPoolNumCol_R(SEXP poolParam);
@@ -174,6 +176,22 @@ EXPORT_FUNCTION CatBoostEvaluateObjectImportances_R(
     SEXP threadCountParam
 );
 
+// P4.1 (catboost-8z4.50): catboost.calc_feature_statistics native glue.
+EXPORT_FUNCTION CatBoostGetBinarizedStatistics_R(
+    SEXP modelParam,
+    SEXP poolParam,
+    SEXP catFeaturesNumsParam,
+    SEXP floatFeaturesNumsParam,
+    SEXP predictionTypeParam,
+    SEXP threadCountParam
+);
+
+EXPORT_FUNCTION CatBoostGetFeatureTypeAndInternalIndex_R(SEXP modelParam, SEXP flatFeatureIndexParam);
+
+EXPORT_FUNCTION CatBoostCalcCatFeaturePerfectHash_R(SEXP modelParam, SEXP valueParam, SEXP featureNumParam);
+
+EXPORT_FUNCTION CatBoostGetCatFeatureValues_R(SEXP poolParam, SEXP flatFeatureIndexParam);
+
 EXPORT_FUNCTION CatBoostIsNullHandle_R(SEXP handleParam);
 
 
@@ -266,6 +284,30 @@ EXPORT_FUNCTION CatBoostPoolTrainEvalSplit_R(
 );
 
 EXPORT_FUNCTION CatBoostPoolSave_R(SEXP poolParam, SEXP fnameParam);
+
+// P4.7: R equivalent of the CLI's `eval-feature` mode (catboost-8z4.56).
+EXPORT_FUNCTION CatBoostEvaluateFeatures_R(
+    SEXP fitParamsAsJsonParam,
+    SEXP poolParam,
+    SEXP featuresToEvaluateParam,
+    SEXP featureEvalModeParam,
+    SEXP offsetParam,
+    SEXP foldCountParam,
+    SEXP foldSizeUnitParam,
+    SEXP foldSizeParam,
+    SEXP relativeFoldSizeParam,
+    SEXP timeSplitQuantileParam
+);
+
+// P4.8: R equivalent of the CLI's `model-based-eval` mode (catboost-8z4.57).
+EXPORT_FUNCTION CatBoostModelBasedEval_R(
+    SEXP fitParamsAsJsonParam,
+    SEXP learnSetPathParam,
+    SEXP testSetPathParam,
+    SEXP cdPathParam,
+    SEXP delimiterParam,
+    SEXP hasHeaderParam
+);
 
 EXPORT_FUNCTION CatBoostDatasetStatistics_R(
     SEXP poolFileParam,

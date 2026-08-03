@@ -13,6 +13,7 @@ C CatBoostHashStrings_R
 C CatBoostIsGroupwiseMetric_R
 C CatBoostIsNullHandle_R
 C CatBoostIsOblivious_R
+C CatBoostModelBasedEval_R
 C CatBoostOutputModel_R
 C CatBoostPoolNumCol_R
 C CatBoostPoolNumRow_R

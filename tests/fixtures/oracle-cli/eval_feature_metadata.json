@@ -1,0 +1,25 @@
+{
+  "capability": "mode:eval-feature",
+  "ticket": "catboost-8z4.56",
+  "oracle": "cli",
+  "oracle_binary": "tools/oracle/cli/bin/catboost-v1.2.10",
+  "release_tag": "v1.2.10",
+  "sha256": "478dc57f4c19de205b19b709fd4c6af93f79753dc462b6bb49d33c920dddec75",
+  "generator_script": "tools/oracle/cli/gen_eval_feature_fixture.sh",
+  "dataset": "smoke_data.csv (40 rows, shared with the Python oracle's smoke fixture)",
+  "column_description": "smoke.cd",
+  "eval_feature_command": "catboost eval-feature --learn-set smoke_data.csv --column-description smoke.cd --delimiter , --has-header --loss-function Logloss -i 20 --depth 4 --learning-rate 0.1 --random-seed 42 -T 1 --logging-level Silent --features-to-evaluate 0;1 --feature-eval-mode OneVsAll --offset 0 --fold-count 2 --fold-size-unit Object --fold-size 10 --feature-eval-output-file feature_eval.tsv --train-dir tdir1",
+  "output_file": "eval_feature_summary.tsv",
+  "output_format": "The CLI's --feature-eval-output-file TSV, verbatim. Columns, in order: p-value (Wilcoxon test on per-fold best losses), best iteration in each fold (comma-joined), one column per evaluated metric holding the average metric delta signed so positive means improvement, and the tested feature set (comma-joined 0-based indices). Produced by ToString(TFeatureEvaluationSummary) in catboost/libs/train_lib/eval_feature.cpp:58.",
+  "no_python_counterpart": "The Python package exposes no equivalent of this mode. The nearest names on the Python surface (tests/fixtures/parity/python_surface.json) are CatBoost.select_features and the EFeaturesSelection* enums -- a different, greedy feature-elimination algorithm, and Phase 5 scope per spec line 639. Verified by searching python_surface.json for eval_feature / feature_eval / EvalFeature: no matches. The CLI is therefore the sole oracle.",
+  "determinism": {
+    "checked": true,
+    "method": "eval-feature run twice from scratch into separate train-dirs inside one clean temp directory, thread count pinned to 1 (-T 1); the generator script fails if the two summaries differ",
+    "summary_bit_identical": true
+  },
+  "tolerance": {
+    "relative": 1e-9,
+    "justification": "Spec section 4.3 default for the CLI path. Independently confirmed for this mode's own output format: the committed summary prints 0.01189635989 and -0.255249217, i.e. 10 and 9 significant digits, matching the ~10-significant-digit ceiling measured for calc in Phase 0 (catboost-8z4.4). No --precision flag exists on eval-feature (verified in its --help). Bit-exact comparison is therefore not available on this path and is not asserted.",
+    "integer_columns_compared_exactly": "best iteration in each fold and feature set are integer lists, not floats; they are compared for exact equality, which is not a tolerance override."
+  }
+}

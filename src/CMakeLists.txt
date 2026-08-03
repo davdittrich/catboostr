@@ -83,6 +83,11 @@ target_link_libraries(catboostr PUBLIC
   # the same linking pattern P3.3 established for dataset-statistics above.
   cpp-text_processing-tokenizer
   cpp-text_processing-dictionary
+  # P4.1: catboost.calc_feature_statistics's native entry point
+  # (NCB::GetBinarizedStatistics et al.) -- the same vendor library
+  # catboost/python-package/catboost/_catboost.pyx _get_binarized_statistics
+  # links against.
+  private-libs-quantized_pool_analysis
 )
 
 target_allocator(catboostr

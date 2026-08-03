@@ -3702,6 +3702,192 @@ catboost.compare <- function(model, other, pool, metrics, ntree_start = 0L, ntre
 }
 
 
+#' @name catboost.plot_tree
+#' @title Plot a single tree's structure.
+#'
+#' @description Return the node/edge structure of one tree in \code{model}
+#' (see \url{https://catboost.ai/docs/concepts/python-reference_catboost_plot_tree.html}).
+#'
+#' Python's \code{plot_tree} returns a \code{graphviz.Digraph} built from the model's
+#' internal per-tree splits and leaf values (\code{_get_tree_splits}/\code{_get_tree_leaf_values}
+#' in \code{catboost/python-package/catboost/core.py}, reading the same vendor
+#' \code{TFullModel} tree layout that \code{\link{catboost.save_model}}'s \code{"json"} export
+#' format serializes). \code{catboost.plot_tree} reuses that existing JSON export (no new
+#' native entry point) to read the same split/leaf data and reconstructs the DOT-text graph
+#' with base R string building -- no \code{DiagrammeR}/graphviz R package dependency is added,
+#' since none is required for either the structural differential test (spec Sec 4.3's
+#' "Structural" row targets canonical node/edge JSON, not a rendered image) or the "object of
+#' the expected class" smoke test.
+#'
+#' Only oblivious (symmetric) trees with \code{FloatFeature}/\code{OneHotFeature} splits are
+#' supported; other tree/split kinds stop with an explicit error rather than silently
+#' mis-rendering.
+#'
+#' @param model The model obtained as the result of training.
+#'
+#' Default value: Required argument
+#' @param tree_idx 0-based index of the tree to plot.
+#'
+#' Default value: Required argument
+#' @param pool A catboost.Pool used to resolve feature names and to decode categorical split
+#' values. Required if the tree splits on any categorical feature (mirrors Python's own
+#' \code{plot_tree}, which raises if a categorical split is present and no pool is given);
+#' optional for float-only trees, in which case node labels fall back to the 0-based flat
+#' feature index -- again mirroring Python's own \code{pool = NULL} fallback. Categorical
+#' split values are decoded via the same native calls \code{\link{catboost.calc_feature_statistics}}
+#' uses (\code{CatBoostGetCatFeatureValues_R}/\code{CatBoostCalcCatFeaturePerfectHash_R}); when
+#' \code{pool} was built by \code{\link{catboost.load_pool}}/\code{\link{catboost.from_matrix}}
+#' (which pre-hash categorical columns into floats before the vendor pool is built, so no
+#' hash-to-string dictionary survives -- see \code{\link{catboost.calc_feature_statistics}}'s
+#' docs) the original string cannot be recovered and the label falls back to
+#' \code{"<hash:...>"}.
+#'
+#' Default value: NULL
+#' @return An object of class \code{catboost.plot_tree}: a list with \code{dot} (character
+#' scalar, DOT-language source text), \code{nodes} (data.frame: \code{id}, \code{label},
+#' \code{color}, \code{shape}) and \code{edges} (data.frame: \code{from}, \code{to},
+#' \code{label}).
+#' @seealso \url{https://catboost.ai/docs/concepts/python-reference_catboost_plot_tree.html}
+#' @export
+catboost.plot_tree <- function(model, tree_idx, pool = NULL) {
+  if (!inherits(model, "catboost.Model"))
+    stop("Expected catboost.Model, got: ", class(model))
+  if (!is.null(pool) && !inherits(pool, "catboost.Pool"))
+    stop("Expected catboost.Pool, got: ", class(pool))
+  if (!is.null(pool) && is.null.handle(pool))
+    stop("Pool object is invalid.")
+  if (!catboost._is_oblivious(model))
+    stop("catboost.plot_tree only supports oblivious (symmetric) trees.")
+
+  num_trees <- catboost.ntrees(model)
+  tree_idx <- as.integer(tree_idx)
+  if (length(tree_idx) != 1 || is.na(tree_idx) || tree_idx < 0 || tree_idx >= num_trees)
+    stop("tree_idx out of range [0, ", num_trees - 1, "]: ", tree_idx)
+
+  json_path <- tempfile(fileext = ".json")
+  on.exit(unlink(json_path), add = TRUE)
+  catboost.save_model(model, json_path, file_format = "json", pool = pool)
+  model_json <- jsonlite::fromJSON(json_path, simplifyVector = FALSE)
+
+  if (is.null(model_json$oblivious_trees))
+    stop("catboost.plot_tree only supports oblivious (symmetric) trees.")
+  tree <- model_json$oblivious_trees[[tree_idx + 1L]]
+  splits <- tree$splits
+  leaf_values <- tree$leaf_values
+
+  num_leaves <- 2L^length(splits)
+  if (length(leaf_values) != num_leaves)
+    stop("catboost.plot_tree does not support multi-dimensional leaf values ",
+         "(e.g. multiclass models).")
+
+  float_features <- model_json$features_info$float_features
+  cat_features <- model_json$features_info$categorical_features
+
+  # NB: the JSON export's "cat_features_hash" table is empty for models trained
+  # from an R-built Pool: catboost.from_matrix()/catboost.load_pool() pre-hash
+  # categorical columns into floats via CatBoostHashStrings_R before the value
+  # ever reaches the vendor pool builder, so the pool's ObjectsData never gets a
+  # hash-to-string dictionary to export (same root cause catboost.calc_feature_statistics
+  # documents for CatBoostGetCatFeatureValues_R -- see test_calc_feature_statistics.R).
+  # Resolve categorical values the same way calc_feature_statistics does: ask the
+  # pool for its (possibly empty) set of raw string values and re-hash each one with
+  # the model's own perfect-hash function until the split's hash is matched. When the
+  # pool cannot supply any candidate strings, fall back to a deterministic
+  # "<hash:...>" label instead of silently mis-labelling or hard-failing the whole
+  # plot for a categorical model built from an R Pool.
+  resolve_cat_value <- function(internal_idx, flat_idx, target_hash) {
+    candidates <- .Call("CatBoostGetCatFeatureValues_R", pool, flat_idx)
+    for (v in candidates) {
+      h <- as.numeric(.Call("CatBoostCalcCatFeaturePerfectHash_R", model$cpp_obj$handle, v, internal_idx))
+      if (isTRUE(all.equal(h, target_hash)))
+        return(v)
+    }
+    sprintf("<hash:%d>", as.integer(target_hash))
+  }
+
+  find_by_index <- function(entries, field, idx) {
+    for (e in entries) {
+      if (!is.null(e[[field]]) && as.integer(e[[field]]) == as.integer(idx))
+        return(e)
+    }
+    NULL
+  }
+
+  split_label <- function(split) {
+    if (identical(split$split_type, "FloatFeature")) {
+      entry <- find_by_index(float_features, "feature_index", split$float_feature_index)
+      if (is.null(entry))
+        stop("No float feature metadata for feature_index ", split$float_feature_index)
+      fid <- entry$feature_id
+      name <- if (!is.null(pool) && !is.null(fid) && nzchar(fid)) fid else as.character(entry$flat_feature_index)
+      paste0(name, ", value>", sprintf("%.6g", as.numeric(split$border)))
+    } else if (identical(split$split_type, "OneHotFeature")) {
+      if (is.null(pool))
+        stop("Please pass training dataset to catboost.plot_tree function, ",
+             "training dataset is required if categorical features are present in the model.")
+      entry <- find_by_index(cat_features, "feature_index", split$cat_feature_index)
+      if (is.null(entry))
+        stop("No categorical feature metadata for feature_index ", split$cat_feature_index)
+      fid <- entry$feature_id
+      name <- if (!is.null(fid) && nzchar(fid)) fid else as.character(entry$flat_feature_index)
+      cat_value <- resolve_cat_value(entry$feature_index, entry$flat_feature_index, as.numeric(split$value))
+      paste0(name, ", value=", cat_value)
+    } else {
+      stop("catboost.plot_tree does not support split_type '", split$split_type, "'.")
+    }
+  }
+
+  node_id <- character(0); node_label <- character(0)
+  node_color <- character(0); node_shape <- character(0)
+  edge_from <- character(0); edge_to <- character(0); edge_label <- character(0)
+
+  layer_size <- 1L
+  current_size <- 0L
+  for (split_num in seq.int(length(splits) - 1L, -1L, by = -1L)) {
+    for (node_num in seq_len(layer_size)) {
+      if (split_num >= 0L) {
+        label <- split_label(splits[[split_num + 1L]])
+        color <- "black"; shape <- "ellipse"
+      } else {
+        label <- sprintf("val = %.3f\n", as.numeric(leaf_values[[node_num]]))
+        color <- "red"; shape <- "rect"
+      }
+      node_id <- c(node_id, as.character(current_size))
+      node_label <- c(node_label, label)
+      node_color <- c(node_color, color)
+      node_shape <- c(node_shape, shape)
+      if (current_size > 0L) {
+        parent <- (current_size - 1L) %/% 2L
+        edge_from <- c(edge_from, as.character(parent))
+        edge_to <- c(edge_to, as.character(current_size))
+        edge_label <- c(edge_label, if (current_size %% 2L == 0L) "Yes" else "No")
+      }
+      current_size <- current_size + 1L
+    }
+    layer_size <- layer_size * 2L
+  }
+
+  nodes_df <- data.frame(id = node_id, label = node_label, color = node_color,
+                          shape = node_shape, stringsAsFactors = FALSE)
+  edges_df <- data.frame(from = edge_from, to = edge_to, label = edge_label,
+                          stringsAsFactors = FALSE)
+
+  dot_lines <- c(
+    "digraph {",
+    sprintf('\t%s [label="%s" color=%s shape=%s]', nodes_df$id, nodes_df$label,
+            nodes_df$color, nodes_df$shape),
+    if (nrow(edges_df) > 0)
+      sprintf('\t%s -> %s [label=%s]', edges_df$from, edges_df$to, edges_df$label),
+    "}"
+  )
+  dot_text <- paste(dot_lines, collapse = "\n")
+
+  result <- list(dot = dot_text, nodes = nodes_df, edges = edges_df)
+  class(result) <- "catboost.plot_tree"
+  return(result)
+}
+
+
 #' @name catboost.restore_handle
 #' @title Restore or complete model handle after de-serializing
 #'

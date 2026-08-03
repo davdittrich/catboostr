@@ -288,3 +288,52 @@ is empty).
 
 No commit was created; per the conservative git profile, changes are staged
 for the controller to review/commit.
+
+## 8. Fix round (task review findings)
+
+Task review of the initial diff (commit `6f00f06`) found 2 open findings,
+addressed in commit `fc75701`:
+
+1. **Positional-argument backward-compatibility break.** `lemmatizing` had
+   been inserted as `catboost.Tokenizer`'s 2nd positional parameter (between
+   `lowercasing` and `number_process_policy`), and `skip_step` as
+   `catboost.Dictionary`'s 3rd positional parameter (between `gram_order` and
+   `start_token_id`). Both silently broke existing positional-argument
+   callers, contradicting the ticket's "public function signatures unchanged"
+   requirement. Fixed by moving both to the end of their respective parameter
+   lists (append-only), matching the pattern already used for `bpe_path` in
+   `catboost.dictionary.save`/`.load`. Grepped the whole `6f00f06` diff for
+   every other new parameter (`token_types`, `sub_tokens_policy`, `languages`,
+   `num_bpe_units`, `skip_unknown`) and confirmed they were already
+   correctly appended at the end — only `lemmatizing` and `skip_step` had the
+   mid-signature-insertion problem. `man/catboost.Tokenizer.Rd` and
+   `man/catboost.Dictionary.Rd` were regenerated with `roxygen2::roxygenise(load_code
+   = "source")` to match (the two unrelated `\value` wording diffs it produced
+   for `catboost.dictionary.get_token.Rd`/`catboost.dictionary.size.Rd`, from
+   a roxygen2 version drift, were reverted to keep the diff scoped).
+
+2. **Unjustified test skip on a false premise.** The lemmatizing negative
+   test in `tests/testthat/test_text_processing.R` had been skipped with a
+   comment claiming the vendor `Y_ENSURE(!Options.Lemmatizing, ...)` failure
+   (`tokenizer.cpp:267`, hit via `TTokenizer`'s options constructor at
+   `tokenizer.cpp:280,283`) "aborts the whole process" and is "not a
+   catchable condition." This is factually wrong: `Y_ENSURE` throws a
+   `yexception`, a `std::exception` subclass, and
+   `CatBoostTextTokenizerCreate_R` (`src/catboostr.cpp:2064-2126`) runs
+   entirely inside `R_API_BEGIN()`/`R_API_END()` — the latter already catches
+   `std::exception&` and converts it to a normal, catchable R `error()` call.
+   Replaced the skip with `expect_error(catboost.Tokenizer(lemmatizing =
+   TRUE), "Lemmer isn't implemented yet")`.
+
+Verification after the fix:
+
+```
+$ Rscript -e 'library(catboostr); testthat::test_file("tests/testthat/test_text_processing.R")'
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 51 ]
+
+$ Rscript -e 'library(catboostr); testthat::test_dir("tests/testthat")'
+[ FAIL 0 | WARN 0 | SKIP 1 | PASS 295 ]
+```
+
+The one remaining `SKIP` (`test_caret_parameter_tuning.R:35:3`) is
+pre-existing and unrelated to text processing.

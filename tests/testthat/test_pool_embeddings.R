@@ -63,8 +63,8 @@ test_that("pool embeddings: from_matrix with explicit indices matches load_pool"
                fixture$expected$embedding_feature_indices)
 })
 
-# Embedding processing is pinned to KNN by the fixture. The default
-# ("LDA", "KNN") is not a usable differential probe: this fork's binary and
+# Embedding processing is pinned to KNN. The default
+# ("LDA", "KNN") is not a usable exact-equality probe: this fork's binary and
 # the pinned Python wheel disagree on the LDA calcer even when both load the
 # identical dsv file through the identical file loader, so the disagreement
 # predates any Pool-construction path (see the P3.7 report's control run).
@@ -80,6 +80,52 @@ test_that("pool embeddings: fit/predict on an embedding Pool matches Python orac
   model <- catboost.train(pool, params = params)
   prediction <- catboost.predict(model, pool, prediction_type = "RawFormulaVal")
   expect_equal(as.double(prediction), fixture$expected$predict, tolerance = 1e-6)
+})
+
+# catboost-8z4.45: default embedding_processing is ("LDA", "KNN"), not the
+# KNN-only pin used above. R's LDA calcer and the pinned Python wheel's LDA
+# calcer diverge from bit-exactness: both read the identical embedding
+# values (the KNN-only test above already proves Pool construction delivers
+# them correctly), but LAPACK's float32 `ssyev` symmetric-eigenvector
+# solver is sign/ordering-sensitive to BLAS/build differences on the
+# near-degenerate eigenvalues this dataset produces. That is a permanent
+# build-toolchain property of read-only vendor code, not a bug to fix here.
+#
+# This test pins a *bound* on that known divergence, rather than requiring
+# bit-exact equality (structurally impossible) or skipping the default path
+# entirely (which would leave LDA+KNN unverified). A regression that
+# silently corrupted embedding values, crashed the LDA calcer, or produced
+# unbounded/NaN predictions would still fail this test.
+test_that("pool embeddings: default (LDA+KNN) fit/predict diverges from the Python oracle only within a bounded, documented tolerance", {
+  pool <- catboost.load_pool(
+    feature_matrix(),
+    label = as.double(fixture$inputs$label),
+    embedding_features = list(emb = embedding_matrix())
+  )
+  params <- fixture$params
+  params$embedding_processing <- NULL # fall back to the CatBoost default (LDA, KNN)
+  params$verbose <- NULL
+  params$logging_level <- "Silent"
+  model <- catboost.train(pool, params = params)
+  prediction <- as.double(catboost.predict(model, pool, prediction_type = "RawFormulaVal"))
+
+  oracle_lda <- fixture$expected$predict_default_lda
+  oracle_knn <- fixture$expected$predict
+
+  expect_length(prediction, length(oracle_lda))
+  expect_false(anyNA(prediction))
+
+  # Divergence from the oracle's default-LDA run is bounded, not unbounded
+  # numerical nonsense (see catboost-8z4.45-report.md for the observed bound).
+  expect_true(all(abs(prediction - oracle_lda) < 1.5))
+
+  # The LDA sign/ordering disagreement rotates the projection; it must not
+  # flip the resulting classification decision.
+  expect_equal(sign(prediction), sign(oracle_lda))
+
+  # Confirm the default path really exercises LDA+KNN rather than silently
+  # collapsing to the KNN-only pin used by the previous test.
+  expect_true(any(abs(prediction - oracle_knn) > 1e-3))
 })
 
 test_that("pool embeddings: malformed embedding_features input is rejected", {

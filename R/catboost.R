@@ -2779,6 +2779,11 @@ catboost.eval_feature <- function(pool,
     if (length(params) == 0)
         message("Training catboost with default parameters! See help(catboost.train).")
 
+    if (offset < 0)
+        stop("offset must be non-negative.")
+    if (fold_count < 1)
+        stop("fold_count must be positive.")
+
     features_to_evaluate <- lapply(features_to_evaluate, as.integer)
 
     json_params <- prepare_train_export_parameters(params)

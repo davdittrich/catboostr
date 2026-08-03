@@ -2,6 +2,7 @@
 #include <catboost/libs/data/borders_io.h>
 #include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/data/data_provider_builders.h>
+#include <catboost/libs/data/feature_names_converter.h>
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/data/quantization.h>
 #include <catboost/libs/eval_result/eval_helpers.h>
@@ -1647,6 +1648,23 @@ EXPORT_FUNCTION CatBoostEvaluateFeatures_R(
     pool->Ref();
     auto fitParams = LoadFitParams(fitParamsAsJsonParam);
 
+    // EvaluateFeatures is the one core entry point that does NOT resolve feature
+    // names / string indices in `ignored_features` itself: TrainModel
+    // (train_model.cpp:1628) and CrossValidate (cross_validation.cpp:359,569)
+    // both call this converter internally, whereas for eval-feature the CLI mode
+    // does it externally before the call (mode_eval_feature.cpp:50). R always
+    // serialises ignored_features as an array of strings
+    // (prepare_train_export_parameters' I(as.character(...))), so without this
+    // any ignored_features value would die inside the option parser with
+    // `Can't parse parameter "ignored_features"` -- where catboost.train and
+    // catboost.cv accept the very same value.
+    ConvertIgnoredFeaturesFromStringToIndices(pool->MetaInfo, &fitParams);
+
+    TVector<ui32> ignoredFeatures;
+    if (fitParams.Has("ignored_features")) {
+        TJsonFieldHelper<TVector<ui32>>::Read(fitParams["ignored_features"], &ignoredFeatures);
+    }
+
     NCatboostOptions::TFeatureEvalOptions featureEvalOptions;
 
     TVector<TVector<ui32>> featureSets;
@@ -1686,6 +1704,8 @@ EXPORT_FUNCTION CatBoostEvaluateFeatures_R(
             CB_ENSURE(feature < featureCount,
                       "Tested feature " << feature << " is not present; dataset contains only "
                       << featureCount << " features");
+            CB_ENSURE(Count(ignoredFeatures, feature) == 0,
+                      "Tested feature " << feature << " should not be ignored");
         }
         CB_ENSURE(Count(featureSets, featureSet) == 1, "All tested feature sets must be different");
     }

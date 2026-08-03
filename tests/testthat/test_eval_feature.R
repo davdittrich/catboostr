@@ -110,6 +110,61 @@ test_that("eval_feature: rejects an unknown feature evaluation mode", {
   )
 })
 
+test_that("eval_feature: rejects a tested feature that is also ignored", {
+  # Fix round 1: mode_eval_feature.cpp errors on this
+  # ("Tested feature N should not be ignored"), and the core does not re-check
+  # it -- it would silently evaluate a feature that was dropped from the model.
+  params <- EVAL_PARAMS
+  params$ignored_features <- 1
+
+  expect_error(
+    catboost.eval_feature(load_smoke_pool(), features_to_evaluate = list(1L),
+                          params = params, eval_mode = "OneVsAll",
+                          fold_count = 2, fold_size = 10),
+    "should not be ignored"
+  )
+
+  # By feature name, the other form the option accepts. Only cat1 is named in
+  # smoke.cd, so it is the one feature of this fixture addressable by name.
+  params$ignored_features <- "cat1"
+  expect_error(
+    catboost.eval_feature(load_smoke_pool(), features_to_evaluate = list(2L),
+                          params = params, eval_mode = "OneVsAll",
+                          fold_count = 2, fold_size = 10),
+    "should not be ignored"
+  )
+
+  # Negative control: an ignored feature that is not tested stays legal. This
+  # also pins the converter fix -- R serialises ignored_features as strings, and
+  # EvaluateFeatures (unlike TrainModel/CrossValidate) does not resolve them
+  # itself, so before the fix this died with `Can't parse parameter
+  # "ignored_features"` for every value, not just clashing ones.
+  params$ignored_features <- 2
+  params$train_dir <- file.path(tempdir(), "eval_feature_ignored_ok")
+  on.exit(unlink(params$train_dir, recursive = TRUE), add = TRUE)
+  expect_error(
+    catboost.eval_feature(load_smoke_pool(), features_to_evaluate = list(1L),
+                          params = params, eval_mode = "OneVsAll",
+                          fold_count = 2, fold_size = 10),
+    NA
+  )
+})
+
+test_that("eval_feature: rejects a negative offset and a non-positive fold_count", {
+  pool <- load_smoke_pool()
+  expect_error(
+    catboost.eval_feature(pool, features_to_evaluate = list(0L), params = EVAL_PARAMS,
+                          eval_mode = "OneVsAll", offset = -1, fold_count = 2,
+                          fold_size = 10),
+    "offset must be non-negative"
+  )
+  expect_error(
+    catboost.eval_feature(pool, features_to_evaluate = list(0L), params = EVAL_PARAMS,
+                          eval_mode = "OneVsAll", fold_count = 0, fold_size = 10),
+    "fold_count must be positive"
+  )
+})
+
 test_that("eval_feature: requires exactly one of fold_size and relative_fold_size", {
   pool <- load_smoke_pool()
   expect_error(

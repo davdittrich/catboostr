@@ -2721,6 +2721,231 @@ catboost.cv <- function(pool,
     return(data.frame(result))
 }
 
+# P5.2 (catboost-8z4.59): param_grid accepts either a single named list
+# (param name -> vector of values to try) or an unnamed list of such named
+# lists (multiple grids, spans explored independently), matching Python's
+# dict-or-list-of-dicts param_grid (core.py grid_search: `if
+# isinstance(param_grid, Mapping): param_grid = [param_grid]`). The native
+# GridSearch/RandomizedSearch entry points always expect a JSON array of
+# grid objects (_catboost.pyx _PreprocessGrids.__init__: `dumps(prepared_grids)`
+# where prepared_grids is a list), so a single named list is wrapped here.
+prepare_grid_json <- function(param_grid) {
+    if (!is.null(names(param_grid)) && all(nzchar(names(param_grid)))) {
+        param_grid <- list(param_grid)
+    }
+    return(jsonlite::toJSON(param_grid, auto_unbox = FALSE, digits = 10))
+}
+
+#' @name catboost.grid_search
+#' @title Exhaustive search over specified parameter values.
+#' @description R equivalent of Python's \code{CatBoost.grid_search}: calls the
+#' same native search entry point (\code{NCB::GridSearch}, vendored at
+#' \code{catboost/private/libs/hyperparameter_tuning/hyperparameter_tuning.h})
+#' that Python's \code{CatBoost._tune_hyperparams} calls via its Cython wrapper,
+#' rather than approximating the search with an R-side loop over
+#' \code{catboost.cv} -- the grid/quantization-parameter enumeration order and
+#' train/test-split reuse live entirely in that native code, so calling it
+#' directly is what makes best-params/best-score match the Python oracle.
+#' @param param_grid Named list of parameter name -> vector of values to try, or
+#' an unnamed list of such named lists (multiple grids, explored independently).
+#'
+#' Default value: Required argument
+#' @param pool Data to search on (a \code{catboost.Pool}).
+#'
+#' Default value: Required argument
+#' @param params Fixed parameters for \code{catboost.train}, held constant
+#' across the search.
+#'
+#' Default value: \code{list()}
+#' @param cv Number of cross-validation folds.
+#'
+#' Default value: 3
+#' @param partition_random_seed The random seed used for splitting the data.
+#'
+#' Default value: 0
+#' @param calc_cv_statistics Whether to estimate quality via cross-validation
+#' with the found best parameters. Only used when
+#' \code{search_by_train_test_split = TRUE}.
+#'
+#' Default value: \code{TRUE}
+#' @param search_by_train_test_split If \code{TRUE}, the dataset is split into
+#' train/test parts, candidates are trained on the train part and compared by
+#' loss on the test part. If \code{FALSE}, every candidate is evaluated with
+#' cross-validation instead.
+#'
+#' Default value: \code{TRUE}
+#' @param refit If \code{TRUE}, fit a model on \code{pool} with the best found
+#' parameters (via \code{catboost.train}) and return it as \code{$model}.
+#'
+#' Default value: \code{TRUE}
+#' @param shuffle Shuffle the dataset objects before searching.
+#'
+#' Default value: \code{TRUE}
+#' @param stratified Perform stratified sampling for the cross-validation
+#' statistics. Unlike Python (which auto-detects this from the loss function),
+#' R always defaults to \code{FALSE}, matching \code{catboost.cv}'s own
+#' precedent of leaving stratification to the caller.
+#'
+#' Default value: \code{FALSE}
+#' @param train_size Proportion of the dataset used for the train split (used
+#' when \code{search_by_train_test_split = TRUE}).
+#'
+#' Default value: 0.8
+#' @param verbose Whether to print search progress.
+#'
+#' Default value: \code{TRUE}
+#' @return A list with \code{$params} (best found parameters, as a named list),
+#' \code{$cv_results} (a \code{data.frame} of cross-validation results with the
+#' same columns \code{catboost.cv} returns), and, if \code{refit = TRUE},
+#' \code{$model} (a \code{catboost.Model} fit with the best parameters).
+#' @export catboost.grid_search
+catboost.grid_search <- function(param_grid,
+                                  pool,
+                                  params = list(),
+                                  cv = 3,
+                                  partition_random_seed = 0,
+                                  calc_cv_statistics = TRUE,
+                                  search_by_train_test_split = TRUE,
+                                  refit = TRUE,
+                                  shuffle = TRUE,
+                                  stratified = FALSE,
+                                  train_size = 0.8,
+                                  verbose = TRUE) {
+    if (!inherits(pool, "catboost.Pool"))
+        stop("Expected catboost.Pool, got: ", class(pool))
+    if (is.null.handle(pool))
+        stop("'pool' object is invalid.")
+
+    grid_json <- prepare_grid_json(param_grid)
+    fit_params <- process_synonyms(params)
+    json_params <- prepare_train_export_parameters(fit_params)
+
+    result <- .Call("CatBoostGridSearch_R", grid_json, pool, json_params,
+                     as.integer(cv), as.integer(partition_random_seed),
+                     shuffle, stratified, train_size,
+                     search_by_train_test_split, calc_cv_statistics, as.integer(verbose))
+
+    best_params <- jsonlite::fromJSON(result$params)
+    search_result <- list(params = best_params, cv_results = data.frame(result$cv_results))
+
+    if (refit) {
+        search_result$model <- catboost.train(pool, params = modifyList(fit_params, best_params))
+    }
+
+    return(search_result)
+}
+
+#' @name catboost.randomized_search
+#' @title Randomized search on hyper parameters.
+#' @description R equivalent of Python's \code{CatBoost.randomized_search}:
+#' calls the same native search entry point (\code{NCB::RandomizedSearch},
+#' vendored at
+#' \code{catboost/private/libs/hyperparameter_tuning/hyperparameter_tuning.h})
+#' that Python's \code{CatBoost._tune_hyperparams} calls via its Cython wrapper.
+#' In contrast to \code{catboost.grid_search}, not all parameter values are
+#' tried: a fixed number (\code{n_iter}) of settings is sampled uniformly from
+#' \code{param_distributions} (the native sampler seeds its shuffle from a fixed
+#' constant, so the sampled combinations -- not just the winner -- are
+#' reproducible across calls with the same grid and \code{n_iter}).
+#'
+#' Sampling from continuous distributions (Python's \code{scipy.stats}-style
+#' \code{rvs()} objects) is not supported: \code{param_distributions} entries
+#' must be plain value vectors, sampled uniformly by the native code.
+#' @param param_distributions Named list of parameter name -> vector of values
+#' to sample from, or an unnamed list of such named lists.
+#'
+#' Default value: Required argument
+#' @param pool Data to search on (a \code{catboost.Pool}).
+#'
+#' Default value: Required argument
+#' @param params Fixed parameters for \code{catboost.train}, held constant
+#' across the search.
+#'
+#' Default value: \code{list()}
+#' @param cv Number of cross-validation folds.
+#'
+#' Default value: 3
+#' @param n_iter Number of parameter settings sampled.
+#'
+#' Default value: 10
+#' @param partition_random_seed The random seed used for splitting the data.
+#'
+#' Default value: 0
+#' @param calc_cv_statistics Whether to estimate quality via cross-validation
+#' with the found best parameters. Only used when
+#' \code{search_by_train_test_split = TRUE}.
+#'
+#' Default value: \code{TRUE}
+#' @param search_by_train_test_split If \code{TRUE}, the dataset is split into
+#' train/test parts, candidates are trained on the train part and compared by
+#' loss on the test part. If \code{FALSE}, every candidate is evaluated with
+#' cross-validation instead.
+#'
+#' Default value: \code{TRUE}
+#' @param refit If \code{TRUE}, fit a model on \code{pool} with the best found
+#' parameters (via \code{catboost.train}) and return it as \code{$model}.
+#'
+#' Default value: \code{TRUE}
+#' @param shuffle Shuffle the dataset objects before searching.
+#'
+#' Default value: \code{TRUE}
+#' @param stratified Perform stratified sampling for the cross-validation
+#' statistics. Unlike Python (which auto-detects this from the loss function),
+#' R always defaults to \code{FALSE}, matching \code{catboost.cv}'s own
+#' precedent of leaving stratification to the caller.
+#'
+#' Default value: \code{FALSE}
+#' @param train_size Proportion of the dataset used for the train split (used
+#' when \code{search_by_train_test_split = TRUE}).
+#'
+#' Default value: 0.8
+#' @param verbose Whether to print search progress.
+#'
+#' Default value: \code{TRUE}
+#' @return A list with \code{$params} (best found parameters, as a named list),
+#' \code{$cv_results} (a \code{data.frame} of cross-validation results with the
+#' same columns \code{catboost.cv} returns), and, if \code{refit = TRUE},
+#' \code{$model} (a \code{catboost.Model} fit with the best parameters).
+#' @export catboost.randomized_search
+catboost.randomized_search <- function(param_distributions,
+                                        pool,
+                                        params = list(),
+                                        cv = 3,
+                                        n_iter = 10,
+                                        partition_random_seed = 0,
+                                        calc_cv_statistics = TRUE,
+                                        search_by_train_test_split = TRUE,
+                                        refit = TRUE,
+                                        shuffle = TRUE,
+                                        stratified = FALSE,
+                                        train_size = 0.8,
+                                        verbose = TRUE) {
+    if (!inherits(pool, "catboost.Pool"))
+        stop("Expected catboost.Pool, got: ", class(pool))
+    if (is.null.handle(pool))
+        stop("'pool' object is invalid.")
+    if (n_iter <= 0)
+        stop("n_iter should be a positive number")
+
+    grid_json <- prepare_grid_json(param_distributions)
+    fit_params <- process_synonyms(params)
+    json_params <- prepare_train_export_parameters(fit_params)
+
+    result <- .Call("CatBoostRandomizedSearch_R", grid_json, pool, json_params,
+                     as.integer(n_iter), as.integer(cv), as.integer(partition_random_seed),
+                     shuffle, stratified, train_size,
+                     search_by_train_test_split, calc_cv_statistics, as.integer(verbose))
+
+    best_params <- jsonlite::fromJSON(result$params)
+    search_result <- list(params = best_params, cv_results = data.frame(result$cv_results))
+
+    if (refit) {
+        search_result$model <- catboost.train(pool, params = modifyList(fit_params, best_params))
+    }
+
+    return(search_result)
+}
+
 #' @name catboost.eval_feature
 #' @title Evaluate the impact of feature sets.
 #' @description R equivalent of the CatBoost CLI's \code{eval-feature} mode: repeated

@@ -17,6 +17,17 @@
 #include <catboost/libs/train_lib/train_model.h>
 #include <catboost/libs/train_lib/cross_validation.h>
 #include <catboost/libs/train_lib/eval_feature.h>
+// P5.2 (catboost-8z4.59): catboost.grid_search/catboost.randomized_search call
+// the same native NCB::GridSearch/NCB::RandomizedSearch entry points Python's
+// CatBoost._tune_hyperparams uses (_catboost.pyx:4403, calling
+// self._object._tune_hyperparams -> cython cpdef at _catboost.pyx:5933, which
+// itself calls these two C++ functions) rather than a from-scratch R-side loop
+// over catboost.cv: the algorithm (grid/quantization-param enumeration order,
+// train/test-split reuse, TRandom(seed=0)-seeded combination sampling for
+// randomized_search) lives entirely in this native code, so calling it
+// directly is the only way to match the Python oracle's best-params/best-score
+// bit-for-bit.
+#include <catboost/private/libs/hyperparameter_tuning/hyperparameter_tuning.h>
 #include <catboost/private/libs/algo/apply.h>
 #include <catboost/private/libs/algo/helpers.h>
 #include <catboost/private/libs/algo/mvs.h>
@@ -1644,6 +1655,220 @@ EXPORT_FUNCTION CatBoostCV_R(SEXP fitParamsAsJsonParam,
 
     R_API_END();
     UNPROTECT(columnCount + 2);
+    return result;
+}
+
+// P5.2 (catboost-8z4.59): shared by CatBoostGridSearch_R/CatBoostRandomizedSearch_R
+// below and structurally identical to CatBoostCV_R's own TCVResult -> R list
+// conversion (same TCVResult fields, same "test/train-<metric>-mean/std"
+// column naming) -- factored out here because a third near-identical copy
+// would cross the "3+ occurrences" duplication threshold.
+// Protocol: returns a VECSXP left PROTECTed (net +1); every element attached
+// to it beforehand is reachable through it, so their own PROTECTs are
+// released immediately after attaching. The caller owns the returned +1.
+static SEXP CVResultsToRList(const TVector<TCVResult>& cvResults) {
+    const size_t metricCount = cvResults.size();
+    TVector<size_t> offsets(metricCount);
+    size_t columnCount = 0;
+    for (size_t metricIdx = 0; metricIdx < metricCount; ++metricIdx) {
+        offsets[metricIdx] = columnCount;
+        columnCount += (cvResults[metricIdx].AverageTrain.size() == 0) ? 2 : 4;
+    }
+
+    SEXP result = PROTECT(allocVector(VECSXP, columnCount));
+    SEXP columnNames = PROTECT(allocVector(STRSXP, columnCount));
+
+    for (size_t metricIdx = 0; metricIdx < metricCount; ++metricIdx) {
+        const TString& metricName = cvResults[metricIdx].Metric;
+        const size_t numberOfIterations = cvResults[metricIdx].Iterations.size();
+        const bool haveTrainResult = (cvResults[metricIdx].AverageTrain.size() != 0);
+        const size_t offset = offsets[metricIdx];
+
+        SEXP rowTestMean = PROTECT(allocVector(REALSXP, numberOfIterations));
+        SEXP rowTestStd = PROTECT(allocVector(REALSXP, numberOfIterations));
+        for (size_t i = 0; i < numberOfIterations; ++i) {
+            REAL(rowTestMean)[i] = cvResults[metricIdx].AverageTest[i];
+            REAL(rowTestStd)[i] = cvResults[metricIdx].StdDevTest[i];
+        }
+        SET_VECTOR_ELT(result, offset + 0, rowTestMean);
+        SET_VECTOR_ELT(result, offset + 1, rowTestStd);
+        SET_STRING_ELT(columnNames, offset + 0, mkChar(("test-" + metricName + "-mean").c_str()));
+        SET_STRING_ELT(columnNames, offset + 1, mkChar(("test-" + metricName + "-std").c_str()));
+        UNPROTECT(2);
+
+        if (haveTrainResult) {
+            SEXP rowTrainMean = PROTECT(allocVector(REALSXP, numberOfIterations));
+            SEXP rowTrainStd = PROTECT(allocVector(REALSXP, numberOfIterations));
+            for (size_t i = 0; i < numberOfIterations; ++i) {
+                REAL(rowTrainMean)[i] = cvResults[metricIdx].AverageTrain[i];
+                REAL(rowTrainStd)[i] = cvResults[metricIdx].StdDevTrain[i];
+            }
+            SET_VECTOR_ELT(result, offset + 2, rowTrainMean);
+            SET_VECTOR_ELT(result, offset + 3, rowTrainStd);
+            SET_STRING_ELT(columnNames, offset + 2, mkChar(("train-" + metricName + "-mean").c_str()));
+            SET_STRING_ELT(columnNames, offset + 3, mkChar(("train-" + metricName + "-std").c_str()));
+            UNPROTECT(2);
+        }
+    }
+
+    setAttrib(result, R_NamesSymbol, columnNames);
+    UNPROTECT(1); // columnNames; `result` stays protected for the caller
+    return result;
+}
+
+// P5.2 (catboost-8z4.59): builds the {params, cv_results} list both
+// CatBoostGridSearch_R and CatBoostRandomizedSearch_R return, matching the
+// two keys Python's _tune_hyperparams returns (_catboost.pyx:6024-6030:
+// best_params = json_value_to_dict(results.BestParams); cv_results = {...}).
+// `params` is a JSON string (parsed R-side with jsonlite::fromJSON, the same
+// pattern catboost.get_plain_params already uses for CatBoostGetPlainParams_R)
+// rather than a hand-rolled TJsonValue -> SEXP walk.
+static SEXP BestOptionValuesToRList(const TBestOptionValuesWithCvResult& results) {
+    SEXP paramsJson = PROTECT(mkString(ToString(results.BestParams).c_str()));
+    SEXP cvResultsList = CVResultsToRList(results.CvResult); // already left PROTECTed (net +1)
+
+    SEXP result = PROTECT(allocVector(VECSXP, 2));
+    SEXP resultNames = PROTECT(allocVector(STRSXP, 2));
+    SET_VECTOR_ELT(result, 0, paramsJson);
+    SET_VECTOR_ELT(result, 1, cvResultsList);
+    SET_STRING_ELT(resultNames, 0, mkChar("params"));
+    SET_STRING_ELT(resultNames, 1, mkChar("cv_results"));
+    setAttrib(result, R_NamesSymbol, resultNames);
+
+    UNPROTECT(4);
+    return result;
+}
+
+EXPORT_FUNCTION CatBoostGridSearch_R(
+    SEXP gridJsonParam,
+    SEXP poolParam,
+    SEXP fitParamsAsJsonParam,
+    SEXP foldCountParam,
+    SEXP partitionRandomSeedParam,
+    SEXP shuffleParam,
+    SEXP stratifiedParam,
+    SEXP trainSizeParam,
+    SEXP searchByTrainTestSplitParam,
+    SEXP calcCvStatisticsParam,
+    SEXP verboseParam
+) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TPoolPtr pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    pool->Ref();
+
+    NJson::TJsonValue gridJsonValues = LoadFitParams(gridJsonParam);
+    NJson::TJsonValue modelJsonParams = LoadFitParams(fitParamsAsJsonParam);
+
+    TTrainTestSplitParams ttParams;
+    ttParams.PartitionRandSeed = asInteger(partitionRandomSeedParam);
+    ttParams.Shuffle = asLogical(shuffleParam);
+    // Matches Python core.py:4404-4406/hyperparameter_tuning's own caller:
+    // the train/test split used *during* the search is never stratified,
+    // regardless of the `stratified` argument (that one only reaches cvParams
+    // below, for the post-search CV statistics on the winning candidate).
+    ttParams.Stratified = false;
+    ttParams.TrainPart = asReal(trainSizeParam);
+
+    TCrossValidationParams cvParams;
+    cvParams.FoldCount = asInteger(foldCountParam);
+    cvParams.PartitionRandSeed = asInteger(partitionRandomSeedParam);
+    cvParams.Shuffle = asLogical(shuffleParam);
+    cvParams.Stratified = asLogical(stratifiedParam);
+    cvParams.Type = ECrossValidation::Classical;
+    cvParams.IsCalledFromSearchHyperparameters = true;
+
+    TBestOptionValuesWithCvResult bestOptionValuesWithCvResult;
+    TMetricsAndTimeLeftHistory trainTestResult;
+
+    GridSearch(
+        gridJsonValues,
+        modelJsonParams,
+        ttParams,
+        cvParams,
+        /*objectiveDescriptor*/ Nothing(),
+        /*evalMetricDescriptor*/ Nothing(),
+        pool,
+        &bestOptionValuesWithCvResult,
+        &trainTestResult,
+        static_cast<bool>(asLogical(searchByTrainTestSplitParam)),
+        static_cast<bool>(asLogical(calcCvStatisticsParam)),
+        asInteger(verboseParam)
+    );
+
+    result = PROTECT(BestOptionValuesToRList(bestOptionValuesWithCvResult));
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+EXPORT_FUNCTION CatBoostRandomizedSearch_R(
+    SEXP gridJsonParam,
+    SEXP poolParam,
+    SEXP fitParamsAsJsonParam,
+    SEXP nIterParam,
+    SEXP foldCountParam,
+    SEXP partitionRandomSeedParam,
+    SEXP shuffleParam,
+    SEXP stratifiedParam,
+    SEXP trainSizeParam,
+    SEXP searchByTrainTestSplitParam,
+    SEXP calcCvStatisticsParam,
+    SEXP verboseParam
+) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TPoolPtr pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    pool->Ref();
+
+    NJson::TJsonValue gridJsonValues = LoadFitParams(gridJsonParam);
+    NJson::TJsonValue modelJsonParams = LoadFitParams(fitParamsAsJsonParam);
+
+    TTrainTestSplitParams ttParams;
+    ttParams.PartitionRandSeed = asInteger(partitionRandomSeedParam);
+    ttParams.Shuffle = asLogical(shuffleParam);
+    ttParams.Stratified = false; // see CatBoostGridSearch_R
+    ttParams.TrainPart = asReal(trainSizeParam);
+
+    TCrossValidationParams cvParams;
+    cvParams.FoldCount = asInteger(foldCountParam);
+    cvParams.PartitionRandSeed = asInteger(partitionRandomSeedParam);
+    cvParams.Shuffle = asLogical(shuffleParam);
+    cvParams.Stratified = asLogical(stratifiedParam);
+    cvParams.Type = ECrossValidation::Classical;
+    cvParams.IsCalledFromSearchHyperparameters = true;
+
+    TBestOptionValuesWithCvResult bestOptionValuesWithCvResult;
+    TMetricsAndTimeLeftHistory trainTestResult;
+
+    // scipy-style `rvs()` random-distribution grid values (Python's
+    // hasattr(values, "rvs") branch, _catboost.pyx:2088) are out of scope:
+    // R has no equivalent distribution-object convention, so param_grid
+    // entries must be plain value vectors. randDistGenerators therefore
+    // stays empty; CheckIfRandomDisribution's "CustomRandomDistributionGenerator"
+    // string values are simply never produced R-side.
+    THashMap<TString, TCustomRandomDistributionGenerator> randDistGenerators;
+
+    RandomizedSearch(
+        static_cast<ui32>(asInteger(nIterParam)),
+        randDistGenerators,
+        gridJsonValues,
+        modelJsonParams,
+        ttParams,
+        cvParams,
+        /*objectiveDescriptor*/ Nothing(),
+        /*evalMetricDescriptor*/ Nothing(),
+        pool,
+        &bestOptionValuesWithCvResult,
+        &trainTestResult,
+        static_cast<bool>(asLogical(searchByTrainTestSplitParam)),
+        static_cast<bool>(asLogical(calcCvStatisticsParam)),
+        asInteger(verboseParam)
+    );
+
+    result = PROTECT(BestOptionValuesToRList(bestOptionValuesWithCvResult));
+    R_API_END();
+    UNPROTECT(1);
     return result;
 }
 

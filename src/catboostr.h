@@ -99,6 +99,35 @@ EXPORT_FUNCTION CatBoostCV_R(
     SEXP stratifiedParam
 );
 
+EXPORT_FUNCTION CatBoostGridSearch_R(
+    SEXP gridJsonParam,
+    SEXP poolParam,
+    SEXP fitParamsAsJsonParam,
+    SEXP foldCountParam,
+    SEXP partitionRandomSeedParam,
+    SEXP shuffleParam,
+    SEXP stratifiedParam,
+    SEXP trainSizeParam,
+    SEXP searchByTrainTestSplitParam,
+    SEXP calcCvStatisticsParam,
+    SEXP verboseParam
+);
+
+EXPORT_FUNCTION CatBoostRandomizedSearch_R(
+    SEXP gridJsonParam,
+    SEXP poolParam,
+    SEXP fitParamsAsJsonParam,
+    SEXP nIterParam,
+    SEXP foldCountParam,
+    SEXP partitionRandomSeedParam,
+    SEXP shuffleParam,
+    SEXP stratifiedParam,
+    SEXP trainSizeParam,
+    SEXP searchByTrainTestSplitParam,
+    SEXP calcCvStatisticsParam,
+    SEXP verboseParam
+);
+
 EXPORT_FUNCTION CatBoostOutputModel_R(
     SEXP modelParam,
     SEXP fileParam,

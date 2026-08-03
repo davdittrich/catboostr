@@ -1457,7 +1457,7 @@ EXPORT_FUNCTION CatBoostDatasetStatistics_R(
     return R_NilValue;
 }
 
-EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitParamsAsJsonParam) {
+EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitParamsAsJsonParam, SEXP initModelParam) {
     SEXP result = NULL;
     R_API_BEGIN();
     TPoolHandle learnPool = static_cast<TPoolHandle>(R_ExternalPtrAddr(learnPoolParam));
@@ -1467,6 +1467,18 @@ EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitP
 
     auto fitParams = LoadFitParams(fitParamsAsJsonParam);
     TFullModelPtr modelPtr = std::make_unique<TFullModel>();
+
+    // P5.1 (catboost-8z4.58): continue training from an existing model, same
+    // TMaybe<TFullModel*> initModel argument Python's _CatBoost._train passes
+    // to this same TrainModel() overload (_catboost.pyx, train_model.h:153).
+    // initLearnProgress is intentionally left nullptr (as the CLI does): the
+    // TrainModel() call rebuilds learn progress from initModel internally,
+    // it is just not cached across R calls the way Python's __cached_learn_progress does.
+    TMaybe<TFullModel*> initModel = Nothing();
+    if (initModelParam != R_NilValue) {
+        initModel = static_cast<TFullModelHandle>(R_ExternalPtrAddr(initModelParam));
+    }
+
     if (testPoolParam != R_NilValue) {
         TEvalResult evalResult;
         TPoolHandle testPool = static_cast<TPoolHandle>(R_ExternalPtrAddr(testPoolParam));
@@ -1479,7 +1491,7 @@ EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitP
             Nothing(),
             Nothing(),
             pools,
-            /*initModel*/ Nothing(),
+            initModel,
             /*initLearnProgress*/ nullptr,
             "",
             modelPtr.get(),
@@ -1494,7 +1506,7 @@ EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitP
             Nothing(),
             Nothing(),
             pools,
-            /*initModel*/ Nothing(),
+            initModel,
             /*initLearnProgress*/ nullptr,
             "",
             modelPtr.get(),

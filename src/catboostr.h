@@ -76,7 +76,11 @@ EXPORT_FUNCTION CatBoostPoolSliceSubset_R(
 EXPORT_FUNCTION CatBoostFit_R(
     SEXP learnPoolParam,
     SEXP testPoolParam,
-    SEXP fitParamsAsJsonParam
+    SEXP fitParamsAsJsonParam,
+    // P5.1 (catboost-8z4.58): model handle to continue training from, or
+    // R_NilValue. Appended as the last argument so existing 3-arg call
+    // sites keep compiling; the R wrapper always passes 4 args now.
+    SEXP initModelParam
 );
 
 EXPORT_FUNCTION CatBoostSumModels_R(

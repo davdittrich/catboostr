@@ -2541,6 +2541,14 @@ summary.catboost.Model <- function(object, ...) {
 #' If set, the passed list of parameters overrides the default values.
 #'
 #' Default value: Required argument
+#' @param init_model Continue training starting from an existing model.
+#'
+#' Accepts a \code{catboost.Model} object (as returned by \code{catboost.train}
+#' or \code{catboost.load_model}), or a string/path to a model file on disk
+#' (loaded via \code{catboost.load_model} with the default \code{"cbm"}
+#' format).
+#'
+#' Default value: NULL (train a new model from scratch)
 #' @examples
 #' \dontrun{
 #' train_pool_path <- system.file("extdata", "adult_train.1000", package = "catboostr")
@@ -2562,7 +2570,7 @@ summary.catboost.Model <- function(object, ...) {
 #' @return Model object.
 #' @export
 #' @seealso \url{https://catboost.ai/docs/concepts/r-reference_catboost-train.html}
-catboost.train <- function(learn_pool, test_pool = NULL, params = list()) {
+catboost.train <- function(learn_pool, test_pool = NULL, params = list(), init_model = NULL) {
     if (!inherits(learn_pool, "catboost.Pool"))
         stop("Expected catboost.Pool, got: ", class(learn_pool))
     if (is.null.handle(learn_pool))
@@ -2574,9 +2582,22 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list()) {
     if (length(params) == 0)
         message("Training catboost with default parameters! See help(catboost.train).")
 
+    # P5.1 (catboost-8z4.58): init_model matches Python's CatBoost.fit(init_model=...),
+    # which accepts a CatBoost object or a string/path (fit() loads the path
+    # via CatBoost().load_model() before passing it to _train()).
+    init_model_handle <- NULL
+    if (!is.null(init_model)) {
+        if (is.character(init_model))
+            init_model <- catboost.load_model(init_model)
+        if (!inherits(init_model, "catboost.Model"))
+            stop("Expected catboost.Model or a path to a model file, got: ", class(init_model))
+        catboost.restore_handle(init_model)
+        init_model_handle <- init_model$cpp_obj$handle
+    }
+
     params <- process_synonyms(params)
     json_params <- prepare_train_export_parameters(params)
-    handle <- .Call("CatBoostFit_R", learn_pool, test_pool, json_params)
+    handle <- .Call("CatBoostFit_R", learn_pool, test_pool, json_params, init_model_handle)
     raw <- .Call("CatBoostSerializeModel_R", handle)
     model <- create.model.base(handle, raw)
 

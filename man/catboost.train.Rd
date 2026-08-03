@@ -4,7 +4,7 @@
 \alias{catboost.train}
 \title{Train the model}
 \usage{
-catboost.train(learn_pool, test_pool = NULL, params = list())
+catboost.train(learn_pool, test_pool = NULL, params = list(), init_model = NULL)
 }
 \arguments{
 \item{learn_pool}{The dataset used for training the model.
@@ -22,6 +22,15 @@ If omitted, default values are used (see The list of parameters).
 If set, the passed list of parameters overrides the default values.
 
 Default value: Required argument}
+
+\item{init_model}{Continue training starting from an existing model.
+
+Accepts a \code{catboost.Model} object (as returned by \code{catboost.train}
+or \code{catboost.load_model}), or a string/path to a model file on disk
+(loaded via \code{catboost.load_model} with the default \code{"cbm"}
+format).
+
+Default value: NULL (train a new model from scratch)}
 }
 \value{
 Model object.

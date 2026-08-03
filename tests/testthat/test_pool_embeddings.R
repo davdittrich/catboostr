@@ -115,9 +115,18 @@ test_that("pool embeddings: default (LDA+KNN) fit/predict diverges from the Pyth
   expect_length(prediction, length(oracle_lda))
   expect_false(anyNA(prediction))
 
+  delta <- max(abs(prediction - oracle_lda))
+
   # Divergence from the oracle's default-LDA run is bounded, not unbounded
   # numerical nonsense (see catboost-8z4.45-report.md for the observed bound).
-  expect_true(all(abs(prediction - oracle_lda) < 1.5))
+  expect_lt(delta, 1.0)
+
+  if (delta > 0) {
+    message(sprintf(
+      "catboost-8z4.45: LDA-default embedding divergence observed (delta=%.6f), documented and bounded, not a regression.",
+      delta
+    ))
+  }
 
   # The LDA sign/ordering disagreement rotates the projection; it must not
   # flip the resulting classification decision.

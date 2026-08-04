@@ -12670,9 +12670,9 @@
     "kind": "property",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_metadata.R",
+    "state": "green",
+    "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.feature_names_ all delegate to the same _CatBoostBase._object._get_feature_names() (core.py); catboost.get_model_feature_names() covers all four via one differential test (test_metadata.R:151).",
     "needs_disposition": false,
     "members": [
       {
@@ -13822,9 +13822,9 @@
     "kind": "property",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_metadata.R",
+    "state": "green",
+    "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.feature_names_ all delegate to the same _CatBoostBase._object._get_feature_names() (core.py); catboost.get_model_feature_names() covers all four via one differential test (test_metadata.R:151).",
     "needs_disposition": false,
     "members": [
       {
@@ -15142,9 +15142,9 @@
     "kind": "property",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_metadata.R",
+    "state": "green",
+    "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.feature_names_ all delegate to the same _CatBoostBase._object._get_feature_names() (core.py); catboost.get_model_feature_names() covers all four via one differential test (test_metadata.R:151).",
     "needs_disposition": false,
     "members": [
       {
@@ -16318,9 +16318,9 @@
     "kind": "property",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_metadata.R",
+    "state": "green",
+    "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.feature_names_ all delegate to the same _CatBoostBase._object._get_feature_names() (core.py); catboost.get_model_feature_names() covers all four via one differential test (test_metadata.R:151).",
     "needs_disposition": false,
     "members": [
       {

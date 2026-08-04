@@ -1727,7 +1727,15 @@ static SEXP CVResultsToRList(const TVector<TCVResult>& cvResults) {
 // pattern catboost.get_plain_params already uses for CatBoostGetPlainParams_R)
 // rather than a hand-rolled TJsonValue -> SEXP walk.
 static SEXP BestOptionValuesToRList(const TBestOptionValuesWithCvResult& results) {
-    SEXP paramsJson = PROTECT(mkString(ToString(results.BestParams).c_str()));
+    // ToString(TJsonValue) uses the default writer config, whose
+    // DefaultDoubleNDigits = 10 (library/cpp/json/json_writer.h:16) silently
+    // truncates best-param doubles to 10 significant digits. Use PREC_AUTO,
+    // same fix as CatBoostSelectFeatures_R's summary JSON below.
+    TStringStream paramsStream;
+    NJson::TJsonWriterConfig paramsConfig;
+    paramsConfig.FloatToStringMode = PREC_AUTO;
+    NJson::WriteJson(&paramsStream, &results.BestParams, paramsConfig);
+    SEXP paramsJson = PROTECT(mkString(paramsStream.Str().c_str()));
     SEXP cvResultsList = CVResultsToRList(results.CvResult); // already left PROTECTed (net +1)
 
     SEXP result = PROTECT(allocVector(VECSXP, 2));

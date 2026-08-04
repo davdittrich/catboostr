@@ -24,6 +24,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 MATRIX_PATH = ROOT / "tests" / "fixtures" / "parity" / "matrix.dispositioned.json"
 CATBOOST_R = ROOT / "R" / "catboost.R"
+VENDOR_PLAIN_OPTIONS_HELPER = (
+    ROOT / "vendor" / "catboost" / "catboost" / "private" / "libs" / "options"
+    / "plain_options_helper.cpp"
+)
 
 KNOWN_PARAMS_BEGIN = "# BEGIN GENERATED KNOWN_PARAMS (tools/parity/gen_param_reference.py) -- DO NOT EDIT BY HAND"
 KNOWN_PARAMS_END = "# END GENERATED KNOWN_PARAMS"
@@ -61,7 +65,30 @@ SELF_REFERENTIAL = {"params"}
 # Included in .catboostr_known_params so the new validation gate cannot
 # regress pre-existing behavior (found via a full-suite sweep after adding
 # the gate; see tests/testthat/test_pool_embeddings.R).
+# `embedding_processing` is not a literal CopyOption(plainOptions, "...") name
+# in plain_options_helper.cpp (it is routed through a different code path),
+# so it cannot be picked up by parse_native_copyoption_names() below and stays
+# a hand-kept exception here.
 EXTRA_KNOWN_PARAMS = {"embedding_processing"}
+
+
+def parse_native_copyoption_names(vendor_cpp_path):
+    """Every option name vendor-native's plain-options parser accepts, read
+    straight from CopyOption(plainOptions, "name", ...) call sites in
+    plain_options_helper.cpp -- the authoritative superset of the 139-name
+    Python-surface inventory above (catboost-8z4 Phase 5 whole-branch review
+    finding: the inventory only scans Python bindings, so 59 vendor-valid
+    names silently failed .catboostr_known_params). Not hand-typed: any
+    future vendor pin bump just needs a re-run of this script.
+    """
+    if not vendor_cpp_path.is_file():
+        sys.exit(
+            "vendor/catboost is absent. Run tools/vendor/acquire.sh before "
+            "running this script (needed to derive the native option-name "
+            "superset from plain_options_helper.cpp)."
+        )
+    src = vendor_cpp_path.read_text()
+    return set(re.findall(r'CopyOption\(plainOptions,\s*"([^"]+)"', src))
 
 
 def parse_synonym_groups(src: str):
@@ -147,15 +174,21 @@ def main():
             alias_of[alias] = canonical
     pool_arg_names = set(parse_load_pool_args(src))
 
-    # 1. .catboostr_known_params vector (139 inventory names + the small
-    # EXTRA_KNOWN_PARAMS backward-compat allowlist above)
-    accepted_names = sorted(set(names) | EXTRA_KNOWN_PARAMS)
+    # 1. .catboostr_known_params vector: the 139 Python-surface inventory
+    # names, unioned with every name vendor-native's CopyOption(plainOptions,
+    # ...) calls accept (plain_options_helper.cpp) -- not just the
+    # Python-surface subset -- plus the small EXTRA_KNOWN_PARAMS backward-compat
+    # allowlist above for the one name that reaches neither list literally.
+    native_names = parse_native_copyoption_names(VENDOR_PLAIN_OPTIONS_HELPER)
+    accepted_names = sorted(set(names) | native_names | EXTRA_KNOWN_PARAMS)
     quoted = ", ".join("\"%s\"" % n for n in accepted_names)
     lines = [KNOWN_PARAMS_BEGIN]
     lines.append("# Canonical + alias hyperparameter names from the machine-generated")
     lines.append("# capability inventory (tests/fixtures/parity/matrix.dispositioned.json,")
-    lines.append("# kind:\"parameter\" rows), plus EXTRA_KNOWN_PARAMS (see")
-    lines.append("# tools/parity/gen_param_reference.py). Used by validate_params_keys() below.")
+    lines.append("# kind:\"parameter\" rows), unioned with every name vendor-native's")
+    lines.append("# CopyOption(plainOptions, ...) calls accept (plain_options_helper.cpp;")
+    lines.append("# see parse_native_copyoption_names() in this script), plus")
+    lines.append("# EXTRA_KNOWN_PARAMS. Used by validate_params_keys() below.")
     wrapped = []
     cur = ".catboostr_known_params <- c("
     for i, part in enumerate(quoted.split(", ")):

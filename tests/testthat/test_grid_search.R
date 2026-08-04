@@ -104,6 +104,31 @@ test_that("grid_search: a list of multiple grids explores each independently (no
   expect_null(result$model)
 })
 
+test_that("grid_search: hyperparameter values with more than 10 significant digits round-trip without truncation (catboost-8z4 Phase 5 whole-branch fix-wave Finding 1)", {
+  # Both directions used to truncate at 10 significant digits: inbound via
+  # prepare_grid_json's jsonlite::toJSON(..., digits = 10), outbound via
+  # BestOptionValuesToRList's ToString(TJsonValue) (default
+  # DefaultDoubleNDigits = 10). learning_rate here has 15 significant digits,
+  # so a passing test at tolerance = 1e-12 proves neither direction truncates.
+  expected <- fixture$expected$grid_search_high_precision
+  high_precision_grid <- as.list(fixture$high_precision_param_grid)
+
+  result <- catboost.grid_search(
+    high_precision_grid, pool, params = base_params(),
+    cv = 3, partition_random_seed = 0,
+    calc_cv_statistics = TRUE, search_by_train_test_split = TRUE,
+    refit = TRUE, shuffle = TRUE, stratified = FALSE, train_size = 0.8,
+    verbose = FALSE
+  )
+
+  expect_equal(result$params$depth, expected$params$depth)
+  expect_equal(result$params$learning_rate, expected$params$learning_rate, tolerance = 1e-12)
+
+  expect_equal(result$model$tree_count, expected$refit_tree_count)
+  refit_predict <- catboost.predict(result$model, pool, prediction_type = "RawFormulaVal")
+  expect_equal(refit_predict, expected$refit_predict, tolerance = 1e-12, check.attributes = FALSE)
+})
+
 test_that("randomized_search rejects a non-positive n_iter", {
   expect_error(
     catboost.randomized_search(param_distributions, pool, n_iter = 0),

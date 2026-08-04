@@ -2772,40 +2772,61 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list(), init_m
 # BEGIN GENERATED KNOWN_PARAMS (tools/parity/gen_param_reference.py) -- DO NOT EDIT BY HAND
 # Canonical + alias hyperparameter names from the machine-generated
 # capability inventory (tests/fixtures/parity/matrix.dispositioned.json,
-# kind:"parameter" rows), plus EXTRA_KNOWN_PARAMS (see
-# tools/parity/gen_param_reference.py). Used by validate_params_keys() below.
-.catboostr_known_params <- c("X", "allow_const_label", "allow_writing_files", 
-    "approx_on_full_history", "auto_class_weights", "bagging_temperature", "baseline", 
-    "best_model_min_trees", "boost_from_average", "boosting_type", "bootstrap_type", 
-    "border_count", "callback", "callbacks", "cat_features", "class_names", 
-    "class_weights", "classes_count", "colsample_bylevel", "column_description", 
-    "combinations_ctr", "counter_calc_method", "ctr_description", "ctr_history_unit", 
-    "ctr_leaf_count_limit", "ctr_target_border_count", "custom_loss", "custom_metric", 
-    "data_partition", "depth", "dev_efb_max_buckets", "dev_score_calc_obj_block_size", 
-    "device_config", "devices", "dictionaries", "diffusion_temperature", 
-    "early_stopping_rounds", "embedding_features", "embedding_processing", "eta", 
-    "eval_fraction", "eval_metric", "eval_set", "feature_border_type", "feature_calcers", 
-    "feature_weights", "final_ctr_computation_mode", "first_feature_use_penalties", 
-    "fixed_binary_splits", "fold_len_multiplier", "fold_permutation_block", 
-    "gpu_cat_features_storage", "gpu_ram_part", "graph", "group_id", "group_weight", 
-    "grow_policy", "has_time", "ignored_features", "init_model", "input_borders", 
-    "iterations", "l2_leaf_reg", "langevin", "leaf_estimation_backtracking", 
-    "leaf_estimation_iterations", "leaf_estimation_method", "learning_rate", "log_cerr", 
-    "log_cout", "logging_level", "loss_function", "max_bin", "max_ctr_complexity", 
-    "max_depth", "max_leaves", "metadata", "metric_period", "min_child_samples", 
-    "min_data_in_leaf", "model_shrink_mode", "model_shrink_rate", "model_size_reg", 
-    "monotone_constraints", "mvs_reg", "n_estimators", "name", "nan_mode", 
-    "num_boost_round", "num_leaves", "num_trees", "objective", "od_pval", "od_type", 
-    "od_wait", "one_hot_max_size", "output_borders", "pairs", "pairs_weight", "params", 
-    "penalties_coefficient", "per_feature_ctr", "per_float_feature_quantization", 
-    "per_object_feature_penalties", "pinned_memory_size", "plot", "plot_file", 
-    "posterior_sampling", "random_score_type", "random_seed", "random_state", 
-    "random_strength", "reg_lambda", "rsm", "sample_weight", "sampling_frequency", 
-    "sampling_unit", "save_snapshot", "scale_pos_weight", "score_function", "silent", 
-    "simple_ctr", "snapshot_file", "snapshot_interval", 
-    "sparse_features_conflict_fraction", "store_all_simple_ctr", "subgroup_id", 
-    "subsample", "target_border", "task_type", "text_features", "text_processing", 
-    "thread_count", "tokenizers", "train_dir", "use_best_model", "used_ram_limit", 
+# kind:"parameter" rows), unioned with every name vendor-native's
+# CopyOption(plainOptions, ...) calls accept (plain_options_helper.cpp;
+# see parse_native_copyoption_names() in this script), plus
+# EXTRA_KNOWN_PARAMS. Used by validate_params_keys() below.
+.catboostr_known_params <- c("X", "add_ridge_penalty_to_loss_function", 
+    "allow_const_label", "allow_writing_files", "approx_on_full_history", 
+    "auto_class_weights", "bagging_temperature", "baseline", "baseline_model_snapshot", 
+    "bayesian_matrix_reg", "best_model_min_trees", "boost_from_average", "boosting_type", 
+    "bootstrap_type", "border_count", "callback", "callbacks", "cat_features", 
+    "class_names", "class_weights", "classes_count", "colsample_bylevel", 
+    "column_description", "combinations_ctr", "counter_calc_method", "ctr_description", 
+    "ctr_history_unit", "ctr_leaf_count_limit", "ctr_target_border_count", "custom_loss", 
+    "custom_metric", "data_partition", "depth", "detailed_profile", 
+    "dev_default_value_fraction_for_sparse", "dev_efb_max_buckets", "dev_group_features", 
+    "dev_leafwise_approxes", "dev_leafwise_scoring", 
+    "dev_max_ctr_complexity_for_borders_cache", "dev_max_subset_size_for_build_borders", 
+    "dev_score_calc_obj_block_size", "dev_sparse_array_indexing", "device_config", 
+    "devices", "dictionaries", "diffusion_temperature", "early_stopping_rounds", 
+    "embedding_features", "embedding_processing", "eta", "eval_file_name", 
+    "eval_fraction", "eval_metric", "eval_set", "experiment_count", "experiment_size", 
+    "feature_border_type", "feature_calcers", "feature_weights", "features_for_select", 
+    "features_selection_algorithm", "features_selection_grouping", 
+    "features_selection_result_path", "features_selection_steps", 
+    "features_tags_for_select", "features_to_evaluate", "file_with_hosts", 
+    "final_ctr_computation_mode", "final_feature_calcer_computation_mode", 
+    "first_feature_use_penalties", "fixed_binary_splits", "fold_len_multiplier", 
+    "fold_permutation_block", "fold_size_loss_normalization", 
+    "force_unit_auto_pair_weights", "fstr_internal_file", "fstr_regular_file", 
+    "fstr_type", "gpu_cat_features_storage", "gpu_ram_part", "graph", "group_id", 
+    "group_weight", "grow_policy", "has_time", "ignored_features", "init_model", 
+    "input_borders", "iterations", "json_log", "l2_leaf_reg", "langevin", 
+    "leaf_estimation_backtracking", "leaf_estimation_iterations", 
+    "leaf_estimation_method", "learn_error_log", "learning_rate", "log_cerr", "log_cout", 
+    "logging_level", "loss_function", "max_bin", "max_ctr_complexity", "max_depth", 
+    "max_leaves", "meta", "meta_l2_exponent", "meta_l2_frequency", "metadata", 
+    "metric_period", "min_child_samples", "min_data_in_leaf", "min_fold_size", 
+    "model_format", "model_shrink_mode", "model_shrink_rate", "model_size_reg", 
+    "monotone_constraints", "mvs_reg", "n_estimators", "name", "nan_mode", "node_port", 
+    "node_type", "num_boost_round", "num_features_tags_to_select", 
+    "num_features_to_select", "num_leaves", "num_trees", "objective", 
+    "observations_to_bootstrap", "od_pval", "od_type", "od_wait", "offset", 
+    "one_hot_max_size", "output_borders", "output_columns", "pairs", "pairs_weight", 
+    "params", "penalties_coefficient", "per_feature_ctr", "per_feature_ctr_description", 
+    "per_float_feature_quantization", "per_object_feature_penalties", 
+    "permutation_count", "pinned_memory_size", "plot", "plot_file", 
+    "pool_metainfo_options", "posterior_sampling", "prediction_type", "profile_log", 
+    "random_score_type", "random_seed", "random_state", "random_strength", "reg_lambda", 
+    "result_model_file", "roc_file", "rsm", "sample_weight", "sampling_frequency", 
+    "sampling_unit", "save_snapshot", "scale_pos_weight", "score_function", 
+    "shap_calc_type", "silent", "simple_ctr", "simple_ctr_description", "snapshot_file", 
+    "snapshot_interval", "sparse_features_conflict_fraction", "store_all_simple_ctr", 
+    "subgroup_id", "subsample", "target_border", "task_type", "test_error_log", 
+    "text_features", "text_processing", "thread_count", "time_left_log", "tokenizers", 
+    "train_dir", "train_final_model", "training_options_file", "tree_ctr_description", 
+    "use_best_model", "use_evaluated_features_in_baseline_model", "used_ram_limit", 
     "verbose", "verbose_eval", "y")
 # END GENERATED KNOWN_PARAMS
 
@@ -2955,7 +2976,10 @@ prepare_grid_json <- function(param_grid) {
     if (!is.null(names(param_grid)) && all(nzchar(names(param_grid)))) {
         param_grid <- list(param_grid)
     }
-    return(jsonlite::toJSON(param_grid, auto_unbox = FALSE, digits = 10))
+    # digits = NA: jsonlite's full-round-trip-precision mode. digits = 10
+    # (jsonlite's default) truncates grid values to 10 significant digits
+    # before they ever reach native code (catboost-8z4.65 bug class).
+    return(jsonlite::toJSON(param_grid, auto_unbox = FALSE, digits = NA))
 }
 
 #' @name catboost.grid_search

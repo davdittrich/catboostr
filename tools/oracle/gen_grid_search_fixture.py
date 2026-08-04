@@ -48,13 +48,24 @@ PARAM_DISTRIBUTIONS = {
     "learning_rate": [0.03, 0.05, 0.1, 0.2, 0.3],
 }
 
+# catboost-8z4 Phase 5 whole-branch fix-wave Finding 1: grid_search/
+# randomized_search used to truncate hyperparameter values to 10 significant
+# digits both outbound (BestOptionValuesToRList's ToString(TJsonValue),
+# default DefaultDoubleNDigits=10) and inbound (prepare_grid_json's
+# jsonlite::toJSON(..., digits=10)). learning_rate below has 15 significant
+# digits so a >10-sig-digit round trip is actually exercised.
+HIGH_PRECISION_PARAM_GRID = {
+    "depth": [3],
+    "learning_rate": [0.123456789012345, 0.05],
+}
 
-def run_search(kind, extra):
+
+def run_search(kind, extra, param_grid=None):
     pool = Pool(FEATURES, LABEL)
     model = CatBoost(dict(BASE_PARAMS, train_dir=os.path.join(SCRIPT_DIR, f".catboost_train_{kind}")))
-    if kind == "grid_search":
+    if kind in ("grid_search", "grid_search_high_precision"):
         result = model.grid_search(
-            PARAM_GRID, pool, cv=3, partition_random_seed=0,
+            param_grid if param_grid is not None else PARAM_GRID, pool, cv=3, partition_random_seed=0,
             calc_cv_statistics=True, search_by_train_test_split=True,
             refit=True, shuffle=True, stratified=False, train_size=0.8,
             verbose=False,
@@ -80,12 +91,16 @@ def main():
 
     grid_result = run_search("grid_search", {})
     randomized_result = run_search("randomized_search", {})
+    high_precision_result = run_search(
+        "grid_search_high_precision", {}, param_grid=HIGH_PRECISION_PARAM_GRID
+    )
 
     fixture = {
         "catboost_version": catboost.__version__,
         "base_params": BASE_PARAMS,
         "param_grid": PARAM_GRID,
         "param_distributions": PARAM_DISTRIBUTIONS,
+        "high_precision_param_grid": HIGH_PRECISION_PARAM_GRID,
         "inputs": {
             "features": FEATURES,
             "label": LABEL,
@@ -93,6 +108,7 @@ def main():
         "expected": {
             "grid_search": grid_result,
             "randomized_search": randomized_result,
+            "grid_search_high_precision": high_precision_result,
         },
     }
 
@@ -103,6 +119,7 @@ def main():
     print(f"catboost.__version__={catboost.__version__}", file=sys.stderr)
     print(f"grid_search.params={grid_result['params']}", file=sys.stderr)
     print(f"randomized_search.params={randomized_result['params']}", file=sys.stderr)
+    print(f"grid_search_high_precision.params={high_precision_result['params']}", file=sys.stderr)
     print("OK", file=sys.stderr)
 
 

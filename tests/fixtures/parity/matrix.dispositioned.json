@@ -109,9 +109,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": 1e-12,
-    "test_id": "tests/testthat/test_text_processing.R",
+    "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "Pool-construction arg; text handling exercised via the tokenizer/dictionary oracle tests.",
+    "tolerance_justification": "Pool-construction arg (character column auto-detected as text, catboost.load_pool, R/catboost.R:401-404); given real end-to-end oracle-diff coverage this fix round (text_processing_only/tokenizers_dictionaries_calcers batches, a dedicated text-bearing Pool), not just the standalone Tokenizer/Dictionary API test.",
     "needs_disposition": false,
     "members": [
       {
@@ -201,10 +201,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": 1e-12,
-    "test_id": "tests/testthat/test_pool_metadata.R",
-    "state": "green",
-    "tolerance_justification": "Pool-construction arg; no dedicated graph-specific oracle fixture exists, closed via the Pool metadata suite covering the same load_pool() call path.",
+    "tolerance": null,
+    "test_id": "tests/testthat/test_params_validation.R",
+    "state": "red",
+    "tolerance_justification": "BLOCKED, not green (review-round fix #2: was closed on test_pool_metadata.R, which never actually calls graph=). graph is a real catboost.load_pool() arg (R/catboost.R:110) and a real Python Pool(graph=...) arg too, requiring nontrivial groups in both languages. Reproduced directly: building an R Pool with graph= and group_id= together throws a hard native/glue error (Internal CatBoost Error / Unimplemented from catboost.from_data_frame -> catboost.from_matrix -> data_provider_builders.cpp), plus further argument-type-coercion errors probing the plain-matrix path -- an under-exercised, fragile combination in catboostr's own C bridge, not a Python-parity issue. See test_params_validation.R.",
     "needs_disposition": false,
     "members": [
       {
@@ -365,7 +365,7 @@
     "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -585,7 +585,7 @@
     "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -980,7 +980,7 @@
     "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -1011,7 +1011,7 @@
     "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -1042,7 +1042,7 @@
     "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -1259,7 +1259,7 @@
     "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -1290,7 +1290,7 @@
     "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -1321,7 +1321,7 @@
     "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -1352,7 +1352,7 @@
     "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -1383,7 +1383,7 @@
     "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -1445,7 +1445,7 @@
     "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -1476,7 +1476,7 @@
     "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -1569,7 +1569,7 @@
     "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -1724,7 +1724,7 @@
     "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -1909,7 +1909,7 @@
     "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -1971,7 +1971,7 @@
     "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -2002,7 +2002,7 @@
     "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -2033,7 +2033,7 @@
     "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -2087,7 +2087,7 @@
     "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -2118,7 +2118,7 @@
     "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -2180,7 +2180,7 @@
     "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -2304,7 +2304,7 @@
     "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -2366,7 +2366,7 @@
     "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -2397,7 +2397,7 @@
     "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -2583,7 +2583,7 @@
     "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -2800,7 +2800,7 @@
     "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -2831,7 +2831,7 @@
     "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -2862,7 +2862,7 @@
     "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -2893,7 +2893,7 @@
     "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -3288,7 +3288,7 @@
     "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -3319,7 +3319,7 @@
     "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -3381,7 +3381,7 @@
     "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -3536,7 +3536,7 @@
     "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -3784,7 +3784,7 @@
     "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -3908,7 +3908,7 @@
     "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -3936,10 +3936,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": "tests/testthat/test_params_validation.R",
-    "state": "red",
-    "tolerance_justification": "BLOCKED, not green. Verified directly: native accepts these flat keys syntactically even without text_features present (text_processing_options.cpp), but a genuine end-to-end differential test requires wiring text_features into the training Pool, which this fixture's dataset does not have (out of this ticket's scope -- would mean extending catboost.load_pool's text-feature Pool-construction path, not just the params validation/closure this ticket covers). No test_id currently exercises the training-time effect of these keys with a text-bearing Pool; test_text_processing.R exercises the standalone Tokenizer/Dictionary API, not these training params.",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "tokenizers_dictionaries_calcers batch (review-round fix): native forbids combining text_processing with this trio in the same call (text_processing_options.cpp:394), hence a second dedicated batch; real oracle-diff coverage.",
     "needs_disposition": false,
     "members": [
       {
@@ -3967,10 +3967,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": "tests/testthat/test_params_validation.R",
-    "state": "red",
-    "tolerance_justification": "BLOCKED, not green. Verified directly: native accepts these flat keys syntactically even without text_features present (text_processing_options.cpp), but a genuine end-to-end differential test requires wiring text_features into the training Pool, which this fixture's dataset does not have (out of this ticket's scope -- would mean extending catboost.load_pool's text-feature Pool-construction path, not just the params validation/closure this ticket covers). No test_id currently exercises the training-time effect of these keys with a text-bearing Pool; test_text_processing.R exercises the standalone Tokenizer/Dictionary API, not these training params.",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "tokenizers_dictionaries_calcers batch (review-round fix): native forbids combining text_processing with this trio in the same call (text_processing_options.cpp:394), hence a second dedicated batch; real oracle-diff coverage.",
     "needs_disposition": false,
     "members": [
       {
@@ -3998,10 +3998,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": "tests/testthat/test_params_validation.R",
-    "state": "red",
-    "tolerance_justification": "BLOCKED, not green. Verified directly: native accepts these flat keys syntactically even without text_features present (text_processing_options.cpp), but a genuine end-to-end differential test requires wiring text_features into the training Pool, which this fixture's dataset does not have (out of this ticket's scope -- would mean extending catboost.load_pool's text-feature Pool-construction path, not just the params validation/closure this ticket covers). No test_id currently exercises the training-time effect of these keys with a text-bearing Pool; test_text_processing.R exercises the standalone Tokenizer/Dictionary API, not these training params.",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "tokenizers_dictionaries_calcers batch (review-round fix): native forbids combining text_processing with this trio in the same call (text_processing_options.cpp:394), hence a second dedicated batch; real oracle-diff coverage.",
     "needs_disposition": false,
     "members": [
       {
@@ -4029,10 +4029,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": "tests/testthat/test_params_validation.R",
-    "state": "red",
-    "tolerance_justification": "BLOCKED, not green. Verified directly: native accepts these flat keys syntactically even without text_features present (text_processing_options.cpp), but a genuine end-to-end differential test requires wiring text_features into the training Pool, which this fixture's dataset does not have (out of this ticket's scope -- would mean extending catboost.load_pool's text-feature Pool-construction path, not just the params validation/closure this ticket covers). No test_id currently exercises the training-time effect of these keys with a text-bearing Pool; test_text_processing.R exercises the standalone Tokenizer/Dictionary API, not these training params.",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "text_processing_only batch (review-round fix): a dedicated text-bearing Pool, real oracle-diff coverage.",
     "needs_disposition": false,
     "members": [
       {

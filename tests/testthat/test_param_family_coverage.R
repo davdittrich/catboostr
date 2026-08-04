@@ -55,11 +55,17 @@ expect_batch_matches_oracle <- function(batch_name, params, tolerance = 1e-12) {
   expect_equal(as.vector(actual), expected, tolerance = tolerance, check.attributes = FALSE)
 }
 
-test_that("core training-control/regularization/leaf-estimation/od/output-settings/ignored_features family matches Python oracle", {
+test_that("core training-control/regularization/leaf-estimation/od/output-settings/ignored_features/train_dir family matches Python oracle", {
   # Bit-exact at the real 1e-12 default (model_shrink_rate, the confirmed
   # cause of an earlier ~1.7e-7 divergence in a larger version of this
   # batch, now lives in its own isolated test_that() below).
   p <- fixture$batches$core_training_control$params
+  # train_dir is stripped from the exported fixture params (a filesystem
+  # path, not comparable across machines -- see gen_param_family_fixture.py),
+  # so it must be re-injected here for the row to genuinely reach this key,
+  # same as snapshot_file/output_borders in the batches below (review-round
+  # fix: this row was green with train_dir never actually passed to R).
+  p$train_dir <- tempfile("core_training_control_")
   expect_batch_matches_oracle("core_training_control", p)
 })
 
@@ -82,8 +88,10 @@ test_that("model_shrink_rate, isolated, matches Python oracle within a measured,
   # Plausibly floating-point evaluation-order sensitivity in the repeated
   # multiplicative shrinkage applied across iterations, not an RNG stream
   # difference -- deterministic on both sides, but not associative across
-  # implementations. Measured max abs diff ~1.7e-7; tolerance widened to
-  # 1e-6 for margin (same convention as the Langevin batch below).
+  # implementations. Original bundled-batch divergence ~1.7e-7; re-measured
+  # ~3.9e-7 in this isolated batch (same order of magnitude, different exact
+  # value because the surrounding params differ -- not a discrepancy).
+  # Tolerance widened to 1e-6 for margin (same convention as Langevin below).
   p <- fixture$batches$model_shrink_rate_isolated$params
   expect_batch_matches_oracle("model_shrink_rate_isolated", p, tolerance = 1e-6)
 })
@@ -164,4 +172,45 @@ test_that("used_ram_limit's real, isolated R-vs-Python divergence is measured, n
 
   p <- fixture$batches$used_ram_limit_isolated$params
   expect_batch_matches_oracle("used_ram_limit_isolated", p)
+})
+
+text_features <- data.frame(
+  num1 = fixture$text_inputs$num1,
+  num2 = fixture$text_inputs$num2,
+  cat1 = factor(fixture$text_inputs$cat1),
+  text1 = fixture$text_inputs$text1,
+  stringsAsFactors = FALSE
+)
+text_pool <- catboost.load_pool(text_features, label = fixture$text_inputs$label)
+
+expect_text_batch_matches_oracle <- function(batch_name, params) {
+  params$logging_level <- "Silent"
+  model <- catboost.train(text_pool, params = params)
+  actual <- catboost.predict(model, text_pool, prediction_type = "RawFormulaVal")
+  expected <- as.vector(fixture$batches[[batch_name]]$predictions)
+  expect_equal(as.vector(actual), expected, tolerance = 1e-12, check.attributes = FALSE)
+}
+
+test_that("text_features (auto-detected character column) + text_processing matches Python oracle (review-round fix)", {
+  # text_features itself has no literal R params-list key (it's supplied via
+  # catboost.load_pool auto-detecting character columns, R/catboost.R:401-404,
+  # matching Python's Pool(text_features=[...])); this proves that R path
+  # end-to-end with a genuine text-bearing Pool, not just the standalone
+  # Tokenizer/Dictionary API (test_text_processing.R) or the params-key gate.
+  p <- fixture$batches$text_processing_only$params
+  p$text_processing <- list(feature_processing = list(default = list(list(
+    dictionaries_names = list("Word"), feature_calcers = list("BoW"),
+    tokenizers_names = list("Space")
+  ))))
+  expect_text_batch_matches_oracle("text_processing_only", p)
+})
+
+test_that("dictionaries/tokenizers/feature_calcers (the separate-options form) matches Python oracle (review-round fix)", {
+  # Native forbids combining `text_processing` with this trio in the same
+  # call (text_processing_options.cpp:394), hence a second, separate batch.
+  p <- fixture$batches$tokenizers_dictionaries_calcers$params
+  p$dictionaries <- list(list(dictionary_id = "Word"))
+  p$tokenizers <- list(list(tokenizer_id = "Space"))
+  p$feature_calcers <- as.list(p$feature_calcers)
+  expect_text_batch_matches_oracle("tokenizers_dictionaries_calcers", p)
 })

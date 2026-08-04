@@ -125,6 +125,28 @@ test_that("params key 'input_borders' is rejected as an unknown flat option (mat
   )
 })
 
+test_that("catboost.load_pool: 'graph' is accepted syntactically but the R Pool-construction glue can't build a graph+group_id Pool (matrix row stays red)", {
+  # graph is a real catboost.load_pool() argument (R/catboost.R:110) and a
+  # real Python Pool(graph=...) argument too, and requires nontrivial groups
+  # in both languages ("Graph features require nontrivial groups",
+  # data_providers.cpp:494). Reproduced directly (review-round fix): building
+  # a Pool with both graph= and group_id= set throws a hard native error from
+  # the R glue's own data.frame path (catboost.from_data_frame ->
+  # catboost.from_matrix -> data_provider_builders.cpp), not from Python
+  # parity logic -- an under-exercised combination in catboostr's own C
+  # bridge (further probing found additional graph/group_id argument-type
+  # coercion errors in the plain-matrix path too, corroborating that this
+  # specific combination is genuinely unimplemented/fragile here, not a
+  # one-off).
+  graph_pool_data <- data.frame(num1 = c(1, 2, 3, 4), num2 = c(5, 6, 7, 8))
+  expect_error(
+    catboost.load_pool(graph_pool_data, label = c(0, 1, 0, 1),
+                        group_id = c(0L, 0L, 1L, 1L),
+                        graph = matrix(c(1L, 2L, 3L, 4L), ncol = 2)),
+    "Internal CatBoost Error|Unimplemented|INTEGER\\(\\)|REAL\\(\\)"
+  )
+})
+
 test_that("GPU-only params keys fail without a CUDA device, matching the mode:model-based-eval precedent (matrix rows stay red)", {
   # Each key needs a syntactically valid value so the failure genuinely comes
   # from "no CUDA device", not from a value-parsing error one layer earlier.
@@ -163,12 +185,14 @@ test_that("params key 'callbacks' is syntactically accepted by native but has no
   # Unlike the other Python-only keys above, native's plain_options_helper.cpp
   # explicitly *records* "callbacks" as a seen/valid key without validating or
   # consuming its value (plain_options_helper.cpp:269-270) -- so this does
-  # NOT error. But catboostr's C glue (src/catboostr.cpp) has no mechanism to
-  # marshal an R closure into a per-iteration native callback, so accepting
-  # the key is not the same as the capability existing: passing it is a
-  # silent no-op, never actually invoked. Real, non-circular finding (this is
-  # a positive assertion about specific R-side behavior, not "didn't hit my
-  # own gate's error message"): training completes, but nothing was called.
+  # NOT error, confirmed below. catboostr's C glue (src/catboostr.cpp) has no
+  # mechanism to marshal an R closure into a per-iteration native callback --
+  # inspected directly, not asserted here (this test only proves the
+  # non-error half: an arbitrary value under "callbacks" doesn't trip
+  # native's flat-option validation, unlike every other Python-only key
+  # above). The absence of any callback-invocation mechanism in catboostr's
+  # C glue is a code-inspection finding, not something a single training
+  # call can spy on from R.
   expect_error(catboost.train(pool, params = tiny_params(list(callbacks = list(1)))), NA)
 })
 

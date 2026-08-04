@@ -108,8 +108,10 @@ def main():
         ),
         # Isolated (single-variable-vs-core-defaults) model_shrink_rate
         # batch: bisection (fix round, see task-5-report.md) confirmed this
-        # is the real, sole cause of the ~1.7e-7-magnitude divergence
-        # originally (and wrongly) attributed to bagging_temperature.
+        # is the real, sole cause of a ~1.7e-7-magnitude divergence in the
+        # original bundled batch (re-measured ~3.9e-7 in this isolated
+        # batch -- different exact value, same order of magnitude, not a
+        # discrepancy), originally (and wrongly) attributed to bagging_temperature.
         # Plausibly floating-point evaluation-order sensitivity in the
         # repeated multiplicative shrinkage applied across iterations
         # (Constant mode), not an RNG stream difference -- deterministic on
@@ -261,6 +263,93 @@ def main():
         fixture["batches"][batch_name] = {
             "params": json_params,
             "predictions": preds,
+        }
+
+    # G14: graph (review-round fix -- was closed on an unrelated test with no
+    # real "graph=" call anywhere in the suite). graph is a real Pool
+    # argument in both languages (catboost.load_pool's `graph` arg,
+    # R/catboost.R:110; Python's Pool(graph=...), core.py). Uses the same
+    # shared dataset/pool but a fresh Pool instance carrying a 2-column
+    # integer index-pairs graph (consecutive-row pairs), matching how
+    # catboost.load_pool's own graph= validation expects it (integer,
+    # 2 columns -- R/catboost.R:317-322).
+    # Graph features require nontrivial groups (native: "Graph features
+    # require nontrivial groups", data_providers.cpp:494) -- each pair of
+    # consecutive rows forms its own 2-member group, matching graph_pairs.
+    graph_pairs = [[i, i + 1] for i in range(0, N_ROWS - 1, 2)]
+    graph_group_id = [i // 2 for i in range(N_ROWS)]
+    graph_pool = Pool(X, y, cat_features=[2], feature_names=feature_names,
+                       graph=graph_pairs, group_id=graph_group_id)
+    graph_model = CatBoostClassifier(
+        loss_function="Logloss", iterations=15, verbose=False,
+        random_seed=SEED, thread_count=1, train_dir=os.path.join(TRAIN_DIR, "graph"),
+    )
+    graph_model.fit(graph_pool)
+    graph_preds = graph_model.predict(graph_pool, prediction_type="RawFormulaVal")
+    fixture["graph_inputs"] = {"graph_pairs": graph_pairs, "group_id": graph_group_id}
+    fixture["batches"]["graph"] = {
+        "params": {"loss_function": "Logloss", "iterations": 15, "random_seed": SEED, "thread_count": 1},
+        "predictions": [float(v) for v in np.asarray(graph_preds).ravel().tolist()],
+    }
+
+    # G15: text_features + dictionaries/tokenizers/text_processing/
+    # feature_calcers (review-round fix -- these 4 training params were
+    # closed on test_params_validation.R with the params validation gate
+    # accepting the key syntactically but no real end-to-end text-feature
+    # differential test; text_features itself was closed on
+    # test_text_processing.R, which only exercises the standalone
+    # Tokenizer/Dictionary API, not catboost.train with a text-bearing
+    # Pool). A dedicated small text-bearing dataset + Pool, auto-detected
+    # text feature (character column -> text_features_indices, matching
+    # R/catboost.R:401-404's auto-detection), trained with an explicit
+    # tokenizers/dictionaries/text_processing/feature_calcers config.
+    text_words = [["quick", "brown", "fox", "lazy", "dog"],
+                  ["red", "fast", "car", "loud", "engine"]]
+    text_rng = random.Random(SEED + 1)
+    text_rows = []
+    for i in range(N_ROWS):
+        label = i % 2
+        words = text_rng.sample(text_words[label], k=3)
+        text_rows.append((rows[i][0], rows[i][1], rows[i][2], " ".join(words), label))
+    text_X = [[r[0], r[1], r[2], r[3]] for r in text_rows]
+    text_y = [r[4] for r in text_rows]
+    text_feature_names = feature_names + ["text1"]
+    text_pool = Pool(text_X, text_y, cat_features=[2], text_features=[3], feature_names=text_feature_names)
+    fixture["text_inputs"] = {
+        "num1": [r[0] for r in text_rows], "num2": [r[1] for r in text_rows],
+        "cat1": [r[2] for r in text_rows], "text1": [r[3] for r in text_rows],
+        "label": text_y,
+    }
+    # Native forbids combining `text_processing` with the separate
+    # `tokenizers`/`dictionaries`/`feature_calcers` trio in the same call
+    # ("You should provide either `text_processing` option or `tokenizers`,
+    # `dictionaries`, `feature_calcers` options" -- text_processing_options.cpp:394),
+    # so this needs two batches, not one.
+    text_family_params = {
+        "text_processing_only": dict(
+            loss_function="Logloss", iterations=15, verbose=False,
+            random_seed=SEED, thread_count=1,
+            text_processing={"feature_processing": {"default": [
+                {"dictionaries_names": ["Word"], "feature_calcers": ["BoW"], "tokenizers_names": ["Space"]}
+            ]}},
+            train_dir=os.path.join(TRAIN_DIR, "text_a"),
+        ),
+        "tokenizers_dictionaries_calcers": dict(
+            loss_function="Logloss", iterations=15, verbose=False,
+            random_seed=SEED, thread_count=1,
+            dictionaries=[{"dictionary_id": "Word"}],
+            tokenizers=[{"tokenizer_id": "Space"}],
+            feature_calcers=["BoW"],
+            train_dir=os.path.join(TRAIN_DIR, "text_b"),
+        ),
+    }
+    for name, params in text_family_params.items():
+        model = CatBoostClassifier(**params)
+        model.fit(text_pool)
+        preds = model.predict(text_pool, prediction_type="RawFormulaVal")
+        fixture["batches"][name] = {
+            "params": {k: v for k, v in params.items() if k not in ("train_dir", "verbose")},
+            "predictions": [float(v) for v in np.asarray(preds).ravel().tolist()],
         }
 
     with open(os.path.join(FIXTURE_DIR, "param_family_coverage.json"), "w") as f:

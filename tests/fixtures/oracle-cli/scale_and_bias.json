@@ -1,0 +1,26 @@
+{
+  "_regenerate": [
+    "./tools/oracle/cli/bin/catboost-v1.2.10 fit --learn-set tests/fixtures/oracle-cli/smoke_data.csv --column-description tests/fixtures/oracle-cli/smoke.cd --delimiter , --has-header --loss-function Logloss -i 20 --depth 4 --learning-rate 0.1 --random-seed 42 -T 1 --model-file /tmp/sb_model.cbm --logging-level Silent",
+    "./tools/oracle/cli/bin/catboost-v1.2.10 normalize-model -m /tmp/sb_model.cbm --print-scale-and-bias --logging-level Silent",
+    "./tools/oracle/cli/bin/catboost-v1.2.10 normalize-model -m /tmp/sb_model.cbm --set-scale 0.8 --set-bias 0.8 --print-scale-and-bias --output-model /tmp/sb_model_set.cbm --logging-level Silent",
+    "./tools/oracle/cli/bin/catboost-v1.2.10 normalize-model -m /tmp/sb_model.cbm --column-description tests/fixtures/oracle-cli/smoke.cd --delimiter , --has-header -i tests/fixtures/oracle-cli/smoke_data.csv --print-scale-and-bias --output-model /tmp/sb_model_i.cbm --logging-level Silent"
+  ],
+  "print_only": {
+    "input_scale": 1.0,
+    "input_bias": 0.0
+  },
+  "set_scale_bias": {
+    "set_scale": 0.8,
+    "set_bias": 0.8,
+    "input_scale": 1.0,
+    "input_bias": 0.0,
+    "output_scale": 0.8,
+    "output_bias": 0.8
+  },
+  "auto_min_max": {
+    "input_scale": 1.0,
+    "input_bias": 0.0,
+    "output_scale": 0.4437986659,
+    "output_bias": 0.5529282692
+  }
+}

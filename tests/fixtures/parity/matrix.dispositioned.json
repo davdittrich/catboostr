@@ -11230,9 +11230,9 @@
     "kind": "flag",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_scale_and_bias.R",
+    "state": "green",
+    "tolerance_justification": "catboost.set_scale_and_bias(model, scale, bias) matches CLI oracle's `normalize-model --set-scale --set-bias --print-scale-and-bias` output (tests/fixtures/oracle-cli/scale_and_bias.json set_scale_bias).",
     "needs_disposition": false,
     "members": [
       {
@@ -11253,9 +11253,9 @@
     "kind": "flag",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_scale_and_bias.R",
+    "state": "green",
+    "tolerance_justification": "catboost.set_scale_and_bias(model, scale, bias) matches CLI oracle's `normalize-model --set-scale --set-bias --print-scale-and-bias` output (tests/fixtures/oracle-cli/scale_and_bias.json set_scale_bias).",
     "needs_disposition": false,
     "members": [
       {
@@ -11276,9 +11276,9 @@
     "kind": "flag",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_scale_and_bias.R",
+    "state": "green",
+    "tolerance_justification": "catboost.get_scale_and_bias(model) on a freshly trained model matches CLI oracle's `normalize-model --print-scale-and-bias` output (tests/fixtures/oracle-cli/scale_and_bias.json print_only), and again after --set-scale/--set-bias and after -i (auto min-max).",
     "needs_disposition": false,
     "members": [
       {
@@ -11299,9 +11299,9 @@
     "kind": "flag",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_scale_and_bias.R",
+    "state": "green",
+    "tolerance_justification": "CLI-only capability (mode_normalize_model.cpp's PoolPaths auto min-max branch; no Python get_scale_and_bias/set_scale_and_bias equivalent). catboost.normalize_model_from_pool() reimplements the same CalcMinMaxOnAllPools + SetScaleAndBias logic and matches the CLI oracle's `normalize-model -i` output at relative 1e-9 (tests/fixtures/oracle-cli/scale_and_bias.json auto_min_max), per Section III's CLI-only-residual tolerance.",
     "needs_disposition": false,
     "members": [
       {
@@ -11322,9 +11322,9 @@
     "kind": "flag",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_scale_and_bias.R",
+    "state": "green",
+    "tolerance_justification": "Exercised by the save/load roundtrip: catboost.save_model() after catboost.set_scale_and_bias() persists scale/bias identically to the CLI oracle's `--output-model` write.",
     "needs_disposition": false,
     "members": [
       {
@@ -13030,9 +13030,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_scale_and_bias.R",
+    "state": "green",
+    "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.get_scale_and_bias/set_scale_and_bias all delegate to the same _CatBoostBase.get_scale_and_bias()/set_scale_and_bias() (core.py:2422-2429); catboost.get_scale_and_bias()/catboost.set_scale_and_bias() cover all four via one differential test.",
     "needs_disposition": false,
     "members": [
       {
@@ -13534,9 +13534,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_scale_and_bias.R",
+    "state": "green",
+    "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.get_scale_and_bias/set_scale_and_bias all delegate to the same _CatBoostBase.get_scale_and_bias()/set_scale_and_bias() (core.py:2422-2429); catboost.get_scale_and_bias()/catboost.set_scale_and_bias() cover all four via one differential test.",
     "needs_disposition": false,
     "members": [
       {
@@ -14206,9 +14206,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_scale_and_bias.R",
+    "state": "green",
+    "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.get_scale_and_bias/set_scale_and_bias all delegate to the same _CatBoostBase.get_scale_and_bias()/set_scale_and_bias() (core.py:2422-2429); catboost.get_scale_and_bias()/catboost.set_scale_and_bias() cover all four via one differential test.",
     "needs_disposition": false,
     "members": [
       {
@@ -14806,9 +14806,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_scale_and_bias.R",
+    "state": "green",
+    "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.get_scale_and_bias/set_scale_and_bias all delegate to the same _CatBoostBase.get_scale_and_bias()/set_scale_and_bias() (core.py:2422-2429); catboost.get_scale_and_bias()/catboost.set_scale_and_bias() cover all four via one differential test.",
     "needs_disposition": false,
     "members": [
       {
@@ -15502,9 +15502,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_scale_and_bias.R",
+    "state": "green",
+    "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.get_scale_and_bias/set_scale_and_bias all delegate to the same _CatBoostBase.get_scale_and_bias()/set_scale_and_bias() (core.py:2422-2429); catboost.get_scale_and_bias()/catboost.set_scale_and_bias() cover all four via one differential test.",
     "needs_disposition": false,
     "members": [
       {
@@ -16030,9 +16030,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_scale_and_bias.R",
+    "state": "green",
+    "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.get_scale_and_bias/set_scale_and_bias all delegate to the same _CatBoostBase.get_scale_and_bias()/set_scale_and_bias() (core.py:2422-2429); catboost.get_scale_and_bias()/catboost.set_scale_and_bias() cover all four via one differential test.",
     "needs_disposition": false,
     "members": [
       {
@@ -16678,9 +16678,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_scale_and_bias.R",
+    "state": "green",
+    "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.get_scale_and_bias/set_scale_and_bias all delegate to the same _CatBoostBase.get_scale_and_bias()/set_scale_and_bias() (core.py:2422-2429); catboost.get_scale_and_bias()/catboost.set_scale_and_bias() cover all four via one differential test.",
     "needs_disposition": false,
     "members": [
       {
@@ -17206,9 +17206,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_scale_and_bias.R",
+    "state": "green",
+    "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.get_scale_and_bias/set_scale_and_bias all delegate to the same _CatBoostBase.get_scale_and_bias()/set_scale_and_bias() (core.py:2422-2429); catboost.get_scale_and_bias()/catboost.set_scale_and_bias() cover all four via one differential test.",
     "needs_disposition": false,
     "members": [
       {
@@ -20166,9 +20166,9 @@
     "kind": "mode",
     "method": "roundtrip",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_scale_and_bias.R",
+    "state": "green",
+    "tolerance_justification": "catboost.save_model()/catboost.load_model() roundtrip preserves scale/bias set via catboost.set_scale_and_bias(), matching the CLI mode's file-to-file semantics; see flag:--set-scale/--set-bias/--print-scale-and-bias/--input-path rows for the individual flags.",
     "needs_disposition": false,
     "members": [
       {

@@ -4224,6 +4224,86 @@ catboost.set_metadata <- function(model, key, value) {
     invisible(.Call("CatBoostSetModelInfo_R", model$cpp_obj$handle, key, value))
 }
 
+#' @name catboost.get_scale_and_bias
+#' @title Get model scale and bias
+#'
+#' @description Return the model's scale and bias, used to compute the final
+#' formula as \code{Scale * sumTrees + Bias}. R equivalent of Python's
+#' \code{model.get_scale_and_bias()} and of the CLI's
+#' \code{normalize-model --print-scale-and-bias} mode.
+#'
+#' @param model The model obtained as the result of training.
+#'
+#' @return A list with \code{scale} (a single number) and \code{bias} (a
+#' numeric vector, one value per model output dimension; empty for the
+#' zero-bias default).
+#' @export
+catboost.get_scale_and_bias <- function(model) {
+    catboost.restore_handle(model)
+    return(.Call("CatBoostGetScaleAndBias_R", model$cpp_obj$handle))
+}
+
+#' @name catboost.set_scale_and_bias
+#' @title Set model scale and bias
+#'
+#' @description Set the model's scale and bias, in place. R equivalent of
+#' Python's \code{model.set_scale_and_bias(scale, bias)} and of the CLI's
+#' \code{normalize-model --set-scale --set-bias} mode. The change is held in
+#' memory only; call \code{\link{catboost.save_model}} to persist it, matching
+#' Python's calling convention.
+#'
+#' @param model The model obtained as the result of training.
+#' @param scale The model scale, a single number.
+#' @param bias The model bias: a single number, or a numeric vector with one
+#' value per model output dimension.
+#'
+#' @return No return value, called for side effects.
+#' @export
+catboost.set_scale_and_bias <- function(model, scale, bias) {
+    catboost.restore_handle(model)
+    if (!is.numeric(scale) || length(scale) != 1)
+        stop("scale must be a single number, got: ", class(scale))
+    if (!is.numeric(bias))
+        stop("bias must be numeric, got: ", class(bias))
+    invisible(.Call("CatBoostSetScaleAndBias_R", model$cpp_obj$handle, as.double(scale), as.double(bias)))
+}
+
+#' @name catboost.normalize_model_from_pool
+#' @title Rescale a model so its raw predictions on a pool span [0, 1]
+#'
+#' @description CLI-only capability: R equivalent of the CLI's
+#' \code{normalize-model --input-path/-i} mode (\code{mode_normalize_model.cpp}),
+#' which has no Python \code{get_scale_and_bias}/\code{set_scale_and_bias}
+#' counterpart. Resets the model to identity scale/bias, computes the min and
+#' max of its raw (\code{RawFormulaVal}) predictions over \code{pool}, then
+#' sets \code{scale = 1 / (max - min)}, \code{bias = -scale * min} so the
+#' rescaled raw predictions span exactly [0, 1] -- mirroring
+#' \code{mode_normalize_model.cpp}'s \code{CalcMinMaxOnAllPools} +
+#' \code{model.SetScaleAndBias({scale, {bias}})} in-place.
+#'
+#' @param model The model obtained as the result of training.
+#' @param pool A \code{catboost.Pool} (or list of pools) to compute the
+#' min/max raw prediction range over.
+#'
+#' @return No return value, called for side effects.
+#' @export
+catboost.normalize_model_from_pool <- function(model, pool) {
+    if (!inherits(model, "catboost.Model"))
+        stop("Expected catboost.Model, got: ", class(model))
+    if (inherits(pool, "catboost.Pool"))
+        pool <- list(pool)
+    catboost.set_scale_and_bias(model, 1.0, numeric(0))
+    raw <- unlist(lapply(pool, function(p) catboost.predict(model, p, prediction_type = "RawFormulaVal")))
+    mn <- min(raw)
+    mx <- max(raw)
+    if (mn == mx)
+        stop("Model gives same result on all docs")
+    scale <- 1.0 / (mx - mn)
+    bias <- -scale * mn
+    catboost.set_scale_and_bias(model, scale, bias)
+    invisible(NULL)
+}
+
 #' @name catboost.get_model_feature_names
 #' @title Get the feature names used by a model
 #'

@@ -205,6 +205,12 @@ EXPORT_FUNCTION CatBoostGetModelInfo_R(SEXP modelParam);
 
 EXPORT_FUNCTION CatBoostSetModelInfo_R(SEXP modelParam, SEXP keyParam, SEXP valueParam);
 
+// P5.7 (catboost-8z4.64): R equivalents of CLI's `normalize-model` mode /
+// Python's get_scale_and_bias()/set_scale_and_bias().
+EXPORT_FUNCTION CatBoostGetScaleAndBias_R(SEXP modelParam);
+
+EXPORT_FUNCTION CatBoostSetScaleAndBias_R(SEXP modelParam, SEXP scaleParam, SEXP biasParam);
+
 EXPORT_FUNCTION CatBoostGetModelUsedFeatureNames_R(SEXP modelParam);
 
 EXPORT_FUNCTION CatBoostCalcRegularFeatureEffect_R(

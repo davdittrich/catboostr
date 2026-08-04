@@ -2455,6 +2455,61 @@ EXPORT_FUNCTION CatBoostSetModelInfo_R(SEXP modelParam, SEXP keyParam, SEXP valu
     return R_NilValue;
 }
 
+// P5.7 (catboost-8z4.64): R equivalents of Python's
+// _CatBoostBase.get_scale_and_bias()/set_scale_and_bias() (core.py:2422-2429,
+// inherited unchanged by CatBoost/CatBoostClassifier/CatBoostRegressor/
+// CatBoostRanker) and the CLI's `normalize-model` mode
+// (mode_normalize_model.cpp), which both read/write the same
+// TFullModel::GetScaleAndBias()/SetScaleAndBias() (model.h, scale_and_bias.h)
+// used as `Scale * sumTrees + Bias`.
+//
+// Mirrors _catboost.pyx _get_scale_and_bias(): returns list(scale=<double>,
+// bias=<double vector>). Unlike the Python binding, the bias vector is never
+// collapsed to a bare 0/scalar -- R has no int/float ambiguity to paper over,
+// so the full TVector<double> (possibly empty, for IsZeroBias() defaults) is
+// returned as-is; callers compare against Python's collapsed scalar via
+// length-1 indexing.
+EXPORT_FUNCTION CatBoostGetScaleAndBias_R(SEXP modelParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    const TScaleAndBias& scaleAndBias = model->GetScaleAndBias();
+    const TVector<double>& bias = scaleAndBias.GetBiasRef();
+    result = PROTECT(allocVector(VECSXP, 2));
+    SET_VECTOR_ELT(result, 0, ScalarReal(scaleAndBias.Scale));
+    SEXP biasVec = PROTECT(allocVector(REALSXP, bias.size()));
+    for (auto i : xrange(bias.size())) {
+        REAL(biasVec)[i] = bias[i];
+    }
+    SET_VECTOR_ELT(result, 1, biasVec);
+    SEXP names = PROTECT(allocVector(STRSXP, 2));
+    SET_STRING_ELT(names, 0, mkChar("scale"));
+    SET_STRING_ELT(names, 1, mkChar("bias"));
+    setAttrib(result, R_NamesSymbol, names);
+    R_API_END();
+    UNPROTECT(3);
+    return result;
+}
+
+// Mirrors _catboost.pyx _set_scale_and_bias(): mutates the live model
+// handle's {Scale, Bias} in place (matches CLI's `normalize-model
+// --set-scale/--set-bias`). bias's length is the model's ApproxDimension
+// (1 for single-target models); an empty bias vector is equivalent to
+// Python's scalar-0 default (TScaleAndBias::IsZeroBias()).
+EXPORT_FUNCTION CatBoostSetScaleAndBias_R(SEXP modelParam, SEXP scaleParam, SEXP biasParam) {
+    R_API_BEGIN();
+    TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    double scale = asReal(scaleParam);
+    size_t n = static_cast<size_t>(Rf_length(biasParam));
+    TVector<double> bias(n);
+    for (size_t i = 0; i < n; ++i) {
+        bias[i] = REAL(biasParam)[i];
+    }
+    model->SetScaleAndBias(TScaleAndBias(scale, bias));
+    R_API_END();
+    return R_NilValue;
+}
+
 // Mirrors _catboost.pyx _get_feature_names() / Python's model.feature_names_
 // property and the CLI's `metadata dump-feature-names` mode
 // (mode_metadata.cpp dump_feature_names(), model.cpp GetModelUsedFeaturesNames()).

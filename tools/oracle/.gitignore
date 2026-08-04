@@ -1,2 +1,3 @@
 .venv/
 .catboost_train*/
+.catboost_select*/

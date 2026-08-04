@@ -20,8 +20,9 @@ values. Required if the tree splits on any categorical feature (mirrors Python's
 \code{plot_tree}, which raises if a categorical split is present and no pool is given);
 optional for float-only trees, in which case node labels fall back to the 0-based flat
 feature index -- again mirroring Python's own \code{pool = NULL} fallback. Categorical
-split values are decoded via the same native calls \code{\link{catboost.calc_feature_statistics}}
-uses (\code{CatBoostGetCatFeatureValues_R}/\code{CatBoostCalcCatFeaturePerfectHash_R}); when
+split values are decoded by re-hashing the pool's raw string values with
+\code{CatBoostCalcCatFeatureHash_R} (the same raw \code{CalcCatFeatureHash()} stored in the
+exported JSON model's \code{TOneHotSplit::Value}) until the split's hash is matched; when
 \code{pool} was built by \code{\link{catboost.load_pool}}/\code{\link{catboost.from_matrix}}
 (which pre-hash categorical columns into floats before the vendor pool is built, so no
 hash-to-string dictionary survives -- see \code{\link{catboost.calc_feature_statistics}}'s

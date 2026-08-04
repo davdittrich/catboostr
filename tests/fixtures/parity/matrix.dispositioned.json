@@ -4,10 +4,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_roc_curve.R",
+    "state": "green",
+    "tolerance_justification": "Refers to the params argument itself; exercised by every params=list(...) call in the suite.",
     "needs_disposition": false,
     "members": [
       {
@@ -27,10 +27,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_roc_curve.R",
+    "state": "green",
+    "tolerance_justification": "Python fit(X, y) positional data args; R equivalent is learn_pool/test_pool (see catboost.load_pool), exercised by every training test in the suite.",
     "needs_disposition": false,
     "members": [
       {
@@ -50,10 +50,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_roc_curve.R",
+    "state": "green",
+    "tolerance_justification": "Python fit(X, y) positional data args; R equivalent is learn_pool/test_pool (see catboost.load_pool), exercised by every training test in the suite.",
     "needs_disposition": false,
     "members": [
       {
@@ -73,10 +73,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_pool.R",
+    "state": "green",
+    "tolerance_justification": "Re-pointed from test_features_data.R (fix round 3): that file's only 'cat_features' occurrence was a negative-path validation test (expect_error), never exercising it positively. test_pool.R:85-88 genuinely passes cat_features= and builds/uses the resulting Pool (structural assertions -- ncol/nrow -- not a numeric oracle diff; no oracle-comparing test in this suite exercises the explicit cat_features= argument positively, as opposed to catboost.load_pool's factor-column auto-detection, which many oracle tests do use).",
     "needs_disposition": false,
     "members": [
       {
@@ -108,10 +108,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "Pool-construction arg (character column auto-detected as text, catboost.load_pool, R/catboost.R:401-404); given real end-to-end oracle-diff coverage this fix round (text_processing_only/tokenizers_dictionaries_calcers batches, a dedicated text-bearing Pool), not just the standalone Tokenizer/Dictionary API test.",
     "needs_disposition": false,
     "members": [
       {
@@ -143,9 +143,9 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_pool_embeddings.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -178,10 +178,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_pool_metadata.R",
+    "state": "green",
+    "tolerance_justification": "Pool-construction arg; see num_pairs coverage.",
     "needs_disposition": false,
     "members": [
       {
@@ -202,9 +202,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
+    "test_id": "tests/testthat/test_params_validation.R",
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "BLOCKED, not green (review-round fix #2: was closed on test_pool_metadata.R, which never actually calls graph=). graph is a real catboost.load_pool() arg (R/catboost.R:110) and a real Python Pool(graph=...) arg too, requiring nontrivial groups in both languages. Reproduced directly: building an R Pool with graph= and group_id= together throws a hard native/glue error (Internal CatBoost Error / Unimplemented from catboost.from_data_frame -> catboost.from_matrix -> data_provider_builders.cpp), plus further argument-type-coercion errors probing the plain-matrix path -- an under-exercised, fragile combination in catboostr's own C bridge, not a Python-parity issue. See test_params_validation.R.",
     "needs_disposition": false,
     "members": [
       {
@@ -224,10 +224,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_pool_metadata.R",
+    "state": "green",
+    "tolerance_justification": "Python fit(sample_weight=) maps to catboost.load_pool's `weight` argument in catboostr; exercised via set_weight coverage in test_pool_metadata.R.",
     "needs_disposition": false,
     "members": [
       {
@@ -247,9 +247,9 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_pool_structural.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -270,10 +270,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_pool_metadata.R",
+    "state": "green",
+    "tolerance_justification": "Pool-construction args (Python fit() kwargs / catboost.load_pool args), not `params` list keys.",
     "needs_disposition": false,
     "members": [
       {
@@ -293,10 +293,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_pool_metadata.R",
+    "state": "green",
+    "tolerance_justification": "Pool-construction args (Python fit() kwargs / catboost.load_pool args), not `params` list keys.",
     "needs_disposition": false,
     "members": [
       {
@@ -316,10 +316,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_pool_metadata.R",
+    "state": "green",
+    "tolerance_justification": "Pool-construction args (Python fit() kwargs / catboost.load_pool args), not `params` list keys.",
     "needs_disposition": false,
     "members": [
       {
@@ -339,9 +339,9 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_pool_structural.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -362,10 +362,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -397,10 +397,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_select_features.R",
+    "state": "green",
+    "tolerance_justification": "Re-pointed from test_roc_curve.R (fix round 3): that file's training calls never actually pass test_pool. test_select_features.R:61,89 genuinely calls catboost.select_features(..., test_pool = test_pool, ...) and compares against the Python oracle. Supplied via catboost.train's `test_pool` argument, not the `params` list.",
     "needs_disposition": false,
     "members": [
       {
@@ -421,9 +421,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_params_validation.R",
+    "state": "green",
+    "tolerance_justification": "Canonical member of the verbose/verbose_eval alias group; proven by the per-alias regression test. Native's flat 'verbose' is an int print-period, not a bool, so no numeric oracle diff applies.",
     "needs_disposition": false,
     "members": [
       {
@@ -455,9 +455,9 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_roc_curve.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -491,9 +491,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
+    "test_id": "tests/testthat/test_params_validation.R",
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "BLOCKED, not green. Python-only convenience args with no catboostr equivalent (no callback/live-plot/stream-redirect mechanism in R). Verified directly: native rejects each with 'Unknown option {name}' (plain_options_helper.cpp:512). See test_params_validation.R.",
     "needs_disposition": false,
     "members": [
       {
@@ -514,9 +514,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
+    "test_id": "tests/testthat/test_params_validation.R",
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "BLOCKED, not green. Python-only convenience args with no catboostr equivalent (no callback/live-plot/stream-redirect mechanism in R). Verified directly: native rejects each with 'Unknown option {name}' (plain_options_helper.cpp:512). See test_params_validation.R.",
     "needs_disposition": false,
     "members": [
       {
@@ -536,10 +536,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_eval_feature.R",
+    "state": "green",
+    "tolerance_justification": "Re-pointed from test_pool_structural.R (fix round 3): that file's only 'column_description' occurrence was a header comment, not code. test_eval_feature.R genuinely calls catboost.load_pool(column_description = CD_PATH, ...) and compares against the pinned CLI oracle.",
     "needs_disposition": false,
     "members": [
       {
@@ -560,9 +560,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_params_validation.R",
+    "state": "green",
+    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (real training call, not the circular gate helper).",
     "needs_disposition": false,
     "members": [
       {
@@ -582,10 +582,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -618,9 +618,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
+    "test_id": "tests/testthat/test_params_validation.R",
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "BLOCKED, not green. Python-only convenience args with no catboostr equivalent (no callback/live-plot/stream-redirect mechanism in R). Verified directly: native rejects each with 'Unknown option {name}' (plain_options_helper.cpp:512). See test_params_validation.R.",
     "needs_disposition": false,
     "members": [
       {
@@ -653,9 +653,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_params_validation.R",
+    "state": "green",
+    "tolerance_justification": "catboost.cv: a canonical params key set via the early_stopping_rounds= argument validates and trains without error (real assertion, not the circular gate helper) -- proves it resolves into od_type/od_wait and reaches core.",
     "needs_disposition": false,
     "members": [
       {
@@ -687,10 +687,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "snapshot batch",
     "needs_disposition": false,
     "members": [
       {
@@ -722,10 +722,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "snapshot batch",
     "needs_disposition": false,
     "members": [
       {
@@ -757,10 +757,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "snapshot batch",
     "needs_disposition": false,
     "members": [
       {
@@ -792,9 +792,9 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_init_model.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -816,9 +816,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
+    "test_id": "tests/testthat/test_params_validation.R",
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "BLOCKED, not green. Unlike the other Python-only keys, native's plain_options_helper.cpp explicitly records 'callbacks' as a seen/valid key without validating or consuming its value (plain_options_helper.cpp:269-270), so passing it does not error -- but catboostr's C glue (src/catboostr.cpp) has no mechanism to marshal an R closure into a per-iteration native callback, so the capability itself does not exist in R. Verified directly (real assertion, not the circular gate helper): training completes silently, no callback is ever invoked. See test_params_validation.R.",
     "needs_disposition": false,
     "members": [
       {
@@ -839,9 +839,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
+    "test_id": "tests/testthat/test_params_validation.R",
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "BLOCKED, not green. Python-only convenience args with no catboostr equivalent (no callback/live-plot/stream-redirect mechanism in R). Verified directly: native rejects each with 'Unknown option {name}' (plain_options_helper.cpp:512). See test_params_validation.R.",
     "needs_disposition": false,
     "members": [
       {
@@ -862,9 +862,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
+    "test_id": "tests/testthat/test_params_validation.R",
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "BLOCKED, not green. Python-only convenience args with no catboostr equivalent (no callback/live-plot/stream-redirect mechanism in R). Verified directly: native rejects each with 'Unknown option {name}' (plain_options_helper.cpp:512). See test_params_validation.R.",
     "needs_disposition": false,
     "members": [
       {
@@ -884,9 +884,9 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_roc_curve.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -915,9 +915,9 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_roc_curve.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -946,9 +946,9 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_roc_curve.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -977,10 +977,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -1008,10 +1008,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -1039,10 +1039,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -1070,9 +1070,9 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_roc_curve.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -1101,9 +1101,9 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_pool_quantization.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -1132,10 +1132,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "ctr_and_binarization batch",
     "needs_disposition": false,
     "members": [
       {
@@ -1163,10 +1163,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "ctr_and_binarization batch",
     "needs_disposition": false,
     "members": [
       {
@@ -1195,9 +1195,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
+    "test_id": "tests/testthat/test_params_validation.R",
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "BLOCKED, not green. Verified directly: native rejects it with 'Unknown option {input_borders}' (plain_options_helper.cpp:512). Unlike output_borders (a real flat option, see the green disposition above), input_borders is only ever consumed by Python's Pool.quantize() pre-processing step in the vendored core, never by the general PlainJsonToOptions flat-option parser catboost.train's params blob goes through. See test_params_validation.R.",
     "needs_disposition": false,
     "members": [
       {
@@ -1225,10 +1225,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "output_borders batch (real flat top-level native option -- output_file_options.cpp OutputBordersFileName -- verified directly; unlike input_borders, which native rejects, see the red disposition below).",
     "needs_disposition": false,
     "members": [
       {
@@ -1256,10 +1256,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -1287,10 +1287,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -1318,10 +1318,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -1349,10 +1349,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -1380,10 +1380,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -1411,10 +1411,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "ctr_and_binarization batch",
     "needs_disposition": false,
     "members": [
       {
@@ -1442,10 +1442,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -1473,10 +1473,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -1504,9 +1504,9 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_roc_curve.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -1535,9 +1535,9 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_roc_curve.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -1566,10 +1566,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -1597,10 +1597,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "ctr_and_binarization batch",
     "needs_disposition": false,
     "members": [
       {
@@ -1628,10 +1628,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "ctr_and_binarization batch",
     "needs_disposition": false,
     "members": [
       {
@@ -1659,10 +1659,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "ctr_and_binarization batch",
     "needs_disposition": false,
     "members": [
       {
@@ -1690,9 +1690,9 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_pool_structural.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -1721,10 +1721,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -1752,10 +1752,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "ctr_and_binarization batch",
     "needs_disposition": false,
     "members": [
       {
@@ -1784,9 +1784,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
+    "test_id": "tests/testthat/test_params_validation.R",
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "BLOCKED, not green. Verified directly: catboost.load_pool() pre-converts string labels to numeric class indices client-side (a documented R-Pool-architecture difference from Python's Pool, which retains original label strings server-side -- same class of limitation as the categorical-feature-hashing note in test_calc_feature_statistics.R); reproducing MultiClass training with classes_count/class_names and string labels throws 'Not all class names are numeric, but specified target data is' from native. See test_params_validation.R.",
     "needs_disposition": false,
     "members": [
       {
@@ -1806,10 +1806,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "class_weights batch",
     "needs_disposition": false,
     "members": [
       {
@@ -1829,10 +1829,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "auto_class_weights batch",
     "needs_disposition": false,
     "members": [
       {
@@ -1853,9 +1853,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
+    "test_id": "tests/testthat/test_params_validation.R",
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "BLOCKED, not green. Verified directly: catboost.load_pool() pre-converts string labels to numeric class indices client-side (a documented R-Pool-architecture difference from Python's Pool, which retains original label strings server-side -- same class of limitation as the categorical-feature-hashing note in test_calc_feature_statistics.R); reproducing MultiClass training with classes_count/class_names and string labels throws 'Not all class names are numeric, but specified target data is' from native. See test_params_validation.R.",
     "needs_disposition": false,
     "members": [
       {
@@ -1875,9 +1875,9 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_calc_feature_statistics.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -1906,10 +1906,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -1938,9 +1938,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
+    "test_id": "tests/testthat/test_params_validation.R",
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "BLOCKED, not green. GPU-only: verified directly that native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for each of these keys on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent exactly (docs/phase-4/P4.8-report.md). See test_params_validation.R for the reproducing assertions.",
     "needs_disposition": false,
     "members": [
       {
@@ -1968,10 +1968,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -1999,10 +1999,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -2030,10 +2030,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -2061,10 +2061,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "ctr_extra batch (review-round fix: verified directly against native and given real oracle-diff coverage instead of the circular gate-only closure; per_feature_ctr needs an explicit index:Type:Prior=N/D:... spec targeting a categorical feature index, and ctr_history_unit's only CPU-supported value is its own default 'Sample').",
     "needs_disposition": false,
     "members": [
       {
@@ -2084,10 +2084,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -2115,10 +2115,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -2146,10 +2146,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "bayesian_bootstrap batch, isolated -- bisection (review-round fix) proved this is bit-exact in isolation; the earlier ~1.7e-7 divergence attributed to it was a confound (the real cause was model_shrink_rate).",
     "needs_disposition": false,
     "members": [
       {
@@ -2177,10 +2177,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -2208,10 +2208,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "used_ram_limit_isolated batch (review-round fix): isolated single-variable-vs-baseline A/B comparison found it bit-exact on both the Python-vs-Python and R-vs-Python axes -- the earlier ~1e-7 divergence attributed to it (in a 35-parameter bundle) was a confound (the real cause was model_shrink_rate); real measured evidence, not discarded.",
     "needs_disposition": false,
     "members": [
       {
@@ -2240,9 +2240,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
+    "test_id": "tests/testthat/test_params_validation.R",
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "BLOCKED, not green. GPU-only: verified directly that native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for each of these keys on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent exactly (docs/phase-4/P4.8-report.md). See test_params_validation.R for the reproducing assertions.",
     "needs_disposition": false,
     "members": [
       {
@@ -2271,9 +2271,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
+    "test_id": "tests/testthat/test_params_validation.R",
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "BLOCKED, not green. GPU-only: verified directly that native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for each of these keys on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent exactly (docs/phase-4/P4.8-report.md). See test_params_validation.R for the reproducing assertions.",
     "needs_disposition": false,
     "members": [
       {
@@ -2301,10 +2301,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -2332,10 +2332,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "ctr_and_binarization batch",
     "needs_disposition": false,
     "members": [
       {
@@ -2363,10 +2363,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -2394,10 +2394,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -2425,10 +2425,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "ctr_and_binarization batch",
     "needs_disposition": false,
     "members": [
       {
@@ -2456,10 +2456,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "ctr_and_binarization batch",
     "needs_disposition": false,
     "members": [
       {
@@ -2487,10 +2487,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "ctr_extra batch (review-round fix: verified directly against native and given real oracle-diff coverage instead of the circular gate-only closure; per_feature_ctr needs an explicit index:Type:Prior=N/D:... spec targeting a categorical feature index, and ctr_history_unit's only CPU-supported value is its own default 'Sample').",
     "needs_disposition": false,
     "members": [
       {
@@ -2518,10 +2518,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "ctr_extra batch (review-round fix: verified directly against native and given real oracle-diff coverage instead of the circular gate-only closure; per_feature_ctr needs an explicit index:Type:Prior=N/D:... spec targeting a categorical feature index, and ctr_history_unit's only CPU-supported value is its own default 'Sample').",
     "needs_disposition": false,
     "members": [
       {
@@ -2549,10 +2549,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "ctr_and_binarization batch",
     "needs_disposition": false,
     "members": [
       {
@@ -2580,10 +2580,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -2612,9 +2612,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
+    "test_id": "tests/testthat/test_params_validation.R",
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "BLOCKED, not green. GPU-only: verified directly that native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for each of these keys on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent exactly (docs/phase-4/P4.8-report.md). See test_params_validation.R for the reproducing assertions.",
     "needs_disposition": false,
     "members": [
       {
@@ -2643,9 +2643,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
+    "test_id": "tests/testthat/test_params_validation.R",
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "BLOCKED, not green. GPU-only: verified directly that native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for each of these keys on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent exactly (docs/phase-4/P4.8-report.md). See test_params_validation.R for the reproducing assertions.",
     "needs_disposition": false,
     "members": [
       {
@@ -2673,10 +2673,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "bayesian_bootstrap batch, isolated -- bisection (review-round fix) proved this is bit-exact in isolation; the earlier ~1.7e-7 divergence attributed to it was a confound (the real cause was model_shrink_rate).",
     "needs_disposition": false,
     "members": [
       {
@@ -2704,10 +2704,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "mvs_sampling batch",
     "needs_disposition": false,
     "members": [
       {
@@ -2735,10 +2735,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "mvs_sampling batch",
     "needs_disposition": false,
     "members": [
       {
@@ -2766,10 +2766,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "mvs_sampling batch",
     "needs_disposition": false,
     "members": [
       {
@@ -2797,10 +2797,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -2828,10 +2828,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -2859,10 +2859,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -2890,10 +2890,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -2922,9 +2922,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_params_validation.R",
+    "state": "green",
+    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (real training call, not the circular gate helper).",
     "needs_disposition": false,
     "members": [
       {
@@ -2953,9 +2953,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_params_validation.R",
+    "state": "green",
+    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (real training call, not the circular gate helper).",
     "needs_disposition": false,
     "members": [
       {
@@ -2984,9 +2984,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_params_validation.R",
+    "state": "green",
+    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (real training call, not the circular gate helper).",
     "needs_disposition": false,
     "members": [
       {
@@ -3015,9 +3015,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_params_validation.R",
+    "state": "green",
+    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (real training call, not the circular gate helper).",
     "needs_disposition": false,
     "members": [
       {
@@ -3046,9 +3046,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_params_validation.R",
+    "state": "green",
+    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (real training call, not the circular gate helper).",
     "needs_disposition": false,
     "members": [
       {
@@ -3077,9 +3077,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_params_validation.R",
+    "state": "green",
+    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (real training call, not the circular gate helper).",
     "needs_disposition": false,
     "members": [
       {
@@ -3108,9 +3108,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_params_validation.R",
+    "state": "green",
+    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (real training call, not the circular gate helper).",
     "needs_disposition": false,
     "members": [
       {
@@ -3139,9 +3139,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_params_validation.R",
+    "state": "green",
+    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (real training call, not the circular gate helper).",
     "needs_disposition": false,
     "members": [
       {
@@ -3170,9 +3170,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_params_validation.R",
+    "state": "green",
+    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (real training call, not the circular gate helper).",
     "needs_disposition": false,
     "members": [
       {
@@ -3201,9 +3201,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_params_validation.R",
+    "state": "green",
+    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (real training call, not the circular gate helper).",
     "needs_disposition": false,
     "members": [
       {
@@ -3232,9 +3232,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
+    "test_id": "tests/testthat/test_params_validation.R",
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "BLOCKED, not green. Not a flat top-level native option; must be embedded in the loss_function description string (e.g. 'Logloss:scale_pos_weight=1.5'). Verified directly that even embedded correctly (with eval_metric explicitly overridden to a bare 'Logloss'), native still throws 'Logloss metric shouldn't have scale_pos_weight parameter' (catboost/libs/metrics/metric.cpp:6324) -- a native metric-construction bug/limitation in this vendor version, reproducible and documented, not a hand-wave. See test_params_validation.R.",
     "needs_disposition": false,
     "members": [
       {
@@ -3255,9 +3255,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
+    "test_id": "tests/testthat/test_params_validation.R",
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "BLOCKED, not green. GPU-only: verified directly that native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for each of these keys on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent exactly (docs/phase-4/P4.8-report.md). See test_params_validation.R for the reproducing assertions.",
     "needs_disposition": false,
     "members": [
       {
@@ -3285,10 +3285,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -3316,10 +3316,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -3347,10 +3347,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "lossguide_grow_policy batch",
     "needs_disposition": false,
     "members": [
       {
@@ -3378,10 +3378,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -3410,9 +3410,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_params_validation.R",
+    "state": "green",
+    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (real training call, not the circular gate helper).",
     "needs_disposition": false,
     "members": [
       {
@@ -3440,10 +3440,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "lossguide_grow_policy batch",
     "needs_disposition": false,
     "members": [
       {
@@ -3472,9 +3472,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_params_validation.R",
+    "state": "green",
+    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (real training call, not the circular gate helper).",
     "needs_disposition": false,
     "members": [
       {
@@ -3502,10 +3502,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "lossguide_grow_policy batch",
     "needs_disposition": false,
     "members": [
       {
@@ -3533,10 +3533,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -3564,10 +3564,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "ctr_extra batch (review-round fix: verified directly against native and given real oracle-diff coverage instead of the circular gate-only closure; per_feature_ctr needs an explicit index:Type:Prior=N/D:... spec targeting a categorical feature index, and ctr_history_unit's only CPU-supported value is its own default 'Sample').",
     "needs_disposition": false,
     "members": [
       {
@@ -3595,10 +3595,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "feature_penalties batch",
     "needs_disposition": false,
     "members": [
       {
@@ -3626,10 +3626,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "feature_penalties batch",
     "needs_disposition": false,
     "members": [
       {
@@ -3657,10 +3657,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "feature_penalties batch",
     "needs_disposition": false,
     "members": [
       {
@@ -3688,10 +3688,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "feature_penalties batch",
     "needs_disposition": false,
     "members": [
       {
@@ -3719,10 +3719,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "feature_penalties batch",
     "needs_disposition": false,
     "members": [
       {
@@ -3750,10 +3750,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "model_shrink_rate_isolated batch. Bisection (review-round fix) confirmed this is the sole, real, isolated cause of core_training_control's original ~1.7e-7 divergence -- plausibly floating-point evaluation-order sensitivity in the repeated multiplicative shrinkage applied across iterations, not an RNG stream difference. Measured max abs diff ~1.7e-7; tolerance widened to 1e-6 for margin.",
     "needs_disposition": false,
     "members": [
       {
@@ -3781,10 +3781,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -3812,10 +3812,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "langevin batch, already isolated to just these 3 params. Stochastic Gradient Langevin Boosting is itself an RNG-driven stochastic method; measured max abs diff ~4.2e-7, tolerance widened to 1e-6 for margin.",
     "needs_disposition": false,
     "members": [
       {
@@ -3843,10 +3843,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "langevin batch, already isolated to just these 3 params. Stochastic Gradient Langevin Boosting is itself an RNG-driven stochastic method; measured max abs diff ~4.2e-7, tolerance widened to 1e-6 for margin.",
     "needs_disposition": false,
     "members": [
       {
@@ -3874,10 +3874,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "langevin batch, already isolated to just these 3 params. Stochastic Gradient Langevin Boosting is itself an RNG-driven stochastic method; measured max abs diff ~4.2e-7, tolerance widened to 1e-6 for margin.",
     "needs_disposition": false,
     "members": [
       {
@@ -3905,10 +3905,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix; train_dir is re-injected R-side before training, same as snapshot_file/output_borders, since the fixture generator strips filesystem paths from the exported params -- fix round 2, was green with train_dir never actually passed to R).",
     "needs_disposition": false,
     "members": [
       {
@@ -3936,10 +3936,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "tokenizers_dictionaries_calcers batch (review-round fix): native forbids combining text_processing with this trio in the same call (text_processing_options.cpp:394), hence a second dedicated batch; real oracle-diff coverage.",
     "needs_disposition": false,
     "members": [
       {
@@ -3967,10 +3967,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "tokenizers_dictionaries_calcers batch (review-round fix): native forbids combining text_processing with this trio in the same call (text_processing_options.cpp:394), hence a second dedicated batch; real oracle-diff coverage.",
     "needs_disposition": false,
     "members": [
       {
@@ -3998,10 +3998,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "tokenizers_dictionaries_calcers batch (review-round fix): native forbids combining text_processing with this trio in the same call (text_processing_options.cpp:394), hence a second dedicated batch; real oracle-diff coverage.",
     "needs_disposition": false,
     "members": [
       {
@@ -4029,10 +4029,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
+    "state": "green",
+    "tolerance_justification": "text_processing_only batch (review-round fix): a dedicated text-bearing Pool, real oracle-diff coverage.",
     "needs_disposition": false,
     "members": [
       {
@@ -4061,9 +4061,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
+    "test_id": "tests/testthat/test_params_validation.R",
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "BLOCKED, not green. Python-only convenience args with no catboostr equivalent (no callback/live-plot/stream-redirect mechanism in R). Verified directly: native rejects each with 'Unknown option {name}' (plain_options_helper.cpp:512). See test_params_validation.R.",
     "needs_disposition": false,
     "members": [
       {
@@ -4083,9 +4083,9 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_pool_structural.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -4115,9 +4115,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
+    "test_id": "tests/testthat/test_params_validation.R",
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "BLOCKED, not green. Verified directly: native rejects any non-default fixed_binary_splits value with 'change of option fixed_binary_splits is unimplemented for task type CPU and was not default in previous run' (catboost/private/libs/options/json_helper.h:185). No CPU code path exists to exercise this capability. See test_params_validation.R for the reproducing assertion.",
     "needs_disposition": false,
     "members": [
       {
@@ -11230,9 +11230,9 @@
     "kind": "flag",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_scale_and_bias.R",
+    "state": "green",
+    "tolerance_justification": "catboost.set_scale_and_bias(model, scale, bias) matches CLI oracle's `normalize-model --set-scale --set-bias --print-scale-and-bias` output (tests/fixtures/oracle-cli/scale_and_bias.json set_scale_bias).",
     "needs_disposition": false,
     "members": [
       {
@@ -11253,9 +11253,9 @@
     "kind": "flag",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_scale_and_bias.R",
+    "state": "green",
+    "tolerance_justification": "catboost.set_scale_and_bias(model, scale, bias) matches CLI oracle's `normalize-model --set-scale --set-bias --print-scale-and-bias` output (tests/fixtures/oracle-cli/scale_and_bias.json set_scale_bias).",
     "needs_disposition": false,
     "members": [
       {
@@ -11276,9 +11276,9 @@
     "kind": "flag",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_scale_and_bias.R",
+    "state": "green",
+    "tolerance_justification": "catboost.get_scale_and_bias(model) on a freshly trained model matches CLI oracle's `normalize-model --print-scale-and-bias` output (tests/fixtures/oracle-cli/scale_and_bias.json print_only), and again after --set-scale/--set-bias and after -i (auto min-max).",
     "needs_disposition": false,
     "members": [
       {
@@ -11299,9 +11299,9 @@
     "kind": "flag",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_scale_and_bias.R",
+    "state": "green",
+    "tolerance_justification": "CLI-only capability (mode_normalize_model.cpp's PoolPaths auto min-max branch; no Python get_scale_and_bias/set_scale_and_bias equivalent). catboost.normalize_model_from_pool() reimplements the same CalcMinMaxOnAllPools + SetScaleAndBias logic and matches the CLI oracle's `normalize-model -i` output at relative 1e-9 (tests/fixtures/oracle-cli/scale_and_bias.json auto_min_max), per Section III's CLI-only-residual tolerance.",
     "needs_disposition": false,
     "members": [
       {
@@ -11322,9 +11322,9 @@
     "kind": "flag",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_scale_and_bias.R",
+    "state": "green",
+    "tolerance_justification": "Exercised by the save/load roundtrip: catboost.save_model() after catboost.set_scale_and_bias() persists scale/bias identically to the CLI oracle's `--output-model` write.",
     "needs_disposition": false,
     "members": [
       {
@@ -12670,9 +12670,9 @@
     "kind": "property",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_metadata.R",
+    "state": "green",
+    "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.feature_names_ all delegate to the same _CatBoostBase._object._get_feature_names() (core.py); catboost.get_model_feature_names() covers all four via one differential test (test_metadata.R:151).",
     "needs_disposition": false,
     "members": [
       {
@@ -12934,9 +12934,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_metadata.R",
+    "state": "green",
+    "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.get_metadata all delegate to the same _CatBoostBase._object._get_metadata_wrapper() (core.py:2061-2062); catboost.get_metadata() covers all four via one differential test.",
     "needs_disposition": false,
     "members": [
       {
@@ -13030,9 +13030,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_scale_and_bias.R",
+    "state": "green",
+    "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.get_scale_and_bias/set_scale_and_bias all delegate to the same _CatBoostBase.get_scale_and_bias()/set_scale_and_bias() (core.py:2422-2429); catboost.get_scale_and_bias()/catboost.set_scale_and_bias() cover all four via one differential test.",
     "needs_disposition": false,
     "members": [
       {
@@ -13174,8 +13174,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_grid_search.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -13390,8 +13390,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_grid_search.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -13438,9 +13438,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "test_select_features.R::select_features: RecursiveByShapValues summary and final model match the Python oracle",
+    "state": "green",
+    "tolerance_justification": "Spec section 4.3 Python-oracle default, not an override. R calls the same native NCB::SelectFeatures entry point Python's CatBoost.select_features calls (catboost/libs/features_selection/select_features.h; _catboost.pyx:1264, :6045), so selected/eliminated feature indices are compared exactly and only the loss-graph values and the final model's predictions carry the 1e-12 numeric tolerance.",
     "needs_disposition": false,
     "members": [
       {
@@ -13534,9 +13534,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_scale_and_bias.R",
+    "state": "green",
+    "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.get_scale_and_bias/set_scale_and_bias all delegate to the same _CatBoostBase.get_scale_and_bias()/set_scale_and_bias() (core.py:2422-2429); catboost.get_scale_and_bias()/catboost.set_scale_and_bias() cover all four via one differential test.",
     "needs_disposition": false,
     "members": [
       {
@@ -13822,9 +13822,9 @@
     "kind": "property",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_metadata.R",
+    "state": "green",
+    "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.feature_names_ all delegate to the same _CatBoostBase._object._get_feature_names() (core.py); catboost.get_model_feature_names() covers all four via one differential test (test_metadata.R:151).",
     "needs_disposition": false,
     "members": [
       {
@@ -14086,9 +14086,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_metadata.R",
+    "state": "green",
+    "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.get_metadata all delegate to the same _CatBoostBase._object._get_metadata_wrapper() (core.py:2061-2062); catboost.get_metadata() covers all four via one differential test.",
     "needs_disposition": false,
     "members": [
       {
@@ -14206,9 +14206,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_scale_and_bias.R",
+    "state": "green",
+    "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.get_scale_and_bias/set_scale_and_bias all delegate to the same _CatBoostBase.get_scale_and_bias()/set_scale_and_bias() (core.py:2422-2429); catboost.get_scale_and_bias()/catboost.set_scale_and_bias() cover all four via one differential test.",
     "needs_disposition": false,
     "members": [
       {
@@ -14350,8 +14350,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_grid_search.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -14614,8 +14614,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_grid_search.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -14686,9 +14686,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "test_select_features.R::select_features: RecursiveByShapValues summary and final model match the Python oracle",
+    "state": "green",
+    "tolerance_justification": "Spec section 4.3 Python-oracle default, not an override. R calls the same native NCB::SelectFeatures entry point Python's CatBoost.select_features calls (catboost/libs/features_selection/select_features.h; _catboost.pyx:1264, :6045), so selected/eliminated feature indices are compared exactly and only the loss-graph values and the final model's predictions carry the 1e-12 numeric tolerance.",
     "needs_disposition": false,
     "members": [
       {
@@ -14806,9 +14806,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_scale_and_bias.R",
+    "state": "green",
+    "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.get_scale_and_bias/set_scale_and_bias all delegate to the same _CatBoostBase.get_scale_and_bias()/set_scale_and_bias() (core.py:2422-2429); catboost.get_scale_and_bias()/catboost.set_scale_and_bias() cover all four via one differential test.",
     "needs_disposition": false,
     "members": [
       {
@@ -15142,9 +15142,9 @@
     "kind": "property",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_metadata.R",
+    "state": "green",
+    "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.feature_names_ all delegate to the same _CatBoostBase._object._get_feature_names() (core.py); catboost.get_model_feature_names() covers all four via one differential test (test_metadata.R:151).",
     "needs_disposition": false,
     "members": [
       {
@@ -15406,9 +15406,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_metadata.R",
+    "state": "green",
+    "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.get_metadata all delegate to the same _CatBoostBase._object._get_metadata_wrapper() (core.py:2061-2062); catboost.get_metadata() covers all four via one differential test.",
     "needs_disposition": false,
     "members": [
       {
@@ -15502,9 +15502,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_scale_and_bias.R",
+    "state": "green",
+    "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.get_scale_and_bias/set_scale_and_bias all delegate to the same _CatBoostBase.get_scale_and_bias()/set_scale_and_bias() (core.py:2422-2429); catboost.get_scale_and_bias()/catboost.set_scale_and_bias() cover all four via one differential test.",
     "needs_disposition": false,
     "members": [
       {
@@ -15646,8 +15646,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_grid_search.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -15862,8 +15862,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_grid_search.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -15934,9 +15934,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "test_select_features.R::select_features: RecursiveByShapValues summary and final model match the Python oracle",
+    "state": "green",
+    "tolerance_justification": "Spec section 4.3 Python-oracle default, not an override. R calls the same native NCB::SelectFeatures entry point Python's CatBoost.select_features calls (catboost/libs/features_selection/select_features.h; _catboost.pyx:1264, :6045), so selected/eliminated feature indices are compared exactly and only the loss-graph values and the final model's predictions carry the 1e-12 numeric tolerance.",
     "needs_disposition": false,
     "members": [
       {
@@ -16030,9 +16030,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_scale_and_bias.R",
+    "state": "green",
+    "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.get_scale_and_bias/set_scale_and_bias all delegate to the same _CatBoostBase.get_scale_and_bias()/set_scale_and_bias() (core.py:2422-2429); catboost.get_scale_and_bias()/catboost.set_scale_and_bias() cover all four via one differential test.",
     "needs_disposition": false,
     "members": [
       {
@@ -16318,9 +16318,9 @@
     "kind": "property",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_metadata.R",
+    "state": "green",
+    "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.feature_names_ all delegate to the same _CatBoostBase._object._get_feature_names() (core.py); catboost.get_model_feature_names() covers all four via one differential test (test_metadata.R:151).",
     "needs_disposition": false,
     "members": [
       {
@@ -16582,9 +16582,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_metadata.R",
+    "state": "green",
+    "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.get_metadata all delegate to the same _CatBoostBase._object._get_metadata_wrapper() (core.py:2061-2062); catboost.get_metadata() covers all four via one differential test.",
     "needs_disposition": false,
     "members": [
       {
@@ -16678,9 +16678,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_scale_and_bias.R",
+    "state": "green",
+    "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.get_scale_and_bias/set_scale_and_bias all delegate to the same _CatBoostBase.get_scale_and_bias()/set_scale_and_bias() (core.py:2422-2429); catboost.get_scale_and_bias()/catboost.set_scale_and_bias() cover all four via one differential test.",
     "needs_disposition": false,
     "members": [
       {
@@ -16822,8 +16822,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_grid_search.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -17038,8 +17038,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_grid_search.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -17110,9 +17110,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "test_select_features.R::select_features: RecursiveByShapValues summary and final model match the Python oracle",
+    "state": "green",
+    "tolerance_justification": "Spec section 4.3 Python-oracle default, not an override. R calls the same native NCB::SelectFeatures entry point Python's CatBoost.select_features calls (catboost/libs/features_selection/select_features.h; _catboost.pyx:1264, :6045), so selected/eliminated feature indices are compared exactly and only the loss-graph values and the final model's predictions carry the 1e-12 numeric tolerance.",
     "needs_disposition": false,
     "members": [
       {
@@ -17206,9 +17206,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_scale_and_bias.R",
+    "state": "green",
+    "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.get_scale_and_bias/set_scale_and_bias all delegate to the same _CatBoostBase.get_scale_and_bias()/set_scale_and_bias() (core.py:2422-2429); catboost.get_scale_and_bias()/catboost.set_scale_and_bias() cover all four via one differential test.",
     "needs_disposition": false,
     "members": [
       {
@@ -19950,9 +19950,9 @@
     "kind": "mode",
     "method": "snapshot",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_metadata.R",
+    "state": "green",
+    "tolerance_justification": "catboost.get_metadata()/catboost.set_metadata()/catboost.get_model_feature_names() cover the metadata mode's four subcommands; see mode:metadata set/get/dump/dump-feature-names rows.",
     "needs_disposition": false,
     "members": [
       {
@@ -19974,9 +19974,9 @@
     "kind": "submode",
     "method": "elementwise",
     "tolerance": 1e-09,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_metadata.R",
+    "state": "green",
+    "tolerance_justification": "catboost.set_metadata() writes the same key/value the CLI's `metadata set --key --value` would; verified via a subsequent catboost.get_metadata() against the CLI oracle's own set-then-get readback (tests/fixtures/oracle-cli/metadata_dump.json set_then_get).",
     "needs_disposition": false,
     "members": [
       {
@@ -19998,9 +19998,9 @@
     "kind": "submode",
     "method": "snapshot",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_metadata.R",
+    "state": "green",
+    "tolerance_justification": "catboost.get_metadata()[[key]] returns the same stored value the CLI's `metadata get --key` prints, verified against the pinned CLI oracle's own dump/set-then-get output.",
     "needs_disposition": false,
     "members": [
       {
@@ -20022,9 +20022,9 @@
     "kind": "submode",
     "method": "snapshot",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_metadata.R",
+    "state": "green",
+    "tolerance_justification": "catboost.get_metadata() returns the full key/value set the CLI's `metadata dump` mode prints; key set and the deterministic training-metrics value are compared byte-identical to the pinned CLI oracle (tests/fixtures/oracle-cli/metadata_dump.json).",
     "needs_disposition": false,
     "members": [
       {
@@ -20046,9 +20046,9 @@
     "kind": "submode",
     "method": "snapshot",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_metadata.R",
+    "state": "green",
+    "tolerance_justification": "catboost.get_model_feature_names() matches the CLI's `metadata dump-feature-names` output exactly against the pinned CLI oracle.",
     "needs_disposition": false,
     "members": [
       {
@@ -20166,9 +20166,9 @@
     "kind": "mode",
     "method": "roundtrip",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_scale_and_bias.R",
+    "state": "green",
+    "tolerance_justification": "catboost.save_model()/catboost.load_model() roundtrip preserves scale/bias set via catboost.set_scale_and_bias(), matching the CLI mode's file-to-file semantics; see flag:--set-scale/--set-bias/--print-scale-and-bias/--input-path rows for the individual flags.",
     "needs_disposition": false,
     "members": [
       {

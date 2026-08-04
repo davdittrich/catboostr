@@ -6,6 +6,7 @@
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/data/quantization.h>
 #include <catboost/libs/eval_result/eval_helpers.h>
+#include <catboost/libs/features_selection/select_features.h>
 #include <catboost/libs/fstr/calc_fstr.h>
 #include <catboost/libs/helpers/int_cast.h>
 #include <catboost/libs/helpers/mem_usage.h>
@@ -17,6 +18,17 @@
 #include <catboost/libs/train_lib/train_model.h>
 #include <catboost/libs/train_lib/cross_validation.h>
 #include <catboost/libs/train_lib/eval_feature.h>
+// P5.2 (catboost-8z4.59): catboost.grid_search/catboost.randomized_search call
+// the same native NCB::GridSearch/NCB::RandomizedSearch entry points Python's
+// CatBoost._tune_hyperparams uses (_catboost.pyx:4403, calling
+// self._object._tune_hyperparams -> cython cpdef at _catboost.pyx:5933, which
+// itself calls these two C++ functions) rather than a from-scratch R-side loop
+// over catboost.cv: the algorithm (grid/quantization-param enumeration order,
+// train/test-split reuse, TRandom(seed=0)-seeded combination sampling for
+// randomized_search) lives entirely in this native code, so calling it
+// directly is the only way to match the Python oracle's best-params/best-score
+// bit-for-bit.
+#include <catboost/private/libs/hyperparameter_tuning/hyperparameter_tuning.h>
 #include <catboost/private/libs/algo/apply.h>
 #include <catboost/private/libs/algo/helpers.h>
 #include <catboost/private/libs/algo/mvs.h>
@@ -39,6 +51,7 @@
 #include <catboost/private/libs/target/data_providers.h>
 
 // P3.6 follow-up (catboost-8z4.48): native tokenizer/dictionary bridges.
+#include <library/cpp/json/json_writer.h>
 #include <library/cpp/langs/langs.h>
 #include <library/cpp/text_processing/dictionary/bpe_builder.h>
 #include <library/cpp/text_processing/dictionary/bpe_dictionary.h>
@@ -63,6 +76,7 @@
 #include <util/generic/singleton.h>
 #include <util/generic/xrange.h>
 #include <util/stream/file.h>
+#include <util/stream/str.h>
 #include <util/string/cast.h>
 #include <util/system/info.h>
 
@@ -1457,7 +1471,7 @@ EXPORT_FUNCTION CatBoostDatasetStatistics_R(
     return R_NilValue;
 }
 
-EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitParamsAsJsonParam) {
+EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitParamsAsJsonParam, SEXP initModelParam) {
     SEXP result = NULL;
     R_API_BEGIN();
     TPoolHandle learnPool = static_cast<TPoolHandle>(R_ExternalPtrAddr(learnPoolParam));
@@ -1467,6 +1481,18 @@ EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitP
 
     auto fitParams = LoadFitParams(fitParamsAsJsonParam);
     TFullModelPtr modelPtr = std::make_unique<TFullModel>();
+
+    // P5.1 (catboost-8z4.58): continue training from an existing model, same
+    // TMaybe<TFullModel*> initModel argument Python's _CatBoost._train passes
+    // to this same TrainModel() overload (_catboost.pyx, train_model.h:153).
+    // initLearnProgress is intentionally left nullptr (as the CLI does): the
+    // TrainModel() call rebuilds learn progress from initModel internally,
+    // it is just not cached across R calls the way Python's __cached_learn_progress does.
+    TMaybe<TFullModel*> initModel = Nothing();
+    if (initModelParam != R_NilValue) {
+        initModel = static_cast<TFullModelHandle>(R_ExternalPtrAddr(initModelParam));
+    }
+
     if (testPoolParam != R_NilValue) {
         TEvalResult evalResult;
         TPoolHandle testPool = static_cast<TPoolHandle>(R_ExternalPtrAddr(testPoolParam));
@@ -1479,7 +1505,7 @@ EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitP
             Nothing(),
             Nothing(),
             pools,
-            /*initModel*/ Nothing(),
+            initModel,
             /*initLearnProgress*/ nullptr,
             "",
             modelPtr.get(),
@@ -1494,7 +1520,7 @@ EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitP
             Nothing(),
             Nothing(),
             pools,
-            /*initModel*/ Nothing(),
+            initModel,
             /*initLearnProgress*/ nullptr,
             "",
             modelPtr.get(),
@@ -1632,6 +1658,319 @@ EXPORT_FUNCTION CatBoostCV_R(SEXP fitParamsAsJsonParam,
 
     R_API_END();
     UNPROTECT(columnCount + 2);
+    return result;
+}
+
+// P5.2 (catboost-8z4.59): shared by CatBoostGridSearch_R/CatBoostRandomizedSearch_R
+// below and structurally identical to CatBoostCV_R's own TCVResult -> R list
+// conversion (same TCVResult fields, same "test/train-<metric>-mean/std"
+// column naming) -- factored out here because a third near-identical copy
+// would cross the "3+ occurrences" duplication threshold.
+// Protocol: returns a VECSXP left PROTECTed (net +1); every element attached
+// to it beforehand is reachable through it, so their own PROTECTs are
+// released immediately after attaching. The caller owns the returned +1.
+static SEXP CVResultsToRList(const TVector<TCVResult>& cvResults) {
+    const size_t metricCount = cvResults.size();
+    TVector<size_t> offsets(metricCount);
+    size_t columnCount = 0;
+    for (size_t metricIdx = 0; metricIdx < metricCount; ++metricIdx) {
+        offsets[metricIdx] = columnCount;
+        columnCount += (cvResults[metricIdx].AverageTrain.size() == 0) ? 2 : 4;
+    }
+
+    SEXP result = PROTECT(allocVector(VECSXP, columnCount));
+    SEXP columnNames = PROTECT(allocVector(STRSXP, columnCount));
+
+    for (size_t metricIdx = 0; metricIdx < metricCount; ++metricIdx) {
+        const TString& metricName = cvResults[metricIdx].Metric;
+        const size_t numberOfIterations = cvResults[metricIdx].Iterations.size();
+        const bool haveTrainResult = (cvResults[metricIdx].AverageTrain.size() != 0);
+        const size_t offset = offsets[metricIdx];
+
+        SEXP rowTestMean = PROTECT(allocVector(REALSXP, numberOfIterations));
+        SEXP rowTestStd = PROTECT(allocVector(REALSXP, numberOfIterations));
+        for (size_t i = 0; i < numberOfIterations; ++i) {
+            REAL(rowTestMean)[i] = cvResults[metricIdx].AverageTest[i];
+            REAL(rowTestStd)[i] = cvResults[metricIdx].StdDevTest[i];
+        }
+        SET_VECTOR_ELT(result, offset + 0, rowTestMean);
+        SET_VECTOR_ELT(result, offset + 1, rowTestStd);
+        SET_STRING_ELT(columnNames, offset + 0, mkChar(("test-" + metricName + "-mean").c_str()));
+        SET_STRING_ELT(columnNames, offset + 1, mkChar(("test-" + metricName + "-std").c_str()));
+        UNPROTECT(2);
+
+        if (haveTrainResult) {
+            SEXP rowTrainMean = PROTECT(allocVector(REALSXP, numberOfIterations));
+            SEXP rowTrainStd = PROTECT(allocVector(REALSXP, numberOfIterations));
+            for (size_t i = 0; i < numberOfIterations; ++i) {
+                REAL(rowTrainMean)[i] = cvResults[metricIdx].AverageTrain[i];
+                REAL(rowTrainStd)[i] = cvResults[metricIdx].StdDevTrain[i];
+            }
+            SET_VECTOR_ELT(result, offset + 2, rowTrainMean);
+            SET_VECTOR_ELT(result, offset + 3, rowTrainStd);
+            SET_STRING_ELT(columnNames, offset + 2, mkChar(("train-" + metricName + "-mean").c_str()));
+            SET_STRING_ELT(columnNames, offset + 3, mkChar(("train-" + metricName + "-std").c_str()));
+            UNPROTECT(2);
+        }
+    }
+
+    setAttrib(result, R_NamesSymbol, columnNames);
+    UNPROTECT(1); // columnNames; `result` stays protected for the caller
+    return result;
+}
+
+// P5.2 (catboost-8z4.59): builds the {params, cv_results} list both
+// CatBoostGridSearch_R and CatBoostRandomizedSearch_R return, matching the
+// two keys Python's _tune_hyperparams returns (_catboost.pyx:6024-6030:
+// best_params = json_value_to_dict(results.BestParams); cv_results = {...}).
+// `params` is a JSON string (parsed R-side with jsonlite::fromJSON, the same
+// pattern catboost.get_plain_params already uses for CatBoostGetPlainParams_R)
+// rather than a hand-rolled TJsonValue -> SEXP walk.
+static SEXP BestOptionValuesToRList(const TBestOptionValuesWithCvResult& results) {
+    // ToString(TJsonValue) uses the default writer config, whose
+    // DefaultDoubleNDigits = 10 (library/cpp/json/json_writer.h:16) silently
+    // truncates best-param doubles to 10 significant digits. Use PREC_AUTO,
+    // same fix as CatBoostSelectFeatures_R's summary JSON below.
+    TStringStream paramsStream;
+    NJson::TJsonWriterConfig paramsConfig;
+    paramsConfig.FloatToStringMode = PREC_AUTO;
+    NJson::WriteJson(&paramsStream, &results.BestParams, paramsConfig);
+    SEXP paramsJson = PROTECT(mkString(paramsStream.Str().c_str()));
+    SEXP cvResultsList = CVResultsToRList(results.CvResult); // already left PROTECTed (net +1)
+
+    SEXP result = PROTECT(allocVector(VECSXP, 2));
+    SEXP resultNames = PROTECT(allocVector(STRSXP, 2));
+    SET_VECTOR_ELT(result, 0, paramsJson);
+    SET_VECTOR_ELT(result, 1, cvResultsList);
+    SET_STRING_ELT(resultNames, 0, mkChar("params"));
+    SET_STRING_ELT(resultNames, 1, mkChar("cv_results"));
+    setAttrib(result, R_NamesSymbol, resultNames);
+
+    UNPROTECT(4);
+    return result;
+}
+
+EXPORT_FUNCTION CatBoostGridSearch_R(
+    SEXP gridJsonParam,
+    SEXP poolParam,
+    SEXP fitParamsAsJsonParam,
+    SEXP foldCountParam,
+    SEXP partitionRandomSeedParam,
+    SEXP shuffleParam,
+    SEXP stratifiedParam,
+    SEXP trainSizeParam,
+    SEXP searchByTrainTestSplitParam,
+    SEXP calcCvStatisticsParam,
+    SEXP verboseParam
+) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TPoolPtr pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    pool->Ref();
+
+    NJson::TJsonValue gridJsonValues = LoadFitParams(gridJsonParam);
+    NJson::TJsonValue modelJsonParams = LoadFitParams(fitParamsAsJsonParam);
+
+    TTrainTestSplitParams ttParams;
+    ttParams.PartitionRandSeed = asInteger(partitionRandomSeedParam);
+    ttParams.Shuffle = asLogical(shuffleParam);
+    // Matches Python core.py:4404-4406/hyperparameter_tuning's own caller:
+    // the train/test split used *during* the search is never stratified,
+    // regardless of the `stratified` argument (that one only reaches cvParams
+    // below, for the post-search CV statistics on the winning candidate).
+    ttParams.Stratified = false;
+    ttParams.TrainPart = asReal(trainSizeParam);
+
+    TCrossValidationParams cvParams;
+    cvParams.FoldCount = asInteger(foldCountParam);
+    cvParams.PartitionRandSeed = asInteger(partitionRandomSeedParam);
+    cvParams.Shuffle = asLogical(shuffleParam);
+    cvParams.Stratified = asLogical(stratifiedParam);
+    cvParams.Type = ECrossValidation::Classical;
+    cvParams.IsCalledFromSearchHyperparameters = true;
+
+    TBestOptionValuesWithCvResult bestOptionValuesWithCvResult;
+    TMetricsAndTimeLeftHistory trainTestResult;
+
+    GridSearch(
+        gridJsonValues,
+        modelJsonParams,
+        ttParams,
+        cvParams,
+        /*objectiveDescriptor*/ Nothing(),
+        /*evalMetricDescriptor*/ Nothing(),
+        pool,
+        &bestOptionValuesWithCvResult,
+        &trainTestResult,
+        static_cast<bool>(asLogical(searchByTrainTestSplitParam)),
+        static_cast<bool>(asLogical(calcCvStatisticsParam)),
+        asInteger(verboseParam)
+    );
+
+    result = PROTECT(BestOptionValuesToRList(bestOptionValuesWithCvResult));
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+EXPORT_FUNCTION CatBoostRandomizedSearch_R(
+    SEXP gridJsonParam,
+    SEXP poolParam,
+    SEXP fitParamsAsJsonParam,
+    SEXP nIterParam,
+    SEXP foldCountParam,
+    SEXP partitionRandomSeedParam,
+    SEXP shuffleParam,
+    SEXP stratifiedParam,
+    SEXP trainSizeParam,
+    SEXP searchByTrainTestSplitParam,
+    SEXP calcCvStatisticsParam,
+    SEXP verboseParam
+) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TPoolPtr pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    pool->Ref();
+
+    NJson::TJsonValue gridJsonValues = LoadFitParams(gridJsonParam);
+    NJson::TJsonValue modelJsonParams = LoadFitParams(fitParamsAsJsonParam);
+
+    TTrainTestSplitParams ttParams;
+    ttParams.PartitionRandSeed = asInteger(partitionRandomSeedParam);
+    ttParams.Shuffle = asLogical(shuffleParam);
+    ttParams.Stratified = false; // see CatBoostGridSearch_R
+    ttParams.TrainPart = asReal(trainSizeParam);
+
+    TCrossValidationParams cvParams;
+    cvParams.FoldCount = asInteger(foldCountParam);
+    cvParams.PartitionRandSeed = asInteger(partitionRandomSeedParam);
+    cvParams.Shuffle = asLogical(shuffleParam);
+    cvParams.Stratified = asLogical(stratifiedParam);
+    cvParams.Type = ECrossValidation::Classical;
+    cvParams.IsCalledFromSearchHyperparameters = true;
+
+    TBestOptionValuesWithCvResult bestOptionValuesWithCvResult;
+    TMetricsAndTimeLeftHistory trainTestResult;
+
+    // scipy-style `rvs()` random-distribution grid values (Python's
+    // hasattr(values, "rvs") branch, _catboost.pyx:2088) are out of scope:
+    // R has no equivalent distribution-object convention, so param_grid
+    // entries must be plain value vectors. randDistGenerators therefore
+    // stays empty; CheckIfRandomDisribution's "CustomRandomDistributionGenerator"
+    // string values are simply never produced R-side.
+    THashMap<TString, TCustomRandomDistributionGenerator> randDistGenerators;
+
+    RandomizedSearch(
+        static_cast<ui32>(asInteger(nIterParam)),
+        randDistGenerators,
+        gridJsonValues,
+        modelJsonParams,
+        ttParams,
+        cvParams,
+        /*objectiveDescriptor*/ Nothing(),
+        /*evalMetricDescriptor*/ Nothing(),
+        pool,
+        &bestOptionValuesWithCvResult,
+        &trainTestResult,
+        static_cast<bool>(asLogical(searchByTrainTestSplitParam)),
+        static_cast<bool>(asLogical(calcCvStatisticsParam)),
+        asInteger(verboseParam)
+    );
+
+    result = PROTECT(BestOptionValuesToRList(bestOptionValuesWithCvResult));
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+// P5.3 (catboost-8z4.60): R equivalent of Python's CatBoost.select_features.
+// Calls the very same native entry point Python's _select_features calls
+// (NCB::SelectFeatures, catboost/libs/features_selection/select_features.h --
+// _catboost.pyx:1264 declares it, :6045 calls it), so the recursive
+// feature-elimination loop, its per-step retraining, SHAP-based feature
+// strengths and the final model all come from vendor code rather than an
+// R-side reimplementation. All selection knobs travel inside the params JSON
+// (features_for_select / num_features_to_select / features_selection_algorithm
+// / features_selection_steps / shap_calc_type / train_final_model), exactly as
+// Python sets them on its own params dict before the call: PlainJsonToOptions
+// splits them back out into TFeaturesSelectOptions inside SelectFeatures.
+//
+// dstModel is always non-null: passing nullptr makes the vendor code export
+// the final model to `result_model_file` on disk instead of returning it
+// (recursive_features_elimination.cpp:842-852). It is only handed back to R
+// when train_final_model is TRUE -- that is the one case the vendor code
+// actually assigns it.
+EXPORT_FUNCTION CatBoostSelectFeatures_R(
+    SEXP learnPoolParam,
+    SEXP testPoolParam,
+    SEXP fitParamsAsJsonParam,
+    SEXP trainFinalModelParam
+) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TDataProviders pools;
+    pools.Learn = static_cast<TPoolHandle>(R_ExternalPtrAddr(learnPoolParam));
+    pools.Learn->Ref();
+    if (testPoolParam != R_NilValue) {
+        pools.Test.emplace_back(static_cast<TPoolHandle>(R_ExternalPtrAddr(testPoolParam)));
+        pools.Test.back()->Ref();
+    }
+
+    NJson::TJsonValue fitParams = LoadFitParams(fitParamsAsJsonParam);
+
+    // One TEvalResult per test pool, matching Python's
+    // self._reserve_test_evals(dataProviders.Test.size()): the final model's
+    // TrainModel call writes into these (recursive_features_elimination.cpp:708),
+    // so a short vector would be an out-of-range write.
+    TVector<TEvalResult> evalResults(pools.Test.size());
+    TVector<TEvalResult*> evalResultPtrs;
+    for (auto& evalResult : evalResults) {
+        evalResultPtrs.push_back(&evalResult);
+    }
+
+    TFullModelPtr modelPtr = std::make_unique<TFullModel>();
+    const NJson::TJsonValue summaryJson = NCB::SelectFeatures(
+        fitParams,
+        /*evalMetricDescriptor*/ Nothing(),
+        pools,
+        modelPtr.get(),
+        evalResultPtrs,
+        /*metricsAndTimeHistory*/ nullptr
+    );
+
+    SEXP modelHandle = R_NilValue;
+    if (asLogical(trainFinalModelParam)) {
+        modelHandle = R_MakeExternalPtr(modelPtr.get(), R_NilValue, R_NilValue);
+        PROTECT(modelHandle);
+        R_RegisterCFinalizerEx(modelHandle, _Finalizer<TFullModelHandle>, TRUE);
+        modelPtr.release();
+    } else {
+        PROTECT(modelHandle); // R_NilValue; keeps the UNPROTECT count below symmetric
+    }
+
+    // Summary travels back as a JSON string parsed R-side with jsonlite, the
+    // same pattern BestOptionValuesToRList uses for best params -- but written
+    // with PREC_AUTO rather than through ToString()/the default writer config,
+    // whose DefaultDoubleNDigits = 10 (library/cpp/json/json_writer.h:16)
+    // silently truncates the loss-graph values to 10 significant digits, a
+    // ~3e-10 relative error that no 1e-12 differential test can pass.
+    TStringStream summaryStream;
+    NJson::TJsonWriterConfig summaryConfig;
+    summaryConfig.FloatToStringMode = PREC_AUTO;
+    NJson::WriteJson(&summaryStream, &summaryJson, summaryConfig);
+
+    result = PROTECT(allocVector(VECSXP, 2));
+    SET_VECTOR_ELT(result, 0, mkString(summaryStream.Str().c_str()));
+    SET_VECTOR_ELT(result, 1, modelHandle);
+
+    SEXP resultNames = PROTECT(allocVector(STRSXP, 2));
+    SET_STRING_ELT(resultNames, 0, mkChar("summary"));
+    SET_STRING_ELT(resultNames, 1, mkChar("model"));
+    setAttrib(result, R_NamesSymbol, resultNames);
+    UNPROTECT(1); // resultNames -- reachable through `result` from here on
+
+    R_API_END();
+    UNPROTECT(2); // `result`, then modelHandle (reachable through `result`)
     return result;
 }
 
@@ -2082,6 +2421,115 @@ EXPORT_FUNCTION CatBoostGetPlainParams_R(SEXP modelParam) {
     R_API_BEGIN();
     TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
     result = PROTECT(mkString(ToString(GetPlainJsonWithAllOptions(*model)).c_str()));
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+// Mirrors _catboost.pyx _MetadataHashProxy: model->ModelInfo is the same
+// THashMap<TString, TString> the CLI's `metadata dump`/`metadata get` modes
+// (mode_metadata.cpp) and Python's model.get_metadata() read. Returns a named
+// character vector of all key/value pairs (R analogue of dict(metadata)).
+EXPORT_FUNCTION CatBoostGetModelInfo_R(SEXP modelParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    size_t n = model->ModelInfo.size();
+    result = PROTECT(allocVector(STRSXP, n));
+    SEXP names = PROTECT(allocVector(STRSXP, n));
+    size_t i = 0;
+    for (const auto& keyValue : model->ModelInfo) {
+        SET_STRING_ELT(names, i, mkChar(keyValue.first.c_str()));
+        SET_STRING_ELT(result, i, mkChar(keyValue.second.c_str()));
+        ++i;
+    }
+    setAttrib(result, R_NamesSymbol, names);
+    R_API_END();
+    UNPROTECT(2);
+    return result;
+}
+
+// Mirrors _catboost.pyx _MetadataHashProxy.__setitem__: mutates the live
+// model handle's ModelInfo in place (matches Python's
+// model.get_metadata()[key] = value calling convention; requires an explicit
+// save to persist, same as Python).
+EXPORT_FUNCTION CatBoostSetModelInfo_R(SEXP modelParam, SEXP keyParam, SEXP valueParam) {
+    R_API_BEGIN();
+    TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    TString key(CHAR(asChar(keyParam)));
+    TString value(CHAR(asChar(valueParam)));
+    model->ModelInfo[key] = value;
+    R_API_END();
+    return R_NilValue;
+}
+
+// P5.7 (catboost-8z4.64): R equivalents of Python's
+// _CatBoostBase.get_scale_and_bias()/set_scale_and_bias() (core.py:2422-2429,
+// inherited unchanged by CatBoost/CatBoostClassifier/CatBoostRegressor/
+// CatBoostRanker) and the CLI's `normalize-model` mode
+// (mode_normalize_model.cpp), which both read/write the same
+// TFullModel::GetScaleAndBias()/SetScaleAndBias() (model.h, scale_and_bias.h)
+// used as `Scale * sumTrees + Bias`.
+//
+// Mirrors _catboost.pyx _get_scale_and_bias(): returns list(scale=<double>,
+// bias=<double vector>). Unlike the Python binding, the bias vector is never
+// collapsed to a bare 0/scalar -- R has no int/float ambiguity to paper over,
+// so the full TVector<double> (possibly empty, for IsZeroBias() defaults) is
+// returned as-is; callers compare against Python's collapsed scalar via
+// length-1 indexing.
+EXPORT_FUNCTION CatBoostGetScaleAndBias_R(SEXP modelParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    const TScaleAndBias& scaleAndBias = model->GetScaleAndBias();
+    const TVector<double>& bias = scaleAndBias.GetBiasRef();
+    result = PROTECT(allocVector(VECSXP, 2));
+    SET_VECTOR_ELT(result, 0, ScalarReal(scaleAndBias.Scale));
+    SEXP biasVec = PROTECT(allocVector(REALSXP, bias.size()));
+    for (auto i : xrange(bias.size())) {
+        REAL(biasVec)[i] = bias[i];
+    }
+    SET_VECTOR_ELT(result, 1, biasVec);
+    SEXP names = PROTECT(allocVector(STRSXP, 2));
+    SET_STRING_ELT(names, 0, mkChar("scale"));
+    SET_STRING_ELT(names, 1, mkChar("bias"));
+    setAttrib(result, R_NamesSymbol, names);
+    R_API_END();
+    UNPROTECT(3);
+    return result;
+}
+
+// Mirrors _catboost.pyx _set_scale_and_bias(): mutates the live model
+// handle's {Scale, Bias} in place (matches CLI's `normalize-model
+// --set-scale/--set-bias`). bias's length is the model's ApproxDimension
+// (1 for single-target models); an empty bias vector is equivalent to
+// Python's scalar-0 default (TScaleAndBias::IsZeroBias()).
+EXPORT_FUNCTION CatBoostSetScaleAndBias_R(SEXP modelParam, SEXP scaleParam, SEXP biasParam) {
+    R_API_BEGIN();
+    TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    double scale = asReal(scaleParam);
+    size_t n = static_cast<size_t>(Rf_length(biasParam));
+    TVector<double> bias(n);
+    for (size_t i = 0; i < n; ++i) {
+        bias[i] = REAL(biasParam)[i];
+    }
+    model->SetScaleAndBias(TScaleAndBias(scale, bias));
+    R_API_END();
+    return R_NilValue;
+}
+
+// Mirrors _catboost.pyx _get_feature_names() / Python's model.feature_names_
+// property and the CLI's `metadata dump-feature-names` mode
+// (mode_metadata.cpp dump_feature_names(), model.cpp GetModelUsedFeaturesNames()).
+EXPORT_FUNCTION CatBoostGetModelUsedFeatureNames_R(SEXP modelParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    TVector<TString> featureNames = GetModelUsedFeaturesNames(*model);
+    result = PROTECT(allocVector(STRSXP, featureNames.size()));
+    for (auto i : xrange(featureNames.size())) {
+        SET_STRING_ELT(result, i, mkChar(featureNames[i].c_str()));
+    }
     R_API_END();
     UNPROTECT(1);
     return result;

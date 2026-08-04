@@ -2528,6 +2528,158 @@ summary.catboost.Model <- function(object, ...) {
 #'   }
 #' }
 #'
+#' % BEGIN GENERATED PARAM REFERENCE (tools/parity/gen_param_reference.py) -- DO NOT EDIT BY HAND
+#' @section Full Parameter Reference (generated):
+#' All 139 hyperparameters from the machine-generated capability
+#' inventory, and how catboostr accepts each one.
+#'
+#' Unrecognized \code{params} keys are rejected with an error naming the
+#' offending key(s). To use a newer vendor-core parameter not yet listed
+#' below, set \code{options(catboostr.allow_unknown_params = TRUE)} to bypass
+#' this check.
+#' \describe{
+#'   \item{X}{Supplied via \code{learn_pool}/\code{test_pool} (see \code{catboost.load_pool}), not the \code{params} list.}
+#'   \item{allow_const_label}{Native training parameter accepted in the \code{params} list.}
+#'   \item{allow_writing_files}{Native training parameter accepted in the \code{params} list.}
+#'   \item{approx_on_full_history}{Native training parameter accepted in the \code{params} list.}
+#'   \item{auto_class_weights}{Native training parameter accepted in the \code{params} list.}
+#'   \item{bagging_temperature}{Native training parameter accepted in the \code{params} list.}
+#'   \item{baseline}{Supplied via \code{catboost.load_pool} (Pool construction), not the \code{params} list.}
+#'   \item{best_model_min_trees}{Native training parameter accepted in the \code{params} list.}
+#'   \item{boost_from_average}{Native training parameter accepted in the \code{params} list.}
+#'   \item{boosting_type}{Native training parameter accepted in the \code{params} list.}
+#'   \item{bootstrap_type}{Native training parameter accepted in the \code{params} list.}
+#'   \item{border_count}{Native training parameter accepted in the \code{params} list.}
+#'   \item{callback}{Python-only; no catboostr equivalent.}
+#'   \item{callbacks}{Python-only; no catboostr equivalent.}
+#'   \item{cat_features}{Supplied via \code{catboost.load_pool} (Pool construction), not the \code{params} list.}
+#'   \item{class_names}{Native training parameter accepted in the \code{params} list.}
+#'   \item{class_weights}{Native training parameter accepted in the \code{params} list.}
+#'   \item{classes_count}{Native training parameter accepted in the \code{params} list.}
+#'   \item{colsample_bylevel}{Alias of \code{rsm} (see process_synonyms); resolved automatically.}
+#'   \item{column_description}{Supplied via \code{catboost.load_pool} (Pool construction), not the \code{params} list.}
+#'   \item{combinations_ctr}{Native training parameter accepted in the \code{params} list.}
+#'   \item{counter_calc_method}{Native training parameter accepted in the \code{params} list.}
+#'   \item{ctr_description}{Native training parameter accepted in the \code{params} list.}
+#'   \item{ctr_history_unit}{Native training parameter accepted in the \code{params} list.}
+#'   \item{ctr_leaf_count_limit}{Native training parameter accepted in the \code{params} list.}
+#'   \item{ctr_target_border_count}{Native training parameter accepted in the \code{params} list.}
+#'   \item{custom_loss}{Native training parameter accepted in the \code{params} list.}
+#'   \item{custom_metric}{Native training parameter accepted in the \code{params} list.}
+#'   \item{data_partition}{Native training parameter accepted in the \code{params} list.}
+#'   \item{depth}{Native training parameter accepted in the \code{params} list.}
+#'   \item{dev_efb_max_buckets}{Native training parameter accepted in the \code{params} list.}
+#'   \item{dev_score_calc_obj_block_size}{Native training parameter accepted in the \code{params} list.}
+#'   \item{device_config}{Native training parameter accepted in the \code{params} list.}
+#'   \item{devices}{Native training parameter accepted in the \code{params} list.}
+#'   \item{dictionaries}{Native training parameter accepted in the \code{params} list.}
+#'   \item{diffusion_temperature}{Native training parameter accepted in the \code{params} list.}
+#'   \item{early_stopping_rounds}{Native training parameter accepted in the \code{params} list.}
+#'   \item{embedding_features}{Supplied via \code{catboost.load_pool} (Pool construction), not the \code{params} list.}
+#'   \item{eta}{Alias of \code{learning_rate} (see process_synonyms); resolved automatically.}
+#'   \item{eval_fraction}{Native training parameter accepted in the \code{params} list.}
+#'   \item{eval_metric}{Native training parameter accepted in the \code{params} list.}
+#'   \item{eval_set}{Supplied via the \code{test_pool} argument of \code{catboost.train}, not the \code{params} list.}
+#'   \item{feature_border_type}{Native training parameter accepted in the \code{params} list.}
+#'   \item{feature_calcers}{Native training parameter accepted in the \code{params} list.}
+#'   \item{feature_weights}{Native training parameter accepted in the \code{params} list.}
+#'   \item{final_ctr_computation_mode}{Native training parameter accepted in the \code{params} list.}
+#'   \item{first_feature_use_penalties}{Native training parameter accepted in the \code{params} list.}
+#'   \item{fixed_binary_splits}{Native training parameter accepted in the \code{params} list.}
+#'   \item{fold_len_multiplier}{Native training parameter accepted in the \code{params} list.}
+#'   \item{fold_permutation_block}{Native training parameter accepted in the \code{params} list.}
+#'   \item{gpu_cat_features_storage}{Native training parameter accepted in the \code{params} list.}
+#'   \item{gpu_ram_part}{Native training parameter accepted in the \code{params} list.}
+#'   \item{graph}{Supplied via \code{catboost.load_pool} (Pool construction), not the \code{params} list.}
+#'   \item{group_id}{Supplied via \code{catboost.load_pool} (Pool construction), not the \code{params} list.}
+#'   \item{group_weight}{Supplied via \code{catboost.load_pool} (Pool construction), not the \code{params} list.}
+#'   \item{grow_policy}{Native training parameter accepted in the \code{params} list.}
+#'   \item{has_time}{Native training parameter accepted in the \code{params} list.}
+#'   \item{ignored_features}{Native training parameter accepted in the \code{params} list.}
+#'   \item{init_model}{Supplied via the \code{init_model} argument of \code{catboost.train}, not the \code{params} list.}
+#'   \item{input_borders}{Native training parameter accepted in the \code{params} list.}
+#'   \item{iterations}{Native training parameter accepted in the \code{params} list.}
+#'   \item{l2_leaf_reg}{Native training parameter accepted in the \code{params} list.}
+#'   \item{langevin}{Native training parameter accepted in the \code{params} list.}
+#'   \item{leaf_estimation_backtracking}{Native training parameter accepted in the \code{params} list.}
+#'   \item{leaf_estimation_iterations}{Native training parameter accepted in the \code{params} list.}
+#'   \item{leaf_estimation_method}{Native training parameter accepted in the \code{params} list.}
+#'   \item{learning_rate}{Native training parameter accepted in the \code{params} list.}
+#'   \item{log_cerr}{Python-only; no catboostr equivalent.}
+#'   \item{log_cout}{Python-only; no catboostr equivalent.}
+#'   \item{logging_level}{Native training parameter accepted in the \code{params} list.}
+#'   \item{loss_function}{Native training parameter accepted in the \code{params} list.}
+#'   \item{max_bin}{Alias of \code{border_count} (see process_synonyms); resolved automatically.}
+#'   \item{max_ctr_complexity}{Native training parameter accepted in the \code{params} list.}
+#'   \item{max_depth}{Alias of \code{depth} (see process_synonyms); resolved automatically.}
+#'   \item{max_leaves}{Native training parameter accepted in the \code{params} list.}
+#'   \item{metadata}{Native training parameter accepted in the \code{params} list.}
+#'   \item{metric_period}{Native training parameter accepted in the \code{params} list.}
+#'   \item{min_child_samples}{Alias of \code{min_data_in_leaf} (see process_synonyms); resolved automatically.}
+#'   \item{min_data_in_leaf}{Native training parameter accepted in the \code{params} list.}
+#'   \item{model_shrink_mode}{Native training parameter accepted in the \code{params} list.}
+#'   \item{model_shrink_rate}{Native training parameter accepted in the \code{params} list.}
+#'   \item{model_size_reg}{Native training parameter accepted in the \code{params} list.}
+#'   \item{monotone_constraints}{Native training parameter accepted in the \code{params} list.}
+#'   \item{mvs_reg}{Native training parameter accepted in the \code{params} list.}
+#'   \item{n_estimators}{Alias of \code{iterations} (see process_synonyms); resolved automatically.}
+#'   \item{name}{Native training parameter accepted in the \code{params} list.}
+#'   \item{nan_mode}{Native training parameter accepted in the \code{params} list.}
+#'   \item{num_boost_round}{Alias of \code{iterations} (see process_synonyms); resolved automatically.}
+#'   \item{num_leaves}{Alias of \code{max_leaves} (see process_synonyms); resolved automatically.}
+#'   \item{num_trees}{Alias of \code{iterations} (see process_synonyms); resolved automatically.}
+#'   \item{objective}{Alias of \code{loss_function} (see process_synonyms); resolved automatically.}
+#'   \item{od_pval}{Native training parameter accepted in the \code{params} list.}
+#'   \item{od_type}{Native training parameter accepted in the \code{params} list.}
+#'   \item{od_wait}{Native training parameter accepted in the \code{params} list.}
+#'   \item{one_hot_max_size}{Native training parameter accepted in the \code{params} list.}
+#'   \item{output_borders}{Native training parameter accepted in the \code{params} list.}
+#'   \item{pairs}{Supplied via \code{catboost.load_pool} (Pool construction), not the \code{params} list.}
+#'   \item{pairs_weight}{Supplied via \code{catboost.load_pool} (Pool construction), not the \code{params} list.}
+#'   \item{params}{Refers to the \code{params} argument itself.}
+#'   \item{penalties_coefficient}{Native training parameter accepted in the \code{params} list.}
+#'   \item{per_feature_ctr}{Native training parameter accepted in the \code{params} list.}
+#'   \item{per_float_feature_quantization}{Native training parameter accepted in the \code{params} list.}
+#'   \item{per_object_feature_penalties}{Native training parameter accepted in the \code{params} list.}
+#'   \item{pinned_memory_size}{Native training parameter accepted in the \code{params} list.}
+#'   \item{plot}{Python-only; no catboostr equivalent.}
+#'   \item{plot_file}{Python-only; no catboostr equivalent.}
+#'   \item{posterior_sampling}{Native training parameter accepted in the \code{params} list.}
+#'   \item{random_score_type}{Native training parameter accepted in the \code{params} list.}
+#'   \item{random_seed}{Native training parameter accepted in the \code{params} list.}
+#'   \item{random_state}{Alias of \code{random_seed} (see process_synonyms); resolved automatically.}
+#'   \item{random_strength}{Native training parameter accepted in the \code{params} list.}
+#'   \item{reg_lambda}{Alias of \code{l2_leaf_reg} (see process_synonyms); resolved automatically.}
+#'   \item{rsm}{Native training parameter accepted in the \code{params} list.}
+#'   \item{sample_weight}{Supplied via \code{catboost.load_pool} (Pool construction), not the \code{params} list.}
+#'   \item{sampling_frequency}{Native training parameter accepted in the \code{params} list.}
+#'   \item{sampling_unit}{Native training parameter accepted in the \code{params} list.}
+#'   \item{save_snapshot}{Native training parameter accepted in the \code{params} list.}
+#'   \item{scale_pos_weight}{Native training parameter accepted in the \code{params} list.}
+#'   \item{score_function}{Native training parameter accepted in the \code{params} list.}
+#'   \item{silent}{Python-only; no catboostr equivalent.}
+#'   \item{simple_ctr}{Native training parameter accepted in the \code{params} list.}
+#'   \item{snapshot_file}{Native training parameter accepted in the \code{params} list.}
+#'   \item{snapshot_interval}{Native training parameter accepted in the \code{params} list.}
+#'   \item{sparse_features_conflict_fraction}{Native training parameter accepted in the \code{params} list.}
+#'   \item{store_all_simple_ctr}{Native training parameter accepted in the \code{params} list.}
+#'   \item{subgroup_id}{Supplied via \code{catboost.load_pool} (Pool construction), not the \code{params} list.}
+#'   \item{subsample}{Native training parameter accepted in the \code{params} list.}
+#'   \item{target_border}{Native training parameter accepted in the \code{params} list.}
+#'   \item{task_type}{Native training parameter accepted in the \code{params} list.}
+#'   \item{text_features}{Supplied via \code{catboost.load_pool} (Pool construction), not the \code{params} list.}
+#'   \item{text_processing}{Native training parameter accepted in the \code{params} list.}
+#'   \item{thread_count}{Supplied via \code{catboost.load_pool} (Pool construction), not the \code{params} list.}
+#'   \item{tokenizers}{Native training parameter accepted in the \code{params} list.}
+#'   \item{train_dir}{Native training parameter accepted in the \code{params} list.}
+#'   \item{use_best_model}{Native training parameter accepted in the \code{params} list.}
+#'   \item{used_ram_limit}{Native training parameter accepted in the \code{params} list.}
+#'   \item{verbose}{Native training parameter accepted in the \code{params} list.}
+#'   \item{verbose_eval}{Alias of \code{verbose} (see process_synonyms); resolved automatically.}
+#'   \item{y}{Supplied via \code{learn_pool}/\code{test_pool} (see \code{catboost.load_pool}), not the \code{params} list.}
+#' }
+#' % END GENERATED PARAM REFERENCE
+#'
 #' @param learn_pool The dataset used for training the model.
 #'
 #' Default value: Required argument
@@ -2541,6 +2693,14 @@ summary.catboost.Model <- function(object, ...) {
 #' If set, the passed list of parameters overrides the default values.
 #'
 #' Default value: Required argument
+#' @param init_model Continue training starting from an existing model.
+#'
+#' Accepts a \code{catboost.Model} object (as returned by \code{catboost.train}
+#' or \code{catboost.load_model}), or a string/path to a model file on disk
+#' (loaded via \code{catboost.load_model} with the default \code{"cbm"}
+#' format).
+#'
+#' Default value: NULL (train a new model from scratch)
 #' @examples
 #' \dontrun{
 #' train_pool_path <- system.file("extdata", "adult_train.1000", package = "catboostr")
@@ -2562,7 +2722,7 @@ summary.catboost.Model <- function(object, ...) {
 #' @return Model object.
 #' @export
 #' @seealso \url{https://catboost.ai/docs/concepts/r-reference_catboost-train.html}
-catboost.train <- function(learn_pool, test_pool = NULL, params = list()) {
+catboost.train <- function(learn_pool, test_pool = NULL, params = list(), init_model = NULL) {
     if (!inherits(learn_pool, "catboost.Pool"))
         stop("Expected catboost.Pool, got: ", class(learn_pool))
     if (is.null.handle(learn_pool))
@@ -2574,9 +2734,22 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list()) {
     if (length(params) == 0)
         message("Training catboost with default parameters! See help(catboost.train).")
 
+    # P5.1 (catboost-8z4.58): init_model matches Python's CatBoost.fit(init_model=...),
+    # which accepts a CatBoost object or a string/path (fit() loads the path
+    # via CatBoost().load_model() before passing it to _train()).
+    init_model_handle <- NULL
+    if (!is.null(init_model)) {
+        if (is.character(init_model))
+            init_model <- catboost.load_model(init_model)
+        if (!inherits(init_model, "catboost.Model"))
+            stop("Expected catboost.Model or a path to a model file, got: ", class(init_model))
+        catboost.restore_handle(init_model)
+        init_model_handle <- init_model$cpp_obj$handle
+    }
+
     params <- process_synonyms(params)
     json_params <- prepare_train_export_parameters(params)
-    handle <- .Call("CatBoostFit_R", learn_pool, test_pool, json_params)
+    handle <- .Call("CatBoostFit_R", learn_pool, test_pool, json_params, init_model_handle)
     raw <- .Call("CatBoostSerializeModel_R", handle)
     model <- create.model.base(handle, raw)
 
@@ -2596,6 +2769,88 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list()) {
     return(model)
 }
 
+# BEGIN GENERATED KNOWN_PARAMS (tools/parity/gen_param_reference.py) -- DO NOT EDIT BY HAND
+# Canonical + alias hyperparameter names from the machine-generated
+# capability inventory (tests/fixtures/parity/matrix.dispositioned.json,
+# kind:"parameter" rows), unioned with every name vendor-native's
+# CopyOption(plainOptions, ...) calls accept (plain_options_helper.cpp;
+# see parse_native_copyoption_names() in this script), plus
+# EXTRA_KNOWN_PARAMS. Used by validate_params_keys() below.
+.catboostr_known_params <- c("X", "add_ridge_penalty_to_loss_function", 
+    "allow_const_label", "allow_writing_files", "approx_on_full_history", 
+    "auto_class_weights", "bagging_temperature", "baseline", "baseline_model_snapshot", 
+    "bayesian_matrix_reg", "best_model_min_trees", "boost_from_average", "boosting_type", 
+    "bootstrap_type", "border_count", "callback", "callbacks", "cat_features", 
+    "class_names", "class_weights", "classes_count", "colsample_bylevel", 
+    "column_description", "combinations_ctr", "counter_calc_method", "ctr_description", 
+    "ctr_history_unit", "ctr_leaf_count_limit", "ctr_target_border_count", "custom_loss", 
+    "custom_metric", "data_partition", "depth", "detailed_profile", 
+    "dev_default_value_fraction_for_sparse", "dev_efb_max_buckets", "dev_group_features", 
+    "dev_leafwise_approxes", "dev_leafwise_scoring", 
+    "dev_max_ctr_complexity_for_borders_cache", "dev_max_subset_size_for_build_borders", 
+    "dev_score_calc_obj_block_size", "dev_sparse_array_indexing", "device_config", 
+    "devices", "dictionaries", "diffusion_temperature", "early_stopping_rounds", 
+    "embedding_features", "embedding_processing", "eta", "eval_file_name", 
+    "eval_fraction", "eval_metric", "eval_set", "experiment_count", "experiment_size", 
+    "feature_border_type", "feature_calcers", "feature_weights", "features_for_select", 
+    "features_selection_algorithm", "features_selection_grouping", 
+    "features_selection_result_path", "features_selection_steps", 
+    "features_tags_for_select", "features_to_evaluate", "file_with_hosts", 
+    "final_ctr_computation_mode", "final_feature_calcer_computation_mode", 
+    "first_feature_use_penalties", "fixed_binary_splits", "fold_len_multiplier", 
+    "fold_permutation_block", "fold_size_loss_normalization", 
+    "force_unit_auto_pair_weights", "fstr_internal_file", "fstr_regular_file", 
+    "fstr_type", "gpu_cat_features_storage", "gpu_ram_part", "graph", "group_id", 
+    "group_weight", "grow_policy", "has_time", "ignored_features", "init_model", 
+    "input_borders", "iterations", "json_log", "l2_leaf_reg", "langevin", 
+    "leaf_estimation_backtracking", "leaf_estimation_iterations", 
+    "leaf_estimation_method", "learn_error_log", "learning_rate", "log_cerr", "log_cout", 
+    "logging_level", "loss_function", "max_bin", "max_ctr_complexity", "max_depth", 
+    "max_leaves", "meta", "meta_l2_exponent", "meta_l2_frequency", "metadata", 
+    "metric_period", "min_child_samples", "min_data_in_leaf", "min_fold_size", 
+    "model_format", "model_shrink_mode", "model_shrink_rate", "model_size_reg", 
+    "monotone_constraints", "mvs_reg", "n_estimators", "name", "nan_mode", "node_port", 
+    "node_type", "num_boost_round", "num_features_tags_to_select", 
+    "num_features_to_select", "num_leaves", "num_trees", "objective", 
+    "observations_to_bootstrap", "od_pval", "od_type", "od_wait", "offset", 
+    "one_hot_max_size", "output_borders", "output_columns", "pairs", "pairs_weight", 
+    "params", "penalties_coefficient", "per_feature_ctr", "per_feature_ctr_description", 
+    "per_float_feature_quantization", "per_object_feature_penalties", 
+    "permutation_count", "pinned_memory_size", "plot", "plot_file", 
+    "pool_metainfo_options", "posterior_sampling", "prediction_type", "profile_log", 
+    "random_score_type", "random_seed", "random_state", "random_strength", "reg_lambda", 
+    "result_model_file", "roc_file", "rsm", "sample_weight", "sampling_frequency", 
+    "sampling_unit", "save_snapshot", "scale_pos_weight", "score_function", 
+    "shap_calc_type", "silent", "simple_ctr", "simple_ctr_description", "snapshot_file", 
+    "snapshot_interval", "sparse_features_conflict_fraction", "store_all_simple_ctr", 
+    "subgroup_id", "subsample", "target_border", "task_type", "test_error_log", 
+    "text_features", "text_processing", "thread_count", "time_left_log", "tokenizers", 
+    "train_dir", "train_final_model", "training_options_file", "tree_ctr_description", 
+    "use_best_model", "use_evaluated_features_in_baseline_model", "used_ram_limit", 
+    "verbose", "verbose_eval", "y")
+# END GENERATED KNOWN_PARAMS
+
+# P5.5 (catboost-8z4.62): reject unknown `params` list keys, unless the
+# caller opts out via options(catboostr.allow_unknown_params = TRUE) (e.g.
+# to use a newer vendor-core parameter not yet in .catboostr_known_params).
+# Must run *after* synonym resolution: aliases (e.g. 'eta') are themselves
+# members of .catboostr_known_params, so checking post-resolution or
+# pre-resolution both accept them, but post-resolution also means the
+# canonical spelling is what actually gets validated and serialized.
+validate_params_keys <- function(params) {
+    if (isTRUE(getOption("catboostr.allow_unknown_params", FALSE))) {
+        return(invisible(NULL))
+    }
+    unknown <- setdiff(names(params), .catboostr_known_params)
+    if (length(unknown) > 0) {
+        stop("Unknown catboost 'params' key(s): ", paste(unknown, collapse = ", "),
+             ". See help(catboost.train) for the full parameter reference. ",
+             "If this is a newer vendor-core parameter not yet recognized by catboostr, ",
+             "set options(catboostr.allow_unknown_params = TRUE) to bypass this check.")
+    }
+    invisible(NULL)
+}
+
 process_synonyms <- function(params) {
     params <- process_synonyms_in_one_group(c('loss_function', 'objective'), params)
     params <- process_synonyms_in_one_group(c('iterations', 'n_estimators', 'num_boost_round', 'num_trees'), params)
@@ -2608,6 +2863,8 @@ process_synonyms <- function(params) {
     params <- process_synonyms_in_one_group(c('rsm', 'colsample_bylevel'), params)
     params <- process_synonyms_in_one_group(c('border_count', 'max_bin'), params)
     params <- process_synonyms_in_one_group(c('verbose', 'verbose_eval'), params)
+
+    validate_params_keys(params)
 
     return(params)
 }
@@ -2694,10 +2951,377 @@ catboost.cv <- function(pool,
         params$od_wait <- early_stopping_rounds
     }
 
+    # P5.5 (catboost-8z4.62): unlike catboost.train/grid_search/randomized_search,
+    # catboost.cv does not call process_synonyms() (pre-existing behavior, left
+    # untouched here), but every process_synonyms alias name is itself a member
+    # of .catboostr_known_params, so validating directly against it still
+    # accepts both canonical and alias spellings without requiring resolution.
+    validate_params_keys(params)
+
     json_params <- prepare_train_export_parameters(params)
     result <- .Call("CatBoostCV_R", json_params, pool, fold_count, type, partition_random_seed, shuffle, stratified)
 
     return(data.frame(result))
+}
+
+# P5.2 (catboost-8z4.59): param_grid accepts either a single named list
+# (param name -> vector of values to try) or an unnamed list of such named
+# lists (multiple grids, spans explored independently), matching Python's
+# dict-or-list-of-dicts param_grid (core.py grid_search: `if
+# isinstance(param_grid, Mapping): param_grid = [param_grid]`). The native
+# GridSearch/RandomizedSearch entry points always expect a JSON array of
+# grid objects (_catboost.pyx _PreprocessGrids.__init__: `dumps(prepared_grids)`
+# where prepared_grids is a list), so a single named list is wrapped here.
+prepare_grid_json <- function(param_grid) {
+    if (!is.null(names(param_grid)) && all(nzchar(names(param_grid)))) {
+        param_grid <- list(param_grid)
+    }
+    # digits = NA: jsonlite's full-round-trip-precision mode. digits = 10
+    # (jsonlite's default) truncates grid values to 10 significant digits
+    # before they ever reach native code (catboost-8z4.65 bug class).
+    return(jsonlite::toJSON(param_grid, auto_unbox = FALSE, digits = NA))
+}
+
+#' @name catboost.grid_search
+#' @title Exhaustive search over specified parameter values.
+#' @description R equivalent of Python's \code{CatBoost.grid_search}: calls the
+#' same native search entry point (\code{NCB::GridSearch}, vendored at
+#' \code{catboost/private/libs/hyperparameter_tuning/hyperparameter_tuning.h})
+#' that Python's \code{CatBoost._tune_hyperparams} calls via its Cython wrapper,
+#' rather than approximating the search with an R-side loop over
+#' \code{catboost.cv} -- the grid/quantization-parameter enumeration order and
+#' train/test-split reuse live entirely in that native code, so calling it
+#' directly is what makes best-params/best-score match the Python oracle.
+#' @param param_grid Named list of parameter name -> vector of values to try, or
+#' an unnamed list of such named lists (multiple grids, explored independently).
+#'
+#' Default value: Required argument
+#' @param pool Data to search on (a \code{catboost.Pool}).
+#'
+#' Default value: Required argument
+#' @param params Fixed parameters for \code{catboost.train}, held constant
+#' across the search.
+#'
+#' Default value: \code{list()}
+#' @param cv Number of cross-validation folds.
+#'
+#' Default value: 3
+#' @param partition_random_seed The random seed used for splitting the data.
+#'
+#' Default value: 0
+#' @param calc_cv_statistics Whether to estimate quality via cross-validation
+#' with the found best parameters. Only used when
+#' \code{search_by_train_test_split = TRUE}.
+#'
+#' Default value: \code{TRUE}
+#' @param search_by_train_test_split If \code{TRUE}, the dataset is split into
+#' train/test parts, candidates are trained on the train part and compared by
+#' loss on the test part. If \code{FALSE}, every candidate is evaluated with
+#' cross-validation instead.
+#'
+#' Default value: \code{TRUE}
+#' @param refit If \code{TRUE}, fit a model on \code{pool} with the best found
+#' parameters (via \code{catboost.train}) and return it as \code{$model}.
+#'
+#' Default value: \code{TRUE}
+#' @param shuffle Shuffle the dataset objects before searching.
+#'
+#' Default value: \code{TRUE}
+#' @param stratified Perform stratified sampling for the cross-validation
+#' statistics. Unlike Python (which auto-detects this from the loss function),
+#' R always defaults to \code{FALSE}, matching \code{catboost.cv}'s own
+#' precedent of leaving stratification to the caller.
+#'
+#' Default value: \code{FALSE}
+#' @param train_size Proportion of the dataset used for the train split (used
+#' when \code{search_by_train_test_split = TRUE}).
+#'
+#' Default value: 0.8
+#' @param verbose Whether to print search progress.
+#'
+#' Default value: \code{TRUE}
+#' @return A list with \code{$params} (best found parameters, as a named list),
+#' \code{$cv_results} (a \code{data.frame} of cross-validation results with the
+#' same columns \code{catboost.cv} returns), and, if \code{refit = TRUE},
+#' \code{$model} (a \code{catboost.Model} fit with the best parameters).
+#' @export catboost.grid_search
+catboost.grid_search <- function(param_grid,
+                                  pool,
+                                  params = list(),
+                                  cv = 3,
+                                  partition_random_seed = 0,
+                                  calc_cv_statistics = TRUE,
+                                  search_by_train_test_split = TRUE,
+                                  refit = TRUE,
+                                  shuffle = TRUE,
+                                  stratified = FALSE,
+                                  train_size = 0.8,
+                                  verbose = TRUE) {
+    if (!inherits(pool, "catboost.Pool"))
+        stop("Expected catboost.Pool, got: ", class(pool))
+    if (is.null.handle(pool))
+        stop("'pool' object is invalid.")
+
+    grid_json <- prepare_grid_json(param_grid)
+    fit_params <- process_synonyms(params)
+    json_params <- prepare_train_export_parameters(fit_params)
+
+    result <- .Call("CatBoostGridSearch_R", grid_json, pool, json_params,
+                     as.integer(cv), as.integer(partition_random_seed),
+                     shuffle, stratified, train_size,
+                     search_by_train_test_split, calc_cv_statistics, as.integer(verbose))
+
+    best_params <- jsonlite::fromJSON(result$params)
+    search_result <- list(params = best_params, cv_results = data.frame(result$cv_results))
+
+    if (refit) {
+        search_result$model <- catboost.train(pool, params = modifyList(fit_params, best_params))
+    }
+
+    return(search_result)
+}
+
+#' @name catboost.randomized_search
+#' @title Randomized search on hyper parameters.
+#' @description R equivalent of Python's \code{CatBoost.randomized_search}:
+#' calls the same native search entry point (\code{NCB::RandomizedSearch},
+#' vendored at
+#' \code{catboost/private/libs/hyperparameter_tuning/hyperparameter_tuning.h})
+#' that Python's \code{CatBoost._tune_hyperparams} calls via its Cython wrapper.
+#' In contrast to \code{catboost.grid_search}, not all parameter values are
+#' tried: a fixed number (\code{n_iter}) of settings is sampled uniformly from
+#' \code{param_distributions} (the native sampler seeds its shuffle from a fixed
+#' constant, so the sampled combinations -- not just the winner -- are
+#' reproducible across calls with the same grid and \code{n_iter}).
+#'
+#' Sampling from continuous distributions (Python's \code{scipy.stats}-style
+#' \code{rvs()} objects) is not supported: \code{param_distributions} entries
+#' must be plain value vectors, sampled uniformly by the native code.
+#' @param param_distributions Named list of parameter name -> vector of values
+#' to sample from, or an unnamed list of such named lists.
+#'
+#' Default value: Required argument
+#' @param pool Data to search on (a \code{catboost.Pool}).
+#'
+#' Default value: Required argument
+#' @param params Fixed parameters for \code{catboost.train}, held constant
+#' across the search.
+#'
+#' Default value: \code{list()}
+#' @param cv Number of cross-validation folds.
+#'
+#' Default value: 3
+#' @param n_iter Number of parameter settings sampled.
+#'
+#' Default value: 10
+#' @param partition_random_seed The random seed used for splitting the data.
+#'
+#' Default value: 0
+#' @param calc_cv_statistics Whether to estimate quality via cross-validation
+#' with the found best parameters. Only used when
+#' \code{search_by_train_test_split = TRUE}.
+#'
+#' Default value: \code{TRUE}
+#' @param search_by_train_test_split If \code{TRUE}, the dataset is split into
+#' train/test parts, candidates are trained on the train part and compared by
+#' loss on the test part. If \code{FALSE}, every candidate is evaluated with
+#' cross-validation instead.
+#'
+#' Default value: \code{TRUE}
+#' @param refit If \code{TRUE}, fit a model on \code{pool} with the best found
+#' parameters (via \code{catboost.train}) and return it as \code{$model}.
+#'
+#' Default value: \code{TRUE}
+#' @param shuffle Shuffle the dataset objects before searching.
+#'
+#' Default value: \code{TRUE}
+#' @param stratified Perform stratified sampling for the cross-validation
+#' statistics. Unlike Python (which auto-detects this from the loss function),
+#' R always defaults to \code{FALSE}, matching \code{catboost.cv}'s own
+#' precedent of leaving stratification to the caller.
+#'
+#' Default value: \code{FALSE}
+#' @param train_size Proportion of the dataset used for the train split (used
+#' when \code{search_by_train_test_split = TRUE}).
+#'
+#' Default value: 0.8
+#' @param verbose Whether to print search progress.
+#'
+#' Default value: \code{TRUE}
+#' @return A list with \code{$params} (best found parameters, as a named list),
+#' \code{$cv_results} (a \code{data.frame} of cross-validation results with the
+#' same columns \code{catboost.cv} returns), and, if \code{refit = TRUE},
+#' \code{$model} (a \code{catboost.Model} fit with the best parameters).
+#' @export catboost.randomized_search
+catboost.randomized_search <- function(param_distributions,
+                                        pool,
+                                        params = list(),
+                                        cv = 3,
+                                        n_iter = 10,
+                                        partition_random_seed = 0,
+                                        calc_cv_statistics = TRUE,
+                                        search_by_train_test_split = TRUE,
+                                        refit = TRUE,
+                                        shuffle = TRUE,
+                                        stratified = FALSE,
+                                        train_size = 0.8,
+                                        verbose = TRUE) {
+    if (!inherits(pool, "catboost.Pool"))
+        stop("Expected catboost.Pool, got: ", class(pool))
+    if (is.null.handle(pool))
+        stop("'pool' object is invalid.")
+    if (n_iter <= 0)
+        stop("n_iter should be a positive number")
+
+    grid_json <- prepare_grid_json(param_distributions)
+    fit_params <- process_synonyms(params)
+    json_params <- prepare_train_export_parameters(fit_params)
+
+    result <- .Call("CatBoostRandomizedSearch_R", grid_json, pool, json_params,
+                     as.integer(n_iter), as.integer(cv), as.integer(partition_random_seed),
+                     shuffle, stratified, train_size,
+                     search_by_train_test_split, calc_cv_statistics, as.integer(verbose))
+
+    best_params <- jsonlite::fromJSON(result$params)
+    search_result <- list(params = best_params, cv_results = data.frame(result$cv_results))
+
+    if (refit) {
+        search_result$model <- catboost.train(pool, params = modifyList(fit_params, best_params))
+    }
+
+    return(search_result)
+}
+
+#' @name catboost.select_features
+#' @title Select the best features by recursive elimination.
+#' @description R equivalent of Python's \code{CatBoost.select_features}: trains
+#' repeatedly while eliminating the weakest features, and reports which features
+#' survived.
+#'
+#' This calls the same native entry point Python's \code{select_features} calls
+#' (\code{NCB::SelectFeatures}, vendored at
+#' \code{catboost/libs/features_selection/select_features.h}), so the
+#' elimination loop, its per-step retraining, the SHAP-based feature strengths
+#' and the final model all come from vendor code rather than an R-side
+#' reimplementation.
+#'
+#' This is a different algorithm from \code{\link{catboost.eval_feature}}, which
+#' scores caller-supplied feature sets by cross-validation instead of
+#' eliminating features.
+#'
+#' Feature selection by feature \emph{tags} (Python's \code{grouping = "ByTags"},
+#' \code{features_tags_for_select}, \code{num_features_tags_to_select}) is not
+#' supported: \code{catboost.load_pool} has no feature-tags argument, so an R
+#' pool never carries the tags that grouping selects over.
+#' @param learn_pool The dataset to select features on (a \code{catboost.Pool}).
+#'
+#' Default value: Required argument
+#' @param features_for_select Which features may be eliminated. A vector of
+#' 0-based feature indices or of feature names, or a single string in the CLI's
+#' range syntax (\code{"0,2-4,17"}, both ends of a range inclusive). Vectors are
+#' collapsed with commas, matching Python's
+#' \code{",".join(map(str, features_for_select))}.
+#'
+#' Default value: Required argument
+#' @param num_features_to_select How many features to keep out of
+#' \code{features_for_select}.
+#'
+#' Default value: Required argument
+#' @param test_pool Validation dataset used to measure the loss during
+#' elimination (a \code{catboost.Pool}), or \code{NULL} to measure it on
+#' \code{learn_pool}. Only one validation dataset is supported.
+#'
+#' Default value: \code{NULL}
+#' @param params Parameters for \code{catboost.train}.
+#'
+#' Default value: \code{list()}
+#' @param algorithm One of \code{"RecursiveByPredictionValuesChange"},
+#' \code{"RecursiveByLossFunctionChange"}, \code{"RecursiveByShapValues"}.
+#' \code{NULL} leaves the vendor default (\code{"RecursiveByShapValues"}).
+#'
+#' Default value: \code{NULL}
+#' @param steps How many times a full model is trained during the elimination.
+#' More steps give more accurate results. \code{NULL} leaves the vendor default
+#' (1).
+#'
+#' Default value: \code{NULL}
+#' @param shap_calc_type One of \code{"Regular"}, \code{"Approximate"},
+#' \code{"Exact"}. \code{NULL} leaves the vendor default (\code{"Regular"}).
+#'
+#' Default value: \code{NULL}
+#' @param train_final_model Whether to fit a model on the selected features and
+#' return it.
+#'
+#' Default value: \code{TRUE}
+#' @return A list with the fields of the vendor's selection summary:
+#' \itemize{
+#'   \item \code{selected_features} -- 0-based indices of the kept features.
+#'   \item \code{selected_features_names} -- their names.
+#'   \item \code{eliminated_features} -- 0-based indices of the dropped features.
+#'   \item \code{eliminated_features_names} -- their names.
+#'   \item \code{loss_graph} -- list with \code{removed_features_count},
+#'     \code{loss_values} and \code{main_indices} (the graph points whose loss
+#'     was measured by fitting a model rather than estimated from fstr).
+#'   \item \code{model} -- the fitted \code{catboost.Model}, present only when
+#'     \code{train_final_model = TRUE}.
+#' }
+#' @export catboost.select_features
+catboost.select_features <- function(learn_pool,
+                                     features_for_select,
+                                     num_features_to_select,
+                                     test_pool = NULL,
+                                     params = list(),
+                                     algorithm = NULL,
+                                     steps = NULL,
+                                     shap_calc_type = NULL,
+                                     train_final_model = TRUE) {
+    if (!inherits(learn_pool, "catboost.Pool"))
+        stop("Expected catboost.Pool, got: ", class(learn_pool))
+    if (is.null.handle(learn_pool))
+        stop("'learn_pool' object is invalid.")
+    if (!is.null(test_pool) && !inherits(test_pool, "catboost.Pool"))
+        stop("Expected catboost.Pool, got: ", class(test_pool))
+    if (!is.null(test_pool) && is.null.handle(test_pool))
+        stop("'test_pool' object is invalid.")
+    if (missing(features_for_select) || is.null(features_for_select))
+        stop("You should specify features_for_select")
+    if (missing(num_features_to_select) || is.null(num_features_to_select))
+        stop("You should specify num_features_to_select")
+    if (length(params) == 0)
+        message("Training catboost with default parameters! See help(catboost.train).")
+
+    # Every selection knob travels inside the params JSON, exactly as Python
+    # sets them on its own params dict before calling _select_features
+    # (core.py:4774-4802); PlainJsonToOptions splits them back out into
+    # TFeaturesSelectOptions inside the native SelectFeatures.
+    fit_params <- process_synonyms(params)
+    fit_params$features_for_select <- paste(features_for_select, collapse = ",")
+    fit_params$num_features_to_select <- as.integer(num_features_to_select)
+    fit_params$train_final_model <- isTRUE(train_final_model)
+    if (!is.null(algorithm))
+        fit_params$features_selection_algorithm <- algorithm
+    if (!is.null(steps))
+        fit_params$features_selection_steps <- as.integer(steps)
+    if (!is.null(shap_calc_type))
+        fit_params$shap_calc_type <- shap_calc_type
+
+    json_params <- prepare_train_export_parameters(fit_params)
+    result <- .Call("CatBoostSelectFeatures_R", learn_pool, test_pool, json_params,
+                    isTRUE(train_final_model))
+
+    selection <- jsonlite::fromJSON(result$summary, simplifyVector = TRUE)
+    if (!is.null(result$model)) {
+        raw <- .Call("CatBoostSerializeModel_R", result$model)
+        model <- create.model.base(result$model, raw)
+        # Deliberately not the full catboost.train post-processing: the final
+        # model is fitted on a feature subset, so learn_pool's column count is
+        # not its feature count and feature importances would be indexed
+        # against the subset, not against learn_pool.
+        model$tree_count <- catboost.ntrees(model)
+        selection$model <- model
+    }
+
+    return(selection)
 }
 
 #' @name catboost.eval_feature
@@ -3576,6 +4200,149 @@ catboost.get_plain_params <- function(model) {
     params <- .Call("CatBoostGetPlainParams_R", model$cpp_obj$handle)
     params <- jsonlite::fromJSON(params)
     return(params)
+}
+
+#' @name catboost.get_metadata
+#' @title Get model metadata
+#'
+#' @description Return all key/value string metadata pairs stored in the
+#' model (training params, custom user data, etc). R equivalent of Python's
+#' \code{model.get_metadata()} (returned as a plain named character vector
+#' rather than a dict-like proxy) and of the CLI's \code{metadata dump} mode.
+#' To read a single key, index the result:
+#' \code{catboost.get_metadata(model)[["my_key"]]} errors on a missing key
+#' (matching Python's \code{KeyError} for \code{metadata["my_key"]}), while
+#' \code{catboost.get_metadata(model)["my_key"]} returns \code{NA} (matching
+#' \code{metadata.get("my_key")}).
+#'
+#' @param model The model obtained as the result of training.
+#'
+#' @return A named character vector of all metadata key/value pairs.
+#' @export
+catboost.get_metadata <- function(model) {
+    catboost.restore_handle(model)
+    return(.Call("CatBoostGetModelInfo_R", model$cpp_obj$handle))
+}
+
+#' @name catboost.set_metadata
+#' @title Set model metadata
+#'
+#' @description Set a single string metadata key/value pair on the model, in
+#' place. R equivalent of Python's \code{model.get_metadata()[key] = value}
+#' and of the CLI's \code{metadata set --key --value} mode. The change is
+#' held in memory only; call \code{\link{catboost.save_model}} to persist it,
+#' matching Python's calling convention.
+#'
+#' @param model The model obtained as the result of training.
+#' @param key The metadata key name.
+#' @param value The metadata value.
+#'
+#' @return No return value, called for side effects.
+#' @export
+catboost.set_metadata <- function(model, key, value) {
+    catboost.restore_handle(model)
+    if (!is.character(key) || length(key) != 1)
+        stop("key must be a single string, got: ", class(key))
+    if (!is.character(value) || length(value) != 1)
+        stop("value must be a single string, got: ", class(value))
+    invisible(.Call("CatBoostSetModelInfo_R", model$cpp_obj$handle, key, value))
+}
+
+#' @name catboost.get_scale_and_bias
+#' @title Get model scale and bias
+#'
+#' @description Return the model's scale and bias, used to compute the final
+#' formula as \code{Scale * sumTrees + Bias}. R equivalent of Python's
+#' \code{model.get_scale_and_bias()} and of the CLI's
+#' \code{normalize-model --print-scale-and-bias} mode.
+#'
+#' @param model The model obtained as the result of training.
+#'
+#' @return A list with \code{scale} (a single number) and \code{bias} (a
+#' numeric vector, one value per model output dimension; empty for the
+#' zero-bias default).
+#' @export
+catboost.get_scale_and_bias <- function(model) {
+    catboost.restore_handle(model)
+    return(.Call("CatBoostGetScaleAndBias_R", model$cpp_obj$handle))
+}
+
+#' @name catboost.set_scale_and_bias
+#' @title Set model scale and bias
+#'
+#' @description Set the model's scale and bias, in place. R equivalent of
+#' Python's \code{model.set_scale_and_bias(scale, bias)} and of the CLI's
+#' \code{normalize-model --set-scale --set-bias} mode. The change is held in
+#' memory only; call \code{\link{catboost.save_model}} to persist it, matching
+#' Python's calling convention.
+#'
+#' @param model The model obtained as the result of training.
+#' @param scale The model scale, a single number.
+#' @param bias The model bias: a single number, or a numeric vector with one
+#' value per model output dimension.
+#'
+#' @return No return value, called for side effects.
+#' @export
+catboost.set_scale_and_bias <- function(model, scale, bias) {
+    catboost.restore_handle(model)
+    if (!is.numeric(scale) || length(scale) != 1)
+        stop("scale must be a single number, got: ", class(scale))
+    if (!is.numeric(bias))
+        stop("bias must be numeric, got: ", class(bias))
+    invisible(.Call("CatBoostSetScaleAndBias_R", model$cpp_obj$handle, as.double(scale), as.double(bias)))
+}
+
+#' @name catboost.normalize_model_from_pool
+#' @title Rescale a model so its raw predictions on a pool span [0, 1]
+#'
+#' @description CLI-only capability: R equivalent of the CLI's
+#' \code{normalize-model --input-path/-i} mode (\code{mode_normalize_model.cpp}),
+#' which has no Python \code{get_scale_and_bias}/\code{set_scale_and_bias}
+#' counterpart. Resets the model to identity scale/bias, computes the min and
+#' max of its raw (\code{RawFormulaVal}) predictions over \code{pool}, then
+#' sets \code{scale = 1 / (max - min)}, \code{bias = -scale * min} so the
+#' rescaled raw predictions span exactly [0, 1] -- mirroring
+#' \code{mode_normalize_model.cpp}'s \code{CalcMinMaxOnAllPools} +
+#' \code{model.SetScaleAndBias({scale, {bias}})} in-place.
+#'
+#' @param model The model obtained as the result of training.
+#' @param pool A \code{catboost.Pool} (or list of pools) to compute the
+#' min/max raw prediction range over.
+#'
+#' @return No return value, called for side effects.
+#' @export
+catboost.normalize_model_from_pool <- function(model, pool) {
+    if (!inherits(model, "catboost.Model"))
+        stop("Expected catboost.Model, got: ", class(model))
+    if (inherits(pool, "catboost.Pool"))
+        pool <- list(pool)
+    catboost.set_scale_and_bias(model, 1.0, numeric(0))
+    raw <- unlist(lapply(pool, function(p) catboost.predict(model, p, prediction_type = "RawFormulaVal")))
+    mn <- min(raw)
+    mx <- max(raw)
+    if (mn == mx)
+        stop("Model gives same result on all docs")
+    scale <- 1.0 / (mx - mn)
+    bias <- -scale * mn
+    catboost.set_scale_and_bias(model, scale, bias)
+    invisible(NULL)
+}
+
+#' @name catboost.get_model_feature_names
+#' @title Get the feature names used by a model
+#'
+#' @description Return the names of the features used by the model (falling
+#' back to their string indices for features that have no name). R
+#' equivalent of Python's \code{model.feature_names_} property and of the
+#' CLI's \code{metadata dump-feature-names} mode.
+#'
+#' @param model The model obtained as the result of training.
+#'
+#' @return A character vector of feature names, ordered as in the model.
+#' @export
+catboost.get_model_feature_names <- function(model) {
+    catboost.restore_handle(model)
+    return(.Call("CatBoostGetModelUsedFeatureNames_R", model$cpp_obj$handle))
 }
 
 

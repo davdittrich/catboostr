@@ -6,6 +6,7 @@ src/*.o
 src/*.so
 inst/libs/
 .claude/
+.serena/
 .superpowers/
 .worktrees/
 __pycache__/

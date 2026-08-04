@@ -1,0 +1,100 @@
+{
+  "inputs": {
+    "num1": [
+      0.5,
+      -1.5,
+      2.25,
+      3.0,
+      -4.75,
+      5.5,
+      -6.25,
+      7.0,
+      -8.5,
+      9.25,
+      -10.0,
+      11.5,
+      1.5,
+      -2.5,
+      3.25,
+      4.0,
+      -5.75,
+      6.5,
+      -7.25,
+      8.0
+    ],
+    "num2": [
+      0.0,
+      0.3,
+      0.6,
+      0.8999999999999999,
+      1.2,
+      1.5,
+      1.7999999999999998,
+      2.1,
+      2.4,
+      2.6999999999999997,
+      3.0,
+      3.3,
+      3.5999999999999996,
+      3.9,
+      4.2,
+      4.5,
+      4.8,
+      5.1,
+      5.3999999999999995,
+      5.7
+    ],
+    "label": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      1,
+      0
+    ],
+    "feature_names": [
+      "num1",
+      "num2"
+    ]
+  },
+  "expected": {
+    "metadata_before": {
+      "catboost_version_info": "Git info:\n    Commit: b1bd2a6d77219e82a1acfcedfccb8e6f6c1ee084\n    Branch: tags/v1.2.10\n    Author: akhropov <akhropov@yandex-team.com>\n    Summary: CatBoost release 1.2.10. commit_hash:f8e0038b19555d36a9ba7b81b6730254b352960d\n    git-svn info:\n    Last Changed Rev: 9293085\n\nOther info:\n    Build by: Unknown user\n    Top src dir: /src/catboost\n",
+      "train_finish_time": "2026-08-04T03:56:37Z",
+      "class_params": "{\"classes_count\":0,\"class_names\":[0,1],\"class_to_label\":[0,1],\"class_label_type\":\"Integer\"}",
+      "output_options": "{\"name\":\"experiment\",\"verbose\":1,\"test_error_log\":\"test_error.tsv\",\"json_log\":\"catboost_training.json\",\"result_model_file\":\"model\",\"roc_file\":\"\",\"eval_file_name\":\"\",\"use_best_model\":false,\"allow_writing_files\":true,\"prediction_type\":[\"RawFormulaVal\"],\"fstr_internal_file\":\"\",\"output_columns\":[\"SampleId\",\"RawFormulaVal\",\"Label\"],\"snapshot_interval\":600,\"time_left_log\":\"time_left.tsv\",\"fstr_type\":\"FeatureImportance\",\"profile_log\":\"catboost_profile.log\",\"train_dir\":\"/home/dd/Gemini/catboost/tools/oracle/.catboost_train_metadata\",\"learn_error_log\":\"learn_error.tsv\",\"training_options_file\":\"\",\"snapshot_file\":\"experiment.cbsnapshot\",\"save_snapshot\":false,\"model_format\":[\"CatboostBinary\"],\"final_feature_calcer_computation_mode\":\"Default\",\"metric_period\":1,\"output_borders\":\"\",\"final_ctr_computation_mode\":\"Default\",\"best_model_min_trees\":1,\"fstr_regular_file\":\"\"}",
+      "training": "{\"metrics\":{\"learn_best_error\":{\"Logloss\":0.631161117553711},\"test_metrics_history\":[],\"learn_metrics_history\":[{\"Logloss\":0.684177303314209},{\"Logloss\":0.6772666931152344},{\"Logloss\":0.6766506195068359},{\"Logloss\":0.6731377601623535},{\"Logloss\":0.6693897724151612},{\"Logloss\":0.6606687545776367},{\"Logloss\":0.6561863422393799},{\"Logloss\":0.6456777095794678},{\"Logloss\":0.6410954475402832},{\"Logloss\":0.631161117553711}],\"test_best_error\":[]}}",
+      "model_guid": "bd81ec0-4d78dde7-64116af6-17e640e3",
+      "params": "{\"detailed_profile\":false,\"boosting_options\":{\"model_shrink_mode\":\"Constant\",\"approx_on_full_history\":false,\"fold_len_multiplier\":2,\"fold_permutation_block\":0,\"posterior_sampling\":false,\"boosting_type\":\"Plain\",\"iterations\":10,\"model_shrink_rate\":0,\"od_config\":{\"wait_iterations\":20,\"type\":\"None\",\"stop_pvalue\":0},\"boost_from_average\":false,\"permutation_count\":4,\"learning_rate\":0.13227400183677673},\"pool_metainfo_options\":{\"tags\":{}},\"metrics\":{\"objective_metric\":{\"type\":\"Logloss\",\"params\":{}},\"eval_metric\":{\"type\":\"Logloss\",\"params\":{}},\"custom_metrics\":[]},\"metadata\":{},\"cat_feature_params\":{\"store_all_simple_ctr\":false,\"ctr_leaf_count_limit\":18446744073709551615,\"simple_ctrs\":[{\"ctr_binarization\":{\"border_count\":15,\"border_type\":\"Uniform\"},\"target_binarization\":{\"border_count\":1,\"border_type\":\"MinEntropy\"},\"prior_estimation\":\"No\",\"priors\":[[0,1],[0.5,1],[1,1]],\"ctr_type\":\"Borders\"},{\"ctr_binarization\":{\"border_count\":15,\"border_type\":\"Uniform\"},\"prior_estimation\":\"No\",\"priors\":[[0,1]],\"ctr_type\":\"Counter\"}],\"counter_calc_method\":\"SkipTest\",\"one_hot_max_size\":2,\"max_ctr_complexity\":1,\"combinations_ctrs\":[{\"ctr_binarization\":{\"border_count\":15,\"border_type\":\"Uniform\"},\"target_binarization\":{\"border_count\":1,\"border_type\":\"MinEntropy\"},\"prior_estimation\":\"No\",\"priors\":[[0,1],[0.5,1],[1,1]],\"ctr_type\":\"Borders\"},{\"ctr_binarization\":{\"border_count\":15,\"border_type\":\"Uniform\"},\"prior_estimation\":\"No\",\"priors\":[[0,1]],\"ctr_type\":\"Counter\"}],\"target_binarization\":{\"border_count\":1,\"border_type\":\"MinEntropy\"},\"per_feature_ctrs\":{}},\"logging_level\":\"Silent\",\"data_processing_options\":{\"ignored_features\":[],\"float_features_binarization\":{\"border_count\":254,\"dev_max_subset_size_for_build_borders\":200000,\"nan_mode\":\"Min\",\"border_type\":\"GreedyLogSum\"},\"has_time\":false,\"dev_sparse_array_indexing\":\"Indices\",\"allow_const_label\":false,\"dev_default_value_fraction_for_sparse\":0.8299999833106995,\"class_names\":[0,1],\"embedding_processing_options\":{\"embedding_processing\":{\"default\":[\"LDA\",\"KNN\"]}},\"dev_group_features\":false,\"eval_fraction\":0,\"classes_count\":0,\"dev_leafwise_scoring\":false,\"auto_class_weights\":\"None\",\"target_border\":null,\"force_unit_auto_pair_weights\":false,\"text_processing_options\":{\"feature_processing\":{\"default\":[{\"dictionaries_names\":[\"BiGram\",\"Word\"],\"feature_calcers\":[\"BoW\"],\"tokenizers_names\":[\"Space\"]},{\"dictionaries_names\":[\"Word\"],\"feature_calcers\":[\"NaiveBayes\"],\"tokenizers_names\":[\"Space\"]}]},\"dictionaries\":[{\"start_token_id\":\"0\",\"occurrence_lower_bound\":\"1\",\"skip_step\":\"0\",\"end_of_word_token_policy\":\"Insert\",\"token_level_type\":\"Word\",\"end_of_sentence_token_policy\":\"Skip\",\"gram_order\":\"2\",\"max_dictionary_size\":\"50000\",\"dictionary_id\":\"BiGram\"},{\"start_token_id\":\"0\",\"occurrence_lower_bound\":\"1\",\"skip_step\":\"0\",\"end_of_word_token_policy\":\"Insert\",\"token_level_type\":\"Word\",\"end_of_sentence_token_policy\":\"Skip\",\"gram_order\":\"1\",\"max_dictionary_size\":\"50000\",\"dictionary_id\":\"Word\"}],\"tokenizers\":[{\"number_token\":\"\ud83d\udd22\",\"skip_empty\":\"1\",\"number_process_policy\":\"LeaveAsIs\",\"tokenizer_id\":\"Space\",\"token_types\":[\"Number\",\"Unknown\",\"Word\"],\"delimiter\":\" \",\"languages\":[],\"lemmatizing\":\"0\",\"split_by_set\":\"0\",\"lowercasing\":\"0\",\"subtokens_policy\":\"SingleToken\",\"separator_type\":\"ByDelimiter\"}]},\"class_weights\":[],\"per_float_feature_quantization\":{}},\"loss_function\":{\"type\":\"Logloss\",\"params\":{}},\"tree_learner_options\":{\"model_size_reg\":0.5,\"sampling_frequency\":\"PerTree\",\"bayesian_matrix_reg\":0.10000000149011612,\"score_function\":\"Cosine\",\"monotone_constraints\":{},\"leaf_estimation_method\":\"Newton\",\"dev_score_calc_obj_block_size\":5000000,\"grow_policy\":\"SymmetricTree\",\"min_data_in_leaf\":1,\"random_strength\":1,\"dev_efb_max_buckets\":1024,\"l2_leaf_reg\":3,\"bootstrap\":{\"mvs_reg\":null,\"subsample\":1,\"type\":\"MVS\"},\"depth\":2,\"max_leaves\":4,\"leaf_estimation_backtracking\":\"AnyImprovement\",\"rsm\":1,\"dev_leafwise_approxes\":false,\"penalties\":{\"per_object_feature_penalties\":{},\"first_feature_use_penalties\":{},\"feature_weights\":{},\"penalties_coefficient\":1},\"random_score_type\":\"NormalWithModelSizeDecrease\",\"leaf_estimation_iterations\":1,\"sparse_features_conflict_fraction\":0},\"task_type\":\"CPU\",\"flat_params\":{\"train_dir\":\"/home/dd/Gemini/catboost/tools/oracle/.catboost_train_metadata\",\"thread_count\":1,\"random_seed\":42,\"depth\":2,\"logging_level\":\"Silent\",\"iterations\":10,\"loss_function\":\"Logloss\"},\"random_seed\":42,\"system_options\":{\"thread_count\":1,\"file_with_hosts\":\"hosts.txt\",\"node_type\":\"SingleHost\",\"node_port\":0,\"used_ram_limit\":\"\"}}"
+    },
+    "metadata_after_set": {
+      "class_params": "{\"classes_count\":0,\"class_names\":[0,1],\"class_to_label\":[0,1],\"class_label_type\":\"Integer\"}",
+      "catboost_version_info": "Git info:\n    Commit: b1bd2a6d77219e82a1acfcedfccb8e6f6c1ee084\n    Branch: tags/v1.2.10\n    Author: akhropov <akhropov@yandex-team.com>\n    Summary: CatBoost release 1.2.10. commit_hash:f8e0038b19555d36a9ba7b81b6730254b352960d\n    git-svn info:\n    Last Changed Rev: 9293085\n\nOther info:\n    Build by: Unknown user\n    Top src dir: /src/catboost\n",
+      "params": "{\"detailed_profile\":false,\"boosting_options\":{\"model_shrink_mode\":\"Constant\",\"approx_on_full_history\":false,\"fold_len_multiplier\":2,\"fold_permutation_block\":0,\"posterior_sampling\":false,\"boosting_type\":\"Plain\",\"iterations\":10,\"model_shrink_rate\":0,\"od_config\":{\"wait_iterations\":20,\"type\":\"None\",\"stop_pvalue\":0},\"boost_from_average\":false,\"permutation_count\":4,\"learning_rate\":0.13227400183677673},\"pool_metainfo_options\":{\"tags\":{}},\"metrics\":{\"objective_metric\":{\"type\":\"Logloss\",\"params\":{}},\"eval_metric\":{\"type\":\"Logloss\",\"params\":{}},\"custom_metrics\":[]},\"metadata\":{},\"cat_feature_params\":{\"store_all_simple_ctr\":false,\"ctr_leaf_count_limit\":18446744073709551615,\"simple_ctrs\":[{\"ctr_binarization\":{\"border_count\":15,\"border_type\":\"Uniform\"},\"target_binarization\":{\"border_count\":1,\"border_type\":\"MinEntropy\"},\"prior_estimation\":\"No\",\"priors\":[[0,1],[0.5,1],[1,1]],\"ctr_type\":\"Borders\"},{\"ctr_binarization\":{\"border_count\":15,\"border_type\":\"Uniform\"},\"prior_estimation\":\"No\",\"priors\":[[0,1]],\"ctr_type\":\"Counter\"}],\"counter_calc_method\":\"SkipTest\",\"one_hot_max_size\":2,\"max_ctr_complexity\":1,\"combinations_ctrs\":[{\"ctr_binarization\":{\"border_count\":15,\"border_type\":\"Uniform\"},\"target_binarization\":{\"border_count\":1,\"border_type\":\"MinEntropy\"},\"prior_estimation\":\"No\",\"priors\":[[0,1],[0.5,1],[1,1]],\"ctr_type\":\"Borders\"},{\"ctr_binarization\":{\"border_count\":15,\"border_type\":\"Uniform\"},\"prior_estimation\":\"No\",\"priors\":[[0,1]],\"ctr_type\":\"Counter\"}],\"target_binarization\":{\"border_count\":1,\"border_type\":\"MinEntropy\"},\"per_feature_ctrs\":{}},\"logging_level\":\"Silent\",\"data_processing_options\":{\"ignored_features\":[],\"float_features_binarization\":{\"border_count\":254,\"dev_max_subset_size_for_build_borders\":200000,\"nan_mode\":\"Min\",\"border_type\":\"GreedyLogSum\"},\"has_time\":false,\"dev_sparse_array_indexing\":\"Indices\",\"allow_const_label\":false,\"dev_default_value_fraction_for_sparse\":0.8299999833106995,\"class_names\":[0,1],\"embedding_processing_options\":{\"embedding_processing\":{\"default\":[\"LDA\",\"KNN\"]}},\"dev_group_features\":false,\"eval_fraction\":0,\"classes_count\":0,\"dev_leafwise_scoring\":false,\"auto_class_weights\":\"None\",\"target_border\":null,\"force_unit_auto_pair_weights\":false,\"text_processing_options\":{\"feature_processing\":{\"default\":[{\"dictionaries_names\":[\"BiGram\",\"Word\"],\"feature_calcers\":[\"BoW\"],\"tokenizers_names\":[\"Space\"]},{\"dictionaries_names\":[\"Word\"],\"feature_calcers\":[\"NaiveBayes\"],\"tokenizers_names\":[\"Space\"]}]},\"dictionaries\":[{\"start_token_id\":\"0\",\"occurrence_lower_bound\":\"1\",\"skip_step\":\"0\",\"end_of_word_token_policy\":\"Insert\",\"token_level_type\":\"Word\",\"end_of_sentence_token_policy\":\"Skip\",\"gram_order\":\"2\",\"max_dictionary_size\":\"50000\",\"dictionary_id\":\"BiGram\"},{\"start_token_id\":\"0\",\"occurrence_lower_bound\":\"1\",\"skip_step\":\"0\",\"end_of_word_token_policy\":\"Insert\",\"token_level_type\":\"Word\",\"end_of_sentence_token_policy\":\"Skip\",\"gram_order\":\"1\",\"max_dictionary_size\":\"50000\",\"dictionary_id\":\"Word\"}],\"tokenizers\":[{\"number_token\":\"\ud83d\udd22\",\"skip_empty\":\"1\",\"number_process_policy\":\"LeaveAsIs\",\"tokenizer_id\":\"Space\",\"token_types\":[\"Number\",\"Unknown\",\"Word\"],\"delimiter\":\" \",\"languages\":[],\"lemmatizing\":\"0\",\"split_by_set\":\"0\",\"lowercasing\":\"0\",\"subtokens_policy\":\"SingleToken\",\"separator_type\":\"ByDelimiter\"}]},\"class_weights\":[],\"per_float_feature_quantization\":{}},\"loss_function\":{\"type\":\"Logloss\",\"params\":{}},\"tree_learner_options\":{\"model_size_reg\":0.5,\"sampling_frequency\":\"PerTree\",\"bayesian_matrix_reg\":0.10000000149011612,\"score_function\":\"Cosine\",\"monotone_constraints\":{},\"leaf_estimation_method\":\"Newton\",\"dev_score_calc_obj_block_size\":5000000,\"grow_policy\":\"SymmetricTree\",\"min_data_in_leaf\":1,\"random_strength\":1,\"dev_efb_max_buckets\":1024,\"l2_leaf_reg\":3,\"bootstrap\":{\"mvs_reg\":null,\"subsample\":1,\"type\":\"MVS\"},\"depth\":2,\"max_leaves\":4,\"leaf_estimation_backtracking\":\"AnyImprovement\",\"rsm\":1,\"dev_leafwise_approxes\":false,\"penalties\":{\"per_object_feature_penalties\":{},\"first_feature_use_penalties\":{},\"feature_weights\":{},\"penalties_coefficient\":1},\"random_score_type\":\"NormalWithModelSizeDecrease\",\"leaf_estimation_iterations\":1,\"sparse_features_conflict_fraction\":0},\"task_type\":\"CPU\",\"flat_params\":{\"train_dir\":\"/home/dd/Gemini/catboost/tools/oracle/.catboost_train_metadata\",\"thread_count\":1,\"random_seed\":42,\"depth\":2,\"logging_level\":\"Silent\",\"iterations\":10,\"loss_function\":\"Logloss\"},\"random_seed\":42,\"system_options\":{\"thread_count\":1,\"file_with_hosts\":\"hosts.txt\",\"node_type\":\"SingleHost\",\"node_port\":0,\"used_ram_limit\":\"\"}}",
+      "train_finish_time": "2026-08-04T03:56:37Z",
+      "custom_key": "custom_value",
+      "training": "{\"metrics\":{\"learn_best_error\":{\"Logloss\":0.631161117553711},\"test_metrics_history\":[],\"learn_metrics_history\":[{\"Logloss\":0.684177303314209},{\"Logloss\":0.6772666931152344},{\"Logloss\":0.6766506195068359},{\"Logloss\":0.6731377601623535},{\"Logloss\":0.6693897724151612},{\"Logloss\":0.6606687545776367},{\"Logloss\":0.6561863422393799},{\"Logloss\":0.6456777095794678},{\"Logloss\":0.6410954475402832},{\"Logloss\":0.631161117553711}],\"test_best_error\":[]}}",
+      "model_guid": "bd81ec0-4d78dde7-64116af6-17e640e3",
+      "output_options": "{\"name\":\"experiment\",\"verbose\":1,\"test_error_log\":\"test_error.tsv\",\"json_log\":\"catboost_training.json\",\"result_model_file\":\"model\",\"roc_file\":\"\",\"eval_file_name\":\"\",\"use_best_model\":false,\"allow_writing_files\":true,\"prediction_type\":[\"RawFormulaVal\"],\"fstr_internal_file\":\"\",\"output_columns\":[\"SampleId\",\"RawFormulaVal\",\"Label\"],\"snapshot_interval\":600,\"time_left_log\":\"time_left.tsv\",\"fstr_type\":\"FeatureImportance\",\"profile_log\":\"catboost_profile.log\",\"train_dir\":\"/home/dd/Gemini/catboost/tools/oracle/.catboost_train_metadata\",\"learn_error_log\":\"learn_error.tsv\",\"training_options_file\":\"\",\"snapshot_file\":\"experiment.cbsnapshot\",\"save_snapshot\":false,\"model_format\":[\"CatboostBinary\"],\"final_feature_calcer_computation_mode\":\"Default\",\"metric_period\":1,\"output_borders\":\"\",\"final_ctr_computation_mode\":\"Default\",\"best_model_min_trees\":1,\"fstr_regular_file\":\"\"}"
+    },
+    "missing_key_get_default": "__default__",
+    "feature_names": [
+      "num1",
+      "num2"
+    ]
+  }
+}

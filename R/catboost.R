@@ -4178,6 +4178,69 @@ catboost.get_plain_params <- function(model) {
     return(params)
 }
 
+#' @name catboost.get_metadata
+#' @title Get model metadata
+#'
+#' @description Return all key/value string metadata pairs stored in the
+#' model (training params, custom user data, etc). R equivalent of Python's
+#' \code{model.get_metadata()} (returned as a plain named character vector
+#' rather than a dict-like proxy) and of the CLI's \code{metadata dump} mode.
+#' To read a single key, index the result:
+#' \code{catboost.get_metadata(model)[["my_key"]]} errors on a missing key
+#' (matching Python's \code{KeyError} for \code{metadata["my_key"]}), while
+#' \code{catboost.get_metadata(model)["my_key"]} returns \code{NA} (matching
+#' \code{metadata.get("my_key")}).
+#'
+#' @param model The model obtained as the result of training.
+#'
+#' @return A named character vector of all metadata key/value pairs.
+#' @export
+catboost.get_metadata <- function(model) {
+    catboost.restore_handle(model)
+    return(.Call("CatBoostGetModelInfo_R", model$cpp_obj$handle))
+}
+
+#' @name catboost.set_metadata
+#' @title Set model metadata
+#'
+#' @description Set a single string metadata key/value pair on the model, in
+#' place. R equivalent of Python's \code{model.get_metadata()[key] = value}
+#' and of the CLI's \code{metadata set --key --value} mode. The change is
+#' held in memory only; call \code{\link{catboost.save_model}} to persist it,
+#' matching Python's calling convention.
+#'
+#' @param model The model obtained as the result of training.
+#' @param key The metadata key name.
+#' @param value The metadata value.
+#'
+#' @return No return value, called for side effects.
+#' @export
+catboost.set_metadata <- function(model, key, value) {
+    catboost.restore_handle(model)
+    if (!is.character(key) || length(key) != 1)
+        stop("key must be a single string, got: ", class(key))
+    if (!is.character(value) || length(value) != 1)
+        stop("value must be a single string, got: ", class(value))
+    invisible(.Call("CatBoostSetModelInfo_R", model$cpp_obj$handle, key, value))
+}
+
+#' @name catboost.get_model_feature_names
+#' @title Get the feature names used by a model
+#'
+#' @description Return the names of the features used by the model (falling
+#' back to their string indices for features that have no name). R
+#' equivalent of Python's \code{model.feature_names_} property and of the
+#' CLI's \code{metadata dump-feature-names} mode.
+#'
+#' @param model The model obtained as the result of training.
+#'
+#' @return A character vector of feature names, ordered as in the model.
+#' @export
+catboost.get_model_feature_names <- function(model) {
+    catboost.restore_handle(model)
+    return(.Call("CatBoostGetModelUsedFeatureNames_R", model$cpp_obj$handle))
+}
+
 
 #' @name catboost.eval_metrics
 #' @title Calculate metrics.

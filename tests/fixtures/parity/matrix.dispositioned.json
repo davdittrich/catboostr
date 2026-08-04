@@ -12934,9 +12934,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_metadata.R",
+    "state": "green",
+    "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.get_metadata all delegate to the same _CatBoostBase._object._get_metadata_wrapper() (core.py:2061-2062); catboost.get_metadata() covers all four via one differential test.",
     "needs_disposition": false,
     "members": [
       {
@@ -14086,9 +14086,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_metadata.R",
+    "state": "green",
+    "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.get_metadata all delegate to the same _CatBoostBase._object._get_metadata_wrapper() (core.py:2061-2062); catboost.get_metadata() covers all four via one differential test.",
     "needs_disposition": false,
     "members": [
       {
@@ -15406,9 +15406,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_metadata.R",
+    "state": "green",
+    "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.get_metadata all delegate to the same _CatBoostBase._object._get_metadata_wrapper() (core.py:2061-2062); catboost.get_metadata() covers all four via one differential test.",
     "needs_disposition": false,
     "members": [
       {
@@ -16582,9 +16582,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_metadata.R",
+    "state": "green",
+    "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.get_metadata all delegate to the same _CatBoostBase._object._get_metadata_wrapper() (core.py:2061-2062); catboost.get_metadata() covers all four via one differential test.",
     "needs_disposition": false,
     "members": [
       {
@@ -19950,9 +19950,9 @@
     "kind": "mode",
     "method": "snapshot",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_metadata.R",
+    "state": "green",
+    "tolerance_justification": "catboost.get_metadata()/catboost.set_metadata()/catboost.get_model_feature_names() cover the metadata mode's four subcommands; see mode:metadata set/get/dump/dump-feature-names rows.",
     "needs_disposition": false,
     "members": [
       {
@@ -19974,9 +19974,9 @@
     "kind": "submode",
     "method": "elementwise",
     "tolerance": 1e-09,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_metadata.R",
+    "state": "green",
+    "tolerance_justification": "catboost.set_metadata() writes the same key/value the CLI's `metadata set --key --value` would; verified via a subsequent catboost.get_metadata() against the CLI oracle's own set-then-get readback (tests/fixtures/oracle-cli/metadata_dump.json set_then_get).",
     "needs_disposition": false,
     "members": [
       {
@@ -19998,9 +19998,9 @@
     "kind": "submode",
     "method": "snapshot",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_metadata.R",
+    "state": "green",
+    "tolerance_justification": "catboost.get_metadata()[[key]] returns the same stored value the CLI's `metadata get --key` prints, verified against the pinned CLI oracle's own dump/set-then-get output.",
     "needs_disposition": false,
     "members": [
       {
@@ -20022,9 +20022,9 @@
     "kind": "submode",
     "method": "snapshot",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_metadata.R",
+    "state": "green",
+    "tolerance_justification": "catboost.get_metadata() returns the full key/value set the CLI's `metadata dump` mode prints; key set and the deterministic training-metrics value are compared byte-identical to the pinned CLI oracle (tests/fixtures/oracle-cli/metadata_dump.json).",
     "needs_disposition": false,
     "members": [
       {
@@ -20046,9 +20046,9 @@
     "kind": "submode",
     "method": "snapshot",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_metadata.R",
+    "state": "green",
+    "tolerance_justification": "catboost.get_model_feature_names() matches the CLI's `metadata dump-feature-names` output exactly against the pinned CLI oracle.",
     "needs_disposition": false,
     "members": [
       {

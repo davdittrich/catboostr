@@ -2418,6 +2418,60 @@ EXPORT_FUNCTION CatBoostGetPlainParams_R(SEXP modelParam) {
     return result;
 }
 
+// Mirrors _catboost.pyx _MetadataHashProxy: model->ModelInfo is the same
+// THashMap<TString, TString> the CLI's `metadata dump`/`metadata get` modes
+// (mode_metadata.cpp) and Python's model.get_metadata() read. Returns a named
+// character vector of all key/value pairs (R analogue of dict(metadata)).
+EXPORT_FUNCTION CatBoostGetModelInfo_R(SEXP modelParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    size_t n = model->ModelInfo.size();
+    result = PROTECT(allocVector(STRSXP, n));
+    SEXP names = PROTECT(allocVector(STRSXP, n));
+    size_t i = 0;
+    for (const auto& keyValue : model->ModelInfo) {
+        SET_STRING_ELT(names, i, mkChar(keyValue.first.c_str()));
+        SET_STRING_ELT(result, i, mkChar(keyValue.second.c_str()));
+        ++i;
+    }
+    setAttrib(result, R_NamesSymbol, names);
+    R_API_END();
+    UNPROTECT(2);
+    return result;
+}
+
+// Mirrors _catboost.pyx _MetadataHashProxy.__setitem__: mutates the live
+// model handle's ModelInfo in place (matches Python's
+// model.get_metadata()[key] = value calling convention; requires an explicit
+// save to persist, same as Python).
+EXPORT_FUNCTION CatBoostSetModelInfo_R(SEXP modelParam, SEXP keyParam, SEXP valueParam) {
+    R_API_BEGIN();
+    TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    TString key(CHAR(asChar(keyParam)));
+    TString value(CHAR(asChar(valueParam)));
+    model->ModelInfo[key] = value;
+    R_API_END();
+    return R_NilValue;
+}
+
+// Mirrors _catboost.pyx _get_feature_names() / Python's model.feature_names_
+// property and the CLI's `metadata dump-feature-names` mode
+// (mode_metadata.cpp dump_feature_names(), model.cpp GetModelUsedFeaturesNames()).
+EXPORT_FUNCTION CatBoostGetModelUsedFeatureNames_R(SEXP modelParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    TVector<TString> featureNames = GetModelUsedFeaturesNames(*model);
+    result = PROTECT(allocVector(STRSXP, featureNames.size()));
+    for (auto i : xrange(featureNames.size())) {
+        SET_STRING_ELT(result, i, mkChar(featureNames[i].c_str()));
+    }
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
 EXPORT_FUNCTION CatBoostCalcRegularFeatureEffect_R(SEXP modelParam, SEXP poolParam, SEXP fstrTypeParam, SEXP threadCountParam) {
     SEXP result = NULL;
     SEXP resultDim = NULL;

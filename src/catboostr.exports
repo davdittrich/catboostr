@@ -6,7 +6,9 @@ C CatBoostDeserializeModel_R
 C CatBoostDropUnusedFeaturesFromModel_R
 C CatBoostEvaluateObjectImportances_R
 C CatBoostFit_R
+C CatBoostGetModelInfo_R
 C CatBoostGetModelParams_R
+C CatBoostGetModelUsedFeatureNames_R
 C CatBoostGetNumTrees_R
 C CatBoostGetPlainParams_R
 C CatBoostGridSearch_R
@@ -27,6 +29,7 @@ C CatBoostRandomizedSearch_R
 C CatBoostReadModel_R
 C CatBoostSelectFeatures_R
 C CatBoostSerializeModel_R
+C CatBoostSetModelInfo_R
 C CatBoostShrinkModel_R
 C CatBoostSumModels_R
 C CatBoostVersion_R

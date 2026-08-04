@@ -199,6 +199,14 @@ EXPORT_FUNCTION CatBoostGetModelParams_R(SEXP modelParam);
 
 EXPORT_FUNCTION CatBoostGetPlainParams_R(SEXP modelParam);
 
+// P5.6 (catboost-8z4.63): R equivalents of the CLI's `metadata` mode and
+// Python's model.get_metadata()/model.feature_names_.
+EXPORT_FUNCTION CatBoostGetModelInfo_R(SEXP modelParam);
+
+EXPORT_FUNCTION CatBoostSetModelInfo_R(SEXP modelParam, SEXP keyParam, SEXP valueParam);
+
+EXPORT_FUNCTION CatBoostGetModelUsedFeatureNames_R(SEXP modelParam);
+
 EXPORT_FUNCTION CatBoostCalcRegularFeatureEffect_R(
     SEXP modelParam,
     SEXP poolParam,

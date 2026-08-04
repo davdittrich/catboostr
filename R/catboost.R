@@ -2528,6 +2528,153 @@ summary.catboost.Model <- function(object, ...) {
 #'   }
 #' }
 #'
+#' % BEGIN GENERATED PARAM REFERENCE (tools/parity/gen_param_reference.py) -- DO NOT EDIT BY HAND
+#' @section Full Parameter Reference (generated):
+#' All 139 hyperparameters from the machine-generated capability
+#' inventory, and how catboostr accepts each one.
+#' \describe{
+#'   \item{X}{Supplied via \code{learn_pool}/\code{test_pool} (see \code{catboost.load_pool}), not the \code{params} list.}
+#'   \item{allow_const_label}{Native training parameter accepted in the \code{params} list.}
+#'   \item{allow_writing_files}{Native training parameter accepted in the \code{params} list.}
+#'   \item{approx_on_full_history}{Native training parameter accepted in the \code{params} list.}
+#'   \item{auto_class_weights}{Native training parameter accepted in the \code{params} list.}
+#'   \item{bagging_temperature}{Native training parameter accepted in the \code{params} list.}
+#'   \item{baseline}{Supplied via \code{catboost.load_pool} (Pool construction), not the \code{params} list.}
+#'   \item{best_model_min_trees}{Native training parameter accepted in the \code{params} list.}
+#'   \item{boost_from_average}{Native training parameter accepted in the \code{params} list.}
+#'   \item{boosting_type}{Native training parameter accepted in the \code{params} list.}
+#'   \item{bootstrap_type}{Native training parameter accepted in the \code{params} list.}
+#'   \item{border_count}{Native training parameter accepted in the \code{params} list.}
+#'   \item{callback}{Python-only; no catboostr equivalent.}
+#'   \item{callbacks}{Python-only; no catboostr equivalent.}
+#'   \item{cat_features}{Supplied via \code{catboost.load_pool} (Pool construction), not the \code{params} list.}
+#'   \item{class_names}{Native training parameter accepted in the \code{params} list.}
+#'   \item{class_weights}{Native training parameter accepted in the \code{params} list.}
+#'   \item{classes_count}{Native training parameter accepted in the \code{params} list.}
+#'   \item{colsample_bylevel}{Alias of \code{rsm} (see process_synonyms); resolved automatically.}
+#'   \item{column_description}{Supplied via \code{catboost.load_pool} (Pool construction), not the \code{params} list.}
+#'   \item{combinations_ctr}{Native training parameter accepted in the \code{params} list.}
+#'   \item{counter_calc_method}{Native training parameter accepted in the \code{params} list.}
+#'   \item{ctr_description}{Native training parameter accepted in the \code{params} list.}
+#'   \item{ctr_history_unit}{Native training parameter accepted in the \code{params} list.}
+#'   \item{ctr_leaf_count_limit}{Native training parameter accepted in the \code{params} list.}
+#'   \item{ctr_target_border_count}{Native training parameter accepted in the \code{params} list.}
+#'   \item{custom_loss}{Native training parameter accepted in the \code{params} list.}
+#'   \item{custom_metric}{Native training parameter accepted in the \code{params} list.}
+#'   \item{data_partition}{Native training parameter accepted in the \code{params} list.}
+#'   \item{depth}{Native training parameter accepted in the \code{params} list.}
+#'   \item{dev_efb_max_buckets}{Native training parameter accepted in the \code{params} list.}
+#'   \item{dev_score_calc_obj_block_size}{Native training parameter accepted in the \code{params} list.}
+#'   \item{device_config}{Native training parameter accepted in the \code{params} list.}
+#'   \item{devices}{Native training parameter accepted in the \code{params} list.}
+#'   \item{dictionaries}{Native training parameter accepted in the \code{params} list.}
+#'   \item{diffusion_temperature}{Native training parameter accepted in the \code{params} list.}
+#'   \item{early_stopping_rounds}{Native training parameter accepted in the \code{params} list.}
+#'   \item{embedding_features}{Supplied via \code{catboost.load_pool} (Pool construction), not the \code{params} list.}
+#'   \item{eta}{Alias of \code{learning_rate} (see process_synonyms); resolved automatically.}
+#'   \item{eval_fraction}{Native training parameter accepted in the \code{params} list.}
+#'   \item{eval_metric}{Native training parameter accepted in the \code{params} list.}
+#'   \item{eval_set}{Supplied via the \code{test_pool} argument of \code{catboost.train}, not the \code{params} list.}
+#'   \item{feature_border_type}{Native training parameter accepted in the \code{params} list.}
+#'   \item{feature_calcers}{Native training parameter accepted in the \code{params} list.}
+#'   \item{feature_weights}{Native training parameter accepted in the \code{params} list.}
+#'   \item{final_ctr_computation_mode}{Native training parameter accepted in the \code{params} list.}
+#'   \item{first_feature_use_penalties}{Native training parameter accepted in the \code{params} list.}
+#'   \item{fixed_binary_splits}{Native training parameter accepted in the \code{params} list.}
+#'   \item{fold_len_multiplier}{Native training parameter accepted in the \code{params} list.}
+#'   \item{fold_permutation_block}{Native training parameter accepted in the \code{params} list.}
+#'   \item{gpu_cat_features_storage}{Native training parameter accepted in the \code{params} list.}
+#'   \item{gpu_ram_part}{Native training parameter accepted in the \code{params} list.}
+#'   \item{graph}{Supplied via \code{catboost.load_pool} (Pool construction), not the \code{params} list.}
+#'   \item{group_id}{Supplied via \code{catboost.load_pool} (Pool construction), not the \code{params} list.}
+#'   \item{group_weight}{Supplied via \code{catboost.load_pool} (Pool construction), not the \code{params} list.}
+#'   \item{grow_policy}{Native training parameter accepted in the \code{params} list.}
+#'   \item{has_time}{Native training parameter accepted in the \code{params} list.}
+#'   \item{ignored_features}{Native training parameter accepted in the \code{params} list.}
+#'   \item{init_model}{Supplied via the \code{init_model} argument of \code{catboost.train}, not the \code{params} list.}
+#'   \item{input_borders}{Native training parameter accepted in the \code{params} list.}
+#'   \item{iterations}{Native training parameter accepted in the \code{params} list.}
+#'   \item{l2_leaf_reg}{Native training parameter accepted in the \code{params} list.}
+#'   \item{langevin}{Native training parameter accepted in the \code{params} list.}
+#'   \item{leaf_estimation_backtracking}{Native training parameter accepted in the \code{params} list.}
+#'   \item{leaf_estimation_iterations}{Native training parameter accepted in the \code{params} list.}
+#'   \item{leaf_estimation_method}{Native training parameter accepted in the \code{params} list.}
+#'   \item{learning_rate}{Native training parameter accepted in the \code{params} list.}
+#'   \item{log_cerr}{Python-only; no catboostr equivalent.}
+#'   \item{log_cout}{Python-only; no catboostr equivalent.}
+#'   \item{logging_level}{Native training parameter accepted in the \code{params} list.}
+#'   \item{loss_function}{Native training parameter accepted in the \code{params} list.}
+#'   \item{max_bin}{Alias of \code{border_count} (see process_synonyms); resolved automatically.}
+#'   \item{max_ctr_complexity}{Native training parameter accepted in the \code{params} list.}
+#'   \item{max_depth}{Alias of \code{depth} (see process_synonyms); resolved automatically.}
+#'   \item{max_leaves}{Native training parameter accepted in the \code{params} list.}
+#'   \item{metadata}{Native training parameter accepted in the \code{params} list.}
+#'   \item{metric_period}{Native training parameter accepted in the \code{params} list.}
+#'   \item{min_child_samples}{Alias of \code{min_data_in_leaf} (see process_synonyms); resolved automatically.}
+#'   \item{min_data_in_leaf}{Native training parameter accepted in the \code{params} list.}
+#'   \item{model_shrink_mode}{Native training parameter accepted in the \code{params} list.}
+#'   \item{model_shrink_rate}{Native training parameter accepted in the \code{params} list.}
+#'   \item{model_size_reg}{Native training parameter accepted in the \code{params} list.}
+#'   \item{monotone_constraints}{Native training parameter accepted in the \code{params} list.}
+#'   \item{mvs_reg}{Native training parameter accepted in the \code{params} list.}
+#'   \item{n_estimators}{Alias of \code{iterations} (see process_synonyms); resolved automatically.}
+#'   \item{name}{Native training parameter accepted in the \code{params} list.}
+#'   \item{nan_mode}{Native training parameter accepted in the \code{params} list.}
+#'   \item{num_boost_round}{Alias of \code{iterations} (see process_synonyms); resolved automatically.}
+#'   \item{num_leaves}{Alias of \code{max_leaves} (see process_synonyms); resolved automatically.}
+#'   \item{num_trees}{Alias of \code{iterations} (see process_synonyms); resolved automatically.}
+#'   \item{objective}{Alias of \code{loss_function} (see process_synonyms); resolved automatically.}
+#'   \item{od_pval}{Native training parameter accepted in the \code{params} list.}
+#'   \item{od_type}{Native training parameter accepted in the \code{params} list.}
+#'   \item{od_wait}{Native training parameter accepted in the \code{params} list.}
+#'   \item{one_hot_max_size}{Native training parameter accepted in the \code{params} list.}
+#'   \item{output_borders}{Native training parameter accepted in the \code{params} list.}
+#'   \item{pairs}{Supplied via \code{catboost.load_pool} (Pool construction), not the \code{params} list.}
+#'   \item{pairs_weight}{Supplied via \code{catboost.load_pool} (Pool construction), not the \code{params} list.}
+#'   \item{params}{Refers to the \code{params} argument itself.}
+#'   \item{penalties_coefficient}{Native training parameter accepted in the \code{params} list.}
+#'   \item{per_feature_ctr}{Native training parameter accepted in the \code{params} list.}
+#'   \item{per_float_feature_quantization}{Native training parameter accepted in the \code{params} list.}
+#'   \item{per_object_feature_penalties}{Native training parameter accepted in the \code{params} list.}
+#'   \item{pinned_memory_size}{Native training parameter accepted in the \code{params} list.}
+#'   \item{plot}{Python-only; no catboostr equivalent.}
+#'   \item{plot_file}{Python-only; no catboostr equivalent.}
+#'   \item{posterior_sampling}{Native training parameter accepted in the \code{params} list.}
+#'   \item{random_score_type}{Native training parameter accepted in the \code{params} list.}
+#'   \item{random_seed}{Native training parameter accepted in the \code{params} list.}
+#'   \item{random_state}{Alias of \code{random_seed} (see process_synonyms); resolved automatically.}
+#'   \item{random_strength}{Native training parameter accepted in the \code{params} list.}
+#'   \item{reg_lambda}{Alias of \code{l2_leaf_reg} (see process_synonyms); resolved automatically.}
+#'   \item{rsm}{Native training parameter accepted in the \code{params} list.}
+#'   \item{sample_weight}{Supplied via \code{catboost.load_pool} (Pool construction), not the \code{params} list.}
+#'   \item{sampling_frequency}{Native training parameter accepted in the \code{params} list.}
+#'   \item{sampling_unit}{Native training parameter accepted in the \code{params} list.}
+#'   \item{save_snapshot}{Native training parameter accepted in the \code{params} list.}
+#'   \item{scale_pos_weight}{Native training parameter accepted in the \code{params} list.}
+#'   \item{score_function}{Native training parameter accepted in the \code{params} list.}
+#'   \item{silent}{Python-only; no catboostr equivalent.}
+#'   \item{simple_ctr}{Native training parameter accepted in the \code{params} list.}
+#'   \item{snapshot_file}{Native training parameter accepted in the \code{params} list.}
+#'   \item{snapshot_interval}{Native training parameter accepted in the \code{params} list.}
+#'   \item{sparse_features_conflict_fraction}{Native training parameter accepted in the \code{params} list.}
+#'   \item{store_all_simple_ctr}{Native training parameter accepted in the \code{params} list.}
+#'   \item{subgroup_id}{Supplied via \code{catboost.load_pool} (Pool construction), not the \code{params} list.}
+#'   \item{subsample}{Native training parameter accepted in the \code{params} list.}
+#'   \item{target_border}{Native training parameter accepted in the \code{params} list.}
+#'   \item{task_type}{Native training parameter accepted in the \code{params} list.}
+#'   \item{text_features}{Supplied via \code{catboost.load_pool} (Pool construction), not the \code{params} list.}
+#'   \item{text_processing}{Native training parameter accepted in the \code{params} list.}
+#'   \item{thread_count}{Supplied via \code{catboost.load_pool} (Pool construction), not the \code{params} list.}
+#'   \item{tokenizers}{Native training parameter accepted in the \code{params} list.}
+#'   \item{train_dir}{Native training parameter accepted in the \code{params} list.}
+#'   \item{use_best_model}{Native training parameter accepted in the \code{params} list.}
+#'   \item{used_ram_limit}{Native training parameter accepted in the \code{params} list.}
+#'   \item{verbose}{Native training parameter accepted in the \code{params} list.}
+#'   \item{verbose_eval}{Alias of \code{verbose} (see process_synonyms); resolved automatically.}
+#'   \item{y}{Supplied via \code{learn_pool}/\code{test_pool} (see \code{catboost.load_pool}), not the \code{params} list.}
+#' }
+#' % END GENERATED PARAM REFERENCE
+#'
 #' @param learn_pool The dataset used for training the model.
 #'
 #' Default value: Required argument
@@ -2617,6 +2764,67 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list(), init_m
     return(model)
 }
 
+# BEGIN GENERATED KNOWN_PARAMS (tools/parity/gen_param_reference.py) -- DO NOT EDIT BY HAND
+# Canonical + alias hyperparameter names from the machine-generated
+# capability inventory (tests/fixtures/parity/matrix.dispositioned.json,
+# kind:"parameter" rows), plus EXTRA_KNOWN_PARAMS (see
+# tools/parity/gen_param_reference.py). Used by validate_params_keys() below.
+.catboostr_known_params <- c("X", "allow_const_label", "allow_writing_files", 
+    "approx_on_full_history", "auto_class_weights", "bagging_temperature", "baseline", 
+    "best_model_min_trees", "boost_from_average", "boosting_type", "bootstrap_type", 
+    "border_count", "callback", "callbacks", "cat_features", "class_names", 
+    "class_weights", "classes_count", "colsample_bylevel", "column_description", 
+    "combinations_ctr", "counter_calc_method", "ctr_description", "ctr_history_unit", 
+    "ctr_leaf_count_limit", "ctr_target_border_count", "custom_loss", "custom_metric", 
+    "data_partition", "depth", "dev_efb_max_buckets", "dev_score_calc_obj_block_size", 
+    "device_config", "devices", "dictionaries", "diffusion_temperature", 
+    "early_stopping_rounds", "embedding_features", "embedding_processing", "eta", 
+    "eval_fraction", "eval_metric", "eval_set", "feature_border_type", "feature_calcers", 
+    "feature_weights", "final_ctr_computation_mode", "first_feature_use_penalties", 
+    "fixed_binary_splits", "fold_len_multiplier", "fold_permutation_block", 
+    "gpu_cat_features_storage", "gpu_ram_part", "graph", "group_id", "group_weight", 
+    "grow_policy", "has_time", "ignored_features", "init_model", "input_borders", 
+    "iterations", "l2_leaf_reg", "langevin", "leaf_estimation_backtracking", 
+    "leaf_estimation_iterations", "leaf_estimation_method", "learning_rate", "log_cerr", 
+    "log_cout", "logging_level", "loss_function", "max_bin", "max_ctr_complexity", 
+    "max_depth", "max_leaves", "metadata", "metric_period", "min_child_samples", 
+    "min_data_in_leaf", "model_shrink_mode", "model_shrink_rate", "model_size_reg", 
+    "monotone_constraints", "mvs_reg", "n_estimators", "name", "nan_mode", 
+    "num_boost_round", "num_leaves", "num_trees", "objective", "od_pval", "od_type", 
+    "od_wait", "one_hot_max_size", "output_borders", "pairs", "pairs_weight", "params", 
+    "penalties_coefficient", "per_feature_ctr", "per_float_feature_quantization", 
+    "per_object_feature_penalties", "pinned_memory_size", "plot", "plot_file", 
+    "posterior_sampling", "random_score_type", "random_seed", "random_state", 
+    "random_strength", "reg_lambda", "rsm", "sample_weight", "sampling_frequency", 
+    "sampling_unit", "save_snapshot", "scale_pos_weight", "score_function", "silent", 
+    "simple_ctr", "snapshot_file", "snapshot_interval", 
+    "sparse_features_conflict_fraction", "store_all_simple_ctr", "subgroup_id", 
+    "subsample", "target_border", "task_type", "text_features", "text_processing", 
+    "thread_count", "tokenizers", "train_dir", "use_best_model", "used_ram_limit", 
+    "verbose", "verbose_eval", "y")
+# END GENERATED KNOWN_PARAMS
+
+# P5.5 (catboost-8z4.62): reject unknown `params` list keys, unless the
+# caller opts out via options(catboostr.allow_unknown_params = TRUE) (e.g.
+# to use a newer vendor-core parameter not yet in .catboostr_known_params).
+# Must run *after* synonym resolution: aliases (e.g. 'eta') are themselves
+# members of .catboostr_known_params, so checking post-resolution or
+# pre-resolution both accept them, but post-resolution also means the
+# canonical spelling is what actually gets validated and serialized.
+validate_params_keys <- function(params) {
+    if (isTRUE(getOption("catboostr.allow_unknown_params", FALSE))) {
+        return(invisible(NULL))
+    }
+    unknown <- setdiff(names(params), .catboostr_known_params)
+    if (length(unknown) > 0) {
+        stop("Unknown catboost 'params' key(s): ", paste(unknown, collapse = ", "),
+             ". See help(catboost.train) for the full parameter reference. ",
+             "If this is a newer vendor-core parameter not yet recognized by catboostr, ",
+             "set options(catboostr.allow_unknown_params = TRUE) to bypass this check.")
+    }
+    invisible(NULL)
+}
+
 process_synonyms <- function(params) {
     params <- process_synonyms_in_one_group(c('loss_function', 'objective'), params)
     params <- process_synonyms_in_one_group(c('iterations', 'n_estimators', 'num_boost_round', 'num_trees'), params)
@@ -2629,6 +2837,8 @@ process_synonyms <- function(params) {
     params <- process_synonyms_in_one_group(c('rsm', 'colsample_bylevel'), params)
     params <- process_synonyms_in_one_group(c('border_count', 'max_bin'), params)
     params <- process_synonyms_in_one_group(c('verbose', 'verbose_eval'), params)
+
+    validate_params_keys(params)
 
     return(params)
 }
@@ -2714,6 +2924,13 @@ catboost.cv <- function(pool,
         params$od_pval <- NULL
         params$od_wait <- early_stopping_rounds
     }
+
+    # P5.5 (catboost-8z4.62): unlike catboost.train/grid_search/randomized_search,
+    # catboost.cv does not call process_synonyms() (pre-existing behavior, left
+    # untouched here), but every process_synonyms alias name is itself a member
+    # of .catboostr_known_params, so validating directly against it still
+    # accepts both canonical and alias spellings without requiring resolution.
+    validate_params_keys(params)
 
     json_params <- prepare_train_export_parameters(params)
     result <- .Call("CatBoostCV_R", json_params, pool, fold_count, type, partition_random_seed, shuffle, stratified)

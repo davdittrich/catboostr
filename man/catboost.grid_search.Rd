@@ -87,8 +87,8 @@ same columns \code{catboost.cv} returns), and, if \code{refit = TRUE},
 \code{$model} (a \code{catboost.Model} fit with the best parameters).
 }
 \description{
-R equivalent of Python's \code{CatBoost.grid_search}: calls the same
-native search entry point (\code{NCB::GridSearch}, vendored at
+R equivalent of Python's \code{CatBoost.grid_search}: calls the
+same native search entry point (\code{NCB::GridSearch}, vendored at
 \code{catboost/private/libs/hyperparameter_tuning/hyperparameter_tuning.h})
 that Python's \code{CatBoost._tune_hyperparams} calls via its Cython wrapper,
 rather than approximating the search with an R-side loop over

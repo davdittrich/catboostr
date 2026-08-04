@@ -265,32 +265,15 @@ def main():
             "predictions": preds,
         }
 
-    # G14: graph (review-round fix -- was closed on an unrelated test with no
-    # real "graph=" call anywhere in the suite). graph is a real Pool
-    # argument in both languages (catboost.load_pool's `graph` arg,
-    # R/catboost.R:110; Python's Pool(graph=...), core.py). Uses the same
-    # shared dataset/pool but a fresh Pool instance carrying a 2-column
-    # integer index-pairs graph (consecutive-row pairs), matching how
-    # catboost.load_pool's own graph= validation expects it (integer,
-    # 2 columns -- R/catboost.R:317-322).
-    # Graph features require nontrivial groups (native: "Graph features
-    # require nontrivial groups", data_providers.cpp:494) -- each pair of
-    # consecutive rows forms its own 2-member group, matching graph_pairs.
-    graph_pairs = [[i, i + 1] for i in range(0, N_ROWS - 1, 2)]
-    graph_group_id = [i // 2 for i in range(N_ROWS)]
-    graph_pool = Pool(X, y, cat_features=[2], feature_names=feature_names,
-                       graph=graph_pairs, group_id=graph_group_id)
-    graph_model = CatBoostClassifier(
-        loss_function="Logloss", iterations=15, verbose=False,
-        random_seed=SEED, thread_count=1, train_dir=os.path.join(TRAIN_DIR, "graph"),
-    )
-    graph_model.fit(graph_pool)
-    graph_preds = graph_model.predict(graph_pool, prediction_type="RawFormulaVal")
-    fixture["graph_inputs"] = {"graph_pairs": graph_pairs, "group_id": graph_group_id}
-    fixture["batches"]["graph"] = {
-        "params": {"loss_function": "Logloss", "iterations": 15, "random_seed": SEED, "thread_count": 1},
-        "predictions": [float(v) for v in np.asarray(graph_preds).ravel().tolist()],
-    }
+    # NB: graph (Pool's `graph=` argument) is NOT generated here. Fix round 2
+    # tried it (a fresh Pool with graph=+group_id=) and found catboostr's own
+    # R-side Pool-construction glue throws "Internal CatBoost Error ...
+    # Unimplemented" for that combination -- a real R-glue limitation, not a
+    # Python-parity gap (see test_params_validation.R's reproducing
+    # assertion and task-5-report.md). Since no R test can consume it, no
+    # graph fixture data is generated (fix round 3: removed dead
+    # graph_pairs/graph_pool/fixture["graph_inputs"] code that no test
+    # read).
 
     # G15: text_features + dictionaries/tokenizers/text_processing/
     # feature_calcers (review-round fix -- these 4 training params were

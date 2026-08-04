@@ -74,9 +74,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": 1e-12,
-    "test_id": "tests/testthat/test_features_data.R",
+    "test_id": "tests/testthat/test_pool.R",
     "state": "green",
-    "tolerance_justification": "",
+    "tolerance_justification": "Re-pointed from test_features_data.R (fix round 3): that file's only 'cat_features' occurrence was a negative-path validation test (expect_error), never exercising it positively. test_pool.R:85-88 genuinely passes cat_features= and builds/uses the resulting Pool (structural assertions -- ncol/nrow -- not a numeric oracle diff; no oracle-comparing test in this suite exercises the explicit cat_features= argument positively, as opposed to catboost.load_pool's factor-column auto-detection, which many oracle tests do use).",
     "needs_disposition": false,
     "members": [
       {
@@ -398,9 +398,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": 1e-12,
-    "test_id": "tests/testthat/test_roc_curve.R",
+    "test_id": "tests/testthat/test_select_features.R",
     "state": "green",
-    "tolerance_justification": "Supplied via catboost.train's `test_pool` argument, not the `params` list.",
+    "tolerance_justification": "Re-pointed from test_roc_curve.R (fix round 3): that file's training calls never actually pass test_pool. test_select_features.R:61,89 genuinely calls catboost.select_features(..., test_pool = test_pool, ...) and compares against the Python oracle. Supplied via catboost.train's `test_pool` argument, not the `params` list.",
     "needs_disposition": false,
     "members": [
       {
@@ -537,9 +537,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": 1e-12,
-    "test_id": "tests/testthat/test_pool_structural.R",
+    "test_id": "tests/testthat/test_eval_feature.R",
     "state": "green",
-    "tolerance_justification": "",
+    "tolerance_justification": "Re-pointed from test_pool_structural.R (fix round 3): that file's only 'column_description' occurrence was a header comment, not code. test_eval_feature.R genuinely calls catboost.load_pool(column_description = CD_PATH, ...) and compares against the pinned CLI oracle.",
     "needs_disposition": false,
     "members": [
       {

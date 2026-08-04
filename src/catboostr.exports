@@ -25,6 +25,7 @@ C CatBoostPredictVirtualEnsembles_R
 C CatBoostPrepareEval_R
 C CatBoostRandomizedSearch_R
 C CatBoostReadModel_R
+C CatBoostSelectFeatures_R
 C CatBoostSerializeModel_R
 C CatBoostShrinkModel_R
 C CatBoostSumModels_R

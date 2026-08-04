@@ -2946,6 +2946,138 @@ catboost.randomized_search <- function(param_distributions,
     return(search_result)
 }
 
+#' @name catboost.select_features
+#' @title Select the best features by recursive elimination.
+#' @description R equivalent of Python's \code{CatBoost.select_features}: trains
+#' repeatedly while eliminating the weakest features, and reports which features
+#' survived.
+#'
+#' This calls the same native entry point Python's \code{select_features} calls
+#' (\code{NCB::SelectFeatures}, vendored at
+#' \code{catboost/libs/features_selection/select_features.h}), so the
+#' elimination loop, its per-step retraining, the SHAP-based feature strengths
+#' and the final model all come from vendor code rather than an R-side
+#' reimplementation.
+#'
+#' This is a different algorithm from \code{\link{catboost.eval_feature}}, which
+#' scores caller-supplied feature sets by cross-validation instead of
+#' eliminating features.
+#'
+#' Feature selection by feature \emph{tags} (Python's \code{grouping = "ByTags"},
+#' \code{features_tags_for_select}, \code{num_features_tags_to_select}) is not
+#' supported: \code{catboost.load_pool} has no feature-tags argument, so an R
+#' pool never carries the tags that grouping selects over.
+#' @param learn_pool The dataset to select features on (a \code{catboost.Pool}).
+#'
+#' Default value: Required argument
+#' @param features_for_select Which features may be eliminated. A vector of
+#' 0-based feature indices or of feature names, or a single string in the CLI's
+#' range syntax (\code{"0,2-4,17"}, both ends of a range inclusive). Vectors are
+#' collapsed with commas, matching Python's
+#' \code{",".join(map(str, features_for_select))}.
+#'
+#' Default value: Required argument
+#' @param num_features_to_select How many features to keep out of
+#' \code{features_for_select}.
+#'
+#' Default value: Required argument
+#' @param test_pool Validation dataset used to measure the loss during
+#' elimination (a \code{catboost.Pool}), or \code{NULL} to measure it on
+#' \code{learn_pool}. Only one validation dataset is supported.
+#'
+#' Default value: \code{NULL}
+#' @param params Parameters for \code{catboost.train}.
+#'
+#' Default value: \code{list()}
+#' @param algorithm One of \code{"RecursiveByPredictionValuesChange"},
+#' \code{"RecursiveByLossFunctionChange"}, \code{"RecursiveByShapValues"}.
+#' \code{NULL} leaves the vendor default (\code{"RecursiveByShapValues"}).
+#'
+#' Default value: \code{NULL}
+#' @param steps How many times a full model is trained during the elimination.
+#' More steps give more accurate results. \code{NULL} leaves the vendor default
+#' (1).
+#'
+#' Default value: \code{NULL}
+#' @param shap_calc_type One of \code{"Regular"}, \code{"Approximate"},
+#' \code{"Exact"}. \code{NULL} leaves the vendor default (\code{"Regular"}).
+#'
+#' Default value: \code{NULL}
+#' @param train_final_model Whether to fit a model on the selected features and
+#' return it.
+#'
+#' Default value: \code{TRUE}
+#' @return A list with the fields of the vendor's selection summary:
+#' \itemize{
+#'   \item \code{selected_features} -- 0-based indices of the kept features.
+#'   \item \code{selected_features_names} -- their names.
+#'   \item \code{eliminated_features} -- 0-based indices of the dropped features.
+#'   \item \code{eliminated_features_names} -- their names.
+#'   \item \code{loss_graph} -- list with \code{removed_features_count},
+#'     \code{loss_values} and \code{main_indices} (the graph points whose loss
+#'     was measured by fitting a model rather than estimated from fstr).
+#'   \item \code{model} -- the fitted \code{catboost.Model}, present only when
+#'     \code{train_final_model = TRUE}.
+#' }
+#' @export catboost.select_features
+catboost.select_features <- function(learn_pool,
+                                     features_for_select,
+                                     num_features_to_select,
+                                     test_pool = NULL,
+                                     params = list(),
+                                     algorithm = NULL,
+                                     steps = NULL,
+                                     shap_calc_type = NULL,
+                                     train_final_model = TRUE) {
+    if (!inherits(learn_pool, "catboost.Pool"))
+        stop("Expected catboost.Pool, got: ", class(learn_pool))
+    if (is.null.handle(learn_pool))
+        stop("'learn_pool' object is invalid.")
+    if (!is.null(test_pool) && !inherits(test_pool, "catboost.Pool"))
+        stop("Expected catboost.Pool, got: ", class(test_pool))
+    if (!is.null(test_pool) && is.null.handle(test_pool))
+        stop("'test_pool' object is invalid.")
+    if (missing(features_for_select) || is.null(features_for_select))
+        stop("You should specify features_for_select")
+    if (missing(num_features_to_select) || is.null(num_features_to_select))
+        stop("You should specify num_features_to_select")
+    if (length(params) == 0)
+        message("Training catboost with default parameters! See help(catboost.train).")
+
+    # Every selection knob travels inside the params JSON, exactly as Python
+    # sets them on its own params dict before calling _select_features
+    # (core.py:4774-4802); PlainJsonToOptions splits them back out into
+    # TFeaturesSelectOptions inside the native SelectFeatures.
+    fit_params <- process_synonyms(params)
+    fit_params$features_for_select <- paste(features_for_select, collapse = ",")
+    fit_params$num_features_to_select <- as.integer(num_features_to_select)
+    fit_params$train_final_model <- isTRUE(train_final_model)
+    if (!is.null(algorithm))
+        fit_params$features_selection_algorithm <- algorithm
+    if (!is.null(steps))
+        fit_params$features_selection_steps <- as.integer(steps)
+    if (!is.null(shap_calc_type))
+        fit_params$shap_calc_type <- shap_calc_type
+
+    json_params <- prepare_train_export_parameters(fit_params)
+    result <- .Call("CatBoostSelectFeatures_R", learn_pool, test_pool, json_params,
+                    isTRUE(train_final_model))
+
+    selection <- jsonlite::fromJSON(result$summary, simplifyVector = TRUE)
+    if (!is.null(result$model)) {
+        raw <- .Call("CatBoostSerializeModel_R", result$model)
+        model <- create.model.base(result$model, raw)
+        # Deliberately not the full catboost.train post-processing: the final
+        # model is fitted on a feature subset, so learn_pool's column count is
+        # not its feature count and feature importances would be indexed
+        # against the subset, not against learn_pool.
+        model$tree_count <- catboost.ntrees(model)
+        selection$model <- model
+    }
+
+    return(selection)
+}
+
 #' @name catboost.eval_feature
 #' @title Evaluate the impact of feature sets.
 #' @description R equivalent of the CatBoost CLI's \code{eval-feature} mode: repeated

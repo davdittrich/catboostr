@@ -6,6 +6,7 @@
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/data/quantization.h>
 #include <catboost/libs/eval_result/eval_helpers.h>
+#include <catboost/libs/features_selection/select_features.h>
 #include <catboost/libs/fstr/calc_fstr.h>
 #include <catboost/libs/helpers/int_cast.h>
 #include <catboost/libs/helpers/mem_usage.h>
@@ -50,6 +51,7 @@
 #include <catboost/private/libs/target/data_providers.h>
 
 // P3.6 follow-up (catboost-8z4.48): native tokenizer/dictionary bridges.
+#include <library/cpp/json/json_writer.h>
 #include <library/cpp/langs/langs.h>
 #include <library/cpp/text_processing/dictionary/bpe_builder.h>
 #include <library/cpp/text_processing/dictionary/bpe_dictionary.h>
@@ -74,6 +76,7 @@
 #include <util/generic/singleton.h>
 #include <util/generic/xrange.h>
 #include <util/stream/file.h>
+#include <util/stream/str.h>
 #include <util/string/cast.h>
 #include <util/system/info.h>
 
@@ -1869,6 +1872,97 @@ EXPORT_FUNCTION CatBoostRandomizedSearch_R(
     result = PROTECT(BestOptionValuesToRList(bestOptionValuesWithCvResult));
     R_API_END();
     UNPROTECT(1);
+    return result;
+}
+
+// P5.3 (catboost-8z4.60): R equivalent of Python's CatBoost.select_features.
+// Calls the very same native entry point Python's _select_features calls
+// (NCB::SelectFeatures, catboost/libs/features_selection/select_features.h --
+// _catboost.pyx:1264 declares it, :6045 calls it), so the recursive
+// feature-elimination loop, its per-step retraining, SHAP-based feature
+// strengths and the final model all come from vendor code rather than an
+// R-side reimplementation. All selection knobs travel inside the params JSON
+// (features_for_select / num_features_to_select / features_selection_algorithm
+// / features_selection_steps / shap_calc_type / train_final_model), exactly as
+// Python sets them on its own params dict before the call: PlainJsonToOptions
+// splits them back out into TFeaturesSelectOptions inside SelectFeatures.
+//
+// dstModel is always non-null: passing nullptr makes the vendor code export
+// the final model to `result_model_file` on disk instead of returning it
+// (recursive_features_elimination.cpp:842-852). It is only handed back to R
+// when train_final_model is TRUE -- that is the one case the vendor code
+// actually assigns it.
+EXPORT_FUNCTION CatBoostSelectFeatures_R(
+    SEXP learnPoolParam,
+    SEXP testPoolParam,
+    SEXP fitParamsAsJsonParam,
+    SEXP trainFinalModelParam
+) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TDataProviders pools;
+    pools.Learn = static_cast<TPoolHandle>(R_ExternalPtrAddr(learnPoolParam));
+    pools.Learn->Ref();
+    if (testPoolParam != R_NilValue) {
+        pools.Test.emplace_back(static_cast<TPoolHandle>(R_ExternalPtrAddr(testPoolParam)));
+        pools.Test.back()->Ref();
+    }
+
+    NJson::TJsonValue fitParams = LoadFitParams(fitParamsAsJsonParam);
+
+    // One TEvalResult per test pool, matching Python's
+    // self._reserve_test_evals(dataProviders.Test.size()): the final model's
+    // TrainModel call writes into these (recursive_features_elimination.cpp:708),
+    // so a short vector would be an out-of-range write.
+    TVector<TEvalResult> evalResults(pools.Test.size());
+    TVector<TEvalResult*> evalResultPtrs;
+    for (auto& evalResult : evalResults) {
+        evalResultPtrs.push_back(&evalResult);
+    }
+
+    TFullModelPtr modelPtr = std::make_unique<TFullModel>();
+    const NJson::TJsonValue summaryJson = NCB::SelectFeatures(
+        fitParams,
+        /*evalMetricDescriptor*/ Nothing(),
+        pools,
+        modelPtr.get(),
+        evalResultPtrs,
+        /*metricsAndTimeHistory*/ nullptr
+    );
+
+    SEXP modelHandle = R_NilValue;
+    if (asLogical(trainFinalModelParam)) {
+        modelHandle = R_MakeExternalPtr(modelPtr.get(), R_NilValue, R_NilValue);
+        PROTECT(modelHandle);
+        R_RegisterCFinalizerEx(modelHandle, _Finalizer<TFullModelHandle>, TRUE);
+        modelPtr.release();
+    } else {
+        PROTECT(modelHandle); // R_NilValue; keeps the UNPROTECT count below symmetric
+    }
+
+    // Summary travels back as a JSON string parsed R-side with jsonlite, the
+    // same pattern BestOptionValuesToRList uses for best params -- but written
+    // with PREC_AUTO rather than through ToString()/the default writer config,
+    // whose DefaultDoubleNDigits = 10 (library/cpp/json/json_writer.h:16)
+    // silently truncates the loss-graph values to 10 significant digits, a
+    // ~3e-10 relative error that no 1e-12 differential test can pass.
+    TStringStream summaryStream;
+    NJson::TJsonWriterConfig summaryConfig;
+    summaryConfig.FloatToStringMode = PREC_AUTO;
+    NJson::WriteJson(&summaryStream, &summaryJson, summaryConfig);
+
+    result = PROTECT(allocVector(VECSXP, 2));
+    SET_VECTOR_ELT(result, 0, mkString(summaryStream.Str().c_str()));
+    SET_VECTOR_ELT(result, 1, modelHandle);
+
+    SEXP resultNames = PROTECT(allocVector(STRSXP, 2));
+    SET_STRING_ELT(resultNames, 0, mkChar("summary"));
+    SET_STRING_ELT(resultNames, 1, mkChar("model"));
+    setAttrib(result, R_NamesSymbol, resultNames);
+    UNPROTECT(1); // resultNames -- reachable through `result` from here on
+
+    R_API_END();
+    UNPROTECT(2); // `result`, then modelHandle (reachable through `result`)
     return result;
 }
 

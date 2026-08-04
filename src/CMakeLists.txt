@@ -82,6 +82,12 @@ target_link_libraries(catboostr PUBLIC
   # point (NCB::GridSearch/NCB::RandomizedSearch) -- the same one Python's
   # CatBoost._tune_hyperparams calls via _catboost.pyx's cpdef wrapper.
   private-libs-hyperparameter_tuning
+  # P5.3: catboost.select_features's native entry point (NCB::SelectFeatures,
+  # catboost/libs/features_selection/select_features.h) -- the same one
+  # Python's CatBoost.select_features calls via _catboost.pyx's
+  # _select_features. Not reachable transitively: catboost-libs-train_lib
+  # depends on nothing in features_selection, the dependency runs the other way.
+  catboost-libs-features_selection
   # P3.6 follow-up (catboost-8z4.48): link the vendored tokenizer/dictionary
   # libraries directly, replacing the earlier pure-R reimplementation, using
   # the same linking pattern P3.3 established for dataset-statistics above.

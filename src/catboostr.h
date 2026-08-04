@@ -128,6 +128,13 @@ EXPORT_FUNCTION CatBoostRandomizedSearch_R(
     SEXP verboseParam
 );
 
+EXPORT_FUNCTION CatBoostSelectFeatures_R(
+    SEXP learnPoolParam,
+    SEXP testPoolParam,
+    SEXP fitParamsAsJsonParam,
+    SEXP trainFinalModelParam
+);
+
 EXPORT_FUNCTION CatBoostOutputModel_R(
     SEXP modelParam,
     SEXP fileParam,

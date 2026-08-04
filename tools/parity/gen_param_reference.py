@@ -175,6 +175,11 @@ def main():
     doc_lines.append("#' @section Full Parameter Reference (generated):")
     doc_lines.append("#' All %d hyperparameters from the machine-generated capability" % len(names))
     doc_lines.append("#' inventory, and how catboostr accepts each one.")
+    doc_lines.append("#'")
+    doc_lines.append("#' Unrecognized \\code{params} keys are rejected with an error naming the")
+    doc_lines.append("#' offending key(s). To use a newer vendor-core parameter not yet listed")
+    doc_lines.append("#' below, set \\code{options(catboostr.allow_unknown_params = TRUE)} to bypass")
+    doc_lines.append("#' this check.")
     doc_lines.append("#' \\describe{")
     for name in names:
         note = classify(name, alias_of.get(name), pool_arg_names)

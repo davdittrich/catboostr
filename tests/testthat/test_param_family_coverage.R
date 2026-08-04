@@ -2,11 +2,13 @@ context("test_param_family_coverage.R")
 
 # P5.5 (catboost-8z4.62) -- family-level differential closure for the native
 # hyperparameters that had no existing Python-oracle-comparing test (see
-# task-5 audit). Per spec Sec 4.5's bulk-disposition rule, this batches many
+# task-5 audit and the review-round fix notes in docs/phase-5/P5.5-report.md).
+# Per spec Sec 4.5's bulk-disposition rule, this batches many
 # mutually-compatible parameter families into a handful of training calls
 # rather than one test per parameter name; every batch is compared to the
-# Python oracle at the spec Sec 4.3 default tolerance (1e-12), except two
-# RNG-driven stochastic families (see their test_that()s) widened to 1e-6.
+# Python oracle at the spec Sec 4.3 default tolerance (1e-12) unless a
+# test_that() below documents a specific, isolated (single-variable) reason
+# to widen it.
 #
 # Regenerate fixture with:
 # uv run --frozen --project tools/oracle python3 tools/oracle/gen_param_family_fixture.py
@@ -27,11 +29,11 @@ pool <- catboost.load_pool(features, label = fixture$inputs$label)
 # jsonlite::toJSON(..., auto_unbox = TRUE) (prepare_train_export_parameters)
 # collapses a length-1 R vector to a bare JSON scalar instead of a 1-element
 # array; several native list-typed options (custom_metric/simple_ctr/
-# combinations_ctr) came back from the fixture as length-1 character vectors.
-# as.list() forces array serialization regardless of length, matching what
-# the Python oracle actually sent (mirrors the existing
-# per_float_feature_quantization/ignored_features handling already in
-# prepare_train_export_parameters).
+# combinations_ctr/custom_loss/ctr_description/per_feature_ctr) came back
+# from the fixture as length-1 character vectors. as.list() forces array
+# serialization regardless of length, matching what the Python oracle
+# actually sent (mirrors the existing per_float_feature_quantization/
+# ignored_features handling already in prepare_train_export_parameters).
 force_array <- function(params, keys) {
   for (k in keys) {
     if (!is.null(params[[k]])) params[[k]] <- as.list(params[[k]])
@@ -40,7 +42,8 @@ force_array <- function(params, keys) {
 }
 
 expect_batch_matches_oracle <- function(batch_name, params, tolerance = 1e-12) {
-  params <- force_array(params, c("custom_metric", "simple_ctr", "combinations_ctr"))
+  params <- force_array(params, c("custom_metric", "simple_ctr", "combinations_ctr",
+                                   "custom_loss", "ctr_description", "per_feature_ctr"))
   # The fixture omits "verbose" (see gen_param_family_fixture.py) since
   # native's flat "verbose" is an int print-period, not a bool; silence
   # training output the R-native way instead. Purely cosmetic -- does not
@@ -52,18 +55,47 @@ expect_batch_matches_oracle <- function(batch_name, params, tolerance = 1e-12) {
   expect_equal(as.vector(actual), expected, tolerance = tolerance, check.attributes = FALSE)
 }
 
-test_that("core training-control/regularization/leaf-estimation/od/output-settings family matches Python oracle", {
-  # tolerance widened to 1e-6: bagging_temperature (Bayesian bootstrap) draws
-  # per-object random weights from an RNG stream; cross-process R-vs-Python
-  # float non-associativity in that stochastic path yields ~1e-7-magnitude
-  # prediction differences even at identical random_seed, not a correctness bug.
+test_that("core training-control/regularization/leaf-estimation/od/output-settings/ignored_features family matches Python oracle", {
+  # Bit-exact at the real 1e-12 default (model_shrink_rate, the confirmed
+  # cause of an earlier ~1.7e-7 divergence in a larger version of this
+  # batch, now lives in its own isolated test_that() below).
   p <- fixture$batches$core_training_control$params
-  expect_batch_matches_oracle("core_training_control", p, tolerance = 1e-6)
+  expect_batch_matches_oracle("core_training_control", p)
+})
+
+test_that("Bayesian bootstrap (bagging_temperature), isolated, matches Python oracle bit-exact", {
+  # Isolated single-variable-vs-defaults batch. The review round originally
+  # attributed core_training_control's ~1.7e-7 divergence to
+  # bagging_temperature's RNG draw; isolating it here (bisection, fix round)
+  # disproves that -- it is bit-exact on its own. Real 1e-12 default applies.
+  # (The actual cause was model_shrink_rate; see the isolated batch below.)
+  p <- fixture$batches$bayesian_bootstrap$params
+  expect_batch_matches_oracle("bayesian_bootstrap", p)
+})
+
+test_that("model_shrink_rate, isolated, matches Python oracle within a measured, justified tolerance", {
+  # Isolated single-variable-vs-defaults batch (bisection, fix round):
+  # model_shrink_mode="Constant" + model_shrink_rate=0.01 is the confirmed,
+  # sole, isolated cause of core_training_control's original ~1.7e-7
+  # divergence (removing this one parameter from an otherwise-full batch
+  # yields exact 0.0 diff; removing any other single parameter does not).
+  # Plausibly floating-point evaluation-order sensitivity in the repeated
+  # multiplicative shrinkage applied across iterations, not an RNG stream
+  # difference -- deterministic on both sides, but not associative across
+  # implementations. Measured max abs diff ~1.7e-7; tolerance widened to
+  # 1e-6 for margin (same convention as the Langevin batch below).
+  p <- fixture$batches$model_shrink_rate_isolated$params
+  expect_batch_matches_oracle("model_shrink_rate_isolated", p, tolerance = 1e-6)
 })
 
 test_that("CTR + binarization settings family matches Python oracle", {
   p <- fixture$batches$ctr_and_binarization$params
   expect_batch_matches_oracle("ctr_and_binarization", p)
+})
+
+test_that("custom_loss/ctr_description/ctr_history_unit/per_feature_ctr family matches Python oracle", {
+  p <- fixture$batches$ctr_extra$params
+  expect_batch_matches_oracle("ctr_extra", p)
 })
 
 test_that("Lossguide grow_policy/max_leaves/score_function family matches Python oracle", {
@@ -93,8 +125,10 @@ test_that("feature-penalty family (monotone_constraints/feature_weights/penaltie
 
 test_that("Langevin boosting family matches Python oracle", {
   # tolerance widened to 1e-6: Stochastic Gradient Langevin Boosting is
-  # itself an RNG-driven stochastic method (same class of cross-process
-  # float non-associativity as core_training_control's bagging_temperature).
+  # itself an RNG-driven stochastic method, and this batch is already
+  # isolated to just its own 3 params (langevin/diffusion_temperature/
+  # posterior_sampling) -- same class of cross-process float
+  # non-associativity as the isolated bayesian_bootstrap batch above.
   p <- fixture$batches$langevin$params
   expect_batch_matches_oracle("langevin", p, tolerance = 1e-6)
 })
@@ -103,4 +137,31 @@ test_that("snapshot family (save_snapshot/snapshot_file/snapshot_interval) match
   p <- fixture$batches$snapshot$params
   p$snapshot_file <- tempfile(fileext = ".snapshot")
   expect_batch_matches_oracle("snapshot", p)
+})
+
+test_that("output_borders matches Python oracle", {
+  # input_borders is deliberately NOT here: native rejects it as an
+  # "Unknown option" flat top-level key in this vendor version (verified
+  # directly -- see task-5-report.md); output_borders IS a real flat option
+  # (output_file_options.cpp OutputBordersFileName) and trains cleanly.
+  p <- fixture$batches$output_borders$params
+  p$output_borders <- tempfile(fileext = ".tsv")
+  expect_batch_matches_oracle("output_borders", p)
+})
+
+test_that("used_ram_limit's real, isolated R-vs-Python divergence is measured, not discarded", {
+  # Isolated A/B: "used_ram_limit_isolated" (used_ram_limit="512mb") vs.
+  # "used_ram_limit_baseline" (identical params, no used_ram_limit) --
+  # if used_ram_limit itself has no numeric effect, the two Python
+  # predictions should already be identical to each other, and R's
+  # used_ram_limit run should match the Python used_ram_limit run at the
+  # real 1e-12 default. If not, this fails loudly instead of the parameter
+  # being silently dropped from the fixture (review-round fix: catboost-8z4.62).
+  py_isolated <- as.vector(fixture$batches$used_ram_limit_isolated$predictions)
+  py_baseline <- as.vector(fixture$batches$used_ram_limit_baseline$predictions)
+  expect_equal(py_isolated, py_baseline, tolerance = 1e-12,
+               label = "Python used_ram_limit vs Python baseline (same params otherwise)")
+
+  p <- fixture$batches$used_ram_limit_isolated$params
+  expect_batch_matches_oracle("used_ram_limit_isolated", p)
 })

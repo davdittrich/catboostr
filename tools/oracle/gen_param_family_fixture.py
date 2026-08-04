@@ -7,7 +7,11 @@ family grouping of hyperparameters that are mutually compatible (do not
 interact adversarially), covering the native training hyperparameters that
 had no existing differential-test coverage (see task-5 audit). Writes
 predictions (RawFormulaVal) for each batch at full float64 precision so the
-R side can compare at tolerance 1e-12 (spec Sec 4.3 default).
+R side can compare at tolerance 1e-12 (spec Sec 4.3 default) unless a batch's
+own comment says otherwise (RNG-stochastic bootstrap/Langevin batches, and
+the used_ram_limit isolation probe, are deliberately kept separate so any
+tolerance widening attributes to exactly one variable, not a 30+-parameter
+bundle -- confound-isolation, see review round fix).
 
 Run via:
   uv run --frozen --project tools/oracle python3 tools/oracle/gen_param_family_fixture.py
@@ -56,10 +60,19 @@ def main():
     snapshot_path = os.path.join(TRAIN_DIR, "family_a.snapshot")
     if os.path.exists(snapshot_path):
         os.remove(snapshot_path)
+    output_borders_path = os.path.join(TRAIN_DIR, "output_borders.tsv")
 
     batches = {
         # G1: core training control, regularization, leaf estimation,
-        # overfitting detector, output/logging settings.
+        # overfitting detector, output/logging settings. Bit-exact at the
+        # real 1e-12 default -- confirmed by bisection (see
+        # task-5-report.md fix-round notes): the review round's original
+        # attribution of a ~1e-7 divergence to bagging_temperature (Bayesian
+        # bootstrap RNG) was WRONG (bagging_temperature alone reproduces
+        # bit-exact, see "bayesian_bootstrap" below); the real, isolated,
+        # confirmed cause was model_shrink_rate (moved to its own batch,
+        # "model_shrink_rate_isolated", below) -- model_shrink_mode alone
+        # (without model_shrink_rate) is also bit-exact and stays here.
         "core_training_control": dict(
             loss_function="Logloss", eval_metric="AUC", custom_metric=["Accuracy"],
             iterations=25, learning_rate=0.08, depth=4,
@@ -67,11 +80,10 @@ def main():
             random_seed=SEED, random_strength=1.5, nan_mode="Min",
             leaf_estimation_method="Newton", leaf_estimation_iterations=2,
             leaf_estimation_backtracking="AnyImprovement",
-            bootstrap_type="Bayesian", bagging_temperature=0.6,
             boosting_type="Plain", boost_from_average=True,
             min_data_in_leaf=2, fold_permutation_block=1, fold_len_multiplier=2.0,
             sampling_frequency="PerTreeLevel",
-            model_shrink_mode="Constant", model_shrink_rate=0.01,
+            model_shrink_mode="Constant",
             od_type="IncToDec", od_pval=0.05, od_wait=3,
             use_best_model=False, best_model_min_trees=1,
             metric_period=3, logging_level="Silent",
@@ -83,6 +95,29 @@ def main():
             data_partition="FeatureParallel",
             dev_score_calc_obj_block_size=1000, dev_efb_max_buckets=128,
             sparse_features_conflict_fraction=0.0,
+            ignored_features=[1],
+        ),
+        # Isolated (single-variable-vs-core-defaults) Bayesian-bootstrap
+        # batch: verified bit-exact in isolation (bisection, fix round) --
+        # kept as its own small batch for clarity, not because it needs a
+        # widened tolerance (it doesn't).
+        "bayesian_bootstrap": dict(
+            loss_function="Logloss", iterations=25, verbose=False,
+            random_seed=SEED, thread_count=1,
+            bootstrap_type="Bayesian", bagging_temperature=0.6,
+        ),
+        # Isolated (single-variable-vs-core-defaults) model_shrink_rate
+        # batch: bisection (fix round, see task-5-report.md) confirmed this
+        # is the real, sole cause of the ~1.7e-7-magnitude divergence
+        # originally (and wrongly) attributed to bagging_temperature.
+        # Plausibly floating-point evaluation-order sensitivity in the
+        # repeated multiplicative shrinkage applied across iterations
+        # (Constant mode), not an RNG stream difference -- deterministic on
+        # both sides, but order-of-operations-sensitive.
+        "model_shrink_rate_isolated": dict(
+            loss_function="Logloss", iterations=25, verbose=False,
+            random_seed=SEED, thread_count=1,
+            model_shrink_mode="Constant", model_shrink_rate=0.01,
         ),
         # G2: CTR + binarization settings.
         "ctr_and_binarization": dict(
@@ -97,6 +132,23 @@ def main():
             store_all_simple_ctr=False, final_ctr_computation_mode="Default",
             target_border=0.5,
             train_dir=os.path.join(TRAIN_DIR, "ctr"),
+        ),
+        # G2b: legacy/alternate CTR-description spellings + per-feature CTR
+        # override, verified individually against the real native library
+        # first (see task-5-report.md fix-round notes) -- per_feature_ctr
+        # needs an explicit "index:Type:Prior=N/D:..." spec (an *unindexed*
+        # prior, or targeting a non-categorical feature index, both throw a
+        # native error), and ctr_history_unit's only CPU-supported value is
+        # its own default ("Sample"; "Group" throws
+        # "unimplemented for task type CPU").
+        "ctr_extra": dict(
+            loss_function="Logloss", iterations=15, verbose=False,
+            random_seed=SEED, thread_count=1,
+            custom_loss=["Logloss"],
+            ctr_description=["Borders:CtrBorderCount=8"],
+            ctr_history_unit="Sample",
+            per_feature_ctr=["2:Borders:Prior=0.5/1:CtrBorderCount=8"],
+            train_dir=os.path.join(TRAIN_DIR, "ctr_extra"),
         ),
         # G3: grow_policy / max_leaves / score_function (Lossguide-only combo).
         "lossguide_grow_policy": dict(
@@ -113,7 +165,7 @@ def main():
             sampling_unit="Object",
             train_dir=os.path.join(TRAIN_DIR, "mvs"),
         ),
-        # G5: class-weighting family -- mutually exclusive, so 3 tiny models.
+        # G5: class-weighting family -- mutually exclusive, so 2 tiny models.
         "class_weights": dict(
             loss_function="Logloss", iterations=10, verbose=False,
             random_seed=SEED, thread_count=1, class_weights=[1.0, 1.2],
@@ -124,9 +176,7 @@ def main():
             random_seed=SEED, thread_count=1, auto_class_weights="Balanced",
             train_dir=os.path.join(TRAIN_DIR, "acw"),
         ),
-        # G7: feature-penalty family (all no-op weights/penalties => must not
-        # change predictions vs G1's baseline structurally, but we only need
-        # bit-exact match to the *Python* run of the identical config).
+        # G7: feature-penalty family (all no-op weights/penalties).
         "feature_penalties": dict(
             loss_function="Logloss", iterations=15, verbose=False,
             random_seed=SEED, thread_count=1,
@@ -136,7 +186,9 @@ def main():
             penalties_coefficient=1.0,
             train_dir=os.path.join(TRAIN_DIR, "penalties"),
         ),
-        # G9: Langevin boosting family (CPU-supported).
+        # G9: Langevin boosting family (CPU-supported, itself an RNG-driven
+        # stochastic method -- already isolated to just these 3 params, no
+        # further splitting needed).
         "langevin": dict(
             loss_function="Logloss", iterations=15, verbose=False,
             random_seed=SEED, thread_count=1,
@@ -150,6 +202,34 @@ def main():
             save_snapshot=True, snapshot_file=snapshot_path, snapshot_interval=1,
             allow_writing_files=True,
             train_dir=os.path.join(TRAIN_DIR, "snapshot"),
+        ),
+        # G11: output_borders (verified as a real flat top-level native
+        # option; input_borders is NOT -- see task-5-report.md fix-round
+        # notes -- so only output_borders gets a differential batch).
+        "output_borders": dict(
+            loss_function="Logloss", iterations=15, verbose=False,
+            random_seed=SEED, thread_count=1,
+            output_borders=output_borders_path,
+            train_dir=os.path.join(TRAIN_DIR, "output_borders"),
+        ),
+        # G12: used_ram_limit, isolated (single variable vs. core defaults)
+        # to measure its real R-vs-Python divergence in isolation, after it
+        # was found to diverge by ~1e-7 when bundled with 34 other
+        # core_training_control parameters and the attribution to
+        # used_ram_limit itself was never confirmed in isolation.
+        "used_ram_limit_isolated": dict(
+            loss_function="Logloss", iterations=25, verbose=False,
+            random_seed=SEED, thread_count=1,
+            used_ram_limit="512mb",
+            train_dir=os.path.join(TRAIN_DIR, "ram_limit"),
+        ),
+        # G13: same run as G12 but *without* used_ram_limit, all other
+        # params identical -- the direct A/B baseline for the isolation
+        # comparison (single variable differs: used_ram_limit itself).
+        "used_ram_limit_baseline": dict(
+            loss_function="Logloss", iterations=25, verbose=False,
+            random_seed=SEED, thread_count=1,
+            train_dir=os.path.join(TRAIN_DIR, "ram_baseline"),
         ),
     }
 
@@ -167,9 +247,6 @@ def main():
         model.fit(pool)
         preds = model.predict(pool, prediction_type="RawFormulaVal")
         preds = [float(v) for v in np.asarray(preds).ravel().tolist()]
-        # Strip filesystem-path / non-serializable-for-R params before saving
-        # (R reconstructs equivalent tmp paths itself); keep everything else
-        # so the R side can literally replay the same `params` list.
         # "verbose" is excluded: it is purely a console-output cosmetic (does
         # not affect predictions) and, unlike Python's fit(verbose=), R's
         # `params` list has no client-side bool->period translation for it
@@ -179,7 +256,7 @@ def main():
         # test_param_family_coverage.R).
         json_params = {
             k: v for k, v in params.items()
-            if k not in ("train_dir", "snapshot_file", "input_borders", "verbose")
+            if k not in ("train_dir", "snapshot_file", "output_borders", "verbose")
         }
         fixture["batches"][batch_name] = {
             "params": json_params,

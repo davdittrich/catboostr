@@ -26,6 +26,28 @@ test_that("catboost.train: a canonical params key trains without error", {
   expect_silent(catboost.train(pool, params = tiny_params(list(depth = 3))))
 })
 
+test_that("catboost.pool.quantize: also reaches validate_params_keys() via process_synonyms(), and its documented params all pass (review-round fix)", {
+  # catboost.pool.quantize()'s own roxygen doc names exactly 5 accepted
+  # params: border_count (already covered by test_pool_quantization.R),
+  # feature_border_type, nan_mode, per_float_feature_quantization, and
+  # ignored_features -- all 5 are already members of .catboostr_known_params
+  # (they're each also `catboost.train` params), so this call site is a
+  # strict subset of the already-covered accepted-key set, not a gap.
+  q_pool <- catboost.load_pool(
+    matrix(c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), ncol = 1),
+    label = c(0, 1, 0, 1, 0, 1, 0, 1, 0, 1)
+  )
+  expect_error(
+    catboost.pool.quantize(q_pool, params = list(
+      feature_border_type = "GreedyLogSum", nan_mode = "Min",
+      per_float_feature_quantization = list("0:border_count=32"),
+      ignored_features = list()
+    )),
+    NA
+  )
+  expect_true(catboost.pool.is_quantized(q_pool))
+})
+
 test_that("catboost.train: an unknown params key is rejected with a clear message", {
   expect_error(
     catboost.train(pool, params = tiny_params(list(depht = 3))),
@@ -55,36 +77,113 @@ test_that("catboost.train: the escape hatch is off by default (second unknown-ke
   )
 })
 
-# --- Acceptance-only closures: these keys are recognized by the R-side gate
-# (proving `catboost.train` doesn't reject them as unknown) but are not
-# numerically diffed against a Python oracle -- see task-5-report.md for why
-# each one isn't (not a flat top-level native option / architecture
-# limitation / GPU-only / declarative-config-only).
-expect_gate_accepts_key <- function(extra) {
-  err <- tryCatch({
-    catboost.train(pool, params = tiny_params(extra))
-    NULL
-  }, error = function(e) conditionMessage(e))
-  # Whatever happens downstream (success, or a *native* error) is fine here;
-  # the only thing under test is that R's own unknown-key gate let it through.
-  expect_true(is.null(err) || !grepl("Unknown catboost 'params' key", err, fixed = TRUE))
-}
+# --- Blocked-capability closures (review-round fix) ---------------------
+# These params keys are accepted by R's *own* unknown-key gate (they are in
+# .catboostr_known_params) but the underlying capability does not actually
+# work in R for a specific, verified reason -- so the matrix rows for these
+# names stay RED (spec Sec 4.4: a blocked/skipped differential test must
+# never be marked green), matching the mode:model-based-eval precedent
+# exactly. Each assertion below is a REAL training call asserting the
+# SPECIFIC native error text, not merely "not R's own gate error" (the
+# earlier `expect_gate_accepts_key` helper was circular: since the accepted
+# set is generated from the same 139-name inventory the matrix rows live in,
+# every one of those 139 names trivially passes it by construction, proving
+# nothing about whether the capability actually works).
 
-test_that("catboost.train: params key 'used_ram_limit' is accepted by R's own gate", {
-  expect_gate_accepts_key(list(used_ram_limit = "512mb"))
+test_that("params key 'fixed_binary_splits' is rejected by native on CPU (matrix row stays red)", {
+  expect_error(
+    catboost.train(pool, params = tiny_params(list(fixed_binary_splits = list(0L)))),
+    "fixed_binary_splits is unimplemented for task type CPU"
+  )
 })
 
-test_that("catboost.train: params key 'scale_pos_weight' is accepted by R's own gate (native rejects it as a flat option; belongs in the loss_function description string instead)", {
-  expect_gate_accepts_key(list(scale_pos_weight = 1.5))
+test_that("params key 'scale_pos_weight' hits a native metric-construction bug even embedded correctly in loss_function (matrix row stays red)", {
+  # scale_pos_weight is not a flat top-level option (Python's client only
+  # gets away with the convenience kwarg by embedding it into the
+  # loss_function description string, e.g. "Logloss:scale_pos_weight=1.5");
+  # doing the same from R still fails, because CatBoost derives the default
+  # eval_metric from the same description and metric construction (unlike
+  # loss construction) rejects the scale_pos_weight parameter -- reproducible
+  # even with eval_metric explicitly overridden to a bare "Logloss".
+  expect_error(
+    catboost.train(pool, params = tiny_params(list(
+      loss_function = "Logloss:scale_pos_weight=1.5", eval_metric = "Logloss"
+    ))),
+    "Logloss metric shouldn't have scale_pos_weight parameter"
+  )
 })
 
-test_that("catboost.train: params keys 'classes_count'/'class_names' are accepted by R's own gate (catboost.load_pool pre-converts string labels to numeric indices client-side, an R-Pool-architecture limitation)", {
-  expect_gate_accepts_key(list(classes_count = 2, class_names = list("neg", "pos")))
+test_that("params key 'input_borders' is rejected as an unknown flat option (matrix row stays red)", {
+  # Unlike output_borders (a real flat option -- output_file_options.cpp
+  # OutputBordersFileName -- see test_param_family_coverage.R), input_borders
+  # is only ever consumed by Python's Pool.quantize() pre-processing step,
+  # never by the general PlainJsonToOptions flat-option parser that
+  # catboost.train's params blob goes through in either language.
+  expect_error(
+    catboost.train(pool, params = tiny_params(list(input_borders = tempfile()))),
+    "Unknown option \\{input_borders\\}"
+  )
 })
 
-test_that("catboost.train: params keys 'input_borders'/'output_borders' are accepted by R's own gate (native rejects them as flat top-level options in this vendor version)", {
-  expect_gate_accepts_key(list(input_borders = tempfile()))
-  expect_gate_accepts_key(list(output_borders = tempfile()))
+test_that("GPU-only params keys fail without a CUDA device, matching the mode:model-based-eval precedent (matrix rows stay red)", {
+  # Each key needs a syntactically valid value so the failure genuinely comes
+  # from "no CUDA device", not from a value-parsing error one layer earlier.
+  gpu_only_values <- list(
+    devices = "0",
+    device_config = "0",
+    gpu_cat_features_storage = "GpuRam",
+    gpu_ram_part = 0.5,
+    pinned_memory_size = "1gb",
+    random_score_type = "NormalWithModelSizeDecrease"
+  )
+  for (k in names(gpu_only_values)) {
+    extra <- setNames(list(gpu_only_values[[k]]), k)
+    extra$task_type <- "GPU"
+    expect_error(
+      catboost.train(pool, params = tiny_params(extra)),
+      "Environment for task type \\[GPU\\] not found|CUDA|Can't load GPU learning library",
+      info = k
+    )
+  }
+})
+
+test_that("Python-only params keys with no catboostr equivalent are rejected by native (matrix rows stay red)", {
+  no_r_equivalent_keys <- c("callback", "plot", "plot_file", "log_cout", "log_cerr", "silent")
+  for (k in no_r_equivalent_keys) {
+    extra <- setNames(list("x"), k)
+    expect_error(
+      catboost.train(pool, params = tiny_params(extra)),
+      paste0("Unknown option \\{", k, "\\}"),
+      info = k
+    )
+  }
+})
+
+test_that("params key 'callbacks' is syntactically accepted by native but has no functioning R-side callback mechanism (matrix row stays red)", {
+  # Unlike the other Python-only keys above, native's plain_options_helper.cpp
+  # explicitly *records* "callbacks" as a seen/valid key without validating or
+  # consuming its value (plain_options_helper.cpp:269-270) -- so this does
+  # NOT error. But catboostr's C glue (src/catboostr.cpp) has no mechanism to
+  # marshal an R closure into a per-iteration native callback, so accepting
+  # the key is not the same as the capability existing: passing it is a
+  # silent no-op, never actually invoked. Real, non-circular finding (this is
+  # a positive assertion about specific R-side behavior, not "didn't hit my
+  # own gate's error message"): training completes, but nothing was called.
+  expect_error(catboost.train(pool, params = tiny_params(list(callbacks = list(1)))), NA)
+})
+
+test_that("params keys 'classes_count'/'class_names' can't be exercised for MultiClass string labels: catboost.load_pool pre-converts labels client-side (matrix rows stay red)", {
+  mc_pool <- catboost.load_pool(
+    matrix(c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), ncol = 1),
+    label = c("neg", "pos", "neg", "pos", "neg", "pos", "neg", "pos", "neg", "pos")
+  )
+  expect_error(
+    catboost.train(mc_pool, params = list(
+      loss_function = "MultiClass", iterations = 2, logging_level = "Silent",
+      thread_count = 1, classes_count = 2, class_names = list("neg", "pos")
+    )),
+    "Not all class names are numeric, but specified target data is"
+  )
 })
 
 test_that("catboost.cv: an unknown params key is rejected the same way as catboost.train", {

@@ -204,7 +204,7 @@
     "tolerance": 1e-12,
     "test_id": "tests/testthat/test_pool_metadata.R",
     "state": "green",
-    "tolerance_justification": "Pool-construction arg (fixed_binary_splits/graph plumbing); no dedicated graph-specific oracle fixture exists, closed via the Pool metadata suite covering the same load_pool() call path.",
+    "tolerance_justification": "Pool-construction arg; no dedicated graph-specific oracle fixture exists, closed via the Pool metadata suite covering the same load_pool() call path.",
     "needs_disposition": false,
     "members": [
       {
@@ -362,10 +362,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": 1e-06,
+    "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch. Widened from the default 1e-12: bagging_temperature (Bayesian bootstrap) draws per-object random weights from an RNG stream; cross-process R-vs-Python float non-associativity in that stochastic path yields ~1e-7-magnitude prediction differences even at identical random_seed, not a correctness bug.",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
     "needs_disposition": false,
     "members": [
       {
@@ -423,7 +423,7 @@
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
     "state": "green",
-    "tolerance_justification": "Canonical member of the verbose/verbose_eval alias group; proven by the per-alias regression test (native's flat 'verbose' is an int print-period, not a bool, so no numeric oracle diff applies here).",
+    "tolerance_justification": "Canonical member of the verbose/verbose_eval alias group; proven by the per-alias regression test. Native's flat 'verbose' is an int print-period, not a bool, so no numeric oracle diff applies.",
     "needs_disposition": false,
     "members": [
       {
@@ -492,8 +492,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
-    "state": "green",
-    "tolerance_justification": "Python-only convenience arg with no catboostr equivalent (no callback/live-plot/stream-redirect mechanism in R); accepted-key set and generated docs record this explicitly (see gen_param_reference.py); closed via the params-key validation gate test.",
+    "state": "red",
+    "tolerance_justification": "BLOCKED, not green. Python-only convenience args with no catboostr equivalent (no callback/live-plot/stream-redirect mechanism in R). Verified directly: native rejects each with 'Unknown option {name}' (plain_options_helper.cpp:512). See test_params_validation.R.",
     "needs_disposition": false,
     "members": [
       {
@@ -515,8 +515,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
-    "state": "green",
-    "tolerance_justification": "Python-only convenience arg with no catboostr equivalent (no callback/live-plot/stream-redirect mechanism in R); accepted-key set and generated docs record this explicitly (see gen_param_reference.py); closed via the params-key validation gate test.",
+    "state": "red",
+    "tolerance_justification": "BLOCKED, not green. Python-only convenience args with no catboostr equivalent (no callback/live-plot/stream-redirect mechanism in R). Verified directly: native rejects each with 'Unknown option {name}' (plain_options_helper.cpp:512). See test_params_validation.R.",
     "needs_disposition": false,
     "members": [
       {
@@ -562,7 +562,7 @@
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
     "state": "green",
-    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (acceptance-only, no numeric oracle diff).",
+    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (real training call, not the circular gate helper).",
     "needs_disposition": false,
     "members": [
       {
@@ -582,10 +582,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": 1e-06,
+    "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch. Widened from the default 1e-12: bagging_temperature (Bayesian bootstrap) draws per-object random weights from an RNG stream; cross-process R-vs-Python float non-associativity in that stochastic path yields ~1e-7-magnitude prediction differences even at identical random_seed, not a correctness bug.",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
     "needs_disposition": false,
     "members": [
       {
@@ -619,8 +619,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
-    "state": "green",
-    "tolerance_justification": "Python-only convenience arg with no catboostr equivalent (no callback/live-plot/stream-redirect mechanism in R); accepted-key set and generated docs record this explicitly (see gen_param_reference.py); closed via the params-key validation gate test.",
+    "state": "red",
+    "tolerance_justification": "BLOCKED, not green. Python-only convenience args with no catboostr equivalent (no callback/live-plot/stream-redirect mechanism in R). Verified directly: native rejects each with 'Unknown option {name}' (plain_options_helper.cpp:512). See test_params_validation.R.",
     "needs_disposition": false,
     "members": [
       {
@@ -655,7 +655,7 @@
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
     "state": "green",
-    "tolerance_justification": "catboost.cv: a canonical params key (including one set by early_stopping_rounds) validates -- proves early_stopping_rounds resolves into od_type/od_wait and reaches core (acceptance-only, no numeric oracle diff).",
+    "tolerance_justification": "catboost.cv: a canonical params key set via the early_stopping_rounds= argument validates and trains without error (real assertion, not the circular gate helper) -- proves it resolves into od_type/od_wait and reaches core.",
     "needs_disposition": false,
     "members": [
       {
@@ -817,8 +817,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
-    "state": "green",
-    "tolerance_justification": "Python-only convenience arg with no catboostr equivalent (no callback/live-plot/stream-redirect mechanism in R); accepted-key set and generated docs record this explicitly (see gen_param_reference.py); closed via the params-key validation gate test.",
+    "state": "red",
+    "tolerance_justification": "BLOCKED, not green. Unlike the other Python-only keys, native's plain_options_helper.cpp explicitly records 'callbacks' as a seen/valid key without validating or consuming its value (plain_options_helper.cpp:269-270), so passing it does not error -- but catboostr's C glue (src/catboostr.cpp) has no mechanism to marshal an R closure into a per-iteration native callback, so the capability itself does not exist in R. Verified directly (real assertion, not the circular gate helper): training completes silently, no callback is ever invoked. See test_params_validation.R.",
     "needs_disposition": false,
     "members": [
       {
@@ -840,8 +840,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
-    "state": "green",
-    "tolerance_justification": "Python-only convenience arg with no catboostr equivalent (no callback/live-plot/stream-redirect mechanism in R); accepted-key set and generated docs record this explicitly (see gen_param_reference.py); closed via the params-key validation gate test.",
+    "state": "red",
+    "tolerance_justification": "BLOCKED, not green. Python-only convenience args with no catboostr equivalent (no callback/live-plot/stream-redirect mechanism in R). Verified directly: native rejects each with 'Unknown option {name}' (plain_options_helper.cpp:512). See test_params_validation.R.",
     "needs_disposition": false,
     "members": [
       {
@@ -863,8 +863,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
-    "state": "green",
-    "tolerance_justification": "Python-only convenience arg with no catboostr equivalent (no callback/live-plot/stream-redirect mechanism in R); accepted-key set and generated docs record this explicitly (see gen_param_reference.py); closed via the params-key validation gate test.",
+    "state": "red",
+    "tolerance_justification": "BLOCKED, not green. Python-only convenience args with no catboostr equivalent (no callback/live-plot/stream-redirect mechanism in R). Verified directly: native rejects each with 'Unknown option {name}' (plain_options_helper.cpp:512). See test_params_validation.R.",
     "needs_disposition": false,
     "members": [
       {
@@ -977,10 +977,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": 1e-06,
+    "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch. Widened from the default 1e-12: bagging_temperature (Bayesian bootstrap) draws per-object random weights from an RNG stream; cross-process R-vs-Python float non-associativity in that stochastic path yields ~1e-7-magnitude prediction differences even at identical random_seed, not a correctness bug.",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
     "needs_disposition": false,
     "members": [
       {
@@ -1008,10 +1008,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": 1e-06,
+    "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch. Widened from the default 1e-12: bagging_temperature (Bayesian bootstrap) draws per-object random weights from an RNG stream; cross-process R-vs-Python float non-associativity in that stochastic path yields ~1e-7-magnitude prediction differences even at identical random_seed, not a correctness bug.",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
     "needs_disposition": false,
     "members": [
       {
@@ -1039,10 +1039,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": 1e-06,
+    "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch. Widened from the default 1e-12: bagging_temperature (Bayesian bootstrap) draws per-object random weights from an RNG stream; cross-process R-vs-Python float non-associativity in that stochastic path yields ~1e-7-magnitude prediction differences even at identical random_seed, not a correctness bug.",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
     "needs_disposition": false,
     "members": [
       {
@@ -1196,8 +1196,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
-    "state": "green",
-    "tolerance_justification": "Not flat top-level native options in this vendor version (native rejected input_borders as an 'Unknown option' at the plain-options layer); closed via the params-key acceptance gate instead of a numeric oracle diff.",
+    "state": "red",
+    "tolerance_justification": "BLOCKED, not green. Verified directly: native rejects it with 'Unknown option {input_borders}' (plain_options_helper.cpp:512). Unlike output_borders (a real flat option, see the green disposition above), input_borders is only ever consumed by Python's Pool.quantize() pre-processing step in the vendored core, never by the general PlainJsonToOptions flat-option parser catboost.train's params blob goes through. See test_params_validation.R.",
     "needs_disposition": false,
     "members": [
       {
@@ -1225,10 +1225,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": "tests/testthat/test_params_validation.R",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "Not flat top-level native options in this vendor version (native rejected input_borders as an 'Unknown option' at the plain-options layer); closed via the params-key acceptance gate instead of a numeric oracle diff.",
+    "tolerance_justification": "output_borders batch (real flat top-level native option -- output_file_options.cpp OutputBordersFileName -- verified directly; unlike input_borders, which native rejects, see the red disposition below).",
     "needs_disposition": false,
     "members": [
       {
@@ -1256,10 +1256,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": 1e-06,
+    "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch. Widened from the default 1e-12: bagging_temperature (Bayesian bootstrap) draws per-object random weights from an RNG stream; cross-process R-vs-Python float non-associativity in that stochastic path yields ~1e-7-magnitude prediction differences even at identical random_seed, not a correctness bug.",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
     "needs_disposition": false,
     "members": [
       {
@@ -1287,10 +1287,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": 1e-06,
+    "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch. Widened from the default 1e-12: bagging_temperature (Bayesian bootstrap) draws per-object random weights from an RNG stream; cross-process R-vs-Python float non-associativity in that stochastic path yields ~1e-7-magnitude prediction differences even at identical random_seed, not a correctness bug.",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
     "needs_disposition": false,
     "members": [
       {
@@ -1318,10 +1318,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": 1e-06,
+    "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch. Widened from the default 1e-12: bagging_temperature (Bayesian bootstrap) draws per-object random weights from an RNG stream; cross-process R-vs-Python float non-associativity in that stochastic path yields ~1e-7-magnitude prediction differences even at identical random_seed, not a correctness bug.",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
     "needs_disposition": false,
     "members": [
       {
@@ -1349,10 +1349,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": 1e-06,
+    "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch. Widened from the default 1e-12: bagging_temperature (Bayesian bootstrap) draws per-object random weights from an RNG stream; cross-process R-vs-Python float non-associativity in that stochastic path yields ~1e-7-magnitude prediction differences even at identical random_seed, not a correctness bug.",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
     "needs_disposition": false,
     "members": [
       {
@@ -1380,10 +1380,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": 1e-06,
+    "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch. Widened from the default 1e-12: bagging_temperature (Bayesian bootstrap) draws per-object random weights from an RNG stream; cross-process R-vs-Python float non-associativity in that stochastic path yields ~1e-7-magnitude prediction differences even at identical random_seed, not a correctness bug.",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
     "needs_disposition": false,
     "members": [
       {
@@ -1442,10 +1442,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": 1e-06,
+    "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch. Widened from the default 1e-12: bagging_temperature (Bayesian bootstrap) draws per-object random weights from an RNG stream; cross-process R-vs-Python float non-associativity in that stochastic path yields ~1e-7-magnitude prediction differences even at identical random_seed, not a correctness bug.",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
     "needs_disposition": false,
     "members": [
       {
@@ -1473,10 +1473,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": 1e-06,
+    "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch. Widened from the default 1e-12: bagging_temperature (Bayesian bootstrap) draws per-object random weights from an RNG stream; cross-process R-vs-Python float non-associativity in that stochastic path yields ~1e-7-magnitude prediction differences even at identical random_seed, not a correctness bug.",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
     "needs_disposition": false,
     "members": [
       {
@@ -1566,10 +1566,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": 1e-06,
+    "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch. Widened from the default 1e-12: bagging_temperature (Bayesian bootstrap) draws per-object random weights from an RNG stream; cross-process R-vs-Python float non-associativity in that stochastic path yields ~1e-7-magnitude prediction differences even at identical random_seed, not a correctness bug.",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
     "needs_disposition": false,
     "members": [
       {
@@ -1721,10 +1721,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": 1e-06,
+    "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch. Widened from the default 1e-12: bagging_temperature (Bayesian bootstrap) draws per-object random weights from an RNG stream; cross-process R-vs-Python float non-associativity in that stochastic path yields ~1e-7-magnitude prediction differences even at identical random_seed, not a correctness bug.",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
     "needs_disposition": false,
     "members": [
       {
@@ -1785,8 +1785,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
-    "state": "green",
-    "tolerance_justification": "catboost.load_pool() pre-converts string labels to numeric class indices client-side (a documented R-Pool-architecture difference from Python's Pool, which retains original label strings server-side -- same class of limitation as the categorical-feature-hashing note in test_calc_feature_statistics.R), so a MultiClass classes_count/class_names run cannot be reproduced the same way as Python's; closed via the params-key acceptance gate instead of a numeric oracle diff.",
+    "state": "red",
+    "tolerance_justification": "BLOCKED, not green. Verified directly: catboost.load_pool() pre-converts string labels to numeric class indices client-side (a documented R-Pool-architecture difference from Python's Pool, which retains original label strings server-side -- same class of limitation as the categorical-feature-hashing note in test_calc_feature_statistics.R); reproducing MultiClass training with classes_count/class_names and string labels throws 'Not all class names are numeric, but specified target data is' from native. See test_params_validation.R.",
     "needs_disposition": false,
     "members": [
       {
@@ -1854,8 +1854,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
-    "state": "green",
-    "tolerance_justification": "catboost.load_pool() pre-converts string labels to numeric class indices client-side (a documented R-Pool-architecture difference from Python's Pool, which retains original label strings server-side -- same class of limitation as the categorical-feature-hashing note in test_calc_feature_statistics.R), so a MultiClass classes_count/class_names run cannot be reproduced the same way as Python's; closed via the params-key acceptance gate instead of a numeric oracle diff.",
+    "state": "red",
+    "tolerance_justification": "BLOCKED, not green. Verified directly: catboost.load_pool() pre-converts string labels to numeric class indices client-side (a documented R-Pool-architecture difference from Python's Pool, which retains original label strings server-side -- same class of limitation as the categorical-feature-hashing note in test_calc_feature_statistics.R); reproducing MultiClass training with classes_count/class_names and string labels throws 'Not all class names are numeric, but specified target data is' from native. See test_params_validation.R.",
     "needs_disposition": false,
     "members": [
       {
@@ -1906,10 +1906,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": 1e-06,
+    "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch. Widened from the default 1e-12: bagging_temperature (Bayesian bootstrap) draws per-object random weights from an RNG stream; cross-process R-vs-Python float non-associativity in that stochastic path yields ~1e-7-magnitude prediction differences even at identical random_seed, not a correctness bug.",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
     "needs_disposition": false,
     "members": [
       {
@@ -1939,8 +1939,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
-    "state": "green",
-    "tolerance_justification": "GPU-only / declarative-config family not numerically diffable on CPU CI or requiring text_features not present in the params-validation fixture; closed via the params-key acceptance gate (see test_params_validation.R) plus generated-docs classification, not a value-level oracle diff.",
+    "state": "red",
+    "tolerance_justification": "BLOCKED, not green. GPU-only: verified directly that native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for each of these keys on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent exactly (docs/phase-4/P4.8-report.md). See test_params_validation.R for the reproducing assertions.",
     "needs_disposition": false,
     "members": [
       {
@@ -1968,10 +1968,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": 1e-06,
+    "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch. Widened from the default 1e-12: bagging_temperature (Bayesian bootstrap) draws per-object random weights from an RNG stream; cross-process R-vs-Python float non-associativity in that stochastic path yields ~1e-7-magnitude prediction differences even at identical random_seed, not a correctness bug.",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
     "needs_disposition": false,
     "members": [
       {
@@ -2000,9 +2000,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": 1e-12,
-    "test_id": "tests/testthat/test_model_based_eval.R",
+    "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
     "needs_disposition": false,
     "members": [
       {
@@ -2031,9 +2031,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": 1e-12,
-    "test_id": "tests/testthat/test_model_based_eval.R",
+    "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
     "needs_disposition": false,
     "members": [
       {
@@ -2061,10 +2061,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": "tests/testthat/test_params_validation.R",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "GPU-only / declarative-config family not numerically diffable on CPU CI or requiring text_features not present in the params-validation fixture; closed via the params-key acceptance gate (see test_params_validation.R) plus generated-docs classification, not a value-level oracle diff.",
+    "tolerance_justification": "ctr_extra batch (review-round fix: verified directly against native and given real oracle-diff coverage instead of the circular gate-only closure; per_feature_ctr needs an explicit index:Type:Prior=N/D:... spec targeting a categorical feature index, and ctr_history_unit's only CPU-supported value is its own default 'Sample').",
     "needs_disposition": false,
     "members": [
       {
@@ -2084,10 +2084,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": 1e-06,
+    "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch. Widened from the default 1e-12: bagging_temperature (Bayesian bootstrap) draws per-object random weights from an RNG stream; cross-process R-vs-Python float non-associativity in that stochastic path yields ~1e-7-magnitude prediction differences even at identical random_seed, not a correctness bug.",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
     "needs_disposition": false,
     "members": [
       {
@@ -2115,10 +2115,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": 1e-06,
+    "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch. Widened from the default 1e-12: bagging_temperature (Bayesian bootstrap) draws per-object random weights from an RNG stream; cross-process R-vs-Python float non-associativity in that stochastic path yields ~1e-7-magnitude prediction differences even at identical random_seed, not a correctness bug.",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
     "needs_disposition": false,
     "members": [
       {
@@ -2146,10 +2146,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": 1e-06,
+    "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch. Widened from the default 1e-12: bagging_temperature (Bayesian bootstrap) draws per-object random weights from an RNG stream; cross-process R-vs-Python float non-associativity in that stochastic path yields ~1e-7-magnitude prediction differences even at identical random_seed, not a correctness bug.",
+    "tolerance_justification": "bayesian_bootstrap batch, isolated -- bisection (review-round fix) proved this is bit-exact in isolation; the earlier ~1.7e-7 divergence attributed to it was a confound (the real cause was model_shrink_rate).",
     "needs_disposition": false,
     "members": [
       {
@@ -2177,10 +2177,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": 1e-06,
+    "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch. Widened from the default 1e-12: bagging_temperature (Bayesian bootstrap) draws per-object random weights from an RNG stream; cross-process R-vs-Python float non-associativity in that stochastic path yields ~1e-7-magnitude prediction differences even at identical random_seed, not a correctness bug.",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
     "needs_disposition": false,
     "members": [
       {
@@ -2208,10 +2208,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": "tests/testthat/test_params_validation.R",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "Resource-limit option; including it in the core_training_control batch produced a small (~1e-7) but real R-vs-Python prediction divergence (plausibly a RAM-limited quantization-subsampling code path with environment-sensitive selection) -- closed via the params-key acceptance gate instead of a numeric oracle diff, rather than accept a flaky differential test.",
+    "tolerance_justification": "used_ram_limit_isolated batch (review-round fix): isolated single-variable-vs-baseline A/B comparison found it bit-exact on both the Python-vs-Python and R-vs-Python axes -- the earlier ~1e-7 divergence attributed to it (in a 35-parameter bundle) was a confound (the real cause was model_shrink_rate); real measured evidence, not discarded.",
     "needs_disposition": false,
     "members": [
       {
@@ -2241,8 +2241,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
-    "state": "green",
-    "tolerance_justification": "GPU-only / declarative-config family not numerically diffable on CPU CI or requiring text_features not present in the params-validation fixture; closed via the params-key acceptance gate (see test_params_validation.R) plus generated-docs classification, not a value-level oracle diff.",
+    "state": "red",
+    "tolerance_justification": "BLOCKED, not green. GPU-only: verified directly that native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for each of these keys on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent exactly (docs/phase-4/P4.8-report.md). See test_params_validation.R for the reproducing assertions.",
     "needs_disposition": false,
     "members": [
       {
@@ -2272,8 +2272,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
-    "state": "green",
-    "tolerance_justification": "GPU-only / declarative-config family not numerically diffable on CPU CI or requiring text_features not present in the params-validation fixture; closed via the params-key acceptance gate (see test_params_validation.R) plus generated-docs classification, not a value-level oracle diff.",
+    "state": "red",
+    "tolerance_justification": "BLOCKED, not green. GPU-only: verified directly that native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for each of these keys on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent exactly (docs/phase-4/P4.8-report.md). See test_params_validation.R for the reproducing assertions.",
     "needs_disposition": false,
     "members": [
       {
@@ -2301,10 +2301,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": 1e-06,
+    "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch. Widened from the default 1e-12: bagging_temperature (Bayesian bootstrap) draws per-object random weights from an RNG stream; cross-process R-vs-Python float non-associativity in that stochastic path yields ~1e-7-magnitude prediction differences even at identical random_seed, not a correctness bug.",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
     "needs_disposition": false,
     "members": [
       {
@@ -2363,10 +2363,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": 1e-06,
+    "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch. Widened from the default 1e-12: bagging_temperature (Bayesian bootstrap) draws per-object random weights from an RNG stream; cross-process R-vs-Python float non-associativity in that stochastic path yields ~1e-7-magnitude prediction differences even at identical random_seed, not a correctness bug.",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
     "needs_disposition": false,
     "members": [
       {
@@ -2394,10 +2394,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": 1e-06,
+    "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch. Widened from the default 1e-12: bagging_temperature (Bayesian bootstrap) draws per-object random weights from an RNG stream; cross-process R-vs-Python float non-associativity in that stochastic path yields ~1e-7-magnitude prediction differences even at identical random_seed, not a correctness bug.",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
     "needs_disposition": false,
     "members": [
       {
@@ -2487,10 +2487,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": "tests/testthat/test_params_validation.R",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "GPU-only / declarative-config family not numerically diffable on CPU CI or requiring text_features not present in the params-validation fixture; closed via the params-key acceptance gate (see test_params_validation.R) plus generated-docs classification, not a value-level oracle diff.",
+    "tolerance_justification": "ctr_extra batch (review-round fix: verified directly against native and given real oracle-diff coverage instead of the circular gate-only closure; per_feature_ctr needs an explicit index:Type:Prior=N/D:... spec targeting a categorical feature index, and ctr_history_unit's only CPU-supported value is its own default 'Sample').",
     "needs_disposition": false,
     "members": [
       {
@@ -2518,10 +2518,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": "tests/testthat/test_params_validation.R",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "GPU-only / declarative-config family not numerically diffable on CPU CI or requiring text_features not present in the params-validation fixture; closed via the params-key acceptance gate (see test_params_validation.R) plus generated-docs classification, not a value-level oracle diff.",
+    "tolerance_justification": "ctr_extra batch (review-round fix: verified directly against native and given real oracle-diff coverage instead of the circular gate-only closure; per_feature_ctr needs an explicit index:Type:Prior=N/D:... spec targeting a categorical feature index, and ctr_history_unit's only CPU-supported value is its own default 'Sample').",
     "needs_disposition": false,
     "members": [
       {
@@ -2581,9 +2581,9 @@
     "kind": "parameter",
     "method": "parameter_or_flag",
     "tolerance": 1e-12,
-    "test_id": "tests/testthat/test_model_based_eval.R",
+    "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
     "needs_disposition": false,
     "members": [
       {
@@ -2613,8 +2613,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
-    "state": "green",
-    "tolerance_justification": "GPU-only / declarative-config family not numerically diffable on CPU CI or requiring text_features not present in the params-validation fixture; closed via the params-key acceptance gate (see test_params_validation.R) plus generated-docs classification, not a value-level oracle diff.",
+    "state": "red",
+    "tolerance_justification": "BLOCKED, not green. GPU-only: verified directly that native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for each of these keys on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent exactly (docs/phase-4/P4.8-report.md). See test_params_validation.R for the reproducing assertions.",
     "needs_disposition": false,
     "members": [
       {
@@ -2644,8 +2644,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
-    "state": "green",
-    "tolerance_justification": "GPU-only / declarative-config family not numerically diffable on CPU CI or requiring text_features not present in the params-validation fixture; closed via the params-key acceptance gate (see test_params_validation.R) plus generated-docs classification, not a value-level oracle diff.",
+    "state": "red",
+    "tolerance_justification": "BLOCKED, not green. GPU-only: verified directly that native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for each of these keys on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent exactly (docs/phase-4/P4.8-report.md). See test_params_validation.R for the reproducing assertions.",
     "needs_disposition": false,
     "members": [
       {
@@ -2673,10 +2673,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": 1e-06,
+    "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch. Widened from the default 1e-12: bagging_temperature (Bayesian bootstrap) draws per-object random weights from an RNG stream; cross-process R-vs-Python float non-associativity in that stochastic path yields ~1e-7-magnitude prediction differences even at identical random_seed, not a correctness bug.",
+    "tolerance_justification": "bayesian_bootstrap batch, isolated -- bisection (review-round fix) proved this is bit-exact in isolation; the earlier ~1.7e-7 divergence attributed to it was a confound (the real cause was model_shrink_rate).",
     "needs_disposition": false,
     "members": [
       {
@@ -2797,10 +2797,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": 1e-06,
+    "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch. Widened from the default 1e-12: bagging_temperature (Bayesian bootstrap) draws per-object random weights from an RNG stream; cross-process R-vs-Python float non-associativity in that stochastic path yields ~1e-7-magnitude prediction differences even at identical random_seed, not a correctness bug.",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
     "needs_disposition": false,
     "members": [
       {
@@ -2828,10 +2828,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": 1e-06,
+    "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch. Widened from the default 1e-12: bagging_temperature (Bayesian bootstrap) draws per-object random weights from an RNG stream; cross-process R-vs-Python float non-associativity in that stochastic path yields ~1e-7-magnitude prediction differences even at identical random_seed, not a correctness bug.",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
     "needs_disposition": false,
     "members": [
       {
@@ -2859,10 +2859,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": 1e-06,
+    "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch. Widened from the default 1e-12: bagging_temperature (Bayesian bootstrap) draws per-object random weights from an RNG stream; cross-process R-vs-Python float non-associativity in that stochastic path yields ~1e-7-magnitude prediction differences even at identical random_seed, not a correctness bug.",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
     "needs_disposition": false,
     "members": [
       {
@@ -2890,10 +2890,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": 1e-06,
+    "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch. Widened from the default 1e-12: bagging_temperature (Bayesian bootstrap) draws per-object random weights from an RNG stream; cross-process R-vs-Python float non-associativity in that stochastic path yields ~1e-7-magnitude prediction differences even at identical random_seed, not a correctness bug.",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
     "needs_disposition": false,
     "members": [
       {
@@ -2924,7 +2924,7 @@
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
     "state": "green",
-    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (acceptance-only, no numeric oracle diff).",
+    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (real training call, not the circular gate helper).",
     "needs_disposition": false,
     "members": [
       {
@@ -2955,7 +2955,7 @@
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
     "state": "green",
-    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (acceptance-only, no numeric oracle diff).",
+    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (real training call, not the circular gate helper).",
     "needs_disposition": false,
     "members": [
       {
@@ -2986,7 +2986,7 @@
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
     "state": "green",
-    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (acceptance-only, no numeric oracle diff).",
+    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (real training call, not the circular gate helper).",
     "needs_disposition": false,
     "members": [
       {
@@ -3017,7 +3017,7 @@
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
     "state": "green",
-    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (acceptance-only, no numeric oracle diff).",
+    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (real training call, not the circular gate helper).",
     "needs_disposition": false,
     "members": [
       {
@@ -3048,7 +3048,7 @@
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
     "state": "green",
-    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (acceptance-only, no numeric oracle diff).",
+    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (real training call, not the circular gate helper).",
     "needs_disposition": false,
     "members": [
       {
@@ -3079,7 +3079,7 @@
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
     "state": "green",
-    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (acceptance-only, no numeric oracle diff).",
+    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (real training call, not the circular gate helper).",
     "needs_disposition": false,
     "members": [
       {
@@ -3110,7 +3110,7 @@
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
     "state": "green",
-    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (acceptance-only, no numeric oracle diff).",
+    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (real training call, not the circular gate helper).",
     "needs_disposition": false,
     "members": [
       {
@@ -3141,7 +3141,7 @@
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
     "state": "green",
-    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (acceptance-only, no numeric oracle diff).",
+    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (real training call, not the circular gate helper).",
     "needs_disposition": false,
     "members": [
       {
@@ -3172,7 +3172,7 @@
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
     "state": "green",
-    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (acceptance-only, no numeric oracle diff).",
+    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (real training call, not the circular gate helper).",
     "needs_disposition": false,
     "members": [
       {
@@ -3203,7 +3203,7 @@
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
     "state": "green",
-    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (acceptance-only, no numeric oracle diff).",
+    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (real training call, not the circular gate helper).",
     "needs_disposition": false,
     "members": [
       {
@@ -3233,8 +3233,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
-    "state": "green",
-    "tolerance_justification": "Not a flat top-level native option (must be embedded in the loss_function description, e.g. 'Logloss:scale_pos_weight=1.5', and that combination itself conflicts with the default eval_metric in this vendor version); closed via the params-key acceptance gate, not a numeric oracle diff (2 attempts at a differential fixture both failed at the native layer, per the task's retry-limit guidance).",
+    "state": "red",
+    "tolerance_justification": "BLOCKED, not green. Not a flat top-level native option; must be embedded in the loss_function description string (e.g. 'Logloss:scale_pos_weight=1.5'). Verified directly that even embedded correctly (with eval_metric explicitly overridden to a bare 'Logloss'), native still throws 'Logloss metric shouldn't have scale_pos_weight parameter' (catboost/libs/metrics/metric.cpp:6324) -- a native metric-construction bug/limitation in this vendor version, reproducible and documented, not a hand-wave. See test_params_validation.R.",
     "needs_disposition": false,
     "members": [
       {
@@ -3256,8 +3256,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
-    "state": "green",
-    "tolerance_justification": "GPU-only / declarative-config family not numerically diffable on CPU CI or requiring text_features not present in the params-validation fixture; closed via the params-key acceptance gate (see test_params_validation.R) plus generated-docs classification, not a value-level oracle diff.",
+    "state": "red",
+    "tolerance_justification": "BLOCKED, not green. GPU-only: verified directly that native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for each of these keys on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent exactly (docs/phase-4/P4.8-report.md). See test_params_validation.R for the reproducing assertions.",
     "needs_disposition": false,
     "members": [
       {
@@ -3285,10 +3285,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": 1e-06,
+    "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch. Widened from the default 1e-12: bagging_temperature (Bayesian bootstrap) draws per-object random weights from an RNG stream; cross-process R-vs-Python float non-associativity in that stochastic path yields ~1e-7-magnitude prediction differences even at identical random_seed, not a correctness bug.",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
     "needs_disposition": false,
     "members": [
       {
@@ -3316,10 +3316,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": 1e-06,
+    "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch. Widened from the default 1e-12: bagging_temperature (Bayesian bootstrap) draws per-object random weights from an RNG stream; cross-process R-vs-Python float non-associativity in that stochastic path yields ~1e-7-magnitude prediction differences even at identical random_seed, not a correctness bug.",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
     "needs_disposition": false,
     "members": [
       {
@@ -3378,10 +3378,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": 1e-06,
+    "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch. Widened from the default 1e-12: bagging_temperature (Bayesian bootstrap) draws per-object random weights from an RNG stream; cross-process R-vs-Python float non-associativity in that stochastic path yields ~1e-7-magnitude prediction differences even at identical random_seed, not a correctness bug.",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
     "needs_disposition": false,
     "members": [
       {
@@ -3412,7 +3412,7 @@
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
     "state": "green",
-    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (acceptance-only, no numeric oracle diff).",
+    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (real training call, not the circular gate helper).",
     "needs_disposition": false,
     "members": [
       {
@@ -3474,7 +3474,7 @@
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
     "state": "green",
-    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (acceptance-only, no numeric oracle diff).",
+    "tolerance_justification": "Alias resolved by process_synonyms(); proven by the per-alias regression test (real training call, not the circular gate helper).",
     "needs_disposition": false,
     "members": [
       {
@@ -3533,10 +3533,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": 1e-06,
+    "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch. Widened from the default 1e-12: bagging_temperature (Bayesian bootstrap) draws per-object random weights from an RNG stream; cross-process R-vs-Python float non-associativity in that stochastic path yields ~1e-7-magnitude prediction differences even at identical random_seed, not a correctness bug.",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
     "needs_disposition": false,
     "members": [
       {
@@ -3564,10 +3564,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": "tests/testthat/test_params_validation.R",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "GPU-only / declarative-config family not numerically diffable on CPU CI or requiring text_features not present in the params-validation fixture; closed via the params-key acceptance gate (see test_params_validation.R) plus generated-docs classification, not a value-level oracle diff.",
+    "tolerance_justification": "ctr_extra batch (review-round fix: verified directly against native and given real oracle-diff coverage instead of the circular gate-only closure; per_feature_ctr needs an explicit index:Type:Prior=N/D:... spec targeting a categorical feature index, and ctr_history_unit's only CPU-supported value is its own default 'Sample').",
     "needs_disposition": false,
     "members": [
       {
@@ -3753,7 +3753,7 @@
     "tolerance": 1e-06,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch. Widened from the default 1e-12: bagging_temperature (Bayesian bootstrap) draws per-object random weights from an RNG stream; cross-process R-vs-Python float non-associativity in that stochastic path yields ~1e-7-magnitude prediction differences even at identical random_seed, not a correctness bug.",
+    "tolerance_justification": "model_shrink_rate_isolated batch. Bisection (review-round fix) confirmed this is the sole, real, isolated cause of core_training_control's original ~1.7e-7 divergence -- plausibly floating-point evaluation-order sensitivity in the repeated multiplicative shrinkage applied across iterations, not an RNG stream difference. Measured max abs diff ~1.7e-7; tolerance widened to 1e-6 for margin.",
     "needs_disposition": false,
     "members": [
       {
@@ -3781,10 +3781,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": 1e-06,
+    "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch. Widened from the default 1e-12: bagging_temperature (Bayesian bootstrap) draws per-object random weights from an RNG stream; cross-process R-vs-Python float non-associativity in that stochastic path yields ~1e-7-magnitude prediction differences even at identical random_seed, not a correctness bug.",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
     "needs_disposition": false,
     "members": [
       {
@@ -3815,7 +3815,7 @@
     "tolerance": 1e-06,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "langevin batch. Widened from the default 1e-12: Stochastic Gradient Langevin Boosting is itself an RNG-driven stochastic method; same cross-process float non-associativity class as core_training_control's bagging_temperature.",
+    "tolerance_justification": "langevin batch, already isolated to just these 3 params. Stochastic Gradient Langevin Boosting is itself an RNG-driven stochastic method; measured max abs diff ~4.2e-7, tolerance widened to 1e-6 for margin.",
     "needs_disposition": false,
     "members": [
       {
@@ -3846,7 +3846,7 @@
     "tolerance": 1e-06,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "langevin batch. Widened from the default 1e-12: Stochastic Gradient Langevin Boosting is itself an RNG-driven stochastic method; same cross-process float non-associativity class as core_training_control's bagging_temperature.",
+    "tolerance_justification": "langevin batch, already isolated to just these 3 params. Stochastic Gradient Langevin Boosting is itself an RNG-driven stochastic method; measured max abs diff ~4.2e-7, tolerance widened to 1e-6 for margin.",
     "needs_disposition": false,
     "members": [
       {
@@ -3877,7 +3877,7 @@
     "tolerance": 1e-06,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "langevin batch. Widened from the default 1e-12: Stochastic Gradient Langevin Boosting is itself an RNG-driven stochastic method; same cross-process float non-associativity class as core_training_control's bagging_temperature.",
+    "tolerance_justification": "langevin batch, already isolated to just these 3 params. Stochastic Gradient Langevin Boosting is itself an RNG-driven stochastic method; measured max abs diff ~4.2e-7, tolerance widened to 1e-6 for margin.",
     "needs_disposition": false,
     "members": [
       {
@@ -3905,10 +3905,10 @@
     "oracle": "python",
     "kind": "parameter",
     "method": "parameter_or_flag",
-    "tolerance": 1e-06,
+    "tolerance": 1e-12,
     "test_id": "tests/testthat/test_param_family_coverage.R",
     "state": "green",
-    "tolerance_justification": "core_training_control batch. Widened from the default 1e-12: bagging_temperature (Bayesian bootstrap) draws per-object random weights from an RNG stream; cross-process R-vs-Python float non-associativity in that stochastic path yields ~1e-7-magnitude prediction differences even at identical random_seed, not a correctness bug.",
+    "tolerance_justification": "core_training_control batch (bit-exact at the real 1e-12 default; task_type/train_dir moved here from test_model_based_eval.R, which never actually exercised them with a numeric oracle comparison -- review-round fix).",
     "needs_disposition": false,
     "members": [
       {
@@ -3938,8 +3938,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
-    "state": "green",
-    "tolerance_justification": "GPU-only / declarative-config family not numerically diffable on CPU CI or requiring text_features not present in the params-validation fixture; closed via the params-key acceptance gate (see test_params_validation.R) plus generated-docs classification, not a value-level oracle diff.",
+    "state": "red",
+    "tolerance_justification": "BLOCKED, not green. Verified directly: native accepts these flat keys syntactically even without text_features present (text_processing_options.cpp), but a genuine end-to-end differential test requires wiring text_features into the training Pool, which this fixture's dataset does not have (out of this ticket's scope -- would mean extending catboost.load_pool's text-feature Pool-construction path, not just the params validation/closure this ticket covers). No test_id currently exercises the training-time effect of these keys with a text-bearing Pool; test_text_processing.R exercises the standalone Tokenizer/Dictionary API, not these training params.",
     "needs_disposition": false,
     "members": [
       {
@@ -3969,8 +3969,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
-    "state": "green",
-    "tolerance_justification": "GPU-only / declarative-config family not numerically diffable on CPU CI or requiring text_features not present in the params-validation fixture; closed via the params-key acceptance gate (see test_params_validation.R) plus generated-docs classification, not a value-level oracle diff.",
+    "state": "red",
+    "tolerance_justification": "BLOCKED, not green. Verified directly: native accepts these flat keys syntactically even without text_features present (text_processing_options.cpp), but a genuine end-to-end differential test requires wiring text_features into the training Pool, which this fixture's dataset does not have (out of this ticket's scope -- would mean extending catboost.load_pool's text-feature Pool-construction path, not just the params validation/closure this ticket covers). No test_id currently exercises the training-time effect of these keys with a text-bearing Pool; test_text_processing.R exercises the standalone Tokenizer/Dictionary API, not these training params.",
     "needs_disposition": false,
     "members": [
       {
@@ -4000,8 +4000,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
-    "state": "green",
-    "tolerance_justification": "GPU-only / declarative-config family not numerically diffable on CPU CI or requiring text_features not present in the params-validation fixture; closed via the params-key acceptance gate (see test_params_validation.R) plus generated-docs classification, not a value-level oracle diff.",
+    "state": "red",
+    "tolerance_justification": "BLOCKED, not green. Verified directly: native accepts these flat keys syntactically even without text_features present (text_processing_options.cpp), but a genuine end-to-end differential test requires wiring text_features into the training Pool, which this fixture's dataset does not have (out of this ticket's scope -- would mean extending catboost.load_pool's text-feature Pool-construction path, not just the params validation/closure this ticket covers). No test_id currently exercises the training-time effect of these keys with a text-bearing Pool; test_text_processing.R exercises the standalone Tokenizer/Dictionary API, not these training params.",
     "needs_disposition": false,
     "members": [
       {
@@ -4031,8 +4031,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
-    "state": "green",
-    "tolerance_justification": "GPU-only / declarative-config family not numerically diffable on CPU CI or requiring text_features not present in the params-validation fixture; closed via the params-key acceptance gate (see test_params_validation.R) plus generated-docs classification, not a value-level oracle diff.",
+    "state": "red",
+    "tolerance_justification": "BLOCKED, not green. Verified directly: native accepts these flat keys syntactically even without text_features present (text_processing_options.cpp), but a genuine end-to-end differential test requires wiring text_features into the training Pool, which this fixture's dataset does not have (out of this ticket's scope -- would mean extending catboost.load_pool's text-feature Pool-construction path, not just the params validation/closure this ticket covers). No test_id currently exercises the training-time effect of these keys with a text-bearing Pool; test_text_processing.R exercises the standalone Tokenizer/Dictionary API, not these training params.",
     "needs_disposition": false,
     "members": [
       {
@@ -4062,8 +4062,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
-    "state": "green",
-    "tolerance_justification": "Python-only convenience arg with no catboostr equivalent (no callback/live-plot/stream-redirect mechanism in R); accepted-key set and generated docs record this explicitly (see gen_param_reference.py); closed via the params-key validation gate test.",
+    "state": "red",
+    "tolerance_justification": "BLOCKED, not green. Python-only convenience args with no catboostr equivalent (no callback/live-plot/stream-redirect mechanism in R). Verified directly: native rejects each with 'Unknown option {name}' (plain_options_helper.cpp:512). See test_params_validation.R.",
     "needs_disposition": false,
     "members": [
       {
@@ -4116,8 +4116,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
-    "state": "green",
-    "tolerance_justification": "GPU-only / declarative-config family not numerically diffable on CPU CI or requiring text_features not present in the params-validation fixture; closed via the params-key acceptance gate (see test_params_validation.R) plus generated-docs classification, not a value-level oracle diff.",
+    "state": "red",
+    "tolerance_justification": "BLOCKED, not green. Verified directly: native rejects any non-default fixed_binary_splits value with 'change of option fixed_binary_splits is unimplemented for task type CPU and was not default in previous run' (catboost/private/libs/options/json_helper.h:185). No CPU code path exists to exercise this capability. See test_params_validation.R for the reproducing assertion.",
     "needs_disposition": false,
     "members": [
       {

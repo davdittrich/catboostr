@@ -1056,6 +1056,11 @@ The list of parameters
 
 All 139 hyperparameters from the machine-generated capability
 inventory, and how catboostr accepts each one.
+
+Unrecognized \code{params} keys are rejected with an error naming the
+offending key(s). To use a newer vendor-core parameter not yet listed
+below, set \code{options(catboostr.allow_unknown_params = TRUE)} to bypass
+this check.
 \describe{
   \item{X}{Supplied via \code{learn_pool}/\code{test_pool} (see \code{catboost.load_pool}), not the \code{params} list.}
   \item{allow_const_label}{Native training parameter accepted in the \code{params} list.}

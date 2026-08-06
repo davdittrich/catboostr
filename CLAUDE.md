@@ -64,8 +64,10 @@ This protocol applies when ending a Beads implementation workflow. It is subordi
 # Full build + install (~15 min: includes a from-source pinned OpenSSL build)
 R CMD INSTALL --preclean .
 
-# Run tests
-Rscript -e 'testthat::test_dir("tests/testthat")'
+# Run tests (must run from tests/, not repo root -- test_check() resolves
+# the suite relative to cwd)
+cd tests
+Rscript testthat.R
 ```
 
 ### Regenerating docs (roxygen2)
@@ -85,10 +87,15 @@ at `<pkg-source>/src/libcatboostr.so` instead — a file that never exists in
 this source tree, so it returns `NULL` and the DLLInfo dispatch fails.
 
 Workaround: install the package first, then regenerate docs against the
-**installed** copy (bypasses pkgload's in-place DLL search entirely):
+**installed** copy (bypasses pkgload's in-place DLL search entirely). Docs
+are generated from the *installed* namespace, so reinstall first whenever
+`R/*.R` changed since the last install, or roxygen2 will silently document
+stale code. `--preclean` is only needed after a compiled-code change
+(`src/*.cpp`, `src/*.h`) -- a plain `R CMD INSTALL .` is enough for R-only
+changes and skips the ~15-minute vendored rebuild:
 
 ```bash
-R CMD INSTALL --preclean .
+R CMD INSTALL .   # add --preclean only if compiled (src/*.cpp) code changed
 Rscript -e 'roxygen2::roxygenise(load_code = "installed")'
 ```
 

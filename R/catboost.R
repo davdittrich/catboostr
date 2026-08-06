@@ -2913,7 +2913,13 @@ prepare_train_export_parameters <- function(params) {
         params$ignored_features <- I(as.character(params$ignored_features))
     }
 
-    return(jsonlite::toJSON(params, auto_unbox = TRUE, digits = 10))
+    # digits = NA: jsonlite's full-round-trip-precision mode. digits = 10
+    # (jsonlite's default) truncated hyperparameter values (e.g. learning_rate,
+    # l2_leaf_reg) to 10 significant digits before they ever reached the
+    # native training call -- same defect class as prepare_grid_json's fix
+    # below (catboost-8z4.60), but here at the shared catboost.train/catboost.cv
+    # serialization site (catboost-8z4.65).
+    return(jsonlite::toJSON(params, auto_unbox = TRUE, digits = NA))
 }
 
 #' @name catboost.cv

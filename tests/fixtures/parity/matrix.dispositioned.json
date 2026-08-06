@@ -20372,12 +20372,12 @@
     "inventory_row_id": "CatBoost.eval_metrics",
     "oracle": "python",
     "kind": "method",
-    "method": null,
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "method": "elementwise",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_eval_metrics_classes.R",
+    "state": "green",
+    "tolerance_justification": "eval_metrics() is defined once on the CatBoost base class (core.py:3234) and not overridden by any subclass, so R's single catboost.eval_metrics() (R/catboost.R) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.eval_metrics rows; matches the 1e-6 tolerance already used for this native entry point's other oracle-python tests (test_compare.R, test_pool_metadata.R).",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.eval_metrics",
@@ -20388,7 +20388,10 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "elementwise",
+    "final_method_confidence": 90,
+    "final_method_note": "primary output is a per-iteration numeric metric-value array (iter -> {metric: value}), same shape as mode:eval-metrics; not overridden by any CatBoost subclass (core.py:3234), so this judgment is shared across all 4 estimator classes"
   },
   {
     "inventory_row_id": "CatBoost.get_feature_importance",
@@ -20592,12 +20595,12 @@
     "inventory_row_id": "CatBoostClassifier.eval_metrics",
     "oracle": "python",
     "kind": "method",
-    "method": null,
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "method": "elementwise",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_eval_metrics_classes.R",
+    "state": "green",
+    "tolerance_justification": "eval_metrics() is defined once on the CatBoost base class (core.py:3234) and not overridden by any subclass, so R's single catboost.eval_metrics() (R/catboost.R) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.eval_metrics rows; matches the 1e-6 tolerance already used for this native entry point's other oracle-python tests (test_compare.R, test_pool_metadata.R).",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.eval_metrics",
@@ -20608,7 +20611,10 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "elementwise",
+    "final_method_confidence": 90,
+    "final_method_note": "primary output is a per-iteration numeric metric-value array (iter -> {metric: value}), same shape as mode:eval-metrics; not overridden by any CatBoost subclass (core.py:3234), so this judgment is shared across all 4 estimator classes"
   },
   {
     "inventory_row_id": "CatBoostClassifier.get_feature_importance",
@@ -20812,12 +20818,12 @@
     "inventory_row_id": "CatBoostRegressor.eval_metrics",
     "oracle": "python",
     "kind": "method",
-    "method": null,
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "method": "elementwise",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_eval_metrics_classes.R",
+    "state": "green",
+    "tolerance_justification": "eval_metrics() is defined once on the CatBoost base class (core.py:3234) and not overridden by any subclass, so R's single catboost.eval_metrics() (R/catboost.R) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.eval_metrics rows; matches the 1e-6 tolerance already used for this native entry point's other oracle-python tests (test_compare.R, test_pool_metadata.R).",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.eval_metrics",
@@ -20828,7 +20834,10 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "elementwise",
+    "final_method_confidence": 90,
+    "final_method_note": "primary output is a per-iteration numeric metric-value array (iter -> {metric: value}), same shape as mode:eval-metrics; not overridden by any CatBoost subclass (core.py:3234), so this judgment is shared across all 4 estimator classes"
   },
   {
     "inventory_row_id": "CatBoostRegressor.get_feature_importance",
@@ -21032,12 +21041,12 @@
     "inventory_row_id": "CatBoostRanker.eval_metrics",
     "oracle": "python",
     "kind": "method",
-    "method": null,
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "method": "elementwise",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_eval_metrics_classes.R",
+    "state": "green",
+    "tolerance_justification": "eval_metrics() is defined once on the CatBoost base class (core.py:3234) and not overridden by any subclass, so R's single catboost.eval_metrics() (R/catboost.R) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.eval_metrics rows; matches the 1e-6 tolerance already used for this native entry point's other oracle-python tests (test_compare.R, test_pool_metadata.R).",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.eval_metrics",
@@ -21048,7 +21057,10 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "elementwise",
+    "final_method_confidence": 90,
+    "final_method_note": "primary output is a per-iteration numeric metric-value array (iter -> {metric: value}), same shape as mode:eval-metrics; not overridden by any CatBoost subclass (core.py:3234), so this judgment is shared across all 4 estimator classes"
   },
   {
     "inventory_row_id": "CatBoostRanker.get_feature_importance",

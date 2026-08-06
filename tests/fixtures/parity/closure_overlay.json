@@ -10,6 +10,12 @@
     "test_id": "tests/testthat/test_compare.R",
     "tolerance": 1e-06
   },
+  "CatBoost.eval_metrics": {
+    "state": "green",
+    "test_id": "tests/testthat/test_eval_metrics_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "eval_metrics() is defined once on the CatBoost base class (core.py:3234) and not overridden by any subclass, so R's single catboost.eval_metrics() (R/catboost.R) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.eval_metrics rows; matches the 1e-6 tolerance already used for this native entry point's other oracle-python tests (test_compare.R, test_pool_metadata.R)."
+  },
   "CatBoost.feature_names_": {
     "state": "green",
     "test_id": "tests/testthat/test_metadata.R",
@@ -57,6 +63,12 @@
     "state": "green",
     "test_id": "tests/testthat/test_compare.R",
     "tolerance": 1e-06
+  },
+  "CatBoostClassifier.eval_metrics": {
+    "state": "green",
+    "test_id": "tests/testthat/test_eval_metrics_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "eval_metrics() is defined once on the CatBoost base class (core.py:3234) and not overridden by any subclass, so R's single catboost.eval_metrics() (R/catboost.R) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.eval_metrics rows; matches the 1e-6 tolerance already used for this native entry point's other oracle-python tests (test_compare.R, test_pool_metadata.R)."
   },
   "CatBoostClassifier.feature_names_": {
     "state": "green",
@@ -106,6 +118,12 @@
     "test_id": "tests/testthat/test_compare.R",
     "tolerance": 1e-06
   },
+  "CatBoostRanker.eval_metrics": {
+    "state": "green",
+    "test_id": "tests/testthat/test_eval_metrics_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "eval_metrics() is defined once on the CatBoost base class (core.py:3234) and not overridden by any subclass, so R's single catboost.eval_metrics() (R/catboost.R) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.eval_metrics rows; matches the 1e-6 tolerance already used for this native entry point's other oracle-python tests (test_compare.R, test_pool_metadata.R)."
+  },
   "CatBoostRanker.feature_names_": {
     "state": "green",
     "test_id": "tests/testthat/test_metadata.R",
@@ -153,6 +171,12 @@
     "state": "green",
     "test_id": "tests/testthat/test_compare.R",
     "tolerance": 1e-06
+  },
+  "CatBoostRegressor.eval_metrics": {
+    "state": "green",
+    "test_id": "tests/testthat/test_eval_metrics_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "eval_metrics() is defined once on the CatBoost base class (core.py:3234) and not overridden by any subclass, so R's single catboost.eval_metrics() (R/catboost.R) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.eval_metrics rows; matches the 1e-6 tolerance already used for this native entry point's other oracle-python tests (test_compare.R, test_pool_metadata.R)."
   },
   "CatBoostRegressor.feature_names_": {
     "state": "green",

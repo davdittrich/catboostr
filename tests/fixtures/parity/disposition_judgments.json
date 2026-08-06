@@ -34,6 +34,11 @@
     55,
     "returns a calcer object; parity observable via its numeric add()/eval_metrics() results, not the object itself"
   ],
+  "CatBoost.eval_metrics": [
+    "elementwise",
+    90,
+    "primary output is a per-iteration numeric metric-value array (iter -> {metric: value}), same shape as mode:eval-metrics; not overridden by any CatBoost subclass (core.py:3234), so this judgment is shared across all 4 estimator classes"
+  ],
   "CatBoost.evals_result_": [
     "elementwise",
     90,
@@ -263,6 +268,11 @@
     "elementwise",
     55,
     "returns a calcer object; parity observable via its numeric add()/eval_metrics() results, not the object itself"
+  ],
+  "CatBoostClassifier.eval_metrics": [
+    "elementwise",
+    90,
+    "primary output is a per-iteration numeric metric-value array (iter -> {metric: value}), same shape as mode:eval-metrics; not overridden by any CatBoost subclass (core.py:3234), so this judgment is shared across all 4 estimator classes"
   ],
   "CatBoostClassifier.evals_result_": [
     "elementwise",
@@ -529,6 +539,11 @@
     55,
     "returns a calcer object; parity observable via its numeric add()/eval_metrics() results, not the object itself"
   ],
+  "CatBoostRanker.eval_metrics": [
+    "elementwise",
+    90,
+    "primary output is a per-iteration numeric metric-value array (iter -> {metric: value}), same shape as mode:eval-metrics; not overridden by any CatBoost subclass (core.py:3234), so this judgment is shared across all 4 estimator classes"
+  ],
   "CatBoostRanker.evals_result_": [
     "elementwise",
     90,
@@ -763,6 +778,11 @@
     "elementwise",
     55,
     "returns a calcer object; parity observable via its numeric add()/eval_metrics() results, not the object itself"
+  ],
+  "CatBoostRegressor.eval_metrics": [
+    "elementwise",
+    90,
+    "primary output is a per-iteration numeric metric-value array (iter -> {metric: value}), same shape as mode:eval-metrics; not overridden by any CatBoost subclass (core.py:3234), so this judgment is shared across all 4 estimator classes"
   ],
   "CatBoostRegressor.evals_result_": [
     "elementwise",

@@ -60,12 +60,36 @@ This protocol applies when ending a Beads implementation workflow. It is subordi
 
 ## Build & Test
 
-_Add your build and test commands here_
+```bash
+# Full build + install (~15 min: includes a from-source pinned OpenSSL build)
+R CMD INSTALL --preclean .
+
+# Run tests
+Rscript -e 'testthat::test_dir("tests/testthat")'
+```
+
+### Regenerating docs (roxygen2)
+
+`roxygen2::roxygenise()`'s default `load_code = "pkgload"` strategy fails on
+this package with:
+`Error in getDLLRegisteredRoutines.DLLInfo(dll, addNames = FALSE) : must
+specify DLL via a "DLLInfo" object`. This is NOT a stale-DLL/reload bug — it's
+a path mismatch: this package's `configure` deliberately builds
+`libcatboostr` via CMake and copies the result only to `inst/libs/` (so a
+plain `R CMD INSTALL` places it at `<installed-pkg>/libs/libcatboostr.so`,
+matching `NAMESPACE`'s `useDynLib(libcatboostr)`); `src/Makefile` is an
+intentional no-op so R's default `R CMD SHLIB` rule never tries to compile
+`src/*.cpp` itself. `pkgload::load_all()`'s in-place dev loader
+(`library.dynam2`), which `roxygenise()` uses by default, looks for the DLL
+at `<pkg-source>/src/libcatboostr.so` instead — a file that never exists in
+this source tree, so it returns `NULL` and the DLLInfo dispatch fails.
+
+Workaround: install the package first, then regenerate docs against the
+**installed** copy (bypasses pkgload's in-place DLL search entirely):
 
 ```bash
-# Example:
-# npm install
-# npm test
+R CMD INSTALL --preclean .
+Rscript -e 'roxygen2::roxygenise(load_code = "installed")'
 ```
 
 ## Architecture Overview

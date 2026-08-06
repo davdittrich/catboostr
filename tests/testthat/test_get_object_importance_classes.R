@@ -19,7 +19,10 @@ context("test_get_object_importance_classes.R")
 #     same ders_helpers.cpp:95 error, already covered by
 #     test_object_importance_multiclass.R (catboost-8z4.54).
 #   - CatBoostRanker (YetiRank) is NOT allow-listed either: same error,
-#     checked below directly (new coverage).
+#     checked below directly (new coverage) against the exact message the
+#     fixture generator captured from Python's own exception (not inferred
+#     from reading the C++ source), same pinning style as
+#     test_object_importance_multiclass.R's MultiClass case.
 #
 # Regenerate fixture with:
 # uv run --frozen --project tools/oracle python3 tools/oracle/gen_get_object_importance_classes_fixture.py
@@ -83,6 +86,7 @@ test_that("get_object_importance: CatBoostRanker (YetiRank) raises the same ders
 
   expect_error(
     catboost.get_object_importance(model, pool, pool),
-    "not supported yet in ostr mode"
+    regexp = fixture$expected$CatBoostRanker$error,
+    fixed = TRUE
   )
 })

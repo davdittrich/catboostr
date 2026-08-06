@@ -22,12 +22,15 @@ numeric LeafInfluence output; this fixture covers those two:
   - CatBoostRegressor:      RMSE -- allow-listed
 
 CatBoost.get_object_importance (MultiClass) and CatBoostRanker.
-get_object_importance (YetiRank) are deliberately NOT covered by this
-fixture -- both loss functions hit the ders_helpers.cpp:95 CB_ENSURE and are
-closed instead via an error-match differential test (same C++ raise site in
-both languages): CatBoost.MultiClass already has one
+get_object_importance (YetiRank) are NOT covered by real numeric values --
+both loss functions hit the ders_helpers.cpp:95 CB_ENSURE and are closed
+instead via an error-match differential test (same C++ raise site in both
+languages): CatBoost.MultiClass already has one
 (tests/testthat/test_object_importance_multiclass.R, catboost-8z4.54);
 CatBoostRanker.YetiRank gets one added alongside this fixture's R test file.
+This fixture also pins the exact Python-side exception message for both,
+so the R test compares against an empirically-captured string (not one
+inferred from reading vendor C++ source).
 
 Regenerate fixture with:
 uv run --frozen --project tools/oracle python3 tools/oracle/gen_get_object_importance_classes_fixture.py
@@ -35,7 +38,7 @@ uv run --frozen --project tools/oracle python3 tools/oracle/gen_get_object_impor
 import json
 import os
 
-from catboost import CatBoostClassifier, CatBoostRegressor, Pool
+from catboost import CatBoost, CatBoostClassifier, CatBoostRanker, CatBoostRegressor, Pool
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.dirname(os.path.dirname(SCRIPT_DIR))
@@ -53,7 +56,9 @@ FEATURE_NAMES = ["num1", "num2"]
 EVAL_N = 5
 
 BINARY_LABEL = [0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0]
+MULTICLASS_LABEL = [i % 3 for i in range(N_ROWS)]
 REGRESSION_LABEL = [0.1 * i - 1.0 for i in range(N_ROWS)]
+GROUP_ID = [i // 4 for i in range(N_ROWS)]  # 5 groups of 4
 
 COMMON = dict(iterations=10, depth=2, random_seed=42, thread_count=1, verbose=False,
               train_dir=os.path.join(SCRIPT_DIR, ".catboost_train_ostr"))
@@ -63,10 +68,14 @@ def x():
     return [[NUM1[i], NUM2[i]] for i in range(N_ROWS)]
 
 
-def split(features, label):
+def split(features, label, group_id=None):
     eval_x, train_x = features[:EVAL_N], features[EVAL_N:]
     eval_y, train_y = label[:EVAL_N], label[EVAL_N:]
-    return Pool(eval_x, eval_y, feature_names=FEATURE_NAMES), Pool(train_x, train_y, feature_names=FEATURE_NAMES)
+    if group_id is None:
+        return Pool(eval_x, eval_y, feature_names=FEATURE_NAMES), Pool(train_x, train_y, feature_names=FEATURE_NAMES)
+    eval_g, train_g = group_id[:EVAL_N], group_id[EVAL_N:]
+    return (Pool(eval_x, eval_y, feature_names=FEATURE_NAMES, group_id=eval_g),
+            Pool(train_x, train_y, feature_names=FEATURE_NAMES, group_id=train_g))
 
 
 def main():
@@ -92,6 +101,33 @@ def main():
         "num1": NUM1, "num2": NUM2, "label": REGRESSION_LABEL, "feature_names": FEATURE_NAMES,
     }
     fixture["expected"]["CatBoostRegressor"] = {"indices": list(indices), "scores": list(scores)}
+
+    # CatBoost base class: MultiClass -- not allow-listed, so this raises;
+    # pin the exact Python-side error message rather than infer it.
+    eval_pool, train_pool = split(x(), MULTICLASS_LABEL)
+    model = CatBoost(dict(loss_function="MultiClass", **COMMON))
+    model.fit(train_pool)
+    try:
+        model.get_object_importance(eval_pool, train_pool)
+        raise AssertionError("expected CatBoostError for MultiClass, got no exception")
+    except Exception as e:  # noqa: BLE001 -- deliberately capturing CatBoostError's message
+        fixture["inputs"]["CatBoost"] = {
+            "num1": NUM1, "num2": NUM2, "label": MULTICLASS_LABEL, "feature_names": FEATURE_NAMES,
+        }
+        fixture["expected"]["CatBoost"] = {"error": str(e)}
+
+    # CatBoostRanker: YetiRank -- not allow-listed either, same as above.
+    eval_pool, train_pool = split(x(), BINARY_LABEL, GROUP_ID)
+    model = CatBoostRanker(loss_function="YetiRank", **COMMON)
+    model.fit(train_pool)
+    try:
+        model.get_object_importance(eval_pool, train_pool)
+        raise AssertionError("expected CatBoostError for YetiRank, got no exception")
+    except Exception as e:  # noqa: BLE001 -- deliberately capturing CatBoostError's message
+        fixture["inputs"]["CatBoostRanker"] = {
+            "num1": NUM1, "num2": NUM2, "label": BINARY_LABEL, "group_id": GROUP_ID, "feature_names": FEATURE_NAMES,
+        }
+        fixture["expected"]["CatBoostRanker"] = {"error": str(e)}
 
     with open(FIXTURE_PATH, "w") as f:
         json.dump(fixture, f, indent=2)

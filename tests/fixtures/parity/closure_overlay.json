@@ -10,6 +10,12 @@
     "test_id": "tests/testthat/test_compare.R",
     "tolerance": 1e-06
   },
+  "CatBoost.drop_unused_features": {
+    "state": "green",
+    "test_id": "tests/testthat/test_drop_unused_features_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "drop_unused_features() is defined once on the CatBoost base class (core.py:3696) and not overridden by any subclass; both languages route to the same native TModelTrees::DropUnusedFeatures() (catboost/libs/model/model.cpp:626 via src/catboostr.cpp:2400), so R's single catboost.drop_unused_features() is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.drop_unused_features rows; it has no output of its own (Python returns None, R returns a constant TRUE), so parity is verified via the paired feature-names getter and via predictions staying unchanged before/after the call -- matches the 1e-6 tolerance already used for this suite's other oracle-python numeric-prediction comparisons."
+  },
   "CatBoost.eval_metrics": {
     "state": "green",
     "test_id": "tests/testthat/test_eval_metrics_classes.R",
@@ -21,10 +27,21 @@
     "test_id": "tests/testthat/test_metadata.R",
     "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.feature_names_ all delegate to the same _CatBoostBase._object._get_feature_names() (core.py); catboost.get_model_feature_names() covers all four via one differential test (test_metadata.R:151)."
   },
+  "CatBoost.get_feature_importance": {
+    "state": "green",
+    "test_id": "tests/testthat/test_get_feature_importance_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "get_feature_importance() is defined once on the CatBoost base class (core.py:3385) and not overridden by any subclass, so R's single catboost.get_feature_importance() is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.get_feature_importance rows; the default type=\"FeatureImportance\" resolves to PredictionValuesChange for non-ranking losses and LossFunctionChange for ranking losses (core.py:3404-3417) -- both variants are exercised via the same per-class loss families as test_eval_metrics_classes.R (MultiClass/Logloss/RMSE/YetiRank); matches the 1e-6 tolerance already used for this suite's other oracle-python numeric comparisons (test_fstr_shap_prediction_diff.R)."
+  },
   "CatBoost.get_metadata": {
     "state": "green",
     "test_id": "tests/testthat/test_metadata.R",
     "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.get_metadata all delegate to the same _CatBoostBase._object._get_metadata_wrapper() (core.py:2061-2062); catboost.get_metadata() covers all four via one differential test."
+  },
+  "CatBoost.get_object_importance": {
+    "state": "green",
+    "test_id": "tests/testthat/test_object_importance_multiclass.R",
+    "tolerance_justification": "get_object_importance() is defined once on the CatBoost base class (core.py:3603) and not overridden by any subclass. The underlying LeafInfluence derivative calculator (catboost/private/libs/documents_importance/ders_helpers.cpp:76-95) only implements a fixed loss allow-list (Logloss/CrossEntropy/RMSE/MAE/Quantile/Expectile/LogLinQuantile/MAPE/Poisson); this row's loss (MultiClass) is NOT allow-listed, so both R and Python deterministically raise the identical native \"is not supported yet in ostr mode\" CB_ENSURE (ders_helpers.cpp:95) -- that error-match IS this row's genuine parity behavior, verified directly rather than fabricated as a numeric-value green."
   },
   "CatBoost.get_scale_and_bias": {
     "state": "green",
@@ -64,6 +81,12 @@
     "test_id": "tests/testthat/test_compare.R",
     "tolerance": 1e-06
   },
+  "CatBoostClassifier.drop_unused_features": {
+    "state": "green",
+    "test_id": "tests/testthat/test_drop_unused_features_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "drop_unused_features() is defined once on the CatBoost base class (core.py:3696) and not overridden by any subclass; both languages route to the same native TModelTrees::DropUnusedFeatures() (catboost/libs/model/model.cpp:626 via src/catboostr.cpp:2400), so R's single catboost.drop_unused_features() is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.drop_unused_features rows; it has no output of its own (Python returns None, R returns a constant TRUE), so parity is verified via the paired feature-names getter and via predictions staying unchanged before/after the call -- matches the 1e-6 tolerance already used for this suite's other oracle-python numeric-prediction comparisons."
+  },
   "CatBoostClassifier.eval_metrics": {
     "state": "green",
     "test_id": "tests/testthat/test_eval_metrics_classes.R",
@@ -75,10 +98,22 @@
     "test_id": "tests/testthat/test_metadata.R",
     "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.feature_names_ all delegate to the same _CatBoostBase._object._get_feature_names() (core.py); catboost.get_model_feature_names() covers all four via one differential test (test_metadata.R:151)."
   },
+  "CatBoostClassifier.get_feature_importance": {
+    "state": "green",
+    "test_id": "tests/testthat/test_get_feature_importance_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "get_feature_importance() is defined once on the CatBoost base class (core.py:3385) and not overridden by any subclass, so R's single catboost.get_feature_importance() is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.get_feature_importance rows; the default type=\"FeatureImportance\" resolves to PredictionValuesChange for non-ranking losses and LossFunctionChange for ranking losses (core.py:3404-3417) -- both variants are exercised via the same per-class loss families as test_eval_metrics_classes.R (MultiClass/Logloss/RMSE/YetiRank); matches the 1e-6 tolerance already used for this suite's other oracle-python numeric comparisons (test_fstr_shap_prediction_diff.R)."
+  },
   "CatBoostClassifier.get_metadata": {
     "state": "green",
     "test_id": "tests/testthat/test_metadata.R",
     "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.get_metadata all delegate to the same _CatBoostBase._object._get_metadata_wrapper() (core.py:2061-2062); catboost.get_metadata() covers all four via one differential test."
+  },
+  "CatBoostClassifier.get_object_importance": {
+    "state": "green",
+    "test_id": "tests/testthat/test_get_object_importance_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "get_object_importance() is defined once on the CatBoost base class (core.py:3603) and not overridden by any subclass, so R's single catboost.get_object_importance() is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.get_object_importance rows. The underlying LeafInfluence derivative calculator (catboost/private/libs/documents_importance/ders_helpers.cpp:76-95) only implements a fixed loss allow-list (Logloss/CrossEntropy/RMSE/MAE/Quantile/Expectile/LogLinQuantile/MAPE/Poisson); this row's loss (Logloss) is allow-listed, so the real numeric (indices, scores) tuple is compared against a pinned Python oracle, tolerance 1e-6."
   },
   "CatBoostClassifier.get_scale_and_bias": {
     "state": "green",
@@ -118,6 +153,12 @@
     "test_id": "tests/testthat/test_compare.R",
     "tolerance": 1e-06
   },
+  "CatBoostRanker.drop_unused_features": {
+    "state": "green",
+    "test_id": "tests/testthat/test_drop_unused_features_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "drop_unused_features() is defined once on the CatBoost base class (core.py:3696) and not overridden by any subclass; both languages route to the same native TModelTrees::DropUnusedFeatures() (catboost/libs/model/model.cpp:626 via src/catboostr.cpp:2400), so R's single catboost.drop_unused_features() is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.drop_unused_features rows; it has no output of its own (Python returns None, R returns a constant TRUE), so parity is verified via the paired feature-names getter and via predictions staying unchanged before/after the call -- matches the 1e-6 tolerance already used for this suite's other oracle-python numeric-prediction comparisons."
+  },
   "CatBoostRanker.eval_metrics": {
     "state": "green",
     "test_id": "tests/testthat/test_eval_metrics_classes.R",
@@ -129,10 +170,21 @@
     "test_id": "tests/testthat/test_metadata.R",
     "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.feature_names_ all delegate to the same _CatBoostBase._object._get_feature_names() (core.py); catboost.get_model_feature_names() covers all four via one differential test (test_metadata.R:151)."
   },
+  "CatBoostRanker.get_feature_importance": {
+    "state": "green",
+    "test_id": "tests/testthat/test_get_feature_importance_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "get_feature_importance() is defined once on the CatBoost base class (core.py:3385) and not overridden by any subclass, so R's single catboost.get_feature_importance() is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.get_feature_importance rows; the default type=\"FeatureImportance\" resolves to PredictionValuesChange for non-ranking losses and LossFunctionChange for ranking losses (core.py:3404-3417) -- both variants are exercised via the same per-class loss families as test_eval_metrics_classes.R (MultiClass/Logloss/RMSE/YetiRank); matches the 1e-6 tolerance already used for this suite's other oracle-python numeric comparisons (test_fstr_shap_prediction_diff.R)."
+  },
   "CatBoostRanker.get_metadata": {
     "state": "green",
     "test_id": "tests/testthat/test_metadata.R",
     "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.get_metadata all delegate to the same _CatBoostBase._object._get_metadata_wrapper() (core.py:2061-2062); catboost.get_metadata() covers all four via one differential test."
+  },
+  "CatBoostRanker.get_object_importance": {
+    "state": "green",
+    "test_id": "tests/testthat/test_get_object_importance_classes.R",
+    "tolerance_justification": "get_object_importance() is defined once on the CatBoost base class (core.py:3603) and not overridden by any subclass. The underlying LeafInfluence derivative calculator (catboost/private/libs/documents_importance/ders_helpers.cpp:76-95) only implements a fixed loss allow-list (Logloss/CrossEntropy/RMSE/MAE/Quantile/Expectile/LogLinQuantile/MAPE/Poisson); this row's loss (YetiRank) is NOT allow-listed, so both R and Python deterministically raise the identical native \"is not supported yet in ostr mode\" CB_ENSURE (ders_helpers.cpp:95) -- that error-match IS this row's genuine parity behavior, verified directly rather than fabricated as a numeric-value green."
   },
   "CatBoostRanker.get_scale_and_bias": {
     "state": "green",
@@ -172,6 +224,12 @@
     "test_id": "tests/testthat/test_compare.R",
     "tolerance": 1e-06
   },
+  "CatBoostRegressor.drop_unused_features": {
+    "state": "green",
+    "test_id": "tests/testthat/test_drop_unused_features_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "drop_unused_features() is defined once on the CatBoost base class (core.py:3696) and not overridden by any subclass; both languages route to the same native TModelTrees::DropUnusedFeatures() (catboost/libs/model/model.cpp:626 via src/catboostr.cpp:2400), so R's single catboost.drop_unused_features() is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.drop_unused_features rows; it has no output of its own (Python returns None, R returns a constant TRUE), so parity is verified via the paired feature-names getter and via predictions staying unchanged before/after the call -- matches the 1e-6 tolerance already used for this suite's other oracle-python numeric-prediction comparisons."
+  },
   "CatBoostRegressor.eval_metrics": {
     "state": "green",
     "test_id": "tests/testthat/test_eval_metrics_classes.R",
@@ -183,10 +241,22 @@
     "test_id": "tests/testthat/test_metadata.R",
     "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.feature_names_ all delegate to the same _CatBoostBase._object._get_feature_names() (core.py); catboost.get_model_feature_names() covers all four via one differential test (test_metadata.R:151)."
   },
+  "CatBoostRegressor.get_feature_importance": {
+    "state": "green",
+    "test_id": "tests/testthat/test_get_feature_importance_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "get_feature_importance() is defined once on the CatBoost base class (core.py:3385) and not overridden by any subclass, so R's single catboost.get_feature_importance() is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.get_feature_importance rows; the default type=\"FeatureImportance\" resolves to PredictionValuesChange for non-ranking losses and LossFunctionChange for ranking losses (core.py:3404-3417) -- both variants are exercised via the same per-class loss families as test_eval_metrics_classes.R (MultiClass/Logloss/RMSE/YetiRank); matches the 1e-6 tolerance already used for this suite's other oracle-python numeric comparisons (test_fstr_shap_prediction_diff.R)."
+  },
   "CatBoostRegressor.get_metadata": {
     "state": "green",
     "test_id": "tests/testthat/test_metadata.R",
     "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.get_metadata all delegate to the same _CatBoostBase._object._get_metadata_wrapper() (core.py:2061-2062); catboost.get_metadata() covers all four via one differential test."
+  },
+  "CatBoostRegressor.get_object_importance": {
+    "state": "green",
+    "test_id": "tests/testthat/test_get_object_importance_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "get_object_importance() is defined once on the CatBoost base class (core.py:3603) and not overridden by any subclass, so R's single catboost.get_object_importance() is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.get_object_importance rows. The underlying LeafInfluence derivative calculator (catboost/private/libs/documents_importance/ders_helpers.cpp:76-95) only implements a fixed loss allow-list (Logloss/CrossEntropy/RMSE/MAE/Quantile/Expectile/LogLinQuantile/MAPE/Poisson); this row's loss (RMSE) is allow-listed, so the real numeric (indices, scores) tuple is compared against a pinned Python oracle, tolerance 1e-6."
   },
   "CatBoostRegressor.get_scale_and_bias": {
     "state": "green",

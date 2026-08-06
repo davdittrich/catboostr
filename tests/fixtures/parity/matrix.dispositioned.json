@@ -20350,12 +20350,12 @@
     "inventory_row_id": "CatBoost.drop_unused_features",
     "oracle": "python",
     "kind": "method",
-    "method": null,
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "method": "elementwise",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_drop_unused_features_classes.R",
+    "state": "green",
+    "tolerance_justification": "drop_unused_features() is defined once on the CatBoost base class (core.py:3696) and not overridden by any subclass; both languages route to the same native TModelTrees::DropUnusedFeatures() (catboost/libs/model/model.cpp:626 via src/catboostr.cpp:2400), so R's single catboost.drop_unused_features() is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.drop_unused_features rows; it has no output of its own (Python returns None, R returns a constant TRUE), so parity is verified via the paired feature-names getter and via predictions staying unchanged before/after the call -- matches the 1e-6 tolerance already used for this suite's other oracle-python numeric-prediction comparisons.",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.drop_unused_features",
@@ -20366,7 +20366,10 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "elementwise",
+    "final_method_confidence": 60,
+    "final_method_note": "state-mutator with no output of its own (Python returns None, R returns a constant TRUE regardless of outcome, src/catboostr.cpp:2405); both languages route to the same native TModelTrees::DropUnusedFeatures(), so parity is observable via the paired feature-names getter and via predictions staying unchanged (same pattern as the set_* state-mutator rows, spec P2.3 report section (a)); not overridden by any CatBoost subclass (core.py:3696), so this judgment is shared across all 4 estimator classes"
   },
   {
     "inventory_row_id": "CatBoost.eval_metrics",
@@ -20397,12 +20400,12 @@
     "inventory_row_id": "CatBoost.get_feature_importance",
     "oracle": "python",
     "kind": "method",
-    "method": null,
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "method": "elementwise",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_get_feature_importance_classes.R",
+    "state": "green",
+    "tolerance_justification": "get_feature_importance() is defined once on the CatBoost base class (core.py:3385) and not overridden by any subclass, so R's single catboost.get_feature_importance() is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.get_feature_importance rows; the default type=\"FeatureImportance\" resolves to PredictionValuesChange for non-ranking losses and LossFunctionChange for ranking losses (core.py:3404-3417) -- both variants are exercised via the same per-class loss families as test_eval_metrics_classes.R (MultiClass/Logloss/RMSE/YetiRank); matches the 1e-6 tolerance already used for this suite's other oracle-python numeric comparisons (test_fstr_shap_prediction_diff.R).",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.get_feature_importance",
@@ -20413,18 +20416,21 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "elementwise",
+    "final_method_confidence": 90,
+    "final_method_note": "primary output is a per-feature numeric importance array; default type=\"FeatureImportance\" resolves to PredictionValuesChange for non-ranking losses and to LossFunctionChange for ranking losses (core.py:3404-3417); not overridden by any CatBoost subclass (core.py:3385), so this judgment is shared across all 4 estimator classes"
   },
   {
     "inventory_row_id": "CatBoost.get_object_importance",
     "oracle": "python",
     "kind": "method",
-    "method": null,
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "method": "elementwise",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_object_importance_multiclass.R",
+    "state": "green",
+    "tolerance_justification": "get_object_importance() is defined once on the CatBoost base class (core.py:3603) and not overridden by any subclass. The underlying LeafInfluence derivative calculator (catboost/private/libs/documents_importance/ders_helpers.cpp:76-95) only implements a fixed loss allow-list (Logloss/CrossEntropy/RMSE/MAE/Quantile/Expectile/LogLinQuantile/MAPE/Poisson); this row's loss (MultiClass) is NOT allow-listed, so both R and Python deterministically raise the identical native \"is not supported yet in ostr mode\" CB_ENSURE (ders_helpers.cpp:95) -- that error-match IS this row's genuine parity behavior, verified directly rather than fabricated as a numeric-value green.",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.get_object_importance",
@@ -20435,7 +20441,10 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "elementwise",
+    "final_method_confidence": 75,
+    "final_method_note": "primary output is a tuple of two numeric arrays (train-object indices, LeafInfluence scores); not overridden by any CatBoost subclass (core.py:3603), so this judgment is shared across all 4 estimator classes -- though the underlying derivative calculator (ders_helpers.cpp:76-95) only supports a fixed loss allow-list, so MultiClass/ranking-loss instances observably raise instead of returning a value; that is a per-row closure detail, not a different output-type judgment"
   },
   {
     "inventory_row_id": "CatBoost.load_model",
@@ -20573,12 +20582,12 @@
     "inventory_row_id": "CatBoostClassifier.drop_unused_features",
     "oracle": "python",
     "kind": "method",
-    "method": null,
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "method": "elementwise",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_drop_unused_features_classes.R",
+    "state": "green",
+    "tolerance_justification": "drop_unused_features() is defined once on the CatBoost base class (core.py:3696) and not overridden by any subclass; both languages route to the same native TModelTrees::DropUnusedFeatures() (catboost/libs/model/model.cpp:626 via src/catboostr.cpp:2400), so R's single catboost.drop_unused_features() is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.drop_unused_features rows; it has no output of its own (Python returns None, R returns a constant TRUE), so parity is verified via the paired feature-names getter and via predictions staying unchanged before/after the call -- matches the 1e-6 tolerance already used for this suite's other oracle-python numeric-prediction comparisons.",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.drop_unused_features",
@@ -20589,7 +20598,10 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "elementwise",
+    "final_method_confidence": 60,
+    "final_method_note": "state-mutator with no output of its own (Python returns None, R returns a constant TRUE regardless of outcome, src/catboostr.cpp:2405); both languages route to the same native TModelTrees::DropUnusedFeatures(), so parity is observable via the paired feature-names getter and via predictions staying unchanged (same pattern as the set_* state-mutator rows, spec P2.3 report section (a)); not overridden by any CatBoost subclass (core.py:3696), so this judgment is shared across all 4 estimator classes"
   },
   {
     "inventory_row_id": "CatBoostClassifier.eval_metrics",
@@ -20620,12 +20632,12 @@
     "inventory_row_id": "CatBoostClassifier.get_feature_importance",
     "oracle": "python",
     "kind": "method",
-    "method": null,
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "method": "elementwise",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_get_feature_importance_classes.R",
+    "state": "green",
+    "tolerance_justification": "get_feature_importance() is defined once on the CatBoost base class (core.py:3385) and not overridden by any subclass, so R's single catboost.get_feature_importance() is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.get_feature_importance rows; the default type=\"FeatureImportance\" resolves to PredictionValuesChange for non-ranking losses and LossFunctionChange for ranking losses (core.py:3404-3417) -- both variants are exercised via the same per-class loss families as test_eval_metrics_classes.R (MultiClass/Logloss/RMSE/YetiRank); matches the 1e-6 tolerance already used for this suite's other oracle-python numeric comparisons (test_fstr_shap_prediction_diff.R).",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.get_feature_importance",
@@ -20636,18 +20648,21 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "elementwise",
+    "final_method_confidence": 90,
+    "final_method_note": "primary output is a per-feature numeric importance array; default type=\"FeatureImportance\" resolves to PredictionValuesChange for non-ranking losses and to LossFunctionChange for ranking losses (core.py:3404-3417); not overridden by any CatBoost subclass (core.py:3385), so this judgment is shared across all 4 estimator classes"
   },
   {
     "inventory_row_id": "CatBoostClassifier.get_object_importance",
     "oracle": "python",
     "kind": "method",
-    "method": null,
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "method": "elementwise",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_get_object_importance_classes.R",
+    "state": "green",
+    "tolerance_justification": "get_object_importance() is defined once on the CatBoost base class (core.py:3603) and not overridden by any subclass, so R's single catboost.get_object_importance() is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.get_object_importance rows. The underlying LeafInfluence derivative calculator (catboost/private/libs/documents_importance/ders_helpers.cpp:76-95) only implements a fixed loss allow-list (Logloss/CrossEntropy/RMSE/MAE/Quantile/Expectile/LogLinQuantile/MAPE/Poisson); this row's loss (Logloss) is allow-listed, so the real numeric (indices, scores) tuple is compared against a pinned Python oracle, tolerance 1e-6.",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.get_object_importance",
@@ -20658,7 +20673,10 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "elementwise",
+    "final_method_confidence": 75,
+    "final_method_note": "primary output is a tuple of two numeric arrays (train-object indices, LeafInfluence scores); not overridden by any CatBoost subclass (core.py:3603), so this judgment is shared across all 4 estimator classes -- though the underlying derivative calculator (ders_helpers.cpp:76-95) only supports a fixed loss allow-list, so MultiClass/ranking-loss instances observably raise instead of returning a value; that is a per-row closure detail, not a different output-type judgment"
   },
   {
     "inventory_row_id": "CatBoostClassifier.load_model",
@@ -20796,12 +20814,12 @@
     "inventory_row_id": "CatBoostRegressor.drop_unused_features",
     "oracle": "python",
     "kind": "method",
-    "method": null,
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "method": "elementwise",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_drop_unused_features_classes.R",
+    "state": "green",
+    "tolerance_justification": "drop_unused_features() is defined once on the CatBoost base class (core.py:3696) and not overridden by any subclass; both languages route to the same native TModelTrees::DropUnusedFeatures() (catboost/libs/model/model.cpp:626 via src/catboostr.cpp:2400), so R's single catboost.drop_unused_features() is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.drop_unused_features rows; it has no output of its own (Python returns None, R returns a constant TRUE), so parity is verified via the paired feature-names getter and via predictions staying unchanged before/after the call -- matches the 1e-6 tolerance already used for this suite's other oracle-python numeric-prediction comparisons.",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.drop_unused_features",
@@ -20812,7 +20830,10 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "elementwise",
+    "final_method_confidence": 60,
+    "final_method_note": "state-mutator with no output of its own (Python returns None, R returns a constant TRUE regardless of outcome, src/catboostr.cpp:2405); both languages route to the same native TModelTrees::DropUnusedFeatures(), so parity is observable via the paired feature-names getter and via predictions staying unchanged (same pattern as the set_* state-mutator rows, spec P2.3 report section (a)); not overridden by any CatBoost subclass (core.py:3696), so this judgment is shared across all 4 estimator classes"
   },
   {
     "inventory_row_id": "CatBoostRegressor.eval_metrics",
@@ -20843,12 +20864,12 @@
     "inventory_row_id": "CatBoostRegressor.get_feature_importance",
     "oracle": "python",
     "kind": "method",
-    "method": null,
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "method": "elementwise",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_get_feature_importance_classes.R",
+    "state": "green",
+    "tolerance_justification": "get_feature_importance() is defined once on the CatBoost base class (core.py:3385) and not overridden by any subclass, so R's single catboost.get_feature_importance() is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.get_feature_importance rows; the default type=\"FeatureImportance\" resolves to PredictionValuesChange for non-ranking losses and LossFunctionChange for ranking losses (core.py:3404-3417) -- both variants are exercised via the same per-class loss families as test_eval_metrics_classes.R (MultiClass/Logloss/RMSE/YetiRank); matches the 1e-6 tolerance already used for this suite's other oracle-python numeric comparisons (test_fstr_shap_prediction_diff.R).",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.get_feature_importance",
@@ -20859,18 +20880,21 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "elementwise",
+    "final_method_confidence": 90,
+    "final_method_note": "primary output is a per-feature numeric importance array; default type=\"FeatureImportance\" resolves to PredictionValuesChange for non-ranking losses and to LossFunctionChange for ranking losses (core.py:3404-3417); not overridden by any CatBoost subclass (core.py:3385), so this judgment is shared across all 4 estimator classes"
   },
   {
     "inventory_row_id": "CatBoostRegressor.get_object_importance",
     "oracle": "python",
     "kind": "method",
-    "method": null,
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "method": "elementwise",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_get_object_importance_classes.R",
+    "state": "green",
+    "tolerance_justification": "get_object_importance() is defined once on the CatBoost base class (core.py:3603) and not overridden by any subclass, so R's single catboost.get_object_importance() is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.get_object_importance rows. The underlying LeafInfluence derivative calculator (catboost/private/libs/documents_importance/ders_helpers.cpp:76-95) only implements a fixed loss allow-list (Logloss/CrossEntropy/RMSE/MAE/Quantile/Expectile/LogLinQuantile/MAPE/Poisson); this row's loss (RMSE) is allow-listed, so the real numeric (indices, scores) tuple is compared against a pinned Python oracle, tolerance 1e-6.",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.get_object_importance",
@@ -20881,7 +20905,10 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "elementwise",
+    "final_method_confidence": 75,
+    "final_method_note": "primary output is a tuple of two numeric arrays (train-object indices, LeafInfluence scores); not overridden by any CatBoost subclass (core.py:3603), so this judgment is shared across all 4 estimator classes -- though the underlying derivative calculator (ders_helpers.cpp:76-95) only supports a fixed loss allow-list, so MultiClass/ranking-loss instances observably raise instead of returning a value; that is a per-row closure detail, not a different output-type judgment"
   },
   {
     "inventory_row_id": "CatBoostRegressor.load_model",
@@ -21019,12 +21046,12 @@
     "inventory_row_id": "CatBoostRanker.drop_unused_features",
     "oracle": "python",
     "kind": "method",
-    "method": null,
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "method": "elementwise",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_drop_unused_features_classes.R",
+    "state": "green",
+    "tolerance_justification": "drop_unused_features() is defined once on the CatBoost base class (core.py:3696) and not overridden by any subclass; both languages route to the same native TModelTrees::DropUnusedFeatures() (catboost/libs/model/model.cpp:626 via src/catboostr.cpp:2400), so R's single catboost.drop_unused_features() is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.drop_unused_features rows; it has no output of its own (Python returns None, R returns a constant TRUE), so parity is verified via the paired feature-names getter and via predictions staying unchanged before/after the call -- matches the 1e-6 tolerance already used for this suite's other oracle-python numeric-prediction comparisons.",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.drop_unused_features",
@@ -21035,7 +21062,10 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "elementwise",
+    "final_method_confidence": 60,
+    "final_method_note": "state-mutator with no output of its own (Python returns None, R returns a constant TRUE regardless of outcome, src/catboostr.cpp:2405); both languages route to the same native TModelTrees::DropUnusedFeatures(), so parity is observable via the paired feature-names getter and via predictions staying unchanged (same pattern as the set_* state-mutator rows, spec P2.3 report section (a)); not overridden by any CatBoost subclass (core.py:3696), so this judgment is shared across all 4 estimator classes"
   },
   {
     "inventory_row_id": "CatBoostRanker.eval_metrics",
@@ -21066,12 +21096,12 @@
     "inventory_row_id": "CatBoostRanker.get_feature_importance",
     "oracle": "python",
     "kind": "method",
-    "method": null,
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "method": "elementwise",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_get_feature_importance_classes.R",
+    "state": "green",
+    "tolerance_justification": "get_feature_importance() is defined once on the CatBoost base class (core.py:3385) and not overridden by any subclass, so R's single catboost.get_feature_importance() is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.get_feature_importance rows; the default type=\"FeatureImportance\" resolves to PredictionValuesChange for non-ranking losses and LossFunctionChange for ranking losses (core.py:3404-3417) -- both variants are exercised via the same per-class loss families as test_eval_metrics_classes.R (MultiClass/Logloss/RMSE/YetiRank); matches the 1e-6 tolerance already used for this suite's other oracle-python numeric comparisons (test_fstr_shap_prediction_diff.R).",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.get_feature_importance",
@@ -21082,18 +21112,21 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "elementwise",
+    "final_method_confidence": 90,
+    "final_method_note": "primary output is a per-feature numeric importance array; default type=\"FeatureImportance\" resolves to PredictionValuesChange for non-ranking losses and to LossFunctionChange for ranking losses (core.py:3404-3417); not overridden by any CatBoost subclass (core.py:3385), so this judgment is shared across all 4 estimator classes"
   },
   {
     "inventory_row_id": "CatBoostRanker.get_object_importance",
     "oracle": "python",
     "kind": "method",
-    "method": null,
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "method": "elementwise",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_get_object_importance_classes.R",
+    "state": "green",
+    "tolerance_justification": "get_object_importance() is defined once on the CatBoost base class (core.py:3603) and not overridden by any subclass. The underlying LeafInfluence derivative calculator (catboost/private/libs/documents_importance/ders_helpers.cpp:76-95) only implements a fixed loss allow-list (Logloss/CrossEntropy/RMSE/MAE/Quantile/Expectile/LogLinQuantile/MAPE/Poisson); this row's loss (YetiRank) is NOT allow-listed, so both R and Python deterministically raise the identical native \"is not supported yet in ostr mode\" CB_ENSURE (ders_helpers.cpp:95) -- that error-match IS this row's genuine parity behavior, verified directly rather than fabricated as a numeric-value green.",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.get_object_importance",
@@ -21104,7 +21137,10 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "elementwise",
+    "final_method_confidence": 75,
+    "final_method_note": "primary output is a tuple of two numeric arrays (train-object indices, LeafInfluence scores); not overridden by any CatBoost subclass (core.py:3603), so this judgment is shared across all 4 estimator classes -- though the underlying derivative calculator (ders_helpers.cpp:76-95) only supports a fixed loss allow-list, so MultiClass/ranking-loss instances observably raise instead of returning a value; that is a per-row closure detail, not a different output-type judgment"
   },
   {
     "inventory_row_id": "CatBoostRanker.load_model",

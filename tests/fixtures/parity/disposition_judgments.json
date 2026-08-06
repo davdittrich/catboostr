@@ -34,6 +34,11 @@
     55,
     "returns a calcer object; parity observable via its numeric add()/eval_metrics() results, not the object itself"
   ],
+  "CatBoost.drop_unused_features": [
+    "elementwise",
+    60,
+    "state-mutator with no output of its own (Python returns None, R returns a constant TRUE regardless of outcome, src/catboostr.cpp:2405); both languages route to the same native TModelTrees::DropUnusedFeatures(), so parity is observable via the paired feature-names getter and via predictions staying unchanged (same pattern as the set_* state-mutator rows, spec P2.3 report section (a)); not overridden by any CatBoost subclass (core.py:3696), so this judgment is shared across all 4 estimator classes"
+  ],
   "CatBoost.eval_metrics": [
     "elementwise",
     90,
@@ -94,6 +99,11 @@
     90,
     ""
   ],
+  "CatBoost.get_feature_importance": [
+    "elementwise",
+    90,
+    "primary output is a per-feature numeric importance array; default type=\"FeatureImportance\" resolves to PredictionValuesChange for non-ranking losses and to LossFunctionChange for ranking losses (core.py:3404-3417); not overridden by any CatBoost subclass (core.py:3385), so this judgment is shared across all 4 estimator classes"
+  ],
   "CatBoost.get_leaf_values": [
     "elementwise",
     90,
@@ -113,6 +123,11 @@
     "elementwise",
     90,
     ""
+  ],
+  "CatBoost.get_object_importance": [
+    "elementwise",
+    75,
+    "primary output is a tuple of two numeric arrays (train-object indices, LeafInfluence scores); not overridden by any CatBoost subclass (core.py:3603), so this judgment is shared across all 4 estimator classes -- though the underlying derivative calculator (ders_helpers.cpp:76-95) only supports a fixed loss allow-list, so MultiClass/ranking-loss instances observably raise instead of returning a value; that is a per-row closure detail, not a different output-type judgment"
   ],
   "CatBoost.get_param": [
     "elementwise",
@@ -269,6 +284,11 @@
     55,
     "returns a calcer object; parity observable via its numeric add()/eval_metrics() results, not the object itself"
   ],
+  "CatBoostClassifier.drop_unused_features": [
+    "elementwise",
+    60,
+    "state-mutator with no output of its own (Python returns None, R returns a constant TRUE regardless of outcome, src/catboostr.cpp:2405); both languages route to the same native TModelTrees::DropUnusedFeatures(), so parity is observable via the paired feature-names getter and via predictions staying unchanged (same pattern as the set_* state-mutator rows, spec P2.3 report section (a)); not overridden by any CatBoost subclass (core.py:3696), so this judgment is shared across all 4 estimator classes"
+  ],
   "CatBoostClassifier.eval_metrics": [
     "elementwise",
     90,
@@ -329,6 +349,11 @@
     90,
     ""
   ],
+  "CatBoostClassifier.get_feature_importance": [
+    "elementwise",
+    90,
+    "primary output is a per-feature numeric importance array; default type=\"FeatureImportance\" resolves to PredictionValuesChange for non-ranking losses and to LossFunctionChange for ranking losses (core.py:3404-3417); not overridden by any CatBoost subclass (core.py:3385), so this judgment is shared across all 4 estimator classes"
+  ],
   "CatBoostClassifier.get_leaf_values": [
     "elementwise",
     90,
@@ -348,6 +373,11 @@
     "elementwise",
     90,
     ""
+  ],
+  "CatBoostClassifier.get_object_importance": [
+    "elementwise",
+    75,
+    "primary output is a tuple of two numeric arrays (train-object indices, LeafInfluence scores); not overridden by any CatBoost subclass (core.py:3603), so this judgment is shared across all 4 estimator classes -- though the underlying derivative calculator (ders_helpers.cpp:76-95) only supports a fixed loss allow-list, so MultiClass/ranking-loss instances observably raise instead of returning a value; that is a per-row closure detail, not a different output-type judgment"
   ],
   "CatBoostClassifier.get_param": [
     "elementwise",
@@ -539,6 +569,11 @@
     55,
     "returns a calcer object; parity observable via its numeric add()/eval_metrics() results, not the object itself"
   ],
+  "CatBoostRanker.drop_unused_features": [
+    "elementwise",
+    60,
+    "state-mutator with no output of its own (Python returns None, R returns a constant TRUE regardless of outcome, src/catboostr.cpp:2405); both languages route to the same native TModelTrees::DropUnusedFeatures(), so parity is observable via the paired feature-names getter and via predictions staying unchanged (same pattern as the set_* state-mutator rows, spec P2.3 report section (a)); not overridden by any CatBoost subclass (core.py:3696), so this judgment is shared across all 4 estimator classes"
+  ],
   "CatBoostRanker.eval_metrics": [
     "elementwise",
     90,
@@ -599,6 +634,11 @@
     90,
     ""
   ],
+  "CatBoostRanker.get_feature_importance": [
+    "elementwise",
+    90,
+    "primary output is a per-feature numeric importance array; default type=\"FeatureImportance\" resolves to PredictionValuesChange for non-ranking losses and to LossFunctionChange for ranking losses (core.py:3404-3417); not overridden by any CatBoost subclass (core.py:3385), so this judgment is shared across all 4 estimator classes"
+  ],
   "CatBoostRanker.get_leaf_values": [
     "elementwise",
     90,
@@ -618,6 +658,11 @@
     "elementwise",
     90,
     ""
+  ],
+  "CatBoostRanker.get_object_importance": [
+    "elementwise",
+    75,
+    "primary output is a tuple of two numeric arrays (train-object indices, LeafInfluence scores); not overridden by any CatBoost subclass (core.py:3603), so this judgment is shared across all 4 estimator classes -- though the underlying derivative calculator (ders_helpers.cpp:76-95) only supports a fixed loss allow-list, so MultiClass/ranking-loss instances observably raise instead of returning a value; that is a per-row closure detail, not a different output-type judgment"
   ],
   "CatBoostRanker.get_param": [
     "elementwise",
@@ -779,6 +824,11 @@
     55,
     "returns a calcer object; parity observable via its numeric add()/eval_metrics() results, not the object itself"
   ],
+  "CatBoostRegressor.drop_unused_features": [
+    "elementwise",
+    60,
+    "state-mutator with no output of its own (Python returns None, R returns a constant TRUE regardless of outcome, src/catboostr.cpp:2405); both languages route to the same native TModelTrees::DropUnusedFeatures(), so parity is observable via the paired feature-names getter and via predictions staying unchanged (same pattern as the set_* state-mutator rows, spec P2.3 report section (a)); not overridden by any CatBoost subclass (core.py:3696), so this judgment is shared across all 4 estimator classes"
+  ],
   "CatBoostRegressor.eval_metrics": [
     "elementwise",
     90,
@@ -839,6 +889,11 @@
     90,
     ""
   ],
+  "CatBoostRegressor.get_feature_importance": [
+    "elementwise",
+    90,
+    "primary output is a per-feature numeric importance array; default type=\"FeatureImportance\" resolves to PredictionValuesChange for non-ranking losses and to LossFunctionChange for ranking losses (core.py:3404-3417); not overridden by any CatBoost subclass (core.py:3385), so this judgment is shared across all 4 estimator classes"
+  ],
   "CatBoostRegressor.get_leaf_values": [
     "elementwise",
     90,
@@ -858,6 +913,11 @@
     "elementwise",
     90,
     ""
+  ],
+  "CatBoostRegressor.get_object_importance": [
+    "elementwise",
+    75,
+    "primary output is a tuple of two numeric arrays (train-object indices, LeafInfluence scores); not overridden by any CatBoost subclass (core.py:3603), so this judgment is shared across all 4 estimator classes -- though the underlying derivative calculator (ders_helpers.cpp:76-95) only supports a fixed loss allow-list, so MultiClass/ranking-loss instances observably raise instead of returning a value; that is a per-row closure detail, not a different output-type judgment"
   ],
   "CatBoostRegressor.get_param": [
     "elementwise",

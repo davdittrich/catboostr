@@ -1,0 +1,102 @@
+#!/usr/bin/env python3
+"""Generate the get_object_importance-method oracle fixture
+(catboost-8z4.80): pins Python catboost==1.2.10's
+model.get_object_importance(pool, train_pool) output (the LeafInfluence
+algorithm, catboost/python-package/catboost/core.py:3603) for one model
+trained via each of the four estimator classes -- CatBoost,
+CatBoostClassifier, CatBoostRegressor, CatBoostRanker (core.py).
+
+get_object_importance() is defined once on the CatBoost base class
+(core.py:3603) and is not overridden by any of the three subclasses, so R's
+single catboost.get_object_importance() function (R/catboost.R:4081) is the
+parity target for all four matrix rows. It routes to the LeafInfluence
+algorithm's derivative calculator (catboost/private/libs/documents_
+importance/ders_helpers.cpp:76-95), which only implements a fixed allow-list
+of loss functions (Logloss/CrossEntropy/RMSE/MAE/Quantile/Expectile/
+LogLinQuantile/MAPE/Poisson) and raises CB_ENSURE("... is not supported yet
+in ostr mode") for every other loss -- including MultiClass and every
+ranking loss. So only 2 of the 4 estimator classes' natural per-class loss
+families (see gen_eval_metrics_classes_fixture.py) can exercise the real
+numeric LeafInfluence output; this fixture covers those two:
+  - CatBoostClassifier:     Logloss (binary classification) -- allow-listed
+  - CatBoostRegressor:      RMSE -- allow-listed
+
+CatBoost.get_object_importance (MultiClass) and CatBoostRanker.
+get_object_importance (YetiRank) are deliberately NOT covered by this
+fixture -- both loss functions hit the ders_helpers.cpp:95 CB_ENSURE and are
+closed instead via an error-match differential test (same C++ raise site in
+both languages): CatBoost.MultiClass already has one
+(tests/testthat/test_object_importance_multiclass.R, catboost-8z4.54);
+CatBoostRanker.YetiRank gets one added alongside this fixture's R test file.
+
+Regenerate fixture with:
+uv run --frozen --project tools/oracle python3 tools/oracle/gen_get_object_importance_classes_fixture.py
+"""
+import json
+import os
+
+from catboost import CatBoostClassifier, CatBoostRegressor, Pool
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+REPO_ROOT = os.path.dirname(os.path.dirname(SCRIPT_DIR))
+FIXTURE_DIR = os.path.join(REPO_ROOT, "tests", "fixtures", "oracle")
+FIXTURE_PATH = os.path.join(FIXTURE_DIR, "get_object_importance_classes.json")
+
+N_ROWS = 20
+NUM1 = [0.5, -1.5, 2.25, 3.0, -4.75, 5.5, -6.25, 7.0, -8.5, 9.25,
+        -10.0, 11.5, 1.5, -2.5, 3.25, 4.0, -5.75, 6.5, -7.25, 8.0]
+NUM2 = [0.3 * i for i in range(N_ROWS)]
+FEATURE_NAMES = ["num1", "num2"]
+
+# Held-out pool to score object importance for (first 5 rows of x()); the
+# remaining 15 rows are the training pool.
+EVAL_N = 5
+
+BINARY_LABEL = [0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0]
+REGRESSION_LABEL = [0.1 * i - 1.0 for i in range(N_ROWS)]
+
+COMMON = dict(iterations=10, depth=2, random_seed=42, thread_count=1, verbose=False,
+              train_dir=os.path.join(SCRIPT_DIR, ".catboost_train_ostr"))
+
+
+def x():
+    return [[NUM1[i], NUM2[i]] for i in range(N_ROWS)]
+
+
+def split(features, label):
+    eval_x, train_x = features[:EVAL_N], features[EVAL_N:]
+    eval_y, train_y = label[:EVAL_N], label[EVAL_N:]
+    return Pool(eval_x, eval_y, feature_names=FEATURE_NAMES), Pool(train_x, train_y, feature_names=FEATURE_NAMES)
+
+
+def main():
+    os.makedirs(FIXTURE_DIR, exist_ok=True)
+    fixture = {"inputs": {}, "expected": {}}
+
+    # CatBoostClassifier: Logloss (binary).
+    eval_pool, train_pool = split(x(), BINARY_LABEL)
+    model = CatBoostClassifier(loss_function="Logloss", **COMMON)
+    model.fit(train_pool)
+    indices, scores = model.get_object_importance(eval_pool, train_pool)
+    fixture["inputs"]["CatBoostClassifier"] = {
+        "num1": NUM1, "num2": NUM2, "label": BINARY_LABEL, "feature_names": FEATURE_NAMES,
+    }
+    fixture["expected"]["CatBoostClassifier"] = {"indices": list(indices), "scores": list(scores)}
+
+    # CatBoostRegressor: RMSE.
+    eval_pool, train_pool = split(x(), REGRESSION_LABEL)
+    model = CatBoostRegressor(loss_function="RMSE", **COMMON)
+    model.fit(train_pool)
+    indices, scores = model.get_object_importance(eval_pool, train_pool)
+    fixture["inputs"]["CatBoostRegressor"] = {
+        "num1": NUM1, "num2": NUM2, "label": REGRESSION_LABEL, "feature_names": FEATURE_NAMES,
+    }
+    fixture["expected"]["CatBoostRegressor"] = {"indices": list(indices), "scores": list(scores)}
+
+    with open(FIXTURE_PATH, "w") as f:
+        json.dump(fixture, f, indent=2)
+    print(FIXTURE_PATH)
+
+
+if __name__ == "__main__":
+    main()

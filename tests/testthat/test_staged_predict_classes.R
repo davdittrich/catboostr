@@ -17,7 +17,7 @@ context("test_staged_predict_classes.R")
 # Default-prediction_type parity itself is NOT covered here and is out of
 # scope for this ticket (catboost-8z4.81); see the follow-up ticket filed
 # for that gap. R's single catboost.staged_predict() function
-# (R/catboost.R:3822) is therefore the parity target for all 4
+# (R/catboost.R:3851) is therefore the parity target for all 4
 # CatBoost{,Classifier,Regressor,Ranker}.
 # staged_predict matrix rows; what varies per row is only the loss/task
 # shape the model was fit with, so this fixture reuses the same per-class
@@ -25,7 +25,7 @@ context("test_staged_predict_classes.R")
 # MultiClass base, Logloss classifier, RMSE regressor, YetiRank ranker.
 # 10 trees, eval_period=3 -> 4 stages (cumulative trees [0:3), [0:6), [0:9),
 # [0:10)); each stage's raw approx accumulates across calls
-# (R/catboost.R:3843 `approx <<- approx + current_approx`), matching
+# (R/catboost.R:3873 `approx <<- approx + current_approx`), matching
 # Python's cumulative-through-ntree_end staged semantics.
 # Existing coverage (test_model.R:409-425) only checks R's
 # catboost.staged_predict self-consistency against catboost.predict at two
@@ -68,7 +68,7 @@ check_class <- function(class_name, loss_function, group_id = NULL) {
   for (i in seq_along(expected_stages)) {
     actual <- staged$nextElem()
     # actual is either a plain vector (single-column loss) or a
-    # nrow x ncol matrix built byrow=TRUE (R/catboost.R:3843-3846) --
+    # nrow x ncol matrix built byrow=TRUE (R/catboost.R:3873-3876) --
     # i.e. actual[r, c] is row r's c-th raw value, matching the JSON
     # fixture's row-major nested-list layout (expected_stages[[i]][[r]][[c]]).
     # Reconstruct expected as the same nrow x ncol matrix (rbind of

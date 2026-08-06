@@ -7,7 +7,7 @@ context("test_drop_unused_features_classes.R")
 # overridden by any subclass; both languages route to the exact same native
 # TModelTrees::DropUnusedFeatures() (catboost/libs/model/model.cpp:626 via
 # src/catboostr.cpp:2400's CatBoostDropUnusedFeaturesFromModel_R), so R's
-# single catboost.drop_unused_features() function (R/catboost.R:4151) is the
+# single catboost.drop_unused_features() function (R/catboost.R:4178) is the
 # parity target for all four matrix rows.
 #
 # drop_unused_features() has no output of its own -- Python's wrapper

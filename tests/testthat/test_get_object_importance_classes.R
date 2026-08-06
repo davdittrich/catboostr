@@ -5,7 +5,7 @@ context("test_get_object_importance_classes.R")
 # python-package/catboost/core.py:3603) across the four estimator classes.
 # get_object_importance() is defined once on the CatBoost base class and is
 # not overridden by any of the three subclasses, so R's single
-# catboost.get_object_importance() function (R/catboost.R:4081) is the
+# catboost.get_object_importance() function (R/catboost.R:4110) is the
 # parity target for all four CatBoost{,Classifier,Regressor,Ranker}.
 # get_object_importance matrix rows -- but the underlying LeafInfluence
 # derivative calculator (catboost/private/libs/documents_importance/

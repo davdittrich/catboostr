@@ -6,7 +6,7 @@ context("test_get_feature_importance_classes.R")
 # (catboost/python-package/catboost/core.py). get_feature_importance() is
 # defined once on the CatBoost base class (core.py:3385) and is not
 # overridden by any of the three subclasses, so R's single
-# catboost.get_feature_importance() function (R/catboost.R:3984) is the
+# catboost.get_feature_importance() function (R/catboost.R:4013) is the
 # parity target for all four CatBoost{,Classifier,Regressor,Ranker}.
 # get_feature_importance matrix rows. The default "FeatureImportance" type
 # resolves to PredictionValuesChange for non-ranking losses and to

@@ -8,7 +8,7 @@ CatBoostClassifier, CatBoostRegressor, CatBoostRanker (core.py).
 
 get_object_importance() is defined once on the CatBoost base class
 (core.py:3603) and is not overridden by any of the three subclasses, so R's
-single catboost.get_object_importance() function (R/catboost.R:4081) is the
+single catboost.get_object_importance() function (R/catboost.R:4110) is the
 parity target for all four matrix rows. It routes to the LeafInfluence
 algorithm's derivative calculator (catboost/private/libs/documents_
 importance/ders_helpers.cpp:76-95), which only implements a fixed allow-list

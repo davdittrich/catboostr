@@ -16,7 +16,7 @@ context("test_predict_classes.R")
 # catboost.predict() always defaults to RawFormulaVal regardless of model
 # type) is NOT covered here and is out of scope for this ticket
 # (catboost-8z4.81); see the follow-up ticket filed for that gap. R's single
-# catboost.predict() function (R/catboost.R:3772, delegates to
+# catboost.predict() function (R/catboost.R:3792, delegates to
 # predict.catboost.Model) is therefore the parity target for all 4
 # CatBoost{,Classifier,Regressor,Ranker}.predict matrix rows; what varies
 # per row is only the loss/task shape the model was fit with, so this

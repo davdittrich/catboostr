@@ -16,7 +16,7 @@ explicitly requested on both sides, which is exactly what this fixture and
 its paired test do. Default-prediction_type parity itself is NOT covered
 here and is out of scope for this ticket (catboost-8z4.81); see the
 follow-up ticket filed for that gap. R's single catboost.predict() function
-(R/catboost.R:3772, which delegates to predict.catboost.Model) is the
+(R/catboost.R:3792, which delegates to predict.catboost.Model) is the
 parity target for all four matrix rows
 (CatBoost.predict / CatBoostClassifier.predict / CatBoostRegressor.predict /
 CatBoostRanker.predict); what varies per row is only the loss/task shape the

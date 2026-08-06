@@ -69,7 +69,7 @@ def x(num1):
 
 def record(fixture, class_name, model, pool, num1, label, group_id=None, predict_kwargs=None):
     # R's catboost.predict() has no per-class dispatch and always defaults to
-    # prediction_type="RawFormulaVal" (R/catboost.R:3731); CatBoostRanker's
+    # prediction_type="RawFormulaVal" (R/catboost.R:3751); CatBoostRanker's
     # predict() has no prediction_type kwarg at all and returns raw formula
     # values unconditionally, so it needs no override.
     predict_kwargs = predict_kwargs or {}

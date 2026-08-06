@@ -9,7 +9,7 @@ shrink() is defined once on the CatBoost base class (core.py, wraps the
 native TFullModel::Truncate) and is not overridden by any of the three
 subclasses; both languages route to the same native truncation entry point
 (src/catboostr.cpp's CatBoostShrinkModel_R vs. the Python _object.Truncate
-binding), so R's single catboost.shrink() function (R/catboost.R:4131) is
+binding), so R's single catboost.shrink() function (R/catboost.R:4160) is
 the parity target for all four matrix rows (CatBoost.shrink /
 CatBoostClassifier.shrink / CatBoostRegressor.shrink /
 CatBoostRanker.shrink). shrink() itself has no output of its own (Python

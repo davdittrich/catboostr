@@ -16,7 +16,7 @@ RawFormulaVal output when that prediction_type is explicitly requested on
 both sides, which is exactly what this fixture and its paired test do.
 Default-prediction_type parity itself is NOT covered here and is out of
 scope for this ticket (catboost-8z4.81); see the follow-up ticket filed for
-that gap. R's single catboost.staged_predict() function (R/catboost.R:3822)
+that gap. R's single catboost.staged_predict() function (R/catboost.R:3851)
 is the parity target for all four matrix rows
 (CatBoost.staged_predict / CatBoostClassifier.staged_predict /
 CatBoostRegressor.staged_predict / CatBoostRanker.staged_predict); what

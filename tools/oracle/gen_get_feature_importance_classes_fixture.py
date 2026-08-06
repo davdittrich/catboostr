@@ -10,7 +10,7 @@ classes -- CatBoost, CatBoostClassifier, CatBoostRegressor, CatBoostRanker
 
 get_feature_importance() is defined once on the CatBoost base class
 (core.py:3385) and is not overridden by any of the three subclasses, so R's
-single catboost.get_feature_importance() function (R/catboost.R:3984) is the
+single catboost.get_feature_importance() function (R/catboost.R:4013) is the
 parity target for all four matrix rows (CatBoost.get_feature_importance /
 CatBoostClassifier.get_feature_importance /
 CatBoostRegressor.get_feature_importance /

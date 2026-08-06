@@ -7,7 +7,7 @@ context("test_shrink_classes.R")
 # overridden by any of the three subclasses; both languages route to the
 # same native truncation entry point (src/catboostr.cpp's
 # CatBoostShrinkModel_R vs. the Python _object.Truncate binding), so R's
-# single catboost.shrink() function (R/catboost.R:4131) is the parity
+# single catboost.shrink() function (R/catboost.R:4160) is the parity
 # target for all 4 CatBoost{,Classifier,Regressor,Ranker}.shrink matrix
 # rows. shrink() has no output of its own (Python returns None, R returns
 # the native call's status), so -- same pattern as

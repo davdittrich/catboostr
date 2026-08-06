@@ -9782,6 +9782,40 @@
     "universal": false
   },
   {
+    "inventory_row_id": "flag:--cv",
+    "oracle": "cli",
+    "kind": "flag",
+    "method": "parameter_or_flag",
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": false,
+    "members": [
+      {
+        "capability": "flag:fit:--cv",
+        "owner": "fit",
+        "matched_r_symbol": "catboost.cv"
+      },
+      {
+        "capability": "flag:eval-feature:--cv",
+        "owner": "eval-feature",
+        "matched_r_symbol": "catboost.cv"
+      },
+      {
+        "capability": "flag:model-based-eval:--cv",
+        "owner": "model-based-eval",
+        "matched_r_symbol": "catboost.cv"
+      },
+      {
+        "capability": "flag:select-features:--cv",
+        "owner": "select-features",
+        "matched_r_symbol": "catboost.cv"
+      }
+    ],
+    "universal": false
+  },
+  {
     "inventory_row_id": "catboost.CatBoost",
     "oracle": "python",
     "kind": "class",
@@ -16293,6 +16327,842 @@
       {
         "capability": "mode:dump-options",
         "owner": null
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "catboost.cv",
+    "oracle": "python",
+    "kind": "function",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "catboost.cv",
+        "owner": null,
+        "matched_r_symbol": "catboost.cv"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "catboost.sum_models",
+    "oracle": "python",
+    "kind": "function",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "catboost.sum_models",
+        "owner": null,
+        "matched_r_symbol": "catboost.sum_models"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "catboost.train",
+    "oracle": "python",
+    "kind": "function",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "catboost.train",
+        "owner": null,
+        "matched_r_symbol": "catboost.train"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoost.drop_unused_features",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoost.drop_unused_features",
+        "owner": "CatBoost",
+        "matched_r_symbol": "catboost.drop_unused_features"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoost.eval_metrics",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoost.eval_metrics",
+        "owner": "CatBoost",
+        "matched_r_symbol": "catboost.eval_metrics"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoost.get_feature_importance",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoost.get_feature_importance",
+        "owner": "CatBoost",
+        "matched_r_symbol": "catboost.get_feature_importance"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoost.get_object_importance",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoost.get_object_importance",
+        "owner": "CatBoost",
+        "matched_r_symbol": "catboost.get_object_importance"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoost.load_model",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoost.load_model",
+        "owner": "CatBoost",
+        "matched_r_symbol": "catboost.load_model"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoost.predict",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoost.predict",
+        "owner": "CatBoost",
+        "matched_r_symbol": "catboost.predict"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoost.save_model",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoost.save_model",
+        "owner": "CatBoost",
+        "matched_r_symbol": "catboost.save_model"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoost.shrink",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoost.shrink",
+        "owner": "CatBoost",
+        "matched_r_symbol": "catboost.shrink"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoost.staged_predict",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoost.staged_predict",
+        "owner": "CatBoost",
+        "matched_r_symbol": "catboost.staged_predict"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoost.virtual_ensembles_predict",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoost.virtual_ensembles_predict",
+        "owner": "CatBoost",
+        "matched_r_symbol": "catboost.virtual_ensembles_predict"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoostClassifier.drop_unused_features",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoostClassifier.drop_unused_features",
+        "owner": "CatBoostClassifier",
+        "matched_r_symbol": "catboost.drop_unused_features"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoostClassifier.eval_metrics",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoostClassifier.eval_metrics",
+        "owner": "CatBoostClassifier",
+        "matched_r_symbol": "catboost.eval_metrics"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoostClassifier.get_feature_importance",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoostClassifier.get_feature_importance",
+        "owner": "CatBoostClassifier",
+        "matched_r_symbol": "catboost.get_feature_importance"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoostClassifier.get_object_importance",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoostClassifier.get_object_importance",
+        "owner": "CatBoostClassifier",
+        "matched_r_symbol": "catboost.get_object_importance"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoostClassifier.load_model",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoostClassifier.load_model",
+        "owner": "CatBoostClassifier",
+        "matched_r_symbol": "catboost.load_model"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoostClassifier.predict",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoostClassifier.predict",
+        "owner": "CatBoostClassifier",
+        "matched_r_symbol": "catboost.predict"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoostClassifier.save_model",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoostClassifier.save_model",
+        "owner": "CatBoostClassifier",
+        "matched_r_symbol": "catboost.save_model"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoostClassifier.shrink",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoostClassifier.shrink",
+        "owner": "CatBoostClassifier",
+        "matched_r_symbol": "catboost.shrink"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoostClassifier.staged_predict",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoostClassifier.staged_predict",
+        "owner": "CatBoostClassifier",
+        "matched_r_symbol": "catboost.staged_predict"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoostClassifier.virtual_ensembles_predict",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoostClassifier.virtual_ensembles_predict",
+        "owner": "CatBoostClassifier",
+        "matched_r_symbol": "catboost.virtual_ensembles_predict"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoostRegressor.drop_unused_features",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoostRegressor.drop_unused_features",
+        "owner": "CatBoostRegressor",
+        "matched_r_symbol": "catboost.drop_unused_features"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoostRegressor.eval_metrics",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoostRegressor.eval_metrics",
+        "owner": "CatBoostRegressor",
+        "matched_r_symbol": "catboost.eval_metrics"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoostRegressor.get_feature_importance",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoostRegressor.get_feature_importance",
+        "owner": "CatBoostRegressor",
+        "matched_r_symbol": "catboost.get_feature_importance"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoostRegressor.get_object_importance",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoostRegressor.get_object_importance",
+        "owner": "CatBoostRegressor",
+        "matched_r_symbol": "catboost.get_object_importance"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoostRegressor.load_model",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoostRegressor.load_model",
+        "owner": "CatBoostRegressor",
+        "matched_r_symbol": "catboost.load_model"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoostRegressor.predict",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoostRegressor.predict",
+        "owner": "CatBoostRegressor",
+        "matched_r_symbol": "catboost.predict"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoostRegressor.save_model",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoostRegressor.save_model",
+        "owner": "CatBoostRegressor",
+        "matched_r_symbol": "catboost.save_model"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoostRegressor.shrink",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoostRegressor.shrink",
+        "owner": "CatBoostRegressor",
+        "matched_r_symbol": "catboost.shrink"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoostRegressor.staged_predict",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoostRegressor.staged_predict",
+        "owner": "CatBoostRegressor",
+        "matched_r_symbol": "catboost.staged_predict"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoostRegressor.virtual_ensembles_predict",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoostRegressor.virtual_ensembles_predict",
+        "owner": "CatBoostRegressor",
+        "matched_r_symbol": "catboost.virtual_ensembles_predict"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoostRanker.drop_unused_features",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoostRanker.drop_unused_features",
+        "owner": "CatBoostRanker",
+        "matched_r_symbol": "catboost.drop_unused_features"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoostRanker.eval_metrics",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoostRanker.eval_metrics",
+        "owner": "CatBoostRanker",
+        "matched_r_symbol": "catboost.eval_metrics"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoostRanker.get_feature_importance",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoostRanker.get_feature_importance",
+        "owner": "CatBoostRanker",
+        "matched_r_symbol": "catboost.get_feature_importance"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoostRanker.get_object_importance",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoostRanker.get_object_importance",
+        "owner": "CatBoostRanker",
+        "matched_r_symbol": "catboost.get_object_importance"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoostRanker.load_model",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoostRanker.load_model",
+        "owner": "CatBoostRanker",
+        "matched_r_symbol": "catboost.load_model"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoostRanker.predict",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoostRanker.predict",
+        "owner": "CatBoostRanker",
+        "matched_r_symbol": "catboost.predict"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoostRanker.save_model",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoostRanker.save_model",
+        "owner": "CatBoostRanker",
+        "matched_r_symbol": "catboost.save_model"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoostRanker.shrink",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoostRanker.shrink",
+        "owner": "CatBoostRanker",
+        "matched_r_symbol": "catboost.shrink"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoostRanker.staged_predict",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoostRanker.staged_predict",
+        "owner": "CatBoostRanker",
+        "matched_r_symbol": "catboost.staged_predict"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "CatBoostRanker.virtual_ensembles_predict",
+    "oracle": "python",
+    "kind": "method",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "CatBoostRanker.virtual_ensembles_predict",
+        "owner": "CatBoostRanker",
+        "matched_r_symbol": "catboost.virtual_ensembles_predict"
+      }
+    ],
+    "universal": false
+  },
+  {
+    "inventory_row_id": "mode:eval-metrics",
+    "oracle": "cli",
+    "kind": "mode",
+    "method": null,
+    "tolerance": null,
+    "test_id": null,
+    "state": "red",
+    "tolerance_justification": "",
+    "needs_disposition": true,
+    "members": [
+      {
+        "capability": "mode:eval-metrics",
+        "owner": null,
+        "matched_r_symbol": "catboost.eval_metrics"
       }
     ],
     "universal": false

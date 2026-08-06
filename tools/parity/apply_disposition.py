@@ -77,7 +77,7 @@ def disposition_row(row: dict, judgments: dict) -> dict:
             row["final_method"] = "structural"
             row["final_method_confidence"] = 95
             row["final_method_note"] = STRUCTURAL_NOTE
-        else:
+        elif row["inventory_row_id"] in judgments:
             final_method, confidence, note = judgments[row["inventory_row_id"]]
             row["method"] = final_method
             row["final_method"] = final_method
@@ -85,6 +85,11 @@ def disposition_row(row: dict, judgments: dict) -> dict:
             row["final_method_note"] = note
             if final_method == "elementwise":
                 row["tolerance"] = bm.DEFAULT_TOLERANCE[row["oracle"]]
+        # else: no judgment authored yet (e.g. a row newly surfaced by a
+        # pipeline fix) -- leave method: null / needs_disposition: true
+        # rather than crashing. Disposition is deliberately out of scope
+        # here (see follow-up tickets); this only stops the tool from
+        # requiring an entry that doesn't exist yet.
 
         # Recompute the same way build_matrix.py does, so method and
         # needs_disposition can never disagree once a row is dispositioned.

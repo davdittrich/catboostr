@@ -18,10 +18,10 @@ class TestMergeAgainstRealFixture(unittest.TestCase):
         cls.diff = json.loads(bm.INPUT_PATH.read_text())
         cls.rows, cls.merged_count, cls.passthrough_count = bm.build_matrix(cls.diff)
 
-    def test_produces_725_rows_from_363_merged_and_362_passthrough(self):
-        self.assertEqual(len(self.rows), 725)
-        self.assertEqual(self.merged_count, 363)
-        self.assertEqual(self.passthrough_count, 362)
+    def test_produces_770_rows_from_364_merged_and_406_passthrough(self):
+        self.assertEqual(len(self.rows), 770)
+        self.assertEqual(self.merged_count, 364)
+        self.assertEqual(self.passthrough_count, 406)
 
     def test_every_passthrough_row_has_single_element_members(self):
         merged_ids = set()
@@ -30,9 +30,15 @@ class TestMergeAgainstRealFixture(unittest.TestCase):
             if row["inventory_row_id"] not in seen:
                 seen.add(row["inventory_row_id"])
         # Passthrough rows are those whose inventory_row_id equals a raw
-        # gap's own capability string (i.e. not a dedup_key format).
+        # gap's or covered entry's own capability string (i.e. not a
+        # dedup_key format). build_matrix.py merges diff["gaps"] and
+        # diff["covered"] into one set (spec Sec 4.5: covered/name-matched
+        # capabilities still need a matrix row), so both sources' dedup_keys
+        # count here.
         dedup_keys = {
             g["dedup_key"] for g in self.diff["gaps"] if g.get("dedup_key")
+        } | {
+            c["dedup_key"] for c in self.diff["covered"] if c.get("dedup_key")
         }
         for row in self.rows:
             if row["inventory_row_id"] not in dedup_keys:
@@ -45,16 +51,18 @@ class TestMergeAgainstRealFixture(unittest.TestCase):
     def test_merged_row_members_preserve_every_raw_member_verbatim(self):
         by_id = {row["inventory_row_id"]: row for row in self.rows}
         groups: dict = {}
-        for gap in self.diff["gaps"]:
-            key = gap.get("dedup_key")
+        for entry in self.diff["gaps"] + self.diff["covered"]:
+            key = entry.get("dedup_key")
             if key:
-                groups.setdefault(key, []).append(gap)
+                groups.setdefault(key, []).append(entry)
         for dedup_key, raw_members in groups.items():
             row = by_id[dedup_key]
-            expected = [
-                {"capability": g["capability"], "owner": g["owner"]}
-                for g in raw_members
-            ]
+            expected = []
+            for g in raw_members:
+                member = {"capability": g["capability"], "owner": g["owner"]}
+                if "matched_r_symbol" in g:
+                    member["matched_r_symbol"] = g["matched_r_symbol"]
+                expected.append(member)
             self.assertEqual(row["members"], expected)
 
     def test_universal_flags_marked_non_capability(self):

@@ -2762,65 +2762,69 @@ EXPORT_FUNCTION CatBoostGetBinarizedStatistics_R(
 
     for (size_t s = 0; s < statistics.size(); ++s) {
         const TBinarizedFeatureStatistics& stat = statistics[s];
+        // Per-iteration SEXPs are PROTECTed only long enough to be linked into an
+        // already-PROTECTed parent (statList, then result), then immediately
+        // UNPROTECTed: once linked, they stay reachable (and therefore protected)
+        // transitively via the parent. This keeps peak PROTECT-stack depth O(1)
+        // per iteration instead of growing with statistics.size().
         SEXP statList = PROTECT(allocVector(VECSXP, kNumFields));
-        ++protectedCount;
         SEXP statNames = PROTECT(allocVector(STRSXP, kNumFields));
-        ++protectedCount;
 
         SEXP borders = PROTECT(allocVector(REALSXP, stat.Borders.size()));
-        ++protectedCount;
         for (size_t i = 0; i < stat.Borders.size(); ++i) {
             REAL(borders)[i] = stat.Borders[i];
         }
         SET_VECTOR_ELT(statList, 0, borders);
+        UNPROTECT(1); // borders
 
         SEXP binarizedFeature = PROTECT(allocVector(INTSXP, stat.BinarizedFeature.size()));
-        ++protectedCount;
         for (size_t i = 0; i < stat.BinarizedFeature.size(); ++i) {
             INTEGER(binarizedFeature)[i] = stat.BinarizedFeature[i];
         }
         SET_VECTOR_ELT(statList, 1, binarizedFeature);
+        UNPROTECT(1); // binarizedFeature
 
         SEXP meanTarget = PROTECT(allocVector(REALSXP, stat.MeanTarget.size()));
-        ++protectedCount;
         for (size_t i = 0; i < stat.MeanTarget.size(); ++i) {
             REAL(meanTarget)[i] = stat.MeanTarget[i];
         }
         SET_VECTOR_ELT(statList, 2, meanTarget);
+        UNPROTECT(1); // meanTarget
 
         SEXP meanWeightedTarget = PROTECT(allocVector(REALSXP, stat.MeanWeightedTarget.size()));
-        ++protectedCount;
         for (size_t i = 0; i < stat.MeanWeightedTarget.size(); ++i) {
             REAL(meanWeightedTarget)[i] = stat.MeanWeightedTarget[i];
         }
         SET_VECTOR_ELT(statList, 3, meanWeightedTarget);
+        UNPROTECT(1); // meanWeightedTarget
 
         SEXP meanPrediction = PROTECT(allocVector(REALSXP, stat.MeanPrediction.size()));
-        ++protectedCount;
         for (size_t i = 0; i < stat.MeanPrediction.size(); ++i) {
             REAL(meanPrediction)[i] = stat.MeanPrediction[i];
         }
         SET_VECTOR_ELT(statList, 4, meanPrediction);
+        UNPROTECT(1); // meanPrediction
 
         SEXP objectsPerBin = PROTECT(allocVector(INTSXP, stat.ObjectsPerBin.size()));
-        ++protectedCount;
         for (size_t i = 0; i < stat.ObjectsPerBin.size(); ++i) {
             INTEGER(objectsPerBin)[i] = static_cast<int>(stat.ObjectsPerBin[i]);
         }
         SET_VECTOR_ELT(statList, 5, objectsPerBin);
+        UNPROTECT(1); // objectsPerBin
 
         SEXP predictionsOnVaryingFeature = PROTECT(allocVector(REALSXP, stat.PredictionsOnVaryingFeature.size()));
-        ++protectedCount;
         for (size_t i = 0; i < stat.PredictionsOnVaryingFeature.size(); ++i) {
             REAL(predictionsOnVaryingFeature)[i] = stat.PredictionsOnVaryingFeature[i];
         }
         SET_VECTOR_ELT(statList, 6, predictionsOnVaryingFeature);
+        UNPROTECT(1); // predictionsOnVaryingFeature
 
         for (size_t i = 0; i < kNumFields; ++i) {
             SET_STRING_ELT(statNames, i, mkChar(kFieldNames[i]));
         }
         setAttrib(statList, R_NamesSymbol, statNames);
         SET_VECTOR_ELT(result, s, statList);
+        UNPROTECT(2); // statNames, statList: both now protected transitively via result
     }
 
     R_API_END();

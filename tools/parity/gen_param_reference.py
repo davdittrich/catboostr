@@ -104,6 +104,37 @@ def parse_native_copyoption_names(vendor_cpp_path):
     src = vendor_cpp_path.read_text()
     names = set(re.findall(r'CopyOption\(plainOptions,\s*"([^"]+)"', src))
     names |= set(re.findall(r'CopyOptionWithNewKey\(plainOptions,\s*"([^"]+)"', src))
+
+    # Coverage guard (catboost-8z4.67 fix round 1): the two regexes above
+    # name the *specific* CopyOption-family helpers this script knows about.
+    # This broader, function-name-agnostic regex matches any
+    # CopyOption<Whatever>(plainOptions, "name", ...) call site -- i.e. any
+    # existing or future member of the CopyOption* family, not just the two
+    # named above -- and its results must be a subset of what the two named
+    # regexes already captured. This is exactly the check that would have
+    # failed before this fix round: with only the CopyOption regex active,
+    # CopyOptionWithNewKey(plainOptions, "od_pval", ...) etc. would show up
+    # here but not in `names`, so `missing` would be non-empty and this
+    # would sys.exit instead of silently under-scanning. Deliberately scoped
+    # to the CopyOption* family (not a bare `Copy\w*`), because
+    # plain_options_helper.cpp also has CopyCtrDescription /
+    # CopyPerFeatureCtrDescription / CopyPerFloatFeatureQuantization --
+    # differently-shaped helpers already covered via the 139-name
+    # Python-surface inventory (see EXTRA_KNOWN_PARAMS comment above) that
+    # would otherwise be flagged as false-positive gaps.
+    family_names = set(
+        re.findall(r'CopyOption\w*\(plainOptions,\s*"([^"]+)"', src)
+    )
+    missing = family_names - names
+    if missing:
+        sys.exit(
+            "gen_param_reference.py coverage gap: %s appear as literal "
+            "CopyOption*(plainOptions, \"...\") names in "
+            "plain_options_helper.cpp but weren't captured by any regex in "
+            "parse_native_copyoption_names(). Vendor added a new "
+            "CopyOption-family helper -- add a matching regex line here."
+            % sorted(missing)
+        )
     return names
 
 

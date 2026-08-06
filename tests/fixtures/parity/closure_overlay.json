@@ -56,6 +56,12 @@
     "state": "green",
     "test_id": "tests/testthat/test_plot_tree.R"
   },
+  "CatBoost.predict": {
+    "state": "green",
+    "test_id": "tests/testthat/test_predict_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "predict() is defined once on the CatBoost base class (core.py:2286) and is not overridden in a way that changes its numeric output by any of the three subclasses -- CatBoostRanker.predict() does override it, but only to hard-code prediction_type=\"RawFormulaVal\" and drop the kwarg entirely (core.py); values are RawFormulaVal on both sides regardless, so R's single catboost.predict() function (R/catboost.R:3772) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.predict rows; verified per-class via the same loss families as test_eval_metrics_classes.R (MultiClass base, Logloss classifier, RMSE regressor, YetiRank ranker); matches the 1e-6 tolerance already used for this suite's other oracle-python numeric comparisons."
+  },
   "CatBoost.randomized_search": {
     "state": "green",
     "test_id": "tests/testthat/test_grid_search.R"
@@ -69,6 +75,24 @@
     "state": "green",
     "test_id": "tests/testthat/test_scale_and_bias.R",
     "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.get_scale_and_bias/set_scale_and_bias all delegate to the same _CatBoostBase.get_scale_and_bias()/set_scale_and_bias() (core.py:2422-2429); catboost.get_scale_and_bias()/catboost.set_scale_and_bias() cover all four via one differential test."
+  },
+  "CatBoost.shrink": {
+    "state": "green",
+    "test_id": "tests/testthat/test_shrink_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "shrink() is defined once on the CatBoost base class and is not overridden by any of the three subclasses; both languages route to the same native truncation entry point (src/catboostr.cpp's CatBoostShrinkModel_R vs. the Python _object.Truncate binding), so R's single catboost.shrink() function (R/catboost.R:4131) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.shrink rows; it has no output of its own (Python returns None, R returns a constant TRUE), so parity is verified via predict(RawFormulaVal) taken before and after the same [ntree_start=2, ntree_end=8) truncation on a 10-tree model per class -- matches the 1e-6 tolerance already used for this suite's other oracle-python numeric-prediction comparisons (test_drop_unused_features_classes.R)."
+  },
+  "CatBoost.staged_predict": {
+    "state": "green",
+    "test_id": "tests/testthat/test_staged_predict_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "staged_predict() is defined once on the CatBoost base class (core.py:2328) and is not overridden in a way that changes its numeric output by any of the three subclasses -- CatBoostRanker.staged_predict() overrides only to hard-code prediction_type=\"RawFormulaVal\" (same pattern as predict()); values are RawFormulaVal on both sides regardless, so R's single catboost.staged_predict() function (R/catboost.R:3822) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.staged_predict rows; verified per-class across 4 cumulative eval_period=3 checkpoints (10-tree model) against the same loss families as test_predict_classes.R; matches the 1e-6 tolerance already used for this suite's other oracle-python numeric comparisons."
+  },
+  "CatBoost.virtual_ensembles_predict": {
+    "state": "green",
+    "test_id": "tests/testthat/test_virtual_ensembles.R",
+    "tolerance": 1e-12,
+    "tolerance_justification": "virtual_ensembles_predict() is defined once on the CatBoost base class and is not overridden by any of the three subclasses, so R's single catboost.virtual_ensembles_predict() function (R/catboost.R:3899) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.virtual_ensembles_predict rows; already differentially tested against the Python oracle at 1e-12 tolerance for both VirtEnsembles and TotalUncertainty prediction types (catboost-8z4.61, tests/testthat/test_virtual_ensembles.R) -- the reshape agreement it verifies (R's aperm(array(...)) vs. numpy's reshape(N,V,D)) does not depend on which of the four estimator classes invoked it, so this ticket syncs test_id to that existing coverage rather than duplicating it."
   },
   "CatBoostClassifier.calc_feature_statistics": {
     "state": "green",
@@ -128,6 +152,12 @@
     "state": "green",
     "test_id": "tests/testthat/test_plot_tree.R"
   },
+  "CatBoostClassifier.predict": {
+    "state": "green",
+    "test_id": "tests/testthat/test_predict_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "predict() is defined once on the CatBoost base class (core.py:2286) and is not overridden in a way that changes its numeric output by any of the three subclasses -- CatBoostRanker.predict() does override it, but only to hard-code prediction_type=\"RawFormulaVal\" and drop the kwarg entirely (core.py); values are RawFormulaVal on both sides regardless, so R's single catboost.predict() function (R/catboost.R:3772) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.predict rows; verified per-class via the same loss families as test_eval_metrics_classes.R (MultiClass base, Logloss classifier, RMSE regressor, YetiRank ranker); matches the 1e-6 tolerance already used for this suite's other oracle-python numeric comparisons."
+  },
   "CatBoostClassifier.randomized_search": {
     "state": "green",
     "test_id": "tests/testthat/test_grid_search.R"
@@ -141,6 +171,24 @@
     "state": "green",
     "test_id": "tests/testthat/test_scale_and_bias.R",
     "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.get_scale_and_bias/set_scale_and_bias all delegate to the same _CatBoostBase.get_scale_and_bias()/set_scale_and_bias() (core.py:2422-2429); catboost.get_scale_and_bias()/catboost.set_scale_and_bias() cover all four via one differential test."
+  },
+  "CatBoostClassifier.shrink": {
+    "state": "green",
+    "test_id": "tests/testthat/test_shrink_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "shrink() is defined once on the CatBoost base class and is not overridden by any of the three subclasses; both languages route to the same native truncation entry point (src/catboostr.cpp's CatBoostShrinkModel_R vs. the Python _object.Truncate binding), so R's single catboost.shrink() function (R/catboost.R:4131) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.shrink rows; it has no output of its own (Python returns None, R returns a constant TRUE), so parity is verified via predict(RawFormulaVal) taken before and after the same [ntree_start=2, ntree_end=8) truncation on a 10-tree model per class -- matches the 1e-6 tolerance already used for this suite's other oracle-python numeric-prediction comparisons (test_drop_unused_features_classes.R)."
+  },
+  "CatBoostClassifier.staged_predict": {
+    "state": "green",
+    "test_id": "tests/testthat/test_staged_predict_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "staged_predict() is defined once on the CatBoost base class (core.py:2328) and is not overridden in a way that changes its numeric output by any of the three subclasses -- CatBoostRanker.staged_predict() overrides only to hard-code prediction_type=\"RawFormulaVal\" (same pattern as predict()); values are RawFormulaVal on both sides regardless, so R's single catboost.staged_predict() function (R/catboost.R:3822) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.staged_predict rows; verified per-class across 4 cumulative eval_period=3 checkpoints (10-tree model) against the same loss families as test_predict_classes.R; matches the 1e-6 tolerance already used for this suite's other oracle-python numeric comparisons."
+  },
+  "CatBoostClassifier.virtual_ensembles_predict": {
+    "state": "green",
+    "test_id": "tests/testthat/test_virtual_ensembles.R",
+    "tolerance": 1e-12,
+    "tolerance_justification": "virtual_ensembles_predict() is defined once on the CatBoost base class and is not overridden by any of the three subclasses, so R's single catboost.virtual_ensembles_predict() function (R/catboost.R:3899) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.virtual_ensembles_predict rows; already differentially tested against the Python oracle at 1e-12 tolerance for both VirtEnsembles and TotalUncertainty prediction types (catboost-8z4.61, tests/testthat/test_virtual_ensembles.R) -- the reshape agreement it verifies (R's aperm(array(...)) vs. numpy's reshape(N,V,D)) does not depend on which of the four estimator classes invoked it, so this ticket syncs test_id to that existing coverage rather than duplicating it."
   },
   "CatBoostRanker.calc_feature_statistics": {
     "state": "green",
@@ -199,6 +247,12 @@
     "state": "green",
     "test_id": "tests/testthat/test_plot_tree.R"
   },
+  "CatBoostRanker.predict": {
+    "state": "green",
+    "test_id": "tests/testthat/test_predict_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "predict() is defined once on the CatBoost base class (core.py:2286) and is not overridden in a way that changes its numeric output by any of the three subclasses -- CatBoostRanker.predict() does override it, but only to hard-code prediction_type=\"RawFormulaVal\" and drop the kwarg entirely (core.py); values are RawFormulaVal on both sides regardless, so R's single catboost.predict() function (R/catboost.R:3772) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.predict rows; verified per-class via the same loss families as test_eval_metrics_classes.R (MultiClass base, Logloss classifier, RMSE regressor, YetiRank ranker); matches the 1e-6 tolerance already used for this suite's other oracle-python numeric comparisons."
+  },
   "CatBoostRanker.randomized_search": {
     "state": "green",
     "test_id": "tests/testthat/test_grid_search.R"
@@ -212,6 +266,24 @@
     "state": "green",
     "test_id": "tests/testthat/test_scale_and_bias.R",
     "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.get_scale_and_bias/set_scale_and_bias all delegate to the same _CatBoostBase.get_scale_and_bias()/set_scale_and_bias() (core.py:2422-2429); catboost.get_scale_and_bias()/catboost.set_scale_and_bias() cover all four via one differential test."
+  },
+  "CatBoostRanker.shrink": {
+    "state": "green",
+    "test_id": "tests/testthat/test_shrink_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "shrink() is defined once on the CatBoost base class and is not overridden by any of the three subclasses; both languages route to the same native truncation entry point (src/catboostr.cpp's CatBoostShrinkModel_R vs. the Python _object.Truncate binding), so R's single catboost.shrink() function (R/catboost.R:4131) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.shrink rows; it has no output of its own (Python returns None, R returns a constant TRUE), so parity is verified via predict(RawFormulaVal) taken before and after the same [ntree_start=2, ntree_end=8) truncation on a 10-tree model per class -- matches the 1e-6 tolerance already used for this suite's other oracle-python numeric-prediction comparisons (test_drop_unused_features_classes.R)."
+  },
+  "CatBoostRanker.staged_predict": {
+    "state": "green",
+    "test_id": "tests/testthat/test_staged_predict_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "staged_predict() is defined once on the CatBoost base class (core.py:2328) and is not overridden in a way that changes its numeric output by any of the three subclasses -- CatBoostRanker.staged_predict() overrides only to hard-code prediction_type=\"RawFormulaVal\" (same pattern as predict()); values are RawFormulaVal on both sides regardless, so R's single catboost.staged_predict() function (R/catboost.R:3822) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.staged_predict rows; verified per-class across 4 cumulative eval_period=3 checkpoints (10-tree model) against the same loss families as test_predict_classes.R; matches the 1e-6 tolerance already used for this suite's other oracle-python numeric comparisons."
+  },
+  "CatBoostRanker.virtual_ensembles_predict": {
+    "state": "green",
+    "test_id": "tests/testthat/test_virtual_ensembles.R",
+    "tolerance": 1e-12,
+    "tolerance_justification": "virtual_ensembles_predict() is defined once on the CatBoost base class and is not overridden by any of the three subclasses, so R's single catboost.virtual_ensembles_predict() function (R/catboost.R:3899) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.virtual_ensembles_predict rows; already differentially tested against the Python oracle at 1e-12 tolerance for both VirtEnsembles and TotalUncertainty prediction types (catboost-8z4.61, tests/testthat/test_virtual_ensembles.R) -- the reshape agreement it verifies (R's aperm(array(...)) vs. numpy's reshape(N,V,D)) does not depend on which of the four estimator classes invoked it, so this ticket syncs test_id to that existing coverage rather than duplicating it."
   },
   "CatBoostRegressor.calc_feature_statistics": {
     "state": "green",
@@ -271,6 +343,12 @@
     "state": "green",
     "test_id": "tests/testthat/test_plot_tree.R"
   },
+  "CatBoostRegressor.predict": {
+    "state": "green",
+    "test_id": "tests/testthat/test_predict_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "predict() is defined once on the CatBoost base class (core.py:2286) and is not overridden in a way that changes its numeric output by any of the three subclasses -- CatBoostRanker.predict() does override it, but only to hard-code prediction_type=\"RawFormulaVal\" and drop the kwarg entirely (core.py); values are RawFormulaVal on both sides regardless, so R's single catboost.predict() function (R/catboost.R:3772) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.predict rows; verified per-class via the same loss families as test_eval_metrics_classes.R (MultiClass base, Logloss classifier, RMSE regressor, YetiRank ranker); matches the 1e-6 tolerance already used for this suite's other oracle-python numeric comparisons."
+  },
   "CatBoostRegressor.randomized_search": {
     "state": "green",
     "test_id": "tests/testthat/test_grid_search.R"
@@ -284,6 +362,24 @@
     "state": "green",
     "test_id": "tests/testthat/test_scale_and_bias.R",
     "tolerance_justification": "CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker.get_scale_and_bias/set_scale_and_bias all delegate to the same _CatBoostBase.get_scale_and_bias()/set_scale_and_bias() (core.py:2422-2429); catboost.get_scale_and_bias()/catboost.set_scale_and_bias() cover all four via one differential test."
+  },
+  "CatBoostRegressor.shrink": {
+    "state": "green",
+    "test_id": "tests/testthat/test_shrink_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "shrink() is defined once on the CatBoost base class and is not overridden by any of the three subclasses; both languages route to the same native truncation entry point (src/catboostr.cpp's CatBoostShrinkModel_R vs. the Python _object.Truncate binding), so R's single catboost.shrink() function (R/catboost.R:4131) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.shrink rows; it has no output of its own (Python returns None, R returns a constant TRUE), so parity is verified via predict(RawFormulaVal) taken before and after the same [ntree_start=2, ntree_end=8) truncation on a 10-tree model per class -- matches the 1e-6 tolerance already used for this suite's other oracle-python numeric-prediction comparisons (test_drop_unused_features_classes.R)."
+  },
+  "CatBoostRegressor.staged_predict": {
+    "state": "green",
+    "test_id": "tests/testthat/test_staged_predict_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "staged_predict() is defined once on the CatBoost base class (core.py:2328) and is not overridden in a way that changes its numeric output by any of the three subclasses -- CatBoostRanker.staged_predict() overrides only to hard-code prediction_type=\"RawFormulaVal\" (same pattern as predict()); values are RawFormulaVal on both sides regardless, so R's single catboost.staged_predict() function (R/catboost.R:3822) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.staged_predict rows; verified per-class across 4 cumulative eval_period=3 checkpoints (10-tree model) against the same loss families as test_predict_classes.R; matches the 1e-6 tolerance already used for this suite's other oracle-python numeric comparisons."
+  },
+  "CatBoostRegressor.virtual_ensembles_predict": {
+    "state": "green",
+    "test_id": "tests/testthat/test_virtual_ensembles.R",
+    "tolerance": 1e-12,
+    "tolerance_justification": "virtual_ensembles_predict() is defined once on the CatBoost base class and is not overridden by any of the three subclasses, so R's single catboost.virtual_ensembles_predict() function (R/catboost.R:3899) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.virtual_ensembles_predict rows; already differentially tested against the Python oracle at 1e-12 tolerance for both VirtEnsembles and TotalUncertainty prediction types (catboost-8z4.61, tests/testthat/test_virtual_ensembles.R) -- the reshape agreement it verifies (R's aperm(array(...)) vs. numpy's reshape(N,V,D)) does not depend on which of the four estimator classes invoked it, so this ticket syncs test_id to that existing coverage rather than duplicating it."
   },
   "catboost.EFstrType.PredictionDiff": {
     "state": "green",

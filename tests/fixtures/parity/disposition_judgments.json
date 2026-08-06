@@ -204,6 +204,11 @@
     85,
     ""
   ],
+  "CatBoost.predict": [
+    "elementwise",
+    90,
+    "primary output is a numeric prediction array (RawFormulaVal by default); not overridden in a way that changes its numeric output by any CatBoost subclass (core.py:2286) -- CatBoostRanker.predict() overrides only to hard-code prediction_type=\"RawFormulaVal\", values are unaffected -- so this judgment is shared across all 4 estimator classes"
+  ],
   "CatBoost.random_seed_": [
     "elementwise",
     90,
@@ -244,10 +249,25 @@
     50,
     "state-mutator; parity only observable via a paired getter"
   ],
+  "CatBoost.shrink": [
+    "elementwise",
+    60,
+    "state-mutator with no output of its own (Python returns None, R returns a constant TRUE, src/catboostr.cpp:2397); both languages route to the same native TFullModel::Truncate(), so parity is observable via predictions staying correctly truncated before/after the call (same pattern as the drop_unused_features rows); not overridden by any CatBoost subclass, so this judgment is shared across all 4 estimator classes"
+  ],
+  "CatBoost.staged_predict": [
+    "elementwise",
+    90,
+    "primary output is a sequence of numeric prediction arrays, one per eval_period checkpoint (RawFormulaVal by default); not overridden in a way that changes its numeric output by any CatBoost subclass (core.py:2328) -- CatBoostRanker.staged_predict() overrides only to hard-code prediction_type=\"RawFormulaVal\", values are unaffected -- so this judgment is shared across all 4 estimator classes"
+  ],
   "CatBoost.tree_count_": [
     "elementwise",
     90,
     ""
+  ],
+  "CatBoost.virtual_ensembles_predict": [
+    "elementwise",
+    85,
+    "primary output is a numeric array (VirtEnsembles reshape) or matrix (TotalUncertainty); not overridden by any CatBoost subclass, so this judgment is shared across all 4 estimator classes; already differentially tested against the Python oracle (catboost-8z4.61, tests/testthat/test_virtual_ensembles.R)"
   ],
   "CatBoostClassifier.best_iteration_": [
     "elementwise",
@@ -459,6 +479,11 @@
     85,
     ""
   ],
+  "CatBoostClassifier.predict": [
+    "elementwise",
+    90,
+    "primary output is a numeric prediction array (RawFormulaVal by default); not overridden in a way that changes its numeric output by any CatBoost subclass (core.py:2286) -- CatBoostRanker.predict() overrides only to hard-code prediction_type=\"RawFormulaVal\", values are unaffected -- so this judgment is shared across all 4 estimator classes"
+  ],
   "CatBoostClassifier.predict_log_proba": [
     "elementwise",
     90,
@@ -519,6 +544,16 @@
     50,
     "state-mutator; parity only observable via a paired getter"
   ],
+  "CatBoostClassifier.shrink": [
+    "elementwise",
+    60,
+    "state-mutator with no output of its own (Python returns None, R returns a constant TRUE, src/catboostr.cpp:2397); both languages route to the same native TFullModel::Truncate(), so parity is observable via predictions staying correctly truncated before/after the call (same pattern as the drop_unused_features rows); not overridden by any CatBoost subclass, so this judgment is shared across all 4 estimator classes"
+  ],
+  "CatBoostClassifier.staged_predict": [
+    "elementwise",
+    90,
+    "primary output is a sequence of numeric prediction arrays, one per eval_period checkpoint (RawFormulaVal by default); not overridden in a way that changes its numeric output by any CatBoost subclass (core.py:2328) -- CatBoostRanker.staged_predict() overrides only to hard-code prediction_type=\"RawFormulaVal\", values are unaffected -- so this judgment is shared across all 4 estimator classes"
+  ],
   "CatBoostClassifier.staged_predict_log_proba": [
     "elementwise",
     80,
@@ -533,6 +568,11 @@
     "elementwise",
     90,
     ""
+  ],
+  "CatBoostClassifier.virtual_ensembles_predict": [
+    "elementwise",
+    85,
+    "primary output is a numeric array (VirtEnsembles reshape) or matrix (TotalUncertainty); not overridden by any CatBoost subclass, so this judgment is shared across all 4 estimator classes; already differentially tested against the Python oracle (catboost-8z4.61, tests/testthat/test_virtual_ensembles.R)"
   ],
   "CatBoostRanker.best_iteration_": [
     "elementwise",
@@ -739,6 +779,11 @@
     85,
     ""
   ],
+  "CatBoostRanker.predict": [
+    "elementwise",
+    90,
+    "primary output is a numeric prediction array (RawFormulaVal by default); not overridden in a way that changes its numeric output by any CatBoost subclass (core.py:2286) -- CatBoostRanker.predict() overrides only to hard-code prediction_type=\"RawFormulaVal\", values are unaffected -- so this judgment is shared across all 4 estimator classes"
+  ],
   "CatBoostRanker.random_seed_": [
     "elementwise",
     90,
@@ -784,10 +829,25 @@
     50,
     "state-mutator; parity only observable via a paired getter"
   ],
+  "CatBoostRanker.shrink": [
+    "elementwise",
+    60,
+    "state-mutator with no output of its own (Python returns None, R returns a constant TRUE, src/catboostr.cpp:2397); both languages route to the same native TFullModel::Truncate(), so parity is observable via predictions staying correctly truncated before/after the call (same pattern as the drop_unused_features rows); not overridden by any CatBoost subclass, so this judgment is shared across all 4 estimator classes"
+  ],
+  "CatBoostRanker.staged_predict": [
+    "elementwise",
+    90,
+    "primary output is a sequence of numeric prediction arrays, one per eval_period checkpoint (RawFormulaVal by default); not overridden in a way that changes its numeric output by any CatBoost subclass (core.py:2328) -- CatBoostRanker.staged_predict() overrides only to hard-code prediction_type=\"RawFormulaVal\", values are unaffected -- so this judgment is shared across all 4 estimator classes"
+  ],
   "CatBoostRanker.tree_count_": [
     "elementwise",
     90,
     ""
+  ],
+  "CatBoostRanker.virtual_ensembles_predict": [
+    "elementwise",
+    85,
+    "primary output is a numeric array (VirtEnsembles reshape) or matrix (TotalUncertainty); not overridden by any CatBoost subclass, so this judgment is shared across all 4 estimator classes; already differentially tested against the Python oracle (catboost-8z4.61, tests/testthat/test_virtual_ensembles.R)"
   ],
   "CatBoostRegressor.best_iteration_": [
     "elementwise",
@@ -994,6 +1054,11 @@
     85,
     ""
   ],
+  "CatBoostRegressor.predict": [
+    "elementwise",
+    90,
+    "primary output is a numeric prediction array (RawFormulaVal by default); not overridden in a way that changes its numeric output by any CatBoost subclass (core.py:2286) -- CatBoostRanker.predict() overrides only to hard-code prediction_type=\"RawFormulaVal\", values are unaffected -- so this judgment is shared across all 4 estimator classes"
+  ],
   "CatBoostRegressor.random_seed_": [
     "elementwise",
     90,
@@ -1039,10 +1104,25 @@
     50,
     "state-mutator; parity only observable via a paired getter"
   ],
+  "CatBoostRegressor.shrink": [
+    "elementwise",
+    60,
+    "state-mutator with no output of its own (Python returns None, R returns a constant TRUE, src/catboostr.cpp:2397); both languages route to the same native TFullModel::Truncate(), so parity is observable via predictions staying correctly truncated before/after the call (same pattern as the drop_unused_features rows); not overridden by any CatBoost subclass, so this judgment is shared across all 4 estimator classes"
+  ],
+  "CatBoostRegressor.staged_predict": [
+    "elementwise",
+    90,
+    "primary output is a sequence of numeric prediction arrays, one per eval_period checkpoint (RawFormulaVal by default); not overridden in a way that changes its numeric output by any CatBoost subclass (core.py:2328) -- CatBoostRanker.staged_predict() overrides only to hard-code prediction_type=\"RawFormulaVal\", values are unaffected -- so this judgment is shared across all 4 estimator classes"
+  ],
   "CatBoostRegressor.tree_count_": [
     "elementwise",
     90,
     ""
+  ],
+  "CatBoostRegressor.virtual_ensembles_predict": [
+    "elementwise",
+    85,
+    "primary output is a numeric array (VirtEnsembles reshape) or matrix (TotalUncertainty); not overridden by any CatBoost subclass, so this judgment is shared across all 4 estimator classes; already differentially tested against the Python oracle (catboost-8z4.61, tests/testthat/test_virtual_ensembles.R)"
   ],
   "FeaturesData.get_cat_feature_count": [
     "elementwise",

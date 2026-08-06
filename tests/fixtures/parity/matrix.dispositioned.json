@@ -20472,12 +20472,12 @@
     "inventory_row_id": "CatBoost.predict",
     "oracle": "python",
     "kind": "method",
-    "method": null,
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "method": "elementwise",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_predict_classes.R",
+    "state": "green",
+    "tolerance_justification": "predict() is defined once on the CatBoost base class (core.py:2286) and is not overridden in a way that changes its numeric output by any of the three subclasses -- CatBoostRanker.predict() does override it, but only to hard-code prediction_type=\"RawFormulaVal\" and drop the kwarg entirely (core.py); values are RawFormulaVal on both sides regardless, so R's single catboost.predict() function (R/catboost.R:3772) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.predict rows; verified per-class via the same loss families as test_eval_metrics_classes.R (MultiClass base, Logloss classifier, RMSE regressor, YetiRank ranker); matches the 1e-6 tolerance already used for this suite's other oracle-python numeric comparisons.",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.predict",
@@ -20488,7 +20488,10 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "elementwise",
+    "final_method_confidence": 90,
+    "final_method_note": "primary output is a numeric prediction array (RawFormulaVal by default); not overridden in a way that changes its numeric output by any CatBoost subclass (core.py:2286) -- CatBoostRanker.predict() overrides only to hard-code prediction_type=\"RawFormulaVal\", values are unaffected -- so this judgment is shared across all 4 estimator classes"
   },
   {
     "inventory_row_id": "CatBoost.save_model",
@@ -20516,12 +20519,12 @@
     "inventory_row_id": "CatBoost.shrink",
     "oracle": "python",
     "kind": "method",
-    "method": null,
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "method": "elementwise",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_shrink_classes.R",
+    "state": "green",
+    "tolerance_justification": "shrink() is defined once on the CatBoost base class and is not overridden by any of the three subclasses; both languages route to the same native truncation entry point (src/catboostr.cpp's CatBoostShrinkModel_R vs. the Python _object.Truncate binding), so R's single catboost.shrink() function (R/catboost.R:4131) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.shrink rows; it has no output of its own (Python returns None, R returns a constant TRUE), so parity is verified via predict(RawFormulaVal) taken before and after the same [ntree_start=2, ntree_end=8) truncation on a 10-tree model per class -- matches the 1e-6 tolerance already used for this suite's other oracle-python numeric-prediction comparisons (test_drop_unused_features_classes.R).",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.shrink",
@@ -20532,18 +20535,21 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "elementwise",
+    "final_method_confidence": 60,
+    "final_method_note": "state-mutator with no output of its own (Python returns None, R returns a constant TRUE, src/catboostr.cpp:2397); both languages route to the same native TFullModel::Truncate(), so parity is observable via predictions staying correctly truncated before/after the call (same pattern as the drop_unused_features rows); not overridden by any CatBoost subclass, so this judgment is shared across all 4 estimator classes"
   },
   {
     "inventory_row_id": "CatBoost.staged_predict",
     "oracle": "python",
     "kind": "method",
-    "method": null,
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "method": "elementwise",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_staged_predict_classes.R",
+    "state": "green",
+    "tolerance_justification": "staged_predict() is defined once on the CatBoost base class (core.py:2328) and is not overridden in a way that changes its numeric output by any of the three subclasses -- CatBoostRanker.staged_predict() overrides only to hard-code prediction_type=\"RawFormulaVal\" (same pattern as predict()); values are RawFormulaVal on both sides regardless, so R's single catboost.staged_predict() function (R/catboost.R:3822) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.staged_predict rows; verified per-class across 4 cumulative eval_period=3 checkpoints (10-tree model) against the same loss families as test_predict_classes.R; matches the 1e-6 tolerance already used for this suite's other oracle-python numeric comparisons.",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.staged_predict",
@@ -20554,18 +20560,21 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "elementwise",
+    "final_method_confidence": 90,
+    "final_method_note": "primary output is a sequence of numeric prediction arrays, one per eval_period checkpoint (RawFormulaVal by default); not overridden in a way that changes its numeric output by any CatBoost subclass (core.py:2328) -- CatBoostRanker.staged_predict() overrides only to hard-code prediction_type=\"RawFormulaVal\", values are unaffected -- so this judgment is shared across all 4 estimator classes"
   },
   {
     "inventory_row_id": "CatBoost.virtual_ensembles_predict",
     "oracle": "python",
     "kind": "method",
-    "method": null,
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "method": "elementwise",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_virtual_ensembles.R",
+    "state": "green",
+    "tolerance_justification": "virtual_ensembles_predict() is defined once on the CatBoost base class and is not overridden by any of the three subclasses, so R's single catboost.virtual_ensembles_predict() function (R/catboost.R:3899) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.virtual_ensembles_predict rows; already differentially tested against the Python oracle at 1e-12 tolerance for both VirtEnsembles and TotalUncertainty prediction types (catboost-8z4.61, tests/testthat/test_virtual_ensembles.R) -- the reshape agreement it verifies (R's aperm(array(...)) vs. numpy's reshape(N,V,D)) does not depend on which of the four estimator classes invoked it, so this ticket syncs test_id to that existing coverage rather than duplicating it.",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.virtual_ensembles_predict",
@@ -20576,7 +20585,10 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "elementwise",
+    "final_method_confidence": 85,
+    "final_method_note": "primary output is a numeric array (VirtEnsembles reshape) or matrix (TotalUncertainty); not overridden by any CatBoost subclass, so this judgment is shared across all 4 estimator classes; already differentially tested against the Python oracle (catboost-8z4.61, tests/testthat/test_virtual_ensembles.R)"
   },
   {
     "inventory_row_id": "CatBoostClassifier.drop_unused_features",
@@ -20704,12 +20716,12 @@
     "inventory_row_id": "CatBoostClassifier.predict",
     "oracle": "python",
     "kind": "method",
-    "method": null,
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "method": "elementwise",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_predict_classes.R",
+    "state": "green",
+    "tolerance_justification": "predict() is defined once on the CatBoost base class (core.py:2286) and is not overridden in a way that changes its numeric output by any of the three subclasses -- CatBoostRanker.predict() does override it, but only to hard-code prediction_type=\"RawFormulaVal\" and drop the kwarg entirely (core.py); values are RawFormulaVal on both sides regardless, so R's single catboost.predict() function (R/catboost.R:3772) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.predict rows; verified per-class via the same loss families as test_eval_metrics_classes.R (MultiClass base, Logloss classifier, RMSE regressor, YetiRank ranker); matches the 1e-6 tolerance already used for this suite's other oracle-python numeric comparisons.",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.predict",
@@ -20720,7 +20732,10 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "elementwise",
+    "final_method_confidence": 90,
+    "final_method_note": "primary output is a numeric prediction array (RawFormulaVal by default); not overridden in a way that changes its numeric output by any CatBoost subclass (core.py:2286) -- CatBoostRanker.predict() overrides only to hard-code prediction_type=\"RawFormulaVal\", values are unaffected -- so this judgment is shared across all 4 estimator classes"
   },
   {
     "inventory_row_id": "CatBoostClassifier.save_model",
@@ -20748,12 +20763,12 @@
     "inventory_row_id": "CatBoostClassifier.shrink",
     "oracle": "python",
     "kind": "method",
-    "method": null,
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "method": "elementwise",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_shrink_classes.R",
+    "state": "green",
+    "tolerance_justification": "shrink() is defined once on the CatBoost base class and is not overridden by any of the three subclasses; both languages route to the same native truncation entry point (src/catboostr.cpp's CatBoostShrinkModel_R vs. the Python _object.Truncate binding), so R's single catboost.shrink() function (R/catboost.R:4131) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.shrink rows; it has no output of its own (Python returns None, R returns a constant TRUE), so parity is verified via predict(RawFormulaVal) taken before and after the same [ntree_start=2, ntree_end=8) truncation on a 10-tree model per class -- matches the 1e-6 tolerance already used for this suite's other oracle-python numeric-prediction comparisons (test_drop_unused_features_classes.R).",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.shrink",
@@ -20764,18 +20779,21 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "elementwise",
+    "final_method_confidence": 60,
+    "final_method_note": "state-mutator with no output of its own (Python returns None, R returns a constant TRUE, src/catboostr.cpp:2397); both languages route to the same native TFullModel::Truncate(), so parity is observable via predictions staying correctly truncated before/after the call (same pattern as the drop_unused_features rows); not overridden by any CatBoost subclass, so this judgment is shared across all 4 estimator classes"
   },
   {
     "inventory_row_id": "CatBoostClassifier.staged_predict",
     "oracle": "python",
     "kind": "method",
-    "method": null,
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "method": "elementwise",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_staged_predict_classes.R",
+    "state": "green",
+    "tolerance_justification": "staged_predict() is defined once on the CatBoost base class (core.py:2328) and is not overridden in a way that changes its numeric output by any of the three subclasses -- CatBoostRanker.staged_predict() overrides only to hard-code prediction_type=\"RawFormulaVal\" (same pattern as predict()); values are RawFormulaVal on both sides regardless, so R's single catboost.staged_predict() function (R/catboost.R:3822) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.staged_predict rows; verified per-class across 4 cumulative eval_period=3 checkpoints (10-tree model) against the same loss families as test_predict_classes.R; matches the 1e-6 tolerance already used for this suite's other oracle-python numeric comparisons.",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.staged_predict",
@@ -20786,18 +20804,21 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "elementwise",
+    "final_method_confidence": 90,
+    "final_method_note": "primary output is a sequence of numeric prediction arrays, one per eval_period checkpoint (RawFormulaVal by default); not overridden in a way that changes its numeric output by any CatBoost subclass (core.py:2328) -- CatBoostRanker.staged_predict() overrides only to hard-code prediction_type=\"RawFormulaVal\", values are unaffected -- so this judgment is shared across all 4 estimator classes"
   },
   {
     "inventory_row_id": "CatBoostClassifier.virtual_ensembles_predict",
     "oracle": "python",
     "kind": "method",
-    "method": null,
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "method": "elementwise",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_virtual_ensembles.R",
+    "state": "green",
+    "tolerance_justification": "virtual_ensembles_predict() is defined once on the CatBoost base class and is not overridden by any of the three subclasses, so R's single catboost.virtual_ensembles_predict() function (R/catboost.R:3899) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.virtual_ensembles_predict rows; already differentially tested against the Python oracle at 1e-12 tolerance for both VirtEnsembles and TotalUncertainty prediction types (catboost-8z4.61, tests/testthat/test_virtual_ensembles.R) -- the reshape agreement it verifies (R's aperm(array(...)) vs. numpy's reshape(N,V,D)) does not depend on which of the four estimator classes invoked it, so this ticket syncs test_id to that existing coverage rather than duplicating it.",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.virtual_ensembles_predict",
@@ -20808,7 +20829,10 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "elementwise",
+    "final_method_confidence": 85,
+    "final_method_note": "primary output is a numeric array (VirtEnsembles reshape) or matrix (TotalUncertainty); not overridden by any CatBoost subclass, so this judgment is shared across all 4 estimator classes; already differentially tested against the Python oracle (catboost-8z4.61, tests/testthat/test_virtual_ensembles.R)"
   },
   {
     "inventory_row_id": "CatBoostRegressor.drop_unused_features",
@@ -20936,12 +20960,12 @@
     "inventory_row_id": "CatBoostRegressor.predict",
     "oracle": "python",
     "kind": "method",
-    "method": null,
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "method": "elementwise",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_predict_classes.R",
+    "state": "green",
+    "tolerance_justification": "predict() is defined once on the CatBoost base class (core.py:2286) and is not overridden in a way that changes its numeric output by any of the three subclasses -- CatBoostRanker.predict() does override it, but only to hard-code prediction_type=\"RawFormulaVal\" and drop the kwarg entirely (core.py); values are RawFormulaVal on both sides regardless, so R's single catboost.predict() function (R/catboost.R:3772) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.predict rows; verified per-class via the same loss families as test_eval_metrics_classes.R (MultiClass base, Logloss classifier, RMSE regressor, YetiRank ranker); matches the 1e-6 tolerance already used for this suite's other oracle-python numeric comparisons.",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.predict",
@@ -20952,7 +20976,10 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "elementwise",
+    "final_method_confidence": 90,
+    "final_method_note": "primary output is a numeric prediction array (RawFormulaVal by default); not overridden in a way that changes its numeric output by any CatBoost subclass (core.py:2286) -- CatBoostRanker.predict() overrides only to hard-code prediction_type=\"RawFormulaVal\", values are unaffected -- so this judgment is shared across all 4 estimator classes"
   },
   {
     "inventory_row_id": "CatBoostRegressor.save_model",
@@ -20980,12 +21007,12 @@
     "inventory_row_id": "CatBoostRegressor.shrink",
     "oracle": "python",
     "kind": "method",
-    "method": null,
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "method": "elementwise",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_shrink_classes.R",
+    "state": "green",
+    "tolerance_justification": "shrink() is defined once on the CatBoost base class and is not overridden by any of the three subclasses; both languages route to the same native truncation entry point (src/catboostr.cpp's CatBoostShrinkModel_R vs. the Python _object.Truncate binding), so R's single catboost.shrink() function (R/catboost.R:4131) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.shrink rows; it has no output of its own (Python returns None, R returns a constant TRUE), so parity is verified via predict(RawFormulaVal) taken before and after the same [ntree_start=2, ntree_end=8) truncation on a 10-tree model per class -- matches the 1e-6 tolerance already used for this suite's other oracle-python numeric-prediction comparisons (test_drop_unused_features_classes.R).",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.shrink",
@@ -20996,18 +21023,21 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "elementwise",
+    "final_method_confidence": 60,
+    "final_method_note": "state-mutator with no output of its own (Python returns None, R returns a constant TRUE, src/catboostr.cpp:2397); both languages route to the same native TFullModel::Truncate(), so parity is observable via predictions staying correctly truncated before/after the call (same pattern as the drop_unused_features rows); not overridden by any CatBoost subclass, so this judgment is shared across all 4 estimator classes"
   },
   {
     "inventory_row_id": "CatBoostRegressor.staged_predict",
     "oracle": "python",
     "kind": "method",
-    "method": null,
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "method": "elementwise",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_staged_predict_classes.R",
+    "state": "green",
+    "tolerance_justification": "staged_predict() is defined once on the CatBoost base class (core.py:2328) and is not overridden in a way that changes its numeric output by any of the three subclasses -- CatBoostRanker.staged_predict() overrides only to hard-code prediction_type=\"RawFormulaVal\" (same pattern as predict()); values are RawFormulaVal on both sides regardless, so R's single catboost.staged_predict() function (R/catboost.R:3822) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.staged_predict rows; verified per-class across 4 cumulative eval_period=3 checkpoints (10-tree model) against the same loss families as test_predict_classes.R; matches the 1e-6 tolerance already used for this suite's other oracle-python numeric comparisons.",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.staged_predict",
@@ -21018,18 +21048,21 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "elementwise",
+    "final_method_confidence": 90,
+    "final_method_note": "primary output is a sequence of numeric prediction arrays, one per eval_period checkpoint (RawFormulaVal by default); not overridden in a way that changes its numeric output by any CatBoost subclass (core.py:2328) -- CatBoostRanker.staged_predict() overrides only to hard-code prediction_type=\"RawFormulaVal\", values are unaffected -- so this judgment is shared across all 4 estimator classes"
   },
   {
     "inventory_row_id": "CatBoostRegressor.virtual_ensembles_predict",
     "oracle": "python",
     "kind": "method",
-    "method": null,
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "method": "elementwise",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_virtual_ensembles.R",
+    "state": "green",
+    "tolerance_justification": "virtual_ensembles_predict() is defined once on the CatBoost base class and is not overridden by any of the three subclasses, so R's single catboost.virtual_ensembles_predict() function (R/catboost.R:3899) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.virtual_ensembles_predict rows; already differentially tested against the Python oracle at 1e-12 tolerance for both VirtEnsembles and TotalUncertainty prediction types (catboost-8z4.61, tests/testthat/test_virtual_ensembles.R) -- the reshape agreement it verifies (R's aperm(array(...)) vs. numpy's reshape(N,V,D)) does not depend on which of the four estimator classes invoked it, so this ticket syncs test_id to that existing coverage rather than duplicating it.",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.virtual_ensembles_predict",
@@ -21040,7 +21073,10 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "elementwise",
+    "final_method_confidence": 85,
+    "final_method_note": "primary output is a numeric array (VirtEnsembles reshape) or matrix (TotalUncertainty); not overridden by any CatBoost subclass, so this judgment is shared across all 4 estimator classes; already differentially tested against the Python oracle (catboost-8z4.61, tests/testthat/test_virtual_ensembles.R)"
   },
   {
     "inventory_row_id": "CatBoostRanker.drop_unused_features",
@@ -21168,12 +21204,12 @@
     "inventory_row_id": "CatBoostRanker.predict",
     "oracle": "python",
     "kind": "method",
-    "method": null,
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "method": "elementwise",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_predict_classes.R",
+    "state": "green",
+    "tolerance_justification": "predict() is defined once on the CatBoost base class (core.py:2286) and is not overridden in a way that changes its numeric output by any of the three subclasses -- CatBoostRanker.predict() does override it, but only to hard-code prediction_type=\"RawFormulaVal\" and drop the kwarg entirely (core.py); values are RawFormulaVal on both sides regardless, so R's single catboost.predict() function (R/catboost.R:3772) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.predict rows; verified per-class via the same loss families as test_eval_metrics_classes.R (MultiClass base, Logloss classifier, RMSE regressor, YetiRank ranker); matches the 1e-6 tolerance already used for this suite's other oracle-python numeric comparisons.",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.predict",
@@ -21184,7 +21220,10 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "elementwise",
+    "final_method_confidence": 90,
+    "final_method_note": "primary output is a numeric prediction array (RawFormulaVal by default); not overridden in a way that changes its numeric output by any CatBoost subclass (core.py:2286) -- CatBoostRanker.predict() overrides only to hard-code prediction_type=\"RawFormulaVal\", values are unaffected -- so this judgment is shared across all 4 estimator classes"
   },
   {
     "inventory_row_id": "CatBoostRanker.save_model",
@@ -21212,12 +21251,12 @@
     "inventory_row_id": "CatBoostRanker.shrink",
     "oracle": "python",
     "kind": "method",
-    "method": null,
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "method": "elementwise",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_shrink_classes.R",
+    "state": "green",
+    "tolerance_justification": "shrink() is defined once on the CatBoost base class and is not overridden by any of the three subclasses; both languages route to the same native truncation entry point (src/catboostr.cpp's CatBoostShrinkModel_R vs. the Python _object.Truncate binding), so R's single catboost.shrink() function (R/catboost.R:4131) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.shrink rows; it has no output of its own (Python returns None, R returns a constant TRUE), so parity is verified via predict(RawFormulaVal) taken before and after the same [ntree_start=2, ntree_end=8) truncation on a 10-tree model per class -- matches the 1e-6 tolerance already used for this suite's other oracle-python numeric-prediction comparisons (test_drop_unused_features_classes.R).",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.shrink",
@@ -21228,18 +21267,21 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "elementwise",
+    "final_method_confidence": 60,
+    "final_method_note": "state-mutator with no output of its own (Python returns None, R returns a constant TRUE, src/catboostr.cpp:2397); both languages route to the same native TFullModel::Truncate(), so parity is observable via predictions staying correctly truncated before/after the call (same pattern as the drop_unused_features rows); not overridden by any CatBoost subclass, so this judgment is shared across all 4 estimator classes"
   },
   {
     "inventory_row_id": "CatBoostRanker.staged_predict",
     "oracle": "python",
     "kind": "method",
-    "method": null,
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "method": "elementwise",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_staged_predict_classes.R",
+    "state": "green",
+    "tolerance_justification": "staged_predict() is defined once on the CatBoost base class (core.py:2328) and is not overridden in a way that changes its numeric output by any of the three subclasses -- CatBoostRanker.staged_predict() overrides only to hard-code prediction_type=\"RawFormulaVal\" (same pattern as predict()); values are RawFormulaVal on both sides regardless, so R's single catboost.staged_predict() function (R/catboost.R:3822) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.staged_predict rows; verified per-class across 4 cumulative eval_period=3 checkpoints (10-tree model) against the same loss families as test_predict_classes.R; matches the 1e-6 tolerance already used for this suite's other oracle-python numeric comparisons.",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.staged_predict",
@@ -21250,18 +21292,21 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "elementwise",
+    "final_method_confidence": 90,
+    "final_method_note": "primary output is a sequence of numeric prediction arrays, one per eval_period checkpoint (RawFormulaVal by default); not overridden in a way that changes its numeric output by any CatBoost subclass (core.py:2328) -- CatBoostRanker.staged_predict() overrides only to hard-code prediction_type=\"RawFormulaVal\", values are unaffected -- so this judgment is shared across all 4 estimator classes"
   },
   {
     "inventory_row_id": "CatBoostRanker.virtual_ensembles_predict",
     "oracle": "python",
     "kind": "method",
-    "method": null,
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "method": "elementwise",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_virtual_ensembles.R",
+    "state": "green",
+    "tolerance_justification": "virtual_ensembles_predict() is defined once on the CatBoost base class and is not overridden by any of the three subclasses, so R's single catboost.virtual_ensembles_predict() function (R/catboost.R:3899) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.virtual_ensembles_predict rows; already differentially tested against the Python oracle at 1e-12 tolerance for both VirtEnsembles and TotalUncertainty prediction types (catboost-8z4.61, tests/testthat/test_virtual_ensembles.R) -- the reshape agreement it verifies (R's aperm(array(...)) vs. numpy's reshape(N,V,D)) does not depend on which of the four estimator classes invoked it, so this ticket syncs test_id to that existing coverage rather than duplicating it.",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.virtual_ensembles_predict",
@@ -21272,7 +21317,10 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "elementwise",
+    "final_method_confidence": 85,
+    "final_method_note": "primary output is a numeric array (VirtEnsembles reshape) or matrix (TotalUncertainty); not overridden by any CatBoost subclass, so this judgment is shared across all 4 estimator classes; already differentially tested against the Python oracle (catboost-8z4.61, tests/testthat/test_virtual_ensembles.R)"
   },
   {
     "inventory_row_id": "mode:eval-metrics",

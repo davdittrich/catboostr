@@ -4751,6 +4751,10 @@ catboost.get_roc_curve <- function(model, pool) {
     probability <- c(probability, catboost.predict(model, p, prediction_type = "Probability"))
     target <- c(target, as.integer(label + 0.5)) # custom round for accuracy, matches TRocCurve::BuildCurve
   }
+  bad <- unique(target[!(target %in% c(0L, 1L))])
+  if (length(bad) > 0)
+    stop("catboost.get_roc_curve requires labels that round to 0 or 1 (binary classification); ",
+         "found rounded label(s): ", paste(bad, collapse = ", "))
 
   count1 <- sum(target == 1L)
   count0 <- sum(target == 0L)

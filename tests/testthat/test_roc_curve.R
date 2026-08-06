@@ -92,6 +92,17 @@ test_that("get_roc_curve: accepts a list of pools, concatenating them", {
   expect_equal(result_split, result_whole, tolerance = PY_TOL)
 })
 
+test_that("get_roc_curve: rejects a label that rounds outside {0, 1}", {
+  bad_label <- inputs$label
+  bad_label[1] <- 2 # rounds to 2L, not a valid binary class
+  bad_pool <- catboost.load_pool(
+    data.frame(num1 = inputs$num1, num2 = inputs$num2),
+    label = bad_label,
+    feature_names = as.list(inputs$feature_names)
+  )
+  expect_error(catboost.get_roc_curve(py_model, bad_pool), "rounded label")
+})
+
 ## --- mode:roc (CLI oracle) ---
 
 cli_data <- read.csv(

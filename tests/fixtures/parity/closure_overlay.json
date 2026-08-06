@@ -205,6 +205,10 @@
     "state": "green",
     "test_id": "tests/testthat/test_roc_curve.R"
   },
+  "flag:--cv": {
+    "test_id": "tests/testthat/test_model.R",
+    "tolerance_justification": "BLOCKED, not green. Verified directly: ran the pinned CLI oracle (tools/oracle/cli/bin/catboost-v1.2.10, v1.2.10) `fit --cv Classical:{0,1,2};3 --cv-no-shuffle` against R's `catboost.cv(fold_count = 3, type = \"Classical\", shuffle = FALSE)`, same params (iterations=10, depth=2, learning_rate=0.3, random_seed=42, loss_function=Logloss, boosting_type=Plain, thread_count=1, use_best_model=FALSE) and the same shared numeric-only dataset (tests/fixtures/oracle-cli/smoke_data.csv). The two produce entirely different per-iteration test-metric curves for every fold (not a reordering) because they run different native code paths: the CLI's fit/eval-feature/model-based-eval/select-features `--cv` flag is parsed into TCvDataPartitionParams (catboost/private/libs/options/cross_validation_params.h) at data-load time to pick a single train/test split (fold n of k) -- used by catboost/libs/train_lib/eval_feature.cpp's single-split path -- while R's catboost.cv binds directly to CrossValidate() (catboost/libs/train_lib/cross_validation.cpp), which builds and averages ALL k folds via the separate TCrossValidationParams struct. The matrix's matched_r_symbol=catboost.cv is a name-based match, not a verified mechanism match; per spec 4.4 this is left red rather than fabricated green. catboost.cv itself is real, extensively tested surface (test_model.R, test_params_validation.R) -- the gap is specifically the CLI --cv flag's own data-partition code path, which the R package has no binding for."
+  },
   "flag:--input-path/-i": {
     "state": "green",
     "test_id": "tests/testthat/test_scale_and_bias.R",

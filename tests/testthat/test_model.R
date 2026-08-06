@@ -539,6 +539,49 @@ test_that("model: catboost.cv with eval_metric=AUC", {
   expect_true(all(cv_result$test.AUC.mean >= 0))
 })
 
+# catboost-8z4.NN (flag:--cv row): catboost.cv's `type` argument (Classical/
+# Inverted/TimeSeries) is the R-side equivalent of the CLI's `--cv
+# type:n;k` descriptor's type component -- this test proves the argument is
+# real (reaches native code and changes the fold split) using only R, no CLI
+# binary dependency. It deliberately does NOT compare against a CLI oracle:
+# investigation (tools/oracle/cli's pinned v1.2.10 binary, `fit --cv
+# Classical:{0,1,2};3 --cv-no-shuffle` on this same dataset) showed CLI's
+# `--cv` flag (fit/eval-feature/model-based-eval/select-features) is parsed
+# into TCvDataPartitionParams at data-load time to pick a single train/test
+# split, a different native code path from the TCrossValidationParams-based
+# CrossValidate() that catboost.cv binds to (which builds and averages ALL k
+# folds) -- so the matrix's matched_r_symbol=catboost.cv is a name-based
+# match, not a mechanism match, and flag:--cv stays red (see
+# tests/fixtures/parity/closure_overlay.json).
+test_that("model: catboost.cv's type argument (Classical vs Inverted) changes the fold split", {
+  target <- sample(c(1, -1), size = 60, replace = TRUE)
+  features <- data.frame(f1 = rnorm(length(target), mean = 0, sd = 1),
+                         f2 = rnorm(length(target), mean = 0, sd = 1))
+  pool <- catboost.load_pool(features, target)
+
+  params <- list(iterations = 5,
+                 depth = 2,
+                 loss_function = "Logloss",
+                 random_seed = 42,
+                 thread_count = 1,
+                 use_best_model = FALSE,
+                 allow_writing_files = FALSE)
+
+  cv_classical <- catboost.cv(pool = pool, params = params, fold_count = 3,
+                              type = "Classical", shuffle = FALSE)
+  cv_inverted <- catboost.cv(pool = pool, params = params, fold_count = 3,
+                             type = "Inverted", shuffle = FALSE)
+
+  # Classical trains on k-1 folds and tests on 1 (small test set); Inverted
+  # trains on 1 fold and tests on k-1 (large test set) -- same data, same
+  # seed, only `type` differs, so an identical result would mean the
+  # argument never reached native code.
+  expect_false(isTRUE(all.equal(cv_classical$test.Logloss.mean,
+                                cv_inverted$test.Logloss.mean)))
+  expect_true(all(cv_classical$test.Logloss.std >= 0))
+  expect_true(all(cv_inverted$test.Logloss.std >= 0))
+})
+
 test_that("model: catboost.sum_models", {
     target_train <- sample(c(0, 1), size = 20, replace = TRUE)
     features_train <- data.frame(f1 = rnorm(length(target_train), mean = 0, sd = 1),

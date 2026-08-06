@@ -1579,6 +1579,11 @@
     65,
     ""
   ],
+  "mode:eval-metrics": [
+    "elementwise",
+    85,
+    "primary output is a per-iteration numeric metric-value array (iter -> {metric: value})"
+  ],
   "mode:fit": [
     "roundtrip",
     80,

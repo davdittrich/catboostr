@@ -11593,6 +11593,45 @@
     "family_size": 1
   },
   {
+    "inventory_row_id": "flag:--cv",
+    "oracle": "cli",
+    "kind": "flag",
+    "method": "parameter_or_flag",
+    "tolerance": null,
+    "test_id": "tests/testthat/test_model.R",
+    "state": "red",
+    "tolerance_justification": "BLOCKED, not green. Verified directly: ran the pinned CLI oracle (tools/oracle/cli/bin/catboost-v1.2.10, v1.2.10) `fit --cv Classical:{0,1,2};3 --cv-no-shuffle` against R's `catboost.cv(fold_count = 3, type = \"Classical\", shuffle = FALSE)`, same params (iterations=10, depth=2, learning_rate=0.3, random_seed=42, loss_function=Logloss, boosting_type=Plain, thread_count=1, use_best_model=FALSE) and the same shared numeric-only dataset (tests/fixtures/oracle-cli/smoke_data.csv). The two produce entirely different per-iteration test-metric curves for every fold (not a reordering) because they run different native code paths: the CLI's fit/eval-feature/model-based-eval/select-features `--cv` flag is parsed into TCvDataPartitionParams (catboost/private/libs/options/cross_validation_params.h) at data-load time to pick a single train/test split (fold n of k) -- used by catboost/libs/train_lib/eval_feature.cpp's single-split path -- while R's catboost.cv binds directly to CrossValidate() (catboost/libs/train_lib/cross_validation.cpp), which builds and averages ALL k folds via the separate TCrossValidationParams struct. The matrix's matched_r_symbol=catboost.cv is a name-based match, not a verified mechanism match; per spec 4.4 this is left red rather than fabricated green. catboost.cv itself is real, extensively tested surface (test_model.R, test_params_validation.R) -- the gap is specifically the CLI --cv flag's own data-partition code path, which the R package has no binding for.",
+    "needs_disposition": false,
+    "members": [
+      {
+        "capability": "flag:fit:--cv",
+        "owner": "fit",
+        "matched_r_symbol": "catboost.cv"
+      },
+      {
+        "capability": "flag:eval-feature:--cv",
+        "owner": "eval-feature",
+        "matched_r_symbol": "catboost.cv"
+      },
+      {
+        "capability": "flag:model-based-eval:--cv",
+        "owner": "model-based-eval",
+        "matched_r_symbol": "catboost.cv"
+      },
+      {
+        "capability": "flag:select-features:--cv",
+        "owner": "select-features",
+        "matched_r_symbol": "catboost.cv"
+      }
+    ],
+    "universal": false,
+    "disposition": "parameter_flag_family",
+    "disposition_rule": "kind in (parameter, flag)",
+    "disposition_confidence": 100,
+    "family_id": "flag:--cv",
+    "family_size": 4
+  },
+  {
     "inventory_row_id": "catboost.CatBoost",
     "oracle": "python",
     "kind": "class",
@@ -20233,45 +20272,6 @@
     "final_method_note": "dumps resolved options as JSON to console"
   },
   {
-    "inventory_row_id": "flag:--cv",
-    "oracle": "cli",
-    "kind": "flag",
-    "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": "tests/testthat/test_model.R",
-    "state": "red",
-    "tolerance_justification": "BLOCKED, not green. Verified directly: ran the pinned CLI oracle (tools/oracle/cli/bin/catboost-v1.2.10, v1.2.10) `fit --cv Classical:{0,1,2};3 --cv-no-shuffle` against R's `catboost.cv(fold_count = 3, type = \"Classical\", shuffle = FALSE)`, same params (iterations=10, depth=2, learning_rate=0.3, random_seed=42, loss_function=Logloss, boosting_type=Plain, thread_count=1, use_best_model=FALSE) and the same shared numeric-only dataset (tests/fixtures/oracle-cli/smoke_data.csv). The two produce entirely different per-iteration test-metric curves for every fold (not a reordering) because they run different native code paths: the CLI's fit/eval-feature/model-based-eval/select-features `--cv` flag is parsed into TCvDataPartitionParams (catboost/private/libs/options/cross_validation_params.h) at data-load time to pick a single train/test split (fold n of k) -- used by catboost/libs/train_lib/eval_feature.cpp's single-split path -- while R's catboost.cv binds directly to CrossValidate() (catboost/libs/train_lib/cross_validation.cpp), which builds and averages ALL k folds via the separate TCrossValidationParams struct. The matrix's matched_r_symbol=catboost.cv is a name-based match, not a verified mechanism match; per spec 4.4 this is left red rather than fabricated green. catboost.cv itself is real, extensively tested surface (test_model.R, test_params_validation.R) -- the gap is specifically the CLI --cv flag's own data-partition code path, which the R package has no binding for.",
-    "needs_disposition": false,
-    "members": [
-      {
-        "capability": "flag:fit:--cv",
-        "owner": "fit",
-        "matched_r_symbol": "catboost.cv"
-      },
-      {
-        "capability": "flag:eval-feature:--cv",
-        "owner": "eval-feature",
-        "matched_r_symbol": "catboost.cv"
-      },
-      {
-        "capability": "flag:model-based-eval:--cv",
-        "owner": "model-based-eval",
-        "matched_r_symbol": "catboost.cv"
-      },
-      {
-        "capability": "flag:select-features:--cv",
-        "owner": "select-features",
-        "matched_r_symbol": "catboost.cv"
-      }
-    ],
-    "universal": false,
-    "disposition": "parameter_flag_family",
-    "disposition_rule": "kind in (parameter, flag)",
-    "disposition_confidence": 100,
-    "family_id": "flag:--cv",
-    "family_size": 4
-  },
-  {
     "inventory_row_id": "catboost.cv",
     "oracle": "python",
     "kind": "function",
@@ -21221,12 +21221,12 @@
     "inventory_row_id": "mode:eval-metrics",
     "oracle": "cli",
     "kind": "mode",
-    "method": null,
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "method": "elementwise",
+    "tolerance": 1e-09,
+    "test_id": "tests/testthat/test_eval_metrics.R",
+    "state": "green",
+    "tolerance_justification": "Spec section 4.3 CLI-path default, not an override. R's catboost.eval_metrics() and CLI's eval-metrics mode both drive TMetricsPlotCalcer (catboost/private/libs/algo/plot.h) -- see src/catboostr.cpp's CatBoostEvalMetrics_R and vendor/catboost/catboost/app/mode_eval_metrics.cpp. Confirmed against this mode's own output format: the pinned oracle TSV (tests/fixtures/oracle-cli/eval_metrics.tsv) prints 10 significant digits and eval-metrics exposes no --precision flag, so bit-exactness is not asserted.",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "mode:eval-metrics",
@@ -21237,6 +21237,9 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "elementwise",
+    "final_method_confidence": 85,
+    "final_method_note": "primary output is a per-iteration numeric metric-value array (iter -> {metric: value})"
   }
 ]

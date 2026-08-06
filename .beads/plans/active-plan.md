@@ -1,38 +1,43 @@
 # Active Plan
-<!-- approved: 2026-08-03 -->
-<!-- gate-iterations: 3 -->
+<!-- approved: 2026-08-06 -->
+<!-- gate-iterations: 2 -->
 <!-- user-approved: yes -->
-<!-- status: merged-to-phase-0 -->
+<!-- status: in-progress -->
 
-Phase 5 (Training-control parity, spec line 639) merged to phase-0 at
-a5272a0 (merge commit; whole-branch fix wave on top of task work). All 7
-tasks complete, gate condition (differential tests green) met: 120/139
-generated parameter matrix rows green with independently-verified
-coverage, 19 red with documented blockers (GPU-only, native rejection, or
-no R equivalent). Merged-result rebuild and full test suite re-verified
-green (only the 2 pre-existing documented skips). Worktree and branch
-removed. Plan file:
-docs/superpowers/plans/2026-08-03-phase5-training-control-parity.md. SDD
-ledger: .superpowers/sdd/2026-08-03-phase5-training-control-parity/progress.md.
-Execution order was (serial, P5.1 then P5.5 share catboost.train/
-catboost.cv — enforced by a beads blocks dependency, catboost-8z4.62
-depends on catboost-8z4.58):
+Phase 7 (Parity-cleanup follow-ups, from Phase 6) executing on phase-0 via
+subagent-driven-development. Plan file:
+docs/superpowers/plans/2026-08-06-phase7-parity-cleanup-followups.md. SDD
+ledger: .superpowers/sdd/2026-08-06-phase7-parity-cleanup-followups/progress.md.
 
-- catboost-8z4.58 (P5.1) — init_model support (continue training)
-- catboost-8z4.59 (P5.2) — grid_search / randomized_search
-- catboost-8z4.60 (P5.3) — select_features
-- catboost-8z4.61 (P5.4) — virtual ensembles verified end-to-end
-- catboost-8z4.62 (P5.5) — generated parameter documentation, validation,
-  and family-level differential closure of all 139 param:* matrix rows
-- catboost-8z4.63 (P5.6) — CLI metadata mode parity
-- catboost-8z4.64 (P5.7) — CLI normalize-model mode parity
+Gate: task-specific — catboost-8z4.73 needs tools/parity Python suite green
+only; catboost-8z4.74/.75/.76-.82 need R CMD INSTALL --preclean clean + full
+testthat green (and .76-.82 also need tools/parity Python suite green);
+vendor/catboost/ untouched throughout.
 
-Follow-up tickets filed during Phase 5, none blocking: catboost-8z4.65
-(outbound params JSON truncation in catboost.train/cv), catboost-8z4.66
-(Phase 2 inventory pipeline gap), catboost-8z4.67 (minor regex-robustness
-gap in the whitelist generator).
+Execution order (bd blocks: .76-.82 all depend on .73):
 
-Prior phase: Phase 4 (Analysis parity) merged to phase-0 at 1acd501, 7/8
-gate items green, mode:model-based-eval stays red (GPU-only, documented).
-Follow-up ticket catboost-jpp (deferred Minor findings) still open, not
-blocking.
+1. catboost-8z4.73 — fix/retire stale test_apply_disposition.py self-consistency assertion
+2. catboost-8z4.74 — CatBoostPoolNumTrees_R exports/init.c registration mismatch
+3. catboost-8z4.75 — catboost.save_model toJSON digits=4 truncation (same class as .65)
+4. catboost-8z4.76 — flag:--cv row closure (bulk parameter/flag family)
+5. catboost-8z4.77 — mode:eval-metrics row closure
+6. catboost-8z4.78 — training entry points (catboost.cv/sum_models/train)
+7. catboost-8z4.79 — eval_metrics method x4 classes
+8. catboost-8z4.80 — feature introspection x3 methods x4 classes (12 rows)
+9. catboost-8z4.81 — prediction family x4 methods x4 classes (16 rows)
+10. catboost-8z4.82 — persistence (load_model/save_model) x4 classes (8 rows)
+
+catboost-8z4.76-.82 are the atomic per-capability split (spec §4.5, per
+no-bundling rule) of the previously-bundled catboost-8z4.72, now CLOSED
+pointing at these 7.
+
+Plan review gate history: 2 iterations. Iter 1: Feasibility PASS,
+Completeness PASS, Scope FAIL (catboost-8z4.72 bundled parameter/flag AND
+method/mode-shaped rows in one ticket, violating spec §4.5) — fixed by
+force-closing catboost-8z4.72 and filing catboost-8z4.76-.82. Iter 2: 3/3
+PASS, only a trivial "8 vs 7 tickets" wording fix in Global Constraints.
+
+Prior phase: Phase 6 (Parity debt cleanup) merged to phase-0, gate met (7/7
+tasks, final whole-branch review 0 Critical/Important, 6 Minor, one fix
+wave). Epic catboost-8z4's own history is in git log / bd show — not
+restated here.

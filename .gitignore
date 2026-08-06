@@ -22,3 +22,4 @@ catboost_info/
 # instead of tracked.
 tests/fixtures/oracle/smoke_model.cbm
 tests/fixtures/oracle-cli/smoke_model.cbm
+.tmp-build/

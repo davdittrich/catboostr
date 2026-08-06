@@ -1,35 +1,41 @@
 # Active Plan
-<!-- approved: 2026-08-06 -->
+<!-- approved: 2026-08-07 -->
 <!-- gate-iterations: 1 -->
 <!-- user-approved: yes -->
-<!-- status: merged-to-phase-0 -->
+<!-- status: in-progress -->
 
-Follow-up triage batch (catboost-8z4.83, .84, .85) merged to phase-0
-(fast-forward, 8158156..648262b, 5 commits). All 3 tasks complete, final
-whole-branch review found 1 Important finding (14 stale R/catboost.R line
-citations in comments, caused by earlier line shifts within this same
-batch) -- fixed and re-reviewed clean. Merged-result rebuild and full test
-suite re-verified green (R: 736 PASS, 0 FAIL, 2 pre-existing documented
-skips; tools/parity: 47/47). Worktree and branch removed. Plan file:
-docs/superpowers/plans/2026-08-06-followup-triage.md.
+roxygen2 DLL-reload investigation (catboost-8z4.86 -- filed during the
+parity-cleanup-followups-2 batch's task review, non-blocking) on phase-0
+(e0cdcbc). Plan file:
+.superpowers/sdd/2026-08-07-roxygen2-dll-reload-review-plan.md.
 
-Outcomes:
-1. catboost-8z4.83 -- removed dead ntree_end/ntree_start args from
-   catboost.drop_unused_features (no native tree-range support exists);
-   now matches Python's argument-free signature.
-2. catboost-8z4.84 -- investigated R-vs-Python default prediction_type
-   divergence; documented as intentional API difference (R has no
-   per-subclass hook), not a behavior fix.
-3. catboost-8z4.85 -- extracted tools/oracle/_classes_common.py, deduping
-   dataset/param preamble across 7 fixture-generator scripts (pure
-   refactor, all fixtures verified byte-identical).
+Note: the ticket's original filing mis-diagnosed the cause as an "OpenSSL
+environment-variable issue." The controller independently reproduced the
+failure before rewriting the ticket and found this diagnosis wrong: the
+full rebuild (~15 min, including the pinned OpenSSL static build)
+completes successfully; the real failure is
+`Error in getDLLRegisteredRoutines.DLLInfo(dll, addNames = FALSE) : must
+specify DLL via a "DLLInfo" object`, occurring AFTER install, during
+roxygen2/pkgload's native-routine introspection step
+(`assignNativeRoutines -> getDLLRegisteredRoutines.DLLInfo`). Feasibility
+reviewer additionally found a corroborating clue: the generated NAMESPACE
+has no `useDynLib` directive despite `R/catboost.R:7`'s roxygen tag
+(`@useDynLib libcatboostr, .registration = TRUE`) -- worth checking first
+in execution.
 
-Follow-up ticket filed during this batch, non-blocking: catboost-8z4.86
-(roxygen2/OpenSSL build-environment issue that forced a hand-edited .Rd
-file in task 1).
+Gate: dev-tooling only, no shipped-behavior change expected. Verification:
+regenerate at least one real .Rd file via the fixed/documented path and
+diff against the currently-correct, hand-edited catboost.drop_unused_features.Rd
+(from catboost-8z4.83) to confirm the fix/workaround actually works.
+vendor/catboost/ untouched.
+
+Execution order: single ticket, no dependencies.
+
+1. catboost-8z4.86 -- investigate and fix/document-workaround for roxygen2's post-install DLL-reload failure
 
 Plan review gate history: 1 iteration, 3/3 PASS (no revision needed).
 
-Prior batch: parity-cleanup-followups-2 (catboost-8z4.73-.82) merged to
-phase-0, gate met (10/10 tasks). Epic catboost-8z4's own history is in git
-log / bd show -- not restated here.
+Prior batch: followup-triage (catboost-8z4.83-.85) merged to phase-0, gate
+met (3/3 tasks, final whole-branch review found and fixed 1 Important
+finding -- stale line citations). Epic catboost-8z4's own history is in
+git log / bd show -- not restated here.

@@ -47,6 +47,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"CatBoostPoolNumCol_R",                  (DL_FUNC) &CatBoostPoolNumCol_R,                   1},
     {"CatBoostPoolNumPairs_R",                (DL_FUNC) &CatBoostPoolNumPairs_R,                 1},
     {"CatBoostPoolNumRow_R",                  (DL_FUNC) &CatBoostPoolNumRow_R,                   1},
+    {"CatBoostPoolNumTrees_R",                (DL_FUNC) &CatBoostPoolNumTrees_R,                 1},
     {"CatBoostPoolQuantize_R",                (DL_FUNC) &CatBoostPoolQuantize_R,                 2},
     {"CatBoostPoolSaveQuantizationBorders_R", (DL_FUNC) &CatBoostPoolSaveQuantizationBorders_R,  2},
     {"CatBoostPoolSetBaseline_R",             (DL_FUNC) &CatBoostPoolSetBaseline_R,              2},

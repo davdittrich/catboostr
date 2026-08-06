@@ -3669,7 +3669,7 @@ catboost.save_model <- function(model, model_path,
         stop("Pool object is invalid.")
     params_string <- ""
     if (!is.null(export_parameters))
-        params_string <- jsonlite::toJSON(export_parameters, auto_unbox = TRUE)
+        params_string <- jsonlite::toJSON(export_parameters, auto_unbox = TRUE, digits = NA)
 
     catboost.restore_handle(model)
     model_path <- path.expand(model_path)

@@ -2913,7 +2913,13 @@ prepare_train_export_parameters <- function(params) {
         params$ignored_features <- I(as.character(params$ignored_features))
     }
 
-    return(jsonlite::toJSON(params, auto_unbox = TRUE, digits = 10))
+    # digits = NA: jsonlite's full-round-trip-precision mode. digits = 10
+    # (jsonlite's default) truncated hyperparameter values (e.g. learning_rate,
+    # l2_leaf_reg) to 10 significant digits before they ever reached the
+    # native training call -- same defect class as prepare_grid_json's fix
+    # below (catboost-8z4.60), but here at the shared catboost.train/catboost.cv
+    # serialization site (catboost-8z4.65).
+    return(jsonlite::toJSON(params, auto_unbox = TRUE, digits = NA))
 }
 
 #' @name catboost.cv
@@ -4715,7 +4721,9 @@ catboost.compare <- function(model, other, pool, metrics, ntree_start = 0L, ntre
 #'
 #' Default value: Required argument
 #' @param pool A \code{catboost.Pool} (or list of \code{catboost.Pool}s) with label data, used
-#' to build the curve. Labels are binarized: values >= 0.5 count as the positive class.
+#' to build the curve. Labels are binarized: values >= 0.5 count as the positive class. Labels
+#' that do not round to 0 or 1 (i.e. the pool is not a binary classification target) make the
+#' call fail with an error.
 #'
 #' Default value: Required argument
 #' @return A list with three numeric vectors of equal length, sorted by decreasing
@@ -4745,6 +4753,10 @@ catboost.get_roc_curve <- function(model, pool) {
     probability <- c(probability, catboost.predict(model, p, prediction_type = "Probability"))
     target <- c(target, as.integer(label + 0.5)) # custom round for accuracy, matches TRocCurve::BuildCurve
   }
+  bad <- unique(target[!(target %in% c(0L, 1L))])
+  if (length(bad) > 0)
+    stop("catboost.get_roc_curve requires labels that round to 0 or 1 (binary classification); ",
+         "found rounded label(s): ", paste(bad, collapse = ", "))
 
   count1 <- sum(target == 1L)
   count0 <- sum(target == 0L)
@@ -4760,6 +4772,7 @@ catboost.get_roc_curve <- function(model, pool) {
   fpr <- numeric(0)
   boundary <- numeric(0)
   eps <- 1e-13
+  # ponytail: O(n^2) vector growth via <<- append per boundary point; pre-allocate numeric(n) for boundary/fnr/fpr and truncate if profiling shows this is load-bearing at scale
   add_point <- function(newBoundary, newFnr, newFpr) {
     len <- length(fnr)
     if (len > 0) {

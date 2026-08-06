@@ -6,6 +6,8 @@
   "gap_count_deduplicated": 725,
   "distinct_flag_count": 224,
   "distinct_parameter_count": 139,
+  "distinct_flag_count_matrix_total": 225,
+  "distinct_parameter_count_matrix_total": 139,
   "universal_flag_count": 2,
   "universal_flags": [
     "--help",
@@ -11519,7 +11521,8 @@
       "capability": "flag:fit:--cv",
       "kind": "flag",
       "owner": "fit",
-      "matched_r_symbol": "catboost.cv"
+      "matched_r_symbol": "catboost.cv",
+      "dedup_key": "flag:--cv"
     },
     {
       "oracle": "cli",
@@ -11533,21 +11536,24 @@
       "capability": "flag:eval-feature:--cv",
       "kind": "flag",
       "owner": "eval-feature",
-      "matched_r_symbol": "catboost.cv"
+      "matched_r_symbol": "catboost.cv",
+      "dedup_key": "flag:--cv"
     },
     {
       "oracle": "cli",
       "capability": "flag:model-based-eval:--cv",
       "kind": "flag",
       "owner": "model-based-eval",
-      "matched_r_symbol": "catboost.cv"
+      "matched_r_symbol": "catboost.cv",
+      "dedup_key": "flag:--cv"
     },
     {
       "oracle": "cli",
       "capability": "flag:select-features:--cv",
       "kind": "flag",
       "owner": "select-features",
-      "matched_r_symbol": "catboost.cv"
+      "matched_r_symbol": "catboost.cv",
+      "dedup_key": "flag:--cv"
     }
   ]
 }

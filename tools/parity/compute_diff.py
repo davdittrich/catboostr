@@ -66,7 +66,10 @@ covered_rows = []
 def classify(oracle, capability, kind, owner, cand_norm, dedup_key=None):
     r_symbol = covered(cand_norm)
     if r_symbol:
-        covered_rows.append({"oracle": oracle, "capability": capability, "kind": kind, "owner": owner, "matched_r_symbol": r_symbol})
+        row = {"oracle": oracle, "capability": capability, "kind": kind, "owner": owner, "matched_r_symbol": r_symbol}
+        if dedup_key is not None:
+            row["dedup_key"] = dedup_key
+        covered_rows.append(row)
     else:
         row = {"oracle": oracle, "capability": capability, "kind": kind, "owner": owner}
         if dedup_key is not None:
@@ -135,6 +138,18 @@ distinct_parameter_count = len({g["dedup_key"] for g in param_gaps})
 non_dedup_gap_count = len(gaps) - len(flag_gaps) - len(param_gaps)
 gap_count_deduplicated = non_dedup_gap_count + distinct_flag_count + distinct_parameter_count
 
+# Covered rows (matched-by-name, but still needing a matrix row per spec
+# Sec 4.5 -- a name match is not a behavior match) can carry flag/parameter
+# dedup_keys too (see classify()). build_matrix.py merges diff["gaps"] and
+# diff["covered"] into one row set, so the *_matrix_total counts below
+# (distinct_flag_count/distinct_parameter_count plus whatever covered rows
+# add) are what its own row count must cross-check against -- kept separate
+# from gap_count_deduplicated, which stays gap-only by definition.
+covered_flag_keys = {c["dedup_key"] for c in covered_rows if c.get("dedup_key", "").startswith("flag:")}
+covered_param_keys = {c["dedup_key"] for c in covered_rows if c.get("dedup_key", "").startswith("param:")}
+distinct_flag_count_matrix_total = len({g["dedup_key"] for g in flag_gaps} | covered_flag_keys)
+distinct_parameter_count_matrix_total = len({g["dedup_key"] for g in param_gaps} | covered_param_keys)
+
 gap_python_only = sum(1 for g in gaps if g["oracle"] == "python")
 gap_cli_only = sum(1 for g in gaps if g["oracle"] == "cli")
 
@@ -146,6 +161,8 @@ out = {
     "gap_count_deduplicated": gap_count_deduplicated,
     "distinct_flag_count": distinct_flag_count,
     "distinct_parameter_count": distinct_parameter_count,
+    "distinct_flag_count_matrix_total": distinct_flag_count_matrix_total,
+    "distinct_parameter_count_matrix_total": distinct_parameter_count_matrix_total,
     "universal_flag_count": len(universal_flag_keys),
     "universal_flags": sorted(k[len("flag:"):] for k in universal_flag_keys),
     "dedup_note": (

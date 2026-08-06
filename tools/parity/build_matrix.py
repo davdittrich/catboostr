@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """P2.1: join tool that merges capability_diff.json's 1537 raw gap rows down
-to the spec's 725-row parity matrix (dedup_key grouping, spec Sec 4.3/4.5).
+to the spec's 770-row parity matrix (dedup_key grouping, spec Sec 4.3/4.5).
 
 Input:  tests/fixtures/parity/capability_diff.json (written by compute_diff.py)
 Output: tests/fixtures/parity/matrix.json
@@ -75,6 +75,13 @@ def validate_precision_ceiling(row: dict) -> None:
         )
 
 
+def _member(entry: dict) -> dict:
+    member = {"capability": entry["capability"], "owner": entry["owner"]}
+    if "matched_r_symbol" in entry:
+        member["matched_r_symbol"] = entry["matched_r_symbol"]
+    return member
+
+
 def build_row(inventory_row_id: str, oracle: str, kind: str, universal: bool,
               members: list) -> dict:
     representative_capability = members[0]["capability"]
@@ -107,20 +114,33 @@ def build_matrix(diff: dict) -> tuple:
     if len(gaps) != 1537:
         raise ValueError(f"expected 1537 raw gap rows, got {len(gaps)}")
 
+    # A capability that compute_diff.py's exact-name matcher resolves against
+    # an R export ends up in `diff["covered"]` instead of `diff["gaps"]` --
+    # but a name match is not a behavior match. It still needs a matrix row
+    # so a differential test can confirm the R implementation is actually
+    # parity-correct (spec Sec 4.5: "no capability may be silently absent").
+    # Merged into the same gaps/passthrough pipeline below so covered rows
+    # go through the identical dedup, method-determination and validation
+    # logic as gap rows.
+    covered = diff["covered"]
+    if len(covered) != 48:
+        raise ValueError(f"expected 48 covered rows, got {len(covered)}")
+
+    entries = gaps + covered
     merged_groups: dict[str, list] = {}
     passthrough: list = []
-    for gap in gaps:
-        dedup_key = gap.get("dedup_key")
+    for entry in entries:
+        dedup_key = entry.get("dedup_key")
         if dedup_key is None:
-            passthrough.append(gap)
+            passthrough.append(entry)
         else:
-            merged_groups.setdefault(dedup_key, []).append(gap)
+            merged_groups.setdefault(dedup_key, []).append(entry)
 
-    assert len(merged_groups) == 363, (
-        f"expected 363 distinct dedup_key groups, got {len(merged_groups)}"
+    assert len(merged_groups) == 364, (
+        f"expected 364 distinct dedup_key groups, got {len(merged_groups)}"
     )
-    assert len(passthrough) == 362, (
-        f"expected 362 passthrough rows, got {len(passthrough)}"
+    assert len(passthrough) == 406, (
+        f"expected 406 passthrough rows, got {len(passthrough)}"
     )
 
     rows = []
@@ -138,7 +158,7 @@ def build_matrix(diff: dict) -> tuple:
         assert len(universal_flags) == 1, (
             f"dedup group {dedup_key!r} has inconsistent 'universal' across members"
         )
-        members = [{"capability": g["capability"], "owner": g["owner"]} for g in group]
+        members = [_member(g) for g in group]
         rows.append(build_row(
             inventory_row_id=dedup_key,
             oracle=next(iter(oracles)),
@@ -148,24 +168,24 @@ def build_matrix(diff: dict) -> tuple:
         ))
 
     seen_ids = {r["inventory_row_id"] for r in rows}
-    for gap in passthrough:
-        inventory_row_id = gap["capability"]
+    for entry in passthrough:
+        inventory_row_id = entry["capability"]
         assert inventory_row_id not in seen_ids, (
             f"passthrough capability {inventory_row_id!r} collides with an "
             "existing inventory_row_id"
         )
         seen_ids.add(inventory_row_id)
-        members = [{"capability": gap["capability"], "owner": gap["owner"]}]
+        members = [_member(entry)]
         rows.append(build_row(
             inventory_row_id=inventory_row_id,
-            oracle=gap["oracle"],
-            kind=gap["kind"],
-            universal=is_universal(gap),
+            oracle=entry["oracle"],
+            kind=entry["kind"],
+            universal=is_universal(entry),
             members=members,
         ))
 
-    if len(rows) != 725:
-        raise ValueError(f"expected 725 output rows, got {len(rows)}")
+    if len(rows) != 770:
+        raise ValueError(f"expected 770 output rows, got {len(rows)}")
     return rows, len(merged_groups), len(passthrough)
 
 
@@ -188,15 +208,15 @@ def summarize(rows: list, merged_count: int, passthrough_count: int, diff: dict)
     universal_row_count = sum(1 for r in rows if r["universal"])
 
     discrepancies = []
-    if distinct_parameter_count != diff["distinct_parameter_count"]:
+    if distinct_parameter_count != diff["distinct_parameter_count_matrix_total"]:
         discrepancies.append(
             f"distinct_parameter_count: matrix={distinct_parameter_count} "
-            f"vs capability_diff.json={diff['distinct_parameter_count']}"
+            f"vs capability_diff.json={diff['distinct_parameter_count_matrix_total']}"
         )
-    if distinct_flag_count != diff["distinct_flag_count"]:
+    if distinct_flag_count != diff["distinct_flag_count_matrix_total"]:
         discrepancies.append(
             f"distinct_flag_count: matrix={distinct_flag_count} "
-            f"vs capability_diff.json={diff['distinct_flag_count']}"
+            f"vs capability_diff.json={diff['distinct_flag_count_matrix_total']}"
         )
     if universal_row_count != len(diff["universal_flags"]):
         discrepancies.append(

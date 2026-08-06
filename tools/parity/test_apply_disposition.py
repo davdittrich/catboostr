@@ -36,12 +36,12 @@ class TestFullPipeline(unittest.TestCase):
         self.assertEqual(self.built_rows, self.committed_matrix)
 
     def test_dispositioned_row_count_and_category_counts(self):
-        self.assertEqual(len(self.dispositioned), 725)
+        self.assertEqual(len(self.dispositioned), 770)
         counts = ad.summarize(self.dispositioned)
-        self.assertEqual(counts["parameter_flag_family"], 361)
+        self.assertEqual(counts["parameter_flag_family"], 362)
         self.assertEqual(counts["universal_flag"], 2)
         self.assertEqual(counts["enum_member_attachment"], 24)
-        self.assertEqual(counts["method_mode_shaped"], 338)
+        self.assertEqual(counts["method_mode_shaped"], 382)
 
     def test_dispositioned_rows_match_matrix_rows_except_documented_fields(self):
         by_id_matrix = {r["inventory_row_id"]: r for r in self.built_rows}

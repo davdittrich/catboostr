@@ -4770,6 +4770,7 @@ catboost.get_roc_curve <- function(model, pool) {
   fpr <- numeric(0)
   boundary <- numeric(0)
   eps <- 1e-13
+  # ponytail: O(n^2) vector growth via <<- append per boundary point; pre-allocate numeric(n) for boundary/fnr/fpr and truncate if profiling shows this is load-bearing at scale
   add_point <- function(newBoundary, newFnr, newFpr) {
     len <- length(fnr)
     if (len > 0) {

@@ -4721,7 +4721,9 @@ catboost.compare <- function(model, other, pool, metrics, ntree_start = 0L, ntre
 #'
 #' Default value: Required argument
 #' @param pool A \code{catboost.Pool} (or list of \code{catboost.Pool}s) with label data, used
-#' to build the curve. Labels are binarized: values >= 0.5 count as the positive class.
+#' to build the curve. Labels are binarized: values >= 0.5 count as the positive class. Labels
+#' that do not round to 0 or 1 (i.e. the pool is not a binary classification target) make the
+#' call fail with an error.
 #'
 #' Default value: Required argument
 #' @return A list with three numeric vectors of equal length, sorted by decreasing

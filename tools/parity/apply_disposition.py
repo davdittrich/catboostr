@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""P2.3: bulk-disposition tool that classifies matrix.json's 725 rows into
+"""P2.3: bulk-disposition tool that classifies matrix.json's 770 rows into
 the spec's four disposition categories (spec Sec 4.3/4.5, ticket
 catboost-8z4.36).
 
 Input:  tests/fixtures/parity/matrix.json (written by build_matrix.py)
         tests/fixtures/parity/disposition_judgments.json (human judgment
-          payload: final_method/confidence/note for the 330 method/mode-shaped
+          payload: final_method/confidence/note for the 382 method/mode-shaped
           rows build_matrix.py left as method: null)
 Output: tests/fixtures/parity/matrix.dispositioned.json
 

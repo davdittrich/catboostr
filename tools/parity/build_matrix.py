@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """P2.1: join tool that merges capability_diff.json's 1537 raw gap rows down
-to the spec's 725-row parity matrix (dedup_key grouping, spec Sec 4.3/4.5).
+to the spec's 770-row parity matrix (dedup_key grouping, spec Sec 4.3/4.5).
 
 Input:  tests/fixtures/parity/capability_diff.json (written by compute_diff.py)
 Output: tests/fixtures/parity/matrix.json

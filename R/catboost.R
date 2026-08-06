@@ -4143,12 +4143,10 @@ catboost.shrink <- function(model, ntree_end, ntree_start = 0) {
 #' @title Drop unused features information from model
 #'
 #' @param model The model obtained as the result of training.
-#' @param ntree_end Leave the trees with indices from the interval [ntree_start, ntree_end) (zero-based indexing).
-#' @param ntree_start Leave the trees with indices from the interval [ntree_start, ntree_end) (zero-based indexing).
 #'
 #' @return Status, the result of dropping feature. TRUE if this succeeded, FALSE otherwise.
 #' @export
-catboost.drop_unused_features <- function(model, ntree_end, ntree_start = 0) {
+catboost.drop_unused_features <- function(model) {
     catboost.restore_handle(model)
     status <- .Call("CatBoostDropUnusedFeaturesFromModel_R", model$cpp_obj$handle)
     model$cpp_obj$raw <- .Call("CatBoostSerializeModel_R", model$cpp_obj$handle)

@@ -58,7 +58,7 @@ check_class <- function(class_name, loss_function, group_id = NULL) {
   expect_equal(as.numeric(before_pred), as.numeric(expected$before_prediction), tolerance = TOL,
                info = paste(class_name, "before prediction"))
 
-  status <- catboost.drop_unused_features(model, ntree_end = catboost.ntrees(model))
+  status <- catboost.drop_unused_features(model)
   expect_true(status)
 
   after_names <- catboost.get_model_feature_names(model)
@@ -83,4 +83,16 @@ test_that("drop_unused_features: CatBoostRegressor (RMSE) matches Python oracle"
 
 test_that("drop_unused_features: CatBoostRanker (YetiRank) matches Python oracle", {
   check_class("CatBoostRanker", "YetiRank", group_id = fixture$inputs$CatBoostRanker$group_id)
+})
+
+# catboost-8z4.83 regression: ntree_end/ntree_start were dead arguments (the
+# native call ignores them; there is no tree-range-limited drop variant
+# anywhere in CatBoost -- see src/catboostr.cpp:2400-2405 and
+# vendor/catboost/catboost/libs/model/model.cpp:626). The signature was
+# simplified to match Python's argument-free drop_unused_features()
+# (core.py:3696); confirm the dead parameters are actually gone rather than
+# merely unused.
+test_that("drop_unused_features: signature has no ntree_end/ntree_start parameters", {
+  expect_identical(names(formals(catboost.drop_unused_features)), "model")
+  expect_error(catboost.drop_unused_features(NULL, ntree_end = 5), "unused argument")
 })

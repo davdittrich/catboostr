@@ -3703,6 +3703,26 @@ catboost.save_model <- function(model, model_path,
 #' }
 #'
 #' Default value: 'RawFormulaVal'
+#'
+#' Note on R-vs-Python parity: R exposes a single \code{catboost.Model} type and a single
+#' \code{catboost.predict()} entry point for every trained model, always defaulting to
+#' \code{'RawFormulaVal'} regardless of the loss function used to train it. This intentionally
+#' mirrors Python's base \code{CatBoost.predict()} class, whose default is likewise
+#' \code{'RawFormulaVal'} (\code{core.py:2932} in the vendored Python package). Python additionally
+#' offers separate scikit-learn-style estimator subclasses -- \code{CatBoostClassifier},
+#' \code{CatBoostRegressor}, \code{CatBoostRanker} -- that have no equivalent object type in R and
+#' that override the default independently: \code{CatBoostClassifier.predict()} defaults to
+#' \code{'Class'} (\code{core.py:5552}); \code{CatBoostRegressor.predict()} resolves its default via
+#' \code{_get_default_prediction_type()} (\code{core.py:6183, 6320-6329}) to \code{'Exponent'} for
+#' Poisson*/Tweedie* losses, \code{'RMSEWithUncertainty'} for that loss, and \code{'RawFormulaVal'}
+#' otherwise; \code{CatBoostRanker.predict()} hard-codes \code{'RawFormulaVal'} and does not accept a
+#' \code{prediction_type} argument at all. Since R has no per-task subclass to hang a different
+#' default off of, and since guessing the intended default from the training loss function would
+#' silently change output type/shape for existing callers (e.g. returning integer class labels
+#' where a numeric score was previously returned), R always defaults to \code{'RawFormulaVal'} and
+#' requires classification/ranking callers to pass \code{prediction_type} explicitly (e.g.
+#' \code{'Class'} or \code{'Probability'}) to obtain the same value Python's estimator subclasses
+#' return by default.
 #' @param ntree_start Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
 #'
 #' Default value: 0
@@ -3802,6 +3822,15 @@ catboost.predict <- function(model, pool, ...) {
 #' }
 #'
 #' Default value: 'RawFormulaVal'
+#'
+#' Note on R-vs-Python parity: same rationale as \code{\link{catboost.predict}} -- R has a single
+#' \code{catboost.staged_predict()} entry point for every model, always defaulting to
+#' \code{'RawFormulaVal'} regardless of loss function, which mirrors Python's base
+#' \code{CatBoost.staged_predict()} default. Python's \code{CatBoostClassifier.staged_predict()}
+#' overrides its default to \code{'Class'} (\code{core.py:5699}); R does not replicate this because
+#' it has no classifier-specific subclass to attach a different default to. Pass
+#' \code{prediction_type = 'Class'} (or \code{'Probability'}) explicitly to match Python's
+#' classifier default.
 #' @param ntree_start Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 #'
 #' Default value: 0

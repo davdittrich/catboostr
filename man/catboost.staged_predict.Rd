@@ -38,7 +38,16 @@ Possible values:
   \item 'RawFormulaVal'
 }
 
-Default value: 'RawFormulaVal'}
+Default value: 'RawFormulaVal'
+
+Note on R-vs-Python parity: same rationale as \code{\link{catboost.predict}} -- R has a single
+\code{catboost.staged_predict()} entry point for every model, always defaulting to
+\code{'RawFormulaVal'} regardless of loss function, which mirrors Python's base
+\code{CatBoost.staged_predict()} default. Python's \code{CatBoostClassifier.staged_predict()}
+overrides its default to \code{'Class'} (\code{core.py:5699}); R does not replicate this because
+it has no classifier-specific subclass to attach a different default to. Pass
+\code{prediction_type = 'Class'} (or \code{'Probability'}) explicitly to match Python's
+classifier default.}
 
 \item{ntree_start}{Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 

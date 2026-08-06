@@ -189,6 +189,11 @@
     90,
     ""
   ],
+  "CatBoost.load_model": [
+    "roundtrip",
+    90,
+    "load_model is defined once on the CatBoost base class (core.py:3745) and not overridden by any subclass; R's single catboost.load_model() (R/catboost.R:3614) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.load_model rows. No output of its own to compare numerically (returns a deserialized model object), so parity is roundtrip: predictions from the loaded model must match predictions from the model that was saved."
+  ],
   "CatBoost.n_features_in_": [
     "elementwise",
     90,
@@ -223,6 +228,11 @@
     "roundtrip",
     85,
     "writes a borders file artifact"
+  ],
+  "CatBoost.save_model": [
+    "roundtrip",
+    90,
+    "save_model is defined once on the CatBoost base class (core.py:3702) and not overridden by any subclass; R's single catboost.save_model() (R/catboost.R:3662) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.save_model rows. No output of its own to compare numerically (writes a model file / returns a status flag), so parity is roundtrip: a model's predictions must be unchanged after a save-then-load cycle."
   ],
   "CatBoost.select_features": [
     "elementwise",
@@ -464,6 +474,11 @@
     90,
     ""
   ],
+  "CatBoostClassifier.load_model": [
+    "roundtrip",
+    90,
+    "load_model is defined once on the CatBoost base class (core.py:3745) and not overridden by any subclass; R's single catboost.load_model() (R/catboost.R:3614) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.load_model rows. No output of its own to compare numerically (returns a deserialized model object), so parity is roundtrip: predictions from the loaded model must match predictions from the model that was saved."
+  ],
   "CatBoostClassifier.n_features_in_": [
     "elementwise",
     90,
@@ -508,6 +523,11 @@
     "roundtrip",
     85,
     "writes a borders file artifact"
+  ],
+  "CatBoostClassifier.save_model": [
+    "roundtrip",
+    90,
+    "save_model is defined once on the CatBoost base class (core.py:3702) and not overridden by any subclass; R's single catboost.save_model() (R/catboost.R:3662) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.save_model rows. No output of its own to compare numerically (writes a model file / returns a status flag), so parity is roundtrip: a model's predictions must be unchanged after a save-then-load cycle."
   ],
   "CatBoostClassifier.score": [
     "elementwise",
@@ -764,6 +784,11 @@
     90,
     ""
   ],
+  "CatBoostRanker.load_model": [
+    "roundtrip",
+    90,
+    "load_model is defined once on the CatBoost base class (core.py:3745) and not overridden by any subclass; R's single catboost.load_model() (R/catboost.R:3614) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.load_model rows. No output of its own to compare numerically (returns a deserialized model object), so parity is roundtrip: predictions from the loaded model must match predictions from the model that was saved."
+  ],
   "CatBoostRanker.n_features_in_": [
     "elementwise",
     90,
@@ -798,6 +823,11 @@
     "roundtrip",
     85,
     "writes a borders file artifact"
+  ],
+  "CatBoostRanker.save_model": [
+    "roundtrip",
+    90,
+    "save_model is defined once on the CatBoost base class (core.py:3702) and not overridden by any subclass; R's single catboost.save_model() (R/catboost.R:3662) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.save_model rows. No output of its own to compare numerically (writes a model file / returns a status flag), so parity is roundtrip: a model's predictions must be unchanged after a save-then-load cycle."
   ],
   "CatBoostRanker.score": [
     "elementwise",
@@ -1039,6 +1069,11 @@
     90,
     ""
   ],
+  "CatBoostRegressor.load_model": [
+    "roundtrip",
+    90,
+    "load_model is defined once on the CatBoost base class (core.py:3745) and not overridden by any subclass; R's single catboost.load_model() (R/catboost.R:3614) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.load_model rows. No output of its own to compare numerically (returns a deserialized model object), so parity is roundtrip: predictions from the loaded model must match predictions from the model that was saved."
+  ],
   "CatBoostRegressor.n_features_in_": [
     "elementwise",
     90,
@@ -1073,6 +1108,11 @@
     "roundtrip",
     85,
     "writes a borders file artifact"
+  ],
+  "CatBoostRegressor.save_model": [
+    "roundtrip",
+    90,
+    "save_model is defined once on the CatBoost base class (core.py:3702) and not overridden by any subclass; R's single catboost.save_model() (R/catboost.R:3662) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.save_model rows. No output of its own to compare numerically (writes a model file / returns a status flag), so parity is roundtrip: a model's predictions must be unchanged after a save-then-load cycle."
   ],
   "CatBoostRegressor.score": [
     "elementwise",

@@ -52,6 +52,11 @@
     "state": "green",
     "test_id": "tests/testthat/test_grid_search.R"
   },
+  "CatBoost.load_model": {
+    "state": "green",
+    "test_id": "tests/testthat/test_model_persistence_classes.R",
+    "tolerance_justification": "catboost-8z4.82: save_model/load_model have no directly comparable numeric output of their own (the artifact is a binary/JSON model file, not a value), so -- same pattern as CatBoost.copy and the CLI's mode:normalize-model, both also judged final_method: \"roundtrip\" -- parity is self-consistency: a model's predictions must be unchanged after a save-to-disk/load-from-disk cycle. test_model.R's pre-existing \"model: catboost.load_model\"/\"model: catboost.save_model\" tests already cover this for one binary-classification fit (cbm/json/coreml formats); test_model_persistence_classes.R extends the same round-trip check across the other three loss-function families used elsewhere in this suite's *_classes.R tests: MultiClass base, Logloss classifier, RMSE regressor, YetiRank ranker."
+  },
   "CatBoost.plot_tree": {
     "state": "green",
     "test_id": "tests/testthat/test_plot_tree.R"
@@ -65,6 +70,11 @@
   "CatBoost.randomized_search": {
     "state": "green",
     "test_id": "tests/testthat/test_grid_search.R"
+  },
+  "CatBoost.save_model": {
+    "state": "green",
+    "test_id": "tests/testthat/test_model_persistence_classes.R",
+    "tolerance_justification": "catboost-8z4.82: save_model/load_model have no directly comparable numeric output of their own (the artifact is a binary/JSON model file, not a value), so -- same pattern as CatBoost.copy and the CLI's mode:normalize-model, both also judged final_method: \"roundtrip\" -- parity is self-consistency: a model's predictions must be unchanged after a save-to-disk/load-from-disk cycle. test_model.R's pre-existing \"model: catboost.load_model\"/\"model: catboost.save_model\" tests already cover this for one binary-classification fit (cbm/json/coreml formats); test_model_persistence_classes.R extends the same round-trip check across the other three loss-function families used elsewhere in this suite's *_classes.R tests: MultiClass base, Logloss classifier, RMSE regressor, YetiRank ranker."
   },
   "CatBoost.select_features": {
     "state": "green",
@@ -148,6 +158,11 @@
     "state": "green",
     "test_id": "tests/testthat/test_grid_search.R"
   },
+  "CatBoostClassifier.load_model": {
+    "state": "green",
+    "test_id": "tests/testthat/test_model_persistence_classes.R",
+    "tolerance_justification": "catboost-8z4.82: save_model/load_model have no directly comparable numeric output of their own (the artifact is a binary/JSON model file, not a value), so -- same pattern as CatBoost.copy and the CLI's mode:normalize-model, both also judged final_method: \"roundtrip\" -- parity is self-consistency: a model's predictions must be unchanged after a save-to-disk/load-from-disk cycle. test_model.R's pre-existing \"model: catboost.load_model\"/\"model: catboost.save_model\" tests already cover this for one binary-classification fit (cbm/json/coreml formats); test_model_persistence_classes.R extends the same round-trip check across the other three loss-function families used elsewhere in this suite's *_classes.R tests: MultiClass base, Logloss classifier, RMSE regressor, YetiRank ranker."
+  },
   "CatBoostClassifier.plot_tree": {
     "state": "green",
     "test_id": "tests/testthat/test_plot_tree.R"
@@ -161,6 +176,11 @@
   "CatBoostClassifier.randomized_search": {
     "state": "green",
     "test_id": "tests/testthat/test_grid_search.R"
+  },
+  "CatBoostClassifier.save_model": {
+    "state": "green",
+    "test_id": "tests/testthat/test_model_persistence_classes.R",
+    "tolerance_justification": "catboost-8z4.82: save_model/load_model have no directly comparable numeric output of their own (the artifact is a binary/JSON model file, not a value), so -- same pattern as CatBoost.copy and the CLI's mode:normalize-model, both also judged final_method: \"roundtrip\" -- parity is self-consistency: a model's predictions must be unchanged after a save-to-disk/load-from-disk cycle. test_model.R's pre-existing \"model: catboost.load_model\"/\"model: catboost.save_model\" tests already cover this for one binary-classification fit (cbm/json/coreml formats); test_model_persistence_classes.R extends the same round-trip check across the other three loss-function families used elsewhere in this suite's *_classes.R tests: MultiClass base, Logloss classifier, RMSE regressor, YetiRank ranker."
   },
   "CatBoostClassifier.select_features": {
     "state": "green",
@@ -243,6 +263,11 @@
     "state": "green",
     "test_id": "tests/testthat/test_grid_search.R"
   },
+  "CatBoostRanker.load_model": {
+    "state": "green",
+    "test_id": "tests/testthat/test_model_persistence_classes.R",
+    "tolerance_justification": "catboost-8z4.82: save_model/load_model have no directly comparable numeric output of their own (the artifact is a binary/JSON model file, not a value), so -- same pattern as CatBoost.copy and the CLI's mode:normalize-model, both also judged final_method: \"roundtrip\" -- parity is self-consistency: a model's predictions must be unchanged after a save-to-disk/load-from-disk cycle. test_model.R's pre-existing \"model: catboost.load_model\"/\"model: catboost.save_model\" tests already cover this for one binary-classification fit (cbm/json/coreml formats); test_model_persistence_classes.R extends the same round-trip check across the other three loss-function families used elsewhere in this suite's *_classes.R tests: MultiClass base, Logloss classifier, RMSE regressor, YetiRank ranker."
+  },
   "CatBoostRanker.plot_tree": {
     "state": "green",
     "test_id": "tests/testthat/test_plot_tree.R"
@@ -256,6 +281,11 @@
   "CatBoostRanker.randomized_search": {
     "state": "green",
     "test_id": "tests/testthat/test_grid_search.R"
+  },
+  "CatBoostRanker.save_model": {
+    "state": "green",
+    "test_id": "tests/testthat/test_model_persistence_classes.R",
+    "tolerance_justification": "catboost-8z4.82: save_model/load_model have no directly comparable numeric output of their own (the artifact is a binary/JSON model file, not a value), so -- same pattern as CatBoost.copy and the CLI's mode:normalize-model, both also judged final_method: \"roundtrip\" -- parity is self-consistency: a model's predictions must be unchanged after a save-to-disk/load-from-disk cycle. test_model.R's pre-existing \"model: catboost.load_model\"/\"model: catboost.save_model\" tests already cover this for one binary-classification fit (cbm/json/coreml formats); test_model_persistence_classes.R extends the same round-trip check across the other three loss-function families used elsewhere in this suite's *_classes.R tests: MultiClass base, Logloss classifier, RMSE regressor, YetiRank ranker."
   },
   "CatBoostRanker.select_features": {
     "state": "green",
@@ -339,6 +369,11 @@
     "state": "green",
     "test_id": "tests/testthat/test_grid_search.R"
   },
+  "CatBoostRegressor.load_model": {
+    "state": "green",
+    "test_id": "tests/testthat/test_model_persistence_classes.R",
+    "tolerance_justification": "catboost-8z4.82: save_model/load_model have no directly comparable numeric output of their own (the artifact is a binary/JSON model file, not a value), so -- same pattern as CatBoost.copy and the CLI's mode:normalize-model, both also judged final_method: \"roundtrip\" -- parity is self-consistency: a model's predictions must be unchanged after a save-to-disk/load-from-disk cycle. test_model.R's pre-existing \"model: catboost.load_model\"/\"model: catboost.save_model\" tests already cover this for one binary-classification fit (cbm/json/coreml formats); test_model_persistence_classes.R extends the same round-trip check across the other three loss-function families used elsewhere in this suite's *_classes.R tests: MultiClass base, Logloss classifier, RMSE regressor, YetiRank ranker."
+  },
   "CatBoostRegressor.plot_tree": {
     "state": "green",
     "test_id": "tests/testthat/test_plot_tree.R"
@@ -352,6 +387,11 @@
   "CatBoostRegressor.randomized_search": {
     "state": "green",
     "test_id": "tests/testthat/test_grid_search.R"
+  },
+  "CatBoostRegressor.save_model": {
+    "state": "green",
+    "test_id": "tests/testthat/test_model_persistence_classes.R",
+    "tolerance_justification": "catboost-8z4.82: save_model/load_model have no directly comparable numeric output of their own (the artifact is a binary/JSON model file, not a value), so -- same pattern as CatBoost.copy and the CLI's mode:normalize-model, both also judged final_method: \"roundtrip\" -- parity is self-consistency: a model's predictions must be unchanged after a save-to-disk/load-from-disk cycle. test_model.R's pre-existing \"model: catboost.load_model\"/\"model: catboost.save_model\" tests already cover this for one binary-classification fit (cbm/json/coreml formats); test_model_persistence_classes.R extends the same round-trip check across the other three loss-function families used elsewhere in this suite's *_classes.R tests: MultiClass base, Logloss classifier, RMSE regressor, YetiRank ranker."
   },
   "CatBoostRegressor.select_features": {
     "state": "green",

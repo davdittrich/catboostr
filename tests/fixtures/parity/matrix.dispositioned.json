@@ -20450,12 +20450,12 @@
     "inventory_row_id": "CatBoost.load_model",
     "oracle": "python",
     "kind": "method",
-    "method": null,
+    "method": "roundtrip",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "test_id": "tests/testthat/test_model_persistence_classes.R",
+    "state": "green",
+    "tolerance_justification": "catboost-8z4.82: save_model/load_model have no directly comparable numeric output of their own (the artifact is a binary/JSON model file, not a value), so -- same pattern as CatBoost.copy and the CLI's mode:normalize-model, both also judged final_method: \"roundtrip\" -- parity is self-consistency: a model's predictions must be unchanged after a save-to-disk/load-from-disk cycle. test_model.R's pre-existing \"model: catboost.load_model\"/\"model: catboost.save_model\" tests already cover this for one binary-classification fit (cbm/json/coreml formats); test_model_persistence_classes.R extends the same round-trip check across the other three loss-function families used elsewhere in this suite's *_classes.R tests: MultiClass base, Logloss classifier, RMSE regressor, YetiRank ranker.",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.load_model",
@@ -20466,7 +20466,10 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "roundtrip",
+    "final_method_confidence": 90,
+    "final_method_note": "load_model is defined once on the CatBoost base class (core.py:3745) and not overridden by any subclass; R's single catboost.load_model() (R/catboost.R:3614) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.load_model rows. No output of its own to compare numerically (returns a deserialized model object), so parity is roundtrip: predictions from the loaded model must match predictions from the model that was saved."
   },
   {
     "inventory_row_id": "CatBoost.predict",
@@ -20497,12 +20500,12 @@
     "inventory_row_id": "CatBoost.save_model",
     "oracle": "python",
     "kind": "method",
-    "method": null,
+    "method": "roundtrip",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "test_id": "tests/testthat/test_model_persistence_classes.R",
+    "state": "green",
+    "tolerance_justification": "catboost-8z4.82: save_model/load_model have no directly comparable numeric output of their own (the artifact is a binary/JSON model file, not a value), so -- same pattern as CatBoost.copy and the CLI's mode:normalize-model, both also judged final_method: \"roundtrip\" -- parity is self-consistency: a model's predictions must be unchanged after a save-to-disk/load-from-disk cycle. test_model.R's pre-existing \"model: catboost.load_model\"/\"model: catboost.save_model\" tests already cover this for one binary-classification fit (cbm/json/coreml formats); test_model_persistence_classes.R extends the same round-trip check across the other three loss-function families used elsewhere in this suite's *_classes.R tests: MultiClass base, Logloss classifier, RMSE regressor, YetiRank ranker.",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoost.save_model",
@@ -20513,7 +20516,10 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "roundtrip",
+    "final_method_confidence": 90,
+    "final_method_note": "save_model is defined once on the CatBoost base class (core.py:3702) and not overridden by any subclass; R's single catboost.save_model() (R/catboost.R:3662) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.save_model rows. No output of its own to compare numerically (writes a model file / returns a status flag), so parity is roundtrip: a model's predictions must be unchanged after a save-then-load cycle."
   },
   {
     "inventory_row_id": "CatBoost.shrink",
@@ -20694,12 +20700,12 @@
     "inventory_row_id": "CatBoostClassifier.load_model",
     "oracle": "python",
     "kind": "method",
-    "method": null,
+    "method": "roundtrip",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "test_id": "tests/testthat/test_model_persistence_classes.R",
+    "state": "green",
+    "tolerance_justification": "catboost-8z4.82: save_model/load_model have no directly comparable numeric output of their own (the artifact is a binary/JSON model file, not a value), so -- same pattern as CatBoost.copy and the CLI's mode:normalize-model, both also judged final_method: \"roundtrip\" -- parity is self-consistency: a model's predictions must be unchanged after a save-to-disk/load-from-disk cycle. test_model.R's pre-existing \"model: catboost.load_model\"/\"model: catboost.save_model\" tests already cover this for one binary-classification fit (cbm/json/coreml formats); test_model_persistence_classes.R extends the same round-trip check across the other three loss-function families used elsewhere in this suite's *_classes.R tests: MultiClass base, Logloss classifier, RMSE regressor, YetiRank ranker.",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.load_model",
@@ -20710,7 +20716,10 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "roundtrip",
+    "final_method_confidence": 90,
+    "final_method_note": "load_model is defined once on the CatBoost base class (core.py:3745) and not overridden by any subclass; R's single catboost.load_model() (R/catboost.R:3614) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.load_model rows. No output of its own to compare numerically (returns a deserialized model object), so parity is roundtrip: predictions from the loaded model must match predictions from the model that was saved."
   },
   {
     "inventory_row_id": "CatBoostClassifier.predict",
@@ -20741,12 +20750,12 @@
     "inventory_row_id": "CatBoostClassifier.save_model",
     "oracle": "python",
     "kind": "method",
-    "method": null,
+    "method": "roundtrip",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "test_id": "tests/testthat/test_model_persistence_classes.R",
+    "state": "green",
+    "tolerance_justification": "catboost-8z4.82: save_model/load_model have no directly comparable numeric output of their own (the artifact is a binary/JSON model file, not a value), so -- same pattern as CatBoost.copy and the CLI's mode:normalize-model, both also judged final_method: \"roundtrip\" -- parity is self-consistency: a model's predictions must be unchanged after a save-to-disk/load-from-disk cycle. test_model.R's pre-existing \"model: catboost.load_model\"/\"model: catboost.save_model\" tests already cover this for one binary-classification fit (cbm/json/coreml formats); test_model_persistence_classes.R extends the same round-trip check across the other three loss-function families used elsewhere in this suite's *_classes.R tests: MultiClass base, Logloss classifier, RMSE regressor, YetiRank ranker.",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostClassifier.save_model",
@@ -20757,7 +20766,10 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "roundtrip",
+    "final_method_confidence": 90,
+    "final_method_note": "save_model is defined once on the CatBoost base class (core.py:3702) and not overridden by any subclass; R's single catboost.save_model() (R/catboost.R:3662) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.save_model rows. No output of its own to compare numerically (writes a model file / returns a status flag), so parity is roundtrip: a model's predictions must be unchanged after a save-then-load cycle."
   },
   {
     "inventory_row_id": "CatBoostClassifier.shrink",
@@ -20938,12 +20950,12 @@
     "inventory_row_id": "CatBoostRegressor.load_model",
     "oracle": "python",
     "kind": "method",
-    "method": null,
+    "method": "roundtrip",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "test_id": "tests/testthat/test_model_persistence_classes.R",
+    "state": "green",
+    "tolerance_justification": "catboost-8z4.82: save_model/load_model have no directly comparable numeric output of their own (the artifact is a binary/JSON model file, not a value), so -- same pattern as CatBoost.copy and the CLI's mode:normalize-model, both also judged final_method: \"roundtrip\" -- parity is self-consistency: a model's predictions must be unchanged after a save-to-disk/load-from-disk cycle. test_model.R's pre-existing \"model: catboost.load_model\"/\"model: catboost.save_model\" tests already cover this for one binary-classification fit (cbm/json/coreml formats); test_model_persistence_classes.R extends the same round-trip check across the other three loss-function families used elsewhere in this suite's *_classes.R tests: MultiClass base, Logloss classifier, RMSE regressor, YetiRank ranker.",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.load_model",
@@ -20954,7 +20966,10 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "roundtrip",
+    "final_method_confidence": 90,
+    "final_method_note": "load_model is defined once on the CatBoost base class (core.py:3745) and not overridden by any subclass; R's single catboost.load_model() (R/catboost.R:3614) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.load_model rows. No output of its own to compare numerically (returns a deserialized model object), so parity is roundtrip: predictions from the loaded model must match predictions from the model that was saved."
   },
   {
     "inventory_row_id": "CatBoostRegressor.predict",
@@ -20985,12 +21000,12 @@
     "inventory_row_id": "CatBoostRegressor.save_model",
     "oracle": "python",
     "kind": "method",
-    "method": null,
+    "method": "roundtrip",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "test_id": "tests/testthat/test_model_persistence_classes.R",
+    "state": "green",
+    "tolerance_justification": "catboost-8z4.82: save_model/load_model have no directly comparable numeric output of their own (the artifact is a binary/JSON model file, not a value), so -- same pattern as CatBoost.copy and the CLI's mode:normalize-model, both also judged final_method: \"roundtrip\" -- parity is self-consistency: a model's predictions must be unchanged after a save-to-disk/load-from-disk cycle. test_model.R's pre-existing \"model: catboost.load_model\"/\"model: catboost.save_model\" tests already cover this for one binary-classification fit (cbm/json/coreml formats); test_model_persistence_classes.R extends the same round-trip check across the other three loss-function families used elsewhere in this suite's *_classes.R tests: MultiClass base, Logloss classifier, RMSE regressor, YetiRank ranker.",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRegressor.save_model",
@@ -21001,7 +21016,10 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "roundtrip",
+    "final_method_confidence": 90,
+    "final_method_note": "save_model is defined once on the CatBoost base class (core.py:3702) and not overridden by any subclass; R's single catboost.save_model() (R/catboost.R:3662) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.save_model rows. No output of its own to compare numerically (writes a model file / returns a status flag), so parity is roundtrip: a model's predictions must be unchanged after a save-then-load cycle."
   },
   {
     "inventory_row_id": "CatBoostRegressor.shrink",
@@ -21182,12 +21200,12 @@
     "inventory_row_id": "CatBoostRanker.load_model",
     "oracle": "python",
     "kind": "method",
-    "method": null,
+    "method": "roundtrip",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "test_id": "tests/testthat/test_model_persistence_classes.R",
+    "state": "green",
+    "tolerance_justification": "catboost-8z4.82: save_model/load_model have no directly comparable numeric output of their own (the artifact is a binary/JSON model file, not a value), so -- same pattern as CatBoost.copy and the CLI's mode:normalize-model, both also judged final_method: \"roundtrip\" -- parity is self-consistency: a model's predictions must be unchanged after a save-to-disk/load-from-disk cycle. test_model.R's pre-existing \"model: catboost.load_model\"/\"model: catboost.save_model\" tests already cover this for one binary-classification fit (cbm/json/coreml formats); test_model_persistence_classes.R extends the same round-trip check across the other three loss-function families used elsewhere in this suite's *_classes.R tests: MultiClass base, Logloss classifier, RMSE regressor, YetiRank ranker.",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.load_model",
@@ -21198,7 +21216,10 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "roundtrip",
+    "final_method_confidence": 90,
+    "final_method_note": "load_model is defined once on the CatBoost base class (core.py:3745) and not overridden by any subclass; R's single catboost.load_model() (R/catboost.R:3614) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.load_model rows. No output of its own to compare numerically (returns a deserialized model object), so parity is roundtrip: predictions from the loaded model must match predictions from the model that was saved."
   },
   {
     "inventory_row_id": "CatBoostRanker.predict",
@@ -21229,12 +21250,12 @@
     "inventory_row_id": "CatBoostRanker.save_model",
     "oracle": "python",
     "kind": "method",
-    "method": null,
+    "method": "roundtrip",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "test_id": "tests/testthat/test_model_persistence_classes.R",
+    "state": "green",
+    "tolerance_justification": "catboost-8z4.82: save_model/load_model have no directly comparable numeric output of their own (the artifact is a binary/JSON model file, not a value), so -- same pattern as CatBoost.copy and the CLI's mode:normalize-model, both also judged final_method: \"roundtrip\" -- parity is self-consistency: a model's predictions must be unchanged after a save-to-disk/load-from-disk cycle. test_model.R's pre-existing \"model: catboost.load_model\"/\"model: catboost.save_model\" tests already cover this for one binary-classification fit (cbm/json/coreml formats); test_model_persistence_classes.R extends the same round-trip check across the other three loss-function families used elsewhere in this suite's *_classes.R tests: MultiClass base, Logloss classifier, RMSE regressor, YetiRank ranker.",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "CatBoostRanker.save_model",
@@ -21245,7 +21266,10 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "roundtrip",
+    "final_method_confidence": 90,
+    "final_method_note": "save_model is defined once on the CatBoost base class (core.py:3702) and not overridden by any subclass; R's single catboost.save_model() (R/catboost.R:3662) is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.save_model rows. No output of its own to compare numerically (writes a model file / returns a status flag), so parity is roundtrip: a model's predictions must be unchanged after a save-then-load cycle."
   },
   {
     "inventory_row_id": "CatBoostRanker.shrink",

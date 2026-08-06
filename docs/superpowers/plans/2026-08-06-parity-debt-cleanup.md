@@ -1,4 +1,4 @@
-# Phase 6: Parity debt cleanup — implementation plan (approved)
+# Parity debt cleanup — implementation plan (approved)
 
 Epic: catboost-8z4. Base branch: phase-0 (591a099 merge + 6135bf6).
 

@@ -74,12 +74,26 @@ EXTRA_KNOWN_PARAMS = {"embedding_processing"}
 
 def parse_native_copyoption_names(vendor_cpp_path):
     """Every option name vendor-native's plain-options parser accepts, read
-    straight from CopyOption(plainOptions, "name", ...) call sites in
+    straight from CopyOption(plainOptions, "name", ...) and
+    CopyOptionWithNewKey(plainOptions, "name", "newName", ...) call sites in
     plain_options_helper.cpp -- the authoritative superset of the 139-name
     Python-surface inventory above (catboost-8z4 Phase 5 whole-branch review
     finding: the inventory only scans Python bindings, so 59 vendor-valid
-    names silently failed .catboostr_known_params). Not hand-typed: any
-    future vendor pin bump just needs a re-run of this script.
+    names silently failed .catboostr_known_params). CopyOptionWithNewKey is
+    a distinct helper (renames the key while copying, e.g. plain "od_pval"
+    becomes odConfig's "stop_pvalue"); its first-arg-literal-"plainOptions"
+    call sites accept external names just like CopyOption's, so both are
+    scanned here (catboost-8z4.67: 8 names -- od_pval, od_wait, od_type,
+    bootstrap_type, ctr_target_border_count, feature_border_type,
+    device_config, pinned_memory_size -- were previously missed because only
+    CopyOption was scanned). The regex anchors on the literal identifier
+    "plainOptions" as the first argument, so it does not pick up the
+    function's other call sites that copy the opposite direction (options
+    struct back into plainOptionsJson for serialization, e.g.
+    CopyOptionWithNewKey(odConfig, "type", "od_type", &plainOptionsJson, ...)
+    around line 648) -- those name the *destination* plain key, not an
+    accepted input name. Not hand-typed: any future vendor pin bump just
+    needs a re-run of this script.
     """
     if not vendor_cpp_path.is_file():
         sys.exit(
@@ -88,7 +102,9 @@ def parse_native_copyoption_names(vendor_cpp_path):
             "superset from plain_options_helper.cpp)."
         )
     src = vendor_cpp_path.read_text()
-    return set(re.findall(r'CopyOption\(plainOptions,\s*"([^"]+)"', src))
+    names = set(re.findall(r'CopyOption\(plainOptions,\s*"([^"]+)"', src))
+    names |= set(re.findall(r'CopyOptionWithNewKey\(plainOptions,\s*"([^"]+)"', src))
+    return names
 
 
 def parse_synonym_groups(src: str):

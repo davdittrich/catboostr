@@ -30,6 +30,8 @@ class TestFullPipeline(unittest.TestCase):
         cls.committed_matrix = json.loads(bm.OUTPUT_PATH.read_text())
         cls.judgments = json.loads(ad.JUDGMENTS_PATH.read_text())
         cls.dispositioned = ad.apply_disposition(cls.built_rows, cls.judgments)
+        cls.closure_overlay = json.loads(ad.CLOSURE_OVERLAY_PATH.read_text())
+        cls.overlaid = ad.apply_closure_overlay(cls.dispositioned, cls.closure_overlay)
         cls.committed_dispositioned = json.loads(ad.OUTPUT_PATH.read_text())
 
     def test_rebuilt_matrix_matches_committed_matrix_json(self):
@@ -68,8 +70,36 @@ class TestFullPipeline(unittest.TestCase):
 
     def test_regenerated_output_matches_committed_matrix_dispositioned_json(self):
         # Pins the committed artifact: it must be exactly reproducible from
-        # matrix.json + disposition_judgments.json, not a hand-edited file.
-        self.assertEqual(self.dispositioned, self.committed_dispositioned)
+        # matrix.json + disposition_judgments.json + closure_overlay.json
+        # (catboost-8z4.73), not a hand-edited file. Every closing ticket's
+        # outcome now lives in closure_overlay.json instead of being patched
+        # directly into matrix.dispositioned.json, so this equality is a
+        # real regression gate rather than something structurally guaranteed
+        # to drift the moment a row is closed.
+        #
+        # Compared by inventory_row_id rather than list position: row order
+        # in the committed file has drifted from build order from historical
+        # hand-edits (pre-dating this ticket), and position was never part
+        # of the pipeline's contract -- every other test in this file
+        # addresses rows by id, not index. Still exact per-row content
+        # equality, and still catches a dropped/corrupted/extra row (see
+        # test_dispositioned_row_count_and_category_counts for the count
+        # gate, which order-insensitivity does not weaken).
+        by_id_overlaid = {r["inventory_row_id"]: r for r in self.overlaid}
+        by_id_committed = {r["inventory_row_id"]: r for r in self.committed_dispositioned}
+        self.assertEqual(
+            set(by_id_overlaid), set(by_id_committed),
+            "row id sets differ between regenerated and committed output",
+        )
+        self.assertEqual(by_id_overlaid, by_id_committed)
+
+    def test_closure_overlay_only_sets_allowed_fields(self):
+        for row_overlay in self.closure_overlay.values():
+            self.assertTrue(set(row_overlay) <= ad.CLOSURE_OVERLAY_ALLOWED_FIELDS)
+
+    def test_closure_overlay_only_targets_known_rows(self):
+        known_ids = {r["inventory_row_id"] for r in self.built_rows}
+        self.assertTrue(set(self.closure_overlay) <= known_ids)
 
 
 if __name__ == "__main__":

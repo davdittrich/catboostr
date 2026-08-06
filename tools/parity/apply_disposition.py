@@ -26,6 +26,12 @@ build_matrix.py computes it (method is None) so the two fields never
 disagree. Any final_method == "elementwise" row also gets its tolerance
 populated from build_matrix.DEFAULT_TOLERANCE (the two spec-fixed defaults;
 no new value is invented).
+
+After disposition, closure_overlay.json (catboost-8z4.73) is merged in by
+inventory_row_id: closing tickets record their differential-test outcome
+(state/test_id/tolerance_justification/tolerance/final_method_*) there
+instead of hand-editing matrix.dispositioned.json, so a raw pipeline rerun
+stays byte-for-byte reproducible without a manual by-id merge.
 """
 import json
 import sys
@@ -37,6 +43,19 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 MATRIX_PATH = REPO_ROOT / "tests/fixtures/parity/matrix.json"
 JUDGMENTS_PATH = REPO_ROOT / "tests/fixtures/parity/disposition_judgments.json"
 OUTPUT_PATH = REPO_ROOT / "tests/fixtures/parity/matrix.dispositioned.json"
+# Closing tickets record their outcome here (by inventory_row_id) instead of
+# hand-editing matrix.dispositioned.json directly, so a raw pipeline rerun
+# (compute_diff -> build_matrix -> apply_disposition) stays byte-for-byte
+# reproducible without a manual by-id merge (see catboost-8z4.66, which had
+# to do that merge by hand because this mechanism didn't exist yet).
+CLOSURE_OVERLAY_PATH = REPO_ROOT / "tests/fixtures/parity/closure_overlay.json"
+
+# The only fields a closure ticket may set post-hoc: differential-test
+# outcome bookkeeping, never the row's identity/kind/membership.
+CLOSURE_OVERLAY_ALLOWED_FIELDS = frozenset({
+    "state", "test_id", "tolerance_justification",
+    "tolerance", "final_method_confidence", "final_method_note",
+})
 
 STRUCTURAL_NOTE = (
     "spec §4.3 names plot_tree/calc_feature_statistics explicitly; "
@@ -102,6 +121,29 @@ def apply_disposition(rows: list, judgments: dict) -> list:
     return [disposition_row(row, judgments) for row in rows]
 
 
+def apply_closure_overlay(rows: list, overlay: dict) -> list:
+    """Merge closing-ticket outcomes recorded in closure_overlay.json onto
+    the freshly dispositioned rows, by inventory_row_id. Only
+    CLOSURE_OVERLAY_ALLOWED_FIELDS may be set this way -- anything else
+    (kind/method/members/...) is a pipeline bug, not a closure outcome."""
+    overlaid = []
+    for row in rows:
+        row_overlay = overlay.get(row["inventory_row_id"])
+        if not row_overlay:
+            overlaid.append(row)
+            continue
+        bad_fields = set(row_overlay) - CLOSURE_OVERLAY_ALLOWED_FIELDS
+        if bad_fields:
+            raise ValueError(
+                f"row {row['inventory_row_id']!r}: closure_overlay.json sets "
+                f"disallowed field(s) {sorted(bad_fields)}"
+            )
+        row = dict(row)
+        row.update(row_overlay)
+        overlaid.append(row)
+    return overlaid
+
+
 def summarize(rows: list) -> dict:
     counts: dict = {}
     for row in rows:
@@ -114,6 +156,9 @@ def main() -> int:
     judgments = json.loads(JUDGMENTS_PATH.read_text())
 
     dispositioned = apply_disposition(rows, judgments)
+
+    overlay = json.loads(CLOSURE_OVERLAY_PATH.read_text())
+    dispositioned = apply_closure_overlay(dispositioned, overlay)
 
     unused = set(judgments) - {
         r["inventory_row_id"] for r in dispositioned if r["disposition"] == "method_mode_shaped"

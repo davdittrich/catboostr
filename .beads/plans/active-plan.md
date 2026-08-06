@@ -4,10 +4,16 @@
 <!-- user-approved: yes -->
 <!-- status: in-progress -->
 
-Phase 7 (Parity-cleanup follow-ups, from Phase 6) executing on phase-0 via
-subagent-driven-development. Plan file:
-docs/superpowers/plans/2026-08-06-phase7-parity-cleanup-followups.md. SDD
-ledger: .superpowers/sdd/2026-08-06-phase7-parity-cleanup-followups/progress.md.
+Parity-cleanup follow-ups (batch 2, follow-ups from the parity debt cleanup
+batch) executing on phase-0 via subagent-driven-development. Plan file:
+docs/superpowers/plans/2026-08-06-parity-debt-cleanup-followups-2.md. SDD
+ledger: .superpowers/sdd/parity-debt-cleanup-followups-2/progress.md.
+
+Note: this is NOT spec Phase 6 (custom R loss/metric callback bridge) or
+spec Phase 7 (GPU parity) — those real numbered phases (docs/superpowers/
+specs/2026-07-30-catboostr-design.md §5 phase table) are untouched and still
+provisional/not started. This batch is unplanned debt cleanup found during
+real Phase 5/6 work; it carries no phase number.
 
 Gate: task-specific — catboost-8z4.73 needs tools/parity Python suite green
 only; catboost-8z4.74/.75/.76-.82 need R CMD INSTALL --preclean clean + full
@@ -37,7 +43,8 @@ method/mode-shaped rows in one ticket, violating spec §4.5) — fixed by
 force-closing catboost-8z4.72 and filing catboost-8z4.76-.82. Iter 2: 3/3
 PASS, only a trivial "8 vs 7 tickets" wording fix in Global Constraints.
 
-Prior phase: Phase 6 (Parity debt cleanup) merged to phase-0, gate met (7/7
-tasks, final whole-branch review 0 Critical/Important, 6 Minor, one fix
-wave). Epic catboost-8z4's own history is in git log / bd show — not
-restated here.
+Prior batch: Parity debt cleanup (catboost-8z4.65-.71, also no phase
+number — a follow-up batch from Phase 5, not spec Phase 6) merged to
+phase-0, gate met (7/7 tasks, final whole-branch review 0 Critical/Important,
+6 Minor, one fix wave). Epic catboost-8z4's own history is in git log / bd
+show — not restated here.

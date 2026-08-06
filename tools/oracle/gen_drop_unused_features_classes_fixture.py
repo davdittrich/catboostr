@@ -33,23 +33,19 @@ import os
 
 from catboost import CatBoost, CatBoostClassifier, CatBoostRanker, CatBoostRegressor, Pool
 
+from _classes_common import BINARY_LABEL, GROUP_ID, MULTICLASS_LABEL, N_ROWS, REGRESSION_LABEL
+
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.dirname(os.path.dirname(SCRIPT_DIR))
 FIXTURE_DIR = os.path.join(REPO_ROOT, "tests", "fixtures", "oracle")
 FIXTURE_PATH = os.path.join(FIXTURE_DIR, "drop_unused_features_classes.json")
 
-N_ROWS = 20
 # Pure noise, uncorrelated with any label below.
 NOISE1 = [0.91, 0.12, 0.44, 0.77, 0.03, 0.65, 0.28, 0.99, 0.51, 0.08,
           0.36, 0.72, 0.19, 0.83, 0.47, 0.60, 0.05, 0.94, 0.22, 0.68]
 NOISE2 = [-0.4, 0.8, -0.2, 0.1, 0.9, -0.6, 0.3, -0.9, 0.5, -0.1,
           0.7, -0.3, 0.6, -0.7, 0.2, -0.8, 0.4, -0.5, 0.0, 1.0]
 FEATURE_NAMES = ["num1", "noise1", "noise2"]
-
-BINARY_LABEL = [0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0]
-MULTICLASS_LABEL = [i % 3 for i in range(N_ROWS)]
-REGRESSION_LABEL = [0.1 * i - 1.0 for i in range(N_ROWS)]
-GROUP_ID = [i // 4 for i in range(N_ROWS)]  # 5 groups of 4
 
 # num1 is built directly from each class's own label (scaled +/- a small
 # deterministic jitter), so it is by construction a stronger split

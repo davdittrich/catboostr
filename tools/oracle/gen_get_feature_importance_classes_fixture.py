@@ -31,28 +31,17 @@ import os
 
 from catboost import CatBoost, CatBoostClassifier, CatBoostRanker, CatBoostRegressor, Pool
 
+from _classes_common import (
+    BINARY_LABEL, FEATURE_NAMES, GROUP_ID, MULTICLASS_LABEL, NUM1, NUM2, REGRESSION_LABEL, x,
+)
+
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.dirname(os.path.dirname(SCRIPT_DIR))
 FIXTURE_DIR = os.path.join(REPO_ROOT, "tests", "fixtures", "oracle")
 FIXTURE_PATH = os.path.join(FIXTURE_DIR, "get_feature_importance_classes.json")
 
-N_ROWS = 20
-NUM1 = [0.5, -1.5, 2.25, 3.0, -4.75, 5.5, -6.25, 7.0, -8.5, 9.25,
-        -10.0, 11.5, 1.5, -2.5, 3.25, 4.0, -5.75, 6.5, -7.25, 8.0]
-NUM2 = [0.3 * i for i in range(N_ROWS)]
-FEATURE_NAMES = ["num1", "num2"]
-
-BINARY_LABEL = [0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0]
-MULTICLASS_LABEL = [i % 3 for i in range(N_ROWS)]
-REGRESSION_LABEL = [0.1 * i - 1.0 for i in range(N_ROWS)]
-GROUP_ID = [i // 4 for i in range(N_ROWS)]  # 5 groups of 4
-
 COMMON = dict(iterations=10, depth=2, random_seed=42, thread_count=1, verbose=False,
               train_dir=os.path.join(SCRIPT_DIR, ".catboost_train_fstr"))
-
-
-def x():
-    return [[NUM1[i], NUM2[i]] for i in range(N_ROWS)]
 
 
 def main():

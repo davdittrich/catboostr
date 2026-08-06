@@ -3,13 +3,17 @@ context("test_virtual_ensembles.R")
 # P5.4 (catboost-8z4.61) -- catboost.virtual_ensembles_predict differential
 # test against the Python oracle.
 #
-# No matrix row in tests/fixtures/parity/matrix.dispositioned.json names this
-# capability (grep for "virtual" only turns up flag:--virtual-ensembles-count,
-# the unrelated CLI calc-mode flag). capability_diff.json *does* carry
+# At the time this test was written, no matrix row in
+# tests/fixtures/parity/matrix.dispositioned.json named this capability (grep
+# for "virtual" only turned up flag:--virtual-ensembles-count, the unrelated
+# CLI calc-mode flag). capability_diff.json *does* carry
 # CatBoost.virtual_ensembles_predict matched to catboost.virtual_ensembles_predict,
 # so the Phase 2 inventory found and matched the capability but it never made
 # it into the dispositioned matrix -- a genuine Phase 2 inventory gap, filed
-# as a follow-up ticket rather than hand-added here.
+# as a follow-up ticket rather than hand-added here. That follow-up
+# (catboost-8z4.66) later surfaced the row, and catboost-8z4.81 closed the 4
+# CatBoost{,Classifier,Regressor,Ranker}.virtual_ensembles_predict rows by
+# syncing test_id to this file (see closure_overlay.json).
 #
 # R's catboost.virtual_ensembles_predict (R/catboost.R) calls the native
 # CatBoostPredictVirtualEnsembles_R entry point (src/catboostr.cpp), which

@@ -6,10 +6,18 @@ per-stage output for one model trained via each of the four estimator
 classes -- CatBoost, CatBoostClassifier, CatBoostRegressor, CatBoostRanker
 (catboost/python-package/catboost/core.py).
 
-staged_predict() is defined once on the CatBoost base class (core.py:2328,
-wraps _staged_predict_iterator) and is not overridden by any of the three
-subclasses, so R's single catboost.staged_predict() function
-(R/catboost.R:3822) is the parity target for all four matrix rows
+staged_predict() IS overridden per-subclass with different DEFAULT
+prediction_type values -- same override pattern as predict()
+(CatBoostClassifier.staged_predict defaults to 'Class', core.py:5699;
+CatBoostRegressor resolves via _get_default_prediction_type(),
+core.py:6320-6329; CatBoostRanker.staged_predict hard-codes 'RawFormulaVal'
+and drops the kwarg entirely) -- but all four produce identical
+RawFormulaVal output when that prediction_type is explicitly requested on
+both sides, which is exactly what this fixture and its paired test do.
+Default-prediction_type parity itself is NOT covered here and is out of
+scope for this ticket (catboost-8z4.81); see the follow-up ticket filed for
+that gap. R's single catboost.staged_predict() function (R/catboost.R:3822)
+is the parity target for all four matrix rows
 (CatBoost.staged_predict / CatBoostClassifier.staged_predict /
 CatBoostRegressor.staged_predict / CatBoostRanker.staged_predict); what
 varies per row is only the loss/task shape the model was fit with, so this

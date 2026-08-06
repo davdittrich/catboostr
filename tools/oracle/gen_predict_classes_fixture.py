@@ -5,11 +5,19 @@ output for one model trained via each of the four estimator classes --
 CatBoost, CatBoostClassifier, CatBoostRegressor, CatBoostRanker
 (catboost/python-package/catboost/core.py).
 
-predict() is defined once on the CatBoost base class (core.py:2286, wraps
-_base_predict) and is not overridden by any of the three subclasses (the
-Classifier/Regressor/Ranker subclasses inherit it unchanged), so R's single
-catboost.predict() function (R/catboost.R:3772, which delegates to
-predict.catboost.Model) is the parity target for all four matrix rows
+predict() IS overridden per-subclass with different DEFAULT prediction_type
+values -- CatBoostClassifier.predict() defaults to prediction_type='Class'
+(core.py:5552), CatBoostRegressor.predict() resolves its default via
+_get_default_prediction_type() (core.py:6183, 6320-6329) to
+'Exponent'/'RMSEWithUncertainty' for some losses, and CatBoostRanker.predict()
+hard-codes 'RawFormulaVal' and drops the kwarg entirely -- but all four
+produce identical RawFormulaVal output when that prediction_type is
+explicitly requested on both sides, which is exactly what this fixture and
+its paired test do. Default-prediction_type parity itself is NOT covered
+here and is out of scope for this ticket (catboost-8z4.81); see the
+follow-up ticket filed for that gap. R's single catboost.predict() function
+(R/catboost.R:3772, which delegates to predict.catboost.Model) is the
+parity target for all four matrix rows
 (CatBoost.predict / CatBoostClassifier.predict / CatBoostRegressor.predict /
 CatBoostRanker.predict); what varies per row is only the loss/task shape the
 model was fit with, so this fixture reuses the same per-class loss families

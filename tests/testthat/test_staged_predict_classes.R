@@ -1,18 +1,24 @@
 context("test_staged_predict_classes.R")
 
-# catboost-8z4.81 differential test: R's catboost.staged_predict() (default
-# prediction_type="RawFormulaVal") method parity against all four Python
-# estimator classes -- CatBoost, CatBoostClassifier, CatBoostRegressor,
-# CatBoostRanker (catboost/python-package/catboost/core.py).
-# staged_predict() is defined once on the CatBoost base class
-# (core.py:2328) and is not overridden in a way that changes its numeric
-# output by any of the three subclasses -- CatBoostRanker.staged_predict()
-# does override it, but only to hard-code prediction_type="RawFormulaVal"
-# and drop the kwarg entirely (same override pattern as
-# CatBoostRanker.predict(), see test_predict_classes.R); the values compared
-# here are RawFormulaVal on both sides regardless. R's single
-# catboost.staged_predict() function (R/catboost.R:3822) is therefore the
-# parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.
+# catboost-8z4.81 differential test: R's catboost.staged_predict() method
+# parity against all four Python estimator classes -- CatBoost,
+# CatBoostClassifier, CatBoostRegressor, CatBoostRanker
+# (catboost/python-package/catboost/core.py), with
+# prediction_type="RawFormulaVal" EXPLICITLY requested on both sides.
+# staged_predict() IS overridden per-subclass with different DEFAULT
+# prediction_type values -- same override pattern as predict()
+# (CatBoostClassifier.predict defaults to 'Class' at core.py:5552,
+# CatBoostClassifier.staged_predict likewise at core.py:5699,
+# CatBoostRegressor resolves via _get_default_prediction_type() at
+# core.py:6320-6329, CatBoostRanker.staged_predict hard-codes
+# 'RawFormulaVal' and drops the kwarg entirely) -- but all four produce
+# identical RawFormulaVal output when that prediction_type is explicitly
+# requested on both sides, which is exactly what this test does.
+# Default-prediction_type parity itself is NOT covered here and is out of
+# scope for this ticket (catboost-8z4.81); see the follow-up ticket filed
+# for that gap. R's single catboost.staged_predict() function
+# (R/catboost.R:3822) is therefore the parity target for all 4
+# CatBoost{,Classifier,Regressor,Ranker}.
 # staged_predict matrix rows; what varies per row is only the loss/task
 # shape the model was fit with, so this fixture reuses the same per-class
 # loss families as test_predict_classes.R / test_eval_metrics_classes.R:

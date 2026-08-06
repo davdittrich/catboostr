@@ -1,15 +1,21 @@
 context("test_predict_classes.R")
 
-# catboost-8z4.81 differential test: R's catboost.predict() (default
-# prediction_type="RawFormulaVal") method parity against all four Python
-# estimator classes -- CatBoost, CatBoostClassifier, CatBoostRegressor,
-# CatBoostRanker (catboost/python-package/catboost/core.py). predict() is
-# defined once on the CatBoost base class (core.py:2286) and is not
-# overridden in a way that changes its numeric output by any of the three
-# subclasses -- CatBoostRanker.predict() does override it, but only to
-# hard-code prediction_type="RawFormulaVal" and drop the kwarg entirely
-# (core.py, `self._predict(X, 'RawFormulaVal', ...)`); the values compared
-# here are RawFormulaVal on both sides regardless. R's single
+# catboost-8z4.81 differential test: R's catboost.predict() method parity
+# against all four Python estimator classes -- CatBoost, CatBoostClassifier,
+# CatBoostRegressor, CatBoostRanker (catboost/python-package/catboost/
+# core.py), with prediction_type="RawFormulaVal" EXPLICITLY requested on
+# both sides. predict() IS overridden per-subclass with different DEFAULT
+# prediction_type values -- CatBoostClassifier.predict() defaults to
+# prediction_type='Class' (core.py:5552), CatBoostRegressor.predict()
+# resolves its default via _get_default_prediction_type() (core.py:6183,
+# 6320-6329) to 'Exponent'/'RMSEWithUncertainty' for some losses, and
+# CatBoostRanker.predict() hard-codes 'RawFormulaVal' and drops the kwarg
+# entirely -- but all four produce identical RawFormulaVal output when that
+# prediction_type is explicitly requested on both sides, which is exactly
+# what this test does. Default-prediction_type parity itself (R's
+# catboost.predict() always defaults to RawFormulaVal regardless of model
+# type) is NOT covered here and is out of scope for this ticket
+# (catboost-8z4.81); see the follow-up ticket filed for that gap. R's single
 # catboost.predict() function (R/catboost.R:3772, delegates to
 # predict.catboost.Model) is therefore the parity target for all 4
 # CatBoost{,Classifier,Regressor,Ranker}.predict matrix rows; what varies

@@ -1219,6 +1219,11 @@
     65,
     "class existence/constructibility; no output of its own"
   ],
+  "catboost.cv": [
+    "elementwise",
+    90,
+    "top-level function equivalent of CatBoost.cv / grid_search's cv_results: numeric per-iteration test/train mean/std columns"
+  ],
   "catboost.datasets.PATH_TYPES": [
     "elementwise",
     25,
@@ -1404,6 +1409,11 @@
     85,
     ""
   ],
+  "catboost.sum_models": [
+    "elementwise",
+    85,
+    "returns a blended model artifact; parity verified via its RawFormulaVal predictions (same as select_features/to_classifier-style artifact judgments)"
+  ],
   "catboost.text_processing.Dictionary": [
     "elementwise",
     65,
@@ -1428,6 +1438,11 @@
     "roundtrip",
     70,
     "returns a re-typed model artifact"
+  ],
+  "catboost.train": [
+    "elementwise",
+    90,
+    "top-level function equivalent of CatBoost.fit; unlike CatBoost.fit, has a direct differential test (test_params_precision.R) comparing predictions against the Python oracle, not just transitive coverage"
   ],
   "catboost.utils.ARRAY_TYPES": [
     "elementwise",

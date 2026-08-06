@@ -20275,12 +20275,12 @@
     "inventory_row_id": "catboost.cv",
     "oracle": "python",
     "kind": "function",
-    "method": null,
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
+    "method": "elementwise",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_model.R::model: catboost.cv matches the Python oracle bit-for-bit (catboost-8z4.78)",
+    "state": "green",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.cv",
@@ -20291,18 +20291,21 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "elementwise",
+    "final_method_confidence": 90,
+    "final_method_note": "top-level function equivalent of CatBoost.cv / grid_search's cv_results: numeric per-iteration test/train mean/std columns"
   },
   {
     "inventory_row_id": "catboost.sum_models",
     "oracle": "python",
     "kind": "function",
-    "method": null,
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
+    "method": "elementwise",
+    "tolerance": 1e-12,
+    "test_id": "tests/testthat/test_model.R::model: catboost.sum_models matches the Python oracle bit-for-bit (catboost-8z4.78)",
+    "state": "green",
     "tolerance_justification": "",
-    "needs_disposition": true,
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.sum_models",
@@ -20313,18 +20316,21 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "elementwise",
+    "final_method_confidence": 85,
+    "final_method_note": "returns a blended model artifact; parity verified via its RawFormulaVal predictions (same as select_features/to_classifier-style artifact judgments)"
   },
   {
     "inventory_row_id": "catboost.train",
     "oracle": "python",
     "kind": "function",
-    "method": null,
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
-    "needs_disposition": true,
+    "method": "elementwise",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_params_precision.R",
+    "state": "green",
+    "tolerance_justification": "Overrides the elementwise/python default (1e-12): test_params_precision.R's end-to-end prediction check (PY_TOL) compares boosted-tree predictions accumulated over multiple iterations, not a single JSON round-tripped scalar -- normal float64 accumulation noise across the training/prediction pipeline, not truncation (the JSON round-trip itself is asserted exactly at 1e-12 via catboost.get_model_params()$flat_params in the same test).",
+    "needs_disposition": false,
     "members": [
       {
         "capability": "catboost.train",
@@ -20335,7 +20341,10 @@
     "universal": false,
     "disposition": "method_mode_shaped",
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
-    "disposition_confidence": 95
+    "disposition_confidence": 95,
+    "final_method": "elementwise",
+    "final_method_confidence": 90,
+    "final_method_note": "top-level function equivalent of CatBoost.fit; unlike CatBoost.fit, has a direct differential test (test_params_precision.R) comparing predictions against the Python oracle, not just transitive coverage"
   },
   {
     "inventory_row_id": "CatBoost.drop_unused_features",

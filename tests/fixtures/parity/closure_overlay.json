@@ -201,6 +201,20 @@
     "test_id": "tests/testthat/test_fstr_shap_prediction_diff.R",
     "tolerance": 1e-06
   },
+  "catboost.cv": {
+    "state": "green",
+    "test_id": "tests/testthat/test_model.R::model: catboost.cv matches the Python oracle bit-for-bit (catboost-8z4.78)"
+  },
+  "catboost.sum_models": {
+    "state": "green",
+    "test_id": "tests/testthat/test_model.R::model: catboost.sum_models matches the Python oracle bit-for-bit (catboost-8z4.78)"
+  },
+  "catboost.train": {
+    "state": "green",
+    "test_id": "tests/testthat/test_params_precision.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "Overrides the elementwise/python default (1e-12): test_params_precision.R's end-to-end prediction check (PY_TOL) compares boosted-tree predictions accumulated over multiple iterations, not a single JSON round-tripped scalar -- normal float64 accumulation noise across the training/prediction pipeline, not truncation (the JSON round-trip itself is asserted exactly at 1e-12 via catboost.get_model_params()$flat_params in the same test)."
+  },
   "catboost.utils.get_roc_curve": {
     "state": "green",
     "test_id": "tests/testthat/test_roc_curve.R"

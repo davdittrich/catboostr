@@ -582,6 +582,60 @@ test_that("model: catboost.cv's type argument (Classical vs Inverted) changes th
   expect_true(all(cv_inverted$test.Logloss.std >= 0))
 })
 
+# catboost-8z4.78 -- closing the catboost.cv parity-matrix row surfaced by
+# catboost-8z4.66's pipeline fix. Python's top-level cv() (core.py) calls
+# _cv() (_catboost.pyx:6287), which builds a TCrossValidationParams and calls
+# CrossValidate() (catboost/libs/train_lib/cross_validation.cpp) directly.
+# R's catboost.cv does the same: CatBoostCV_R (src/catboostr.cpp) builds its
+# own TCrossValidationParams and calls the identical CrossValidate() entry
+# point. Both wrappers are thin field-for-field constructors around the same
+# native call, so the per-iteration test/train mean/std columns are expected
+# to match bit-for-bit (same precedent as catboost-8z4.59's grid_search/
+# randomized_search oracle test, test_grid_search.R).
+#
+# This is a *different* capability from the CLI's `--cv` flag (flag:--cv
+# row, catboost-8z4.76 / closure_overlay.json): that flag is parsed into a
+# distinct TCvDataPartitionParams struct picking a single train/test split,
+# a different native code path entirely. This test is Python-cv() vs
+# R-catboost.cv only.
+#
+# Regenerate fixture with:
+#   uv run --frozen --project tools/oracle python3 tools/oracle/gen_cv_fixture.py
+test_that("model: catboost.cv matches the Python oracle bit-for-bit (catboost-8z4.78)", {
+  fixture <- jsonlite::fromJSON(
+    testthat::test_path("..", "fixtures", "oracle", "cv.json"),
+    simplifyVector = TRUE
+  )
+
+  pool <- catboost.load_pool(as.data.frame(fixture$inputs$features), label = fixture$inputs$label)
+  params <- as.list(fixture$base_params)
+  params$verbose <- NULL
+  params$logging_level <- "Silent"
+
+  check_cv <- function(type, expected) {
+    result <- catboost.cv(pool,
+                           params = params,
+                           fold_count = fixture$fold_count,
+                           type = type,
+                           partition_random_seed = fixture$partition_random_seed,
+                           shuffle = fixture$shuffle,
+                           stratified = fixture$stratified)
+
+    # data.frame(result) converts CatBoostCV_R's "test-Logloss-mean"-style
+    # names to syntactic R names ("test.Logloss.mean") via check.names=TRUE
+    # (see test_model.R's earlier catboost.cv tests, e.g.
+    # cv_result$train.Logloss.std); the fixture's JSON keys keep the native
+    # dashes, so they are indexed with `[[` here instead.
+    expect_equal(result$test.Logloss.mean, expected[["test-Logloss-mean"]], tolerance = 1e-12)
+    expect_equal(result$test.Logloss.std, expected[["test-Logloss-std"]], tolerance = 1e-12)
+    expect_equal(result$train.Logloss.mean, expected[["train-Logloss-mean"]], tolerance = 1e-12)
+    expect_equal(result$train.Logloss.std, expected[["train-Logloss-std"]], tolerance = 1e-12)
+  }
+
+  check_cv("Classical", fixture$expected$classical)
+  check_cv("Inverted", fixture$expected$inverted)
+})
+
 test_that("model: catboost.sum_models", {
     target_train <- sample(c(0, 1), size = 20, replace = TRUE)
     features_train <- data.frame(f1 = rnorm(length(target_train), mean = 0, sd = 1),
@@ -604,6 +658,42 @@ test_that("model: catboost.sum_models", {
     prediction_sum_models <- catboost.predict(model_train, pool_test, prediction_type='RawFormulaVal')
     prediction_one_model <- catboost.predict(sum_mod, pool_test, prediction_type='RawFormulaVal')
     expect_equal(prediction_sum_models, prediction_one_model)
+})
+
+# catboost-8z4.78 -- closing the catboost.sum_models parity-matrix row
+# surfaced by catboost-8z4.66's pipeline fix. Python's top-level
+# sum_models() (core.py) constructs a CatBoost() and calls its
+# _sum_models() (_catboost.pyx:5884), which calls SumModels() directly on
+# the input models' native TFullModel objects. R's catboost.sum_models does
+# the same: CatBoostSumModels_R (src/catboostr.cpp) calls the identical
+# SumModels() entry point on its own loaded TFullModel handles. Because
+# SumModels() operates purely on already-trained model artifacts (not on
+# training data), this test loads the *same* two .cbm files the fixture's
+# generator trained and summed in Python -- isolating the comparison to
+# SumModels() itself rather than conflating it with training parity
+# (already covered separately by test_params_precision.R).
+#
+# Regenerate fixture with:
+#   uv run --frozen --project tools/oracle python3 tools/oracle/gen_sum_models_fixture.py
+test_that("model: catboost.sum_models matches the Python oracle bit-for-bit (catboost-8z4.78)", {
+  fixture <- jsonlite::fromJSON(
+    testthat::test_path("..", "fixtures", "oracle", "sum_models.json"),
+    simplifyVector = TRUE
+  )
+
+  model_a <- catboost.load_model(
+    testthat::test_path("..", "fixtures", "oracle", fixture$model_a_file))
+  model_b <- catboost.load_model(
+    testthat::test_path("..", "fixtures", "oracle", fixture$model_b_file))
+
+  summed <- catboost.sum_models(list(model_a, model_b),
+                                 weights = fixture$weights,
+                                 ctr_merge_policy = fixture$ctr_merge_policy)
+
+  pred_pool <- catboost.load_pool(as.data.frame(fixture$inputs$features))
+  predictions <- catboost.predict(summed, pred_pool)
+
+  expect_equal(as.numeric(predictions), fixture$expected$predictions, tolerance = 1e-12)
 })
 
 test_that("model: catboost.eval_metrics", {

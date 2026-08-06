@@ -127,11 +127,13 @@ def apply_closure_overlay(rows: list, overlay: dict) -> list:
     CLOSURE_OVERLAY_ALLOWED_FIELDS may be set this way -- anything else
     (kind/method/members/...) is a pipeline bug, not a closure outcome."""
     overlaid = []
+    matched_ids = set()
     for row in rows:
         row_overlay = overlay.get(row["inventory_row_id"])
         if not row_overlay:
             overlaid.append(row)
             continue
+        matched_ids.add(row["inventory_row_id"])
         bad_fields = set(row_overlay) - CLOSURE_OVERLAY_ALLOWED_FIELDS
         if bad_fields:
             raise ValueError(
@@ -141,6 +143,14 @@ def apply_closure_overlay(rows: list, overlay: dict) -> list:
         row = dict(row)
         row.update(row_overlay)
         overlaid.append(row)
+    unmatched_ids = set(overlay) - matched_ids
+    if unmatched_ids:
+        raise ValueError(
+            f"closure_overlay.json has {len(unmatched_ids)} id(s) matching no "
+            f"row in the dispositioned matrix -- a row was dropped or renamed "
+            f"upstream (e.g. by a build_matrix.py regression): "
+            f"{sorted(unmatched_ids)}"
+        )
     return overlaid
 
 

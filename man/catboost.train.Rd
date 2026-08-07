@@ -9,7 +9,8 @@ catboost.train(
   test_pool = NULL,
   params = list(),
   init_model = NULL,
-  custom_objective = NULL
+  custom_objective = NULL,
+  custom_eval_metric_object = NULL
 )
 }
 \arguments{
@@ -87,6 +88,65 @@ TRUE} (native CatBoost only computes that data-dependent starting bias
 for a fixed allowlist of built-in losses).
 
 Default value: NULL (use \code{params$loss_function} as-is)}
+
+\item{custom_eval_metric_object}{A user-defined eval metric, used instead
+of \code{params$eval_metric}. Must be a named \code{list} with:
+\itemize{
+  \item{\code{evaluate = function(approx, target, weight)}}{ Required.
+    Called once per batch. \code{approx} is a numeric \code{N x D} matrix
+    (\code{N} = batch size, \code{D} = number of approx dimensions --
+    \code{D == 1} for single-dimension losses). \code{target} is a numeric
+    vector of length \code{N} (single-target metrics, \code{multi_target}
+    unset/\code{FALSE}) or a numeric \code{N x K} matrix (multi-target
+    metrics, \code{multi_target = TRUE}). \code{weight} is a numeric
+    vector of length \code{N}, or \code{NULL} (unweighted pool). Must
+    return \code{list(error = <numeric scalar>, weight = <numeric
+    scalar>)}: the batch's weighted error sum and weight sum -- CatBoost
+    itself sums these across batches/folds.}
+  \item{\code{is_max_optimal = function()}}{ Required. Returns
+    \code{TRUE}/\code{FALSE}: whether a larger metric value is better.}
+  \item{\code{get_final_error = function(error)}}{ Optional.
+    \code{error} is the numeric length-2 vector \code{c(sum_error,
+    sum_weight)} accumulated across all batches (the same two numbers
+    \code{evaluate} reported, summed). Must return the final scalar
+    metric value. Defaults to \code{sum_error / sum_weight} (or \code{0}
+    if \code{sum_weight == 0}) when omitted, matching native
+    \code{IMetric}'s own default (see
+    \code{vendor/catboost/catboost/libs/metrics/metric.cpp}'s
+    \code{TMetric::GetFinalError}).}
+  \item{\code{is_additive = function()}}{ Optional. Returns
+    \code{TRUE}/\code{FALSE}: whether per-batch \code{error}/\code{weight}
+    sums can be combined by plain addition. Defaults to \code{FALSE} when
+    omitted (conservative; matches Python's own default).}
+  \item{\code{multi_target}}{ Optional \code{logical} scalar, default
+    \code{FALSE}. Set \code{TRUE} if \code{evaluate}'s \code{target}
+    argument is a multi-column matrix (a multi-target regression metric)
+    rather than a single vector.}
+}
+Reimplements the four-method contract of Python's
+\code{CustomMetric}/\code{MultiTargetCustomMetric}
+(\code{_catboost.pyx}'s \code{evaluate}/\code{is_max_optimal}/
+\code{get_final_error}/\code{is_additive}), adapted to R's lack of a class
+hierarchy: Python dispatches single- vs multi-target \code{evaluate} by
+subclassing \code{MultiTargetCustomMetric}; R uses the explicit
+\code{multi_target} list element instead. Every call is marshaled back
+onto R's main thread via the same callback bridge \code{custom_objective}
+uses (shared, not a second queue); \code{params$thread_count} is NOT
+forced to 1.
+
+\code{params$eval_metric} is set automatically to
+\code{"PythonUserDefinedPerObject"} (\code{multi_target} unset/
+\code{FALSE}) or \code{"PythonUserDefinedMultiTarget"} (\code{multi_target
+= TRUE}) when left unset; any other value is rejected. This argument is a
+deliberate R-vs-Python API divergence: Python passes a metric object
+directly through \code{eval_metric = <object>}, while R keeps
+\code{eval_metric} as its existing native string/params-list key (see
+\code{custom_metric}, a \emph{different}, pre-existing native parameter
+for reporting extra built-in metrics -- not a callback) and adds this
+separate formal argument instead, to avoid a naming collision between the
+two.
+
+Default value: NULL (use \code{params$eval_metric} as-is)}
 }
 \value{
 Model object.

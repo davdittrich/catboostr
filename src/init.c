@@ -16,7 +16,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"CatBoostEvalMetrics_R",                 (DL_FUNC) &CatBoostEvalMetrics_R,                  9},
     {"CatBoostEvaluateFeatures_R",            (DL_FUNC) &CatBoostEvaluateFeatures_R,            10},
     {"CatBoostEvaluateObjectImportances_R",   (DL_FUNC) &CatBoostEvaluateObjectImportances_R,    7},
-    {"CatBoostFit_R",                         (DL_FUNC) &CatBoostFit_R,                          5},
+    {"CatBoostFit_R",                         (DL_FUNC) &CatBoostFit_R,                          6},
     {"CatBoostGetBinarizedStatistics_R",      (DL_FUNC) &CatBoostGetBinarizedStatistics_R,       6},
     {"CatBoostGetCatFeatureValues_R",         (DL_FUNC) &CatBoostGetCatFeatureValues_R,          2},
     {"CatBoostGetFeatureTypeAndInternalIndex_R", (DL_FUNC) &CatBoostGetFeatureTypeAndInternalIndex_R, 2},

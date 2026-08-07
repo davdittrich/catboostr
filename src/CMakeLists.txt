@@ -44,6 +44,8 @@ target_sources(catboostr PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/r_callback_bridge.cpp
   # P6.3 (catboost-8z4.89): custom-R-objective trampolines built on it.
   ${CMAKE_CURRENT_SOURCE_DIR}/r_custom_objective.cpp
+  # P6.4 (catboost-8z4.90): custom-R-eval-metric trampolines, same bridge.
+  ${CMAKE_CURRENT_SOURCE_DIR}/r_custom_metric.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/init.c
 )
 

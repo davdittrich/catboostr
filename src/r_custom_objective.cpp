@@ -10,28 +10,15 @@
 #include <catboost/libs/helpers/exception.h>
 
 #include <algorithm>
-#include <cstring>
 
 #include "r_custom_objective.h"
+// catboost-8z4.90: GetListElementByName moved here (shared with
+// r_custom_metric.cpp) -- it was byte-for-byte identical in both TUs.
+#include "r_list_utils.h"
 
 namespace NCatboostR {
 
 namespace {
-
-// R has no public Rf_getListElement helper; this is the standard
-// "Writing R Extensions" idiom for looking up a named list element.
-SEXP GetListElementByName(SEXP list, const char* name) {
-    SEXP names = Rf_getAttrib(list, R_NamesSymbol);
-    if (Rf_isNull(names)) {
-        return R_NilValue;
-    }
-    for (R_xlen_t i = 0; i < Rf_xlength(list); ++i) {
-        if (std::strcmp(CHAR(STRING_ELT(names, i)), name) == 0) {
-            return VECTOR_ELT(list, i);
-        }
-    }
-    return R_NilValue;
-}
 
 // --- main-thread-only marshaling (run inside TRCallbackBridge::Call) -------
 

@@ -83,11 +83,17 @@ EXPORT_FUNCTION CatBoostFit_R(
     SEXP initModelParam,
     // P6.3 (catboost-8z4.89): R_NilValue, or a named list with
     // calc_ders_range/calc_ders_multi closures -- see r_custom_objective.h.
-    SEXP customObjectiveParam
+    SEXP customObjectiveParam,
+    // P6.4 (catboost-8z4.90): R_NilValue, or a named list with
+    // evaluate/is_max_optimal (and optionally get_final_error/is_additive)
+    // closures -- see r_custom_metric.h.
+    SEXP customEvalMetricParam
 );
 
 // catboost-8z4.91 test hook: MaxActiveWorkers() from the bridge's most
-// recent custom-objective catboost.train() run, or -1 if none has run yet.
+// recent custom-objective-or-custom-eval-metric catboost.train() run (they
+// share one TRCallbackBridge instance per call, see catboostr.cpp), or -1 if
+// none has run yet.
 EXPORT_FUNCTION CatBoostLastCustomObjectiveMaxActiveWorkers_R(void);
 
 EXPORT_FUNCTION CatBoostSumModels_R(

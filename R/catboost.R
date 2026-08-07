@@ -2750,6 +2750,64 @@ summary.catboost.Model <- function(object, ...) {
 #' for a fixed allowlist of built-in losses).
 #'
 #' Default value: NULL (use \code{params$loss_function} as-is)
+#' @param custom_eval_metric_object A user-defined eval metric, used instead
+#' of \code{params$eval_metric}. Must be a named \code{list} with:
+#' \itemize{
+#'   \item{\code{evaluate = function(approx, target, weight)}}{ Required.
+#'     Called once per batch. \code{approx} is a numeric \code{N x D} matrix
+#'     (\code{N} = batch size, \code{D} = number of approx dimensions --
+#'     \code{D == 1} for single-dimension losses). \code{target} is a numeric
+#'     vector of length \code{N} (single-target metrics, \code{multi_target}
+#'     unset/\code{FALSE}) or a numeric \code{N x K} matrix (multi-target
+#'     metrics, \code{multi_target = TRUE}). \code{weight} is a numeric
+#'     vector of length \code{N}, or \code{NULL} (unweighted pool). Must
+#'     return \code{list(error = <numeric scalar>, weight = <numeric
+#'     scalar>)}: the batch's weighted error sum and weight sum -- CatBoost
+#'     itself sums these across batches/folds.}
+#'   \item{\code{is_max_optimal = function()}}{ Required. Returns
+#'     \code{TRUE}/\code{FALSE}: whether a larger metric value is better.}
+#'   \item{\code{get_final_error = function(error)}}{ Optional.
+#'     \code{error} is the numeric length-2 vector \code{c(sum_error,
+#'     sum_weight)} accumulated across all batches (the same two numbers
+#'     \code{evaluate} reported, summed). Must return the final scalar
+#'     metric value. Defaults to \code{sum_error / sum_weight} (or \code{0}
+#'     if \code{sum_weight == 0}) when omitted, matching native
+#'     \code{IMetric}'s own default (see
+#'     \code{vendor/catboost/catboost/libs/metrics/metric.cpp}'s
+#'     \code{TMetric::GetFinalError}).}
+#'   \item{\code{is_additive = function()}}{ Optional. Returns
+#'     \code{TRUE}/\code{FALSE}: whether per-batch \code{error}/\code{weight}
+#'     sums can be combined by plain addition. Defaults to \code{FALSE} when
+#'     omitted (conservative; matches Python's own default).}
+#'   \item{\code{multi_target}}{ Optional \code{logical} scalar, default
+#'     \code{FALSE}. Set \code{TRUE} if \code{evaluate}'s \code{target}
+#'     argument is a multi-column matrix (a multi-target regression metric)
+#'     rather than a single vector.}
+#' }
+#' Reimplements the four-method contract of Python's
+#' \code{CustomMetric}/\code{MultiTargetCustomMetric}
+#' (\code{_catboost.pyx}'s \code{evaluate}/\code{is_max_optimal}/
+#' \code{get_final_error}/\code{is_additive}), adapted to R's lack of a class
+#' hierarchy: Python dispatches single- vs multi-target \code{evaluate} by
+#' subclassing \code{MultiTargetCustomMetric}; R uses the explicit
+#' \code{multi_target} list element instead. Every call is marshaled back
+#' onto R's main thread via the same callback bridge \code{custom_objective}
+#' uses (shared, not a second queue); \code{params$thread_count} is NOT
+#' forced to 1.
+#'
+#' \code{params$eval_metric} is set automatically to
+#' \code{"PythonUserDefinedPerObject"} (\code{multi_target} unset/
+#' \code{FALSE}) or \code{"PythonUserDefinedMultiTarget"} (\code{multi_target
+#' = TRUE}) when left unset; any other value is rejected. This argument is a
+#' deliberate R-vs-Python API divergence: Python passes a metric object
+#' directly through \code{eval_metric = <object>}, while R keeps
+#' \code{eval_metric} as its existing native string/params-list key (see
+#' \code{custom_metric}, a \emph{different}, pre-existing native parameter
+#' for reporting extra built-in metrics -- not a callback) and adds this
+#' separate formal argument instead, to avoid a naming collision between the
+#' two.
+#'
+#' Default value: NULL (use \code{params$eval_metric} as-is)
 #' @examples
 #' \dontrun{
 #' train_pool_path <- system.file("extdata", "adult_train.1000", package = "catboostr")
@@ -2771,7 +2829,7 @@ summary.catboost.Model <- function(object, ...) {
 #' @return Model object.
 #' @export
 #' @seealso \url{https://catboost.ai/docs/concepts/r-reference_catboost-train.html}
-catboost.train <- function(learn_pool, test_pool = NULL, params = list(), init_model = NULL, custom_objective = NULL) {
+catboost.train <- function(learn_pool, test_pool = NULL, params = list(), init_model = NULL, custom_objective = NULL, custom_eval_metric_object = NULL) {
     if (!inherits(learn_pool, "catboost.Pool"))
         stop("Expected catboost.Pool, got: ", class(learn_pool))
     if (is.null.handle(learn_pool))
@@ -2827,9 +2885,37 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list(), init_m
         }
     }
 
+    # P6.4 (catboost-8z4.90): custom_eval_metric_object travels as its own
+    # .Call argument, same reason as custom_objective above.
+    if (!is.null(custom_eval_metric_object)) {
+        if (!is.list(custom_eval_metric_object))
+            stop("'custom_eval_metric_object' must be a list with 'evaluate' and 'is_max_optimal' function elements, got: ", class(custom_eval_metric_object))
+        if (!is.function(custom_eval_metric_object$evaluate))
+            stop("'custom_eval_metric_object' must define an 'evaluate' function")
+        if (!is.function(custom_eval_metric_object$is_max_optimal))
+            stop("'custom_eval_metric_object' must define an 'is_max_optimal' function")
+
+        # Mirrors Python's own validation (_catboost.pyx's _PreprocessParams):
+        # dispatch to TCustomMetric/TMultiTargetCustomMetric
+        # (vendor/catboost/catboost/libs/metrics/metric.cpp) is driven purely
+        # by which of EvalFunc/EvalMultiTargetFunc this package wires (from
+        # 'multi_target' below), but eval_metric's *value* must still be one
+        # of these two markers for native CreateMetrics() to route to a
+        # custom metric at all (IsUserDefined() check).
+        is_multi_target_metric <- isTRUE(custom_eval_metric_object$multi_target)
+        expected_eval_metric <- if (is_multi_target_metric) "PythonUserDefinedMultiTarget" else "PythonUserDefinedPerObject"
+        if (is.null(params$eval_metric)) {
+            params$eval_metric <- expected_eval_metric
+        } else if (!identical(params$eval_metric, expected_eval_metric)) {
+            stop("'eval_metric' must be \"", expected_eval_metric, "\" when 'custom_eval_metric_object' is supplied ",
+                 "with multi_target = ", is_multi_target_metric, " (got: ", params$eval_metric, "). ",
+                 "Leave 'eval_metric' unset to default to \"", expected_eval_metric, "\".")
+        }
+    }
+
     params <- process_synonyms(params)
     json_params <- prepare_train_export_parameters(params)
-    handle <- .Call("CatBoostFit_R", learn_pool, test_pool, json_params, init_model_handle, custom_objective)
+    handle <- .Call("CatBoostFit_R", learn_pool, test_pool, json_params, init_model_handle, custom_objective, custom_eval_metric_object)
     raw <- .Call("CatBoostSerializeModel_R", handle)
     model <- create.model.base(handle, raw)
 

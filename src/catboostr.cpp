@@ -93,6 +93,8 @@
 #include "r_callback_bridge.h"
 // P6.3 (catboost-8z4.89): custom-R-objective trampolines built on it.
 #include "r_custom_objective.h"
+// P6.4 (catboost-8z4.90): custom-R-eval-metric trampolines, same bridge.
+#include "r_custom_metric.h"
 
 
 using namespace NCB;
@@ -1484,13 +1486,17 @@ EXPORT_FUNCTION CatBoostDatasetStatistics_R(
 }
 
 // P6.3 (catboost-8z4.89) / catboost-8z4.91 hook: MaxActiveWorkers() from the
-// bridge's most recent custom-objective training run, or -1 if none has run
-// yet in this session. Read by CatBoostLastCustomObjectiveMaxActiveWorkers_R
-// below -- exists purely so a differential test can assert real TBB
-// parallelism (not just correctness) without a broader instrumentation API.
+// bridge's most recent custom-objective-or-custom-eval-metric training run
+// (catboost-8z4.90 (P6.4) added the eval-metric side; it shares the same
+// per-call TRCallbackBridge instance and hence the same counter -- see
+// r_callback_bridge.h's ActiveWorkers()/MaxActiveWorkers()), or -1 if none
+// has run yet in this session. Read by
+// CatBoostLastCustomObjectiveMaxActiveWorkers_R below -- exists purely so a
+// differential test can assert real TBB parallelism (not just correctness)
+// without a broader instrumentation API.
 static int LastCustomObjectiveMaxActiveWorkers = -1;
 
-EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitParamsAsJsonParam, SEXP initModelParam, SEXP customObjectiveParam) {
+EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitParamsAsJsonParam, SEXP initModelParam, SEXP customObjectiveParam, SEXP customEvalMetricParam) {
     SEXP result = NULL;
     R_API_BEGIN();
     TPoolHandle learnPool = static_cast<TPoolHandle>(R_ExternalPtrAddr(learnPoolParam));
@@ -1521,6 +1527,16 @@ EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitP
     TMaybe<TCustomObjectiveDescriptor> objectiveDescriptor =
         NCatboostR::BuildCustomObjectiveDescriptor(customObjectiveParam, &bridge, &objectiveContext);
 
+    // P6.4 (catboost-8z4.90): customEvalMetricParam is R_NilValue unless the
+    // caller supplied catboost.train(..., custom_eval_metric_object =
+    // list(...)) -- Nothing() is passed to TrainModel() below in that case,
+    // so the existing eval_metric/custom_metric params-list behaviour is
+    // byte-for-byte unchanged from before this ticket. Shares `bridge` with
+    // the custom-objective wiring above rather than opening a second queue.
+    NCatboostR::TRCustomMetricContext metricContext;
+    TMaybe<TCustomMetricDescriptor> evalMetricDescriptor =
+        NCatboostR::BuildCustomMetricDescriptor(customEvalMetricParam, &bridge, &metricContext);
+
     auto runTraining = [&] {
         if (testPoolParam != R_NilValue) {
             TEvalResult evalResult;
@@ -1531,7 +1547,7 @@ EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitP
                 fitParams,
                 nullptr,
                 objectiveDescriptor,
-                Nothing(),
+                evalMetricDescriptor,
                 Nothing(),
                 pools,
                 initModel,
@@ -1546,7 +1562,7 @@ EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitP
                 fitParams,
                 nullptr,
                 objectiveDescriptor,
-                Nothing(),
+                evalMetricDescriptor,
                 Nothing(),
                 pools,
                 initModel,
@@ -1559,10 +1575,11 @@ EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitP
     };
 
     // Only route through the background-thread bridge when a custom
-    // objective is actually in play: every other entry point (and every
-    // built-in-loss catboost.train() call) keeps running TrainModel()
-    // directly on R's main thread, exactly as before this ticket.
-    if (objectiveDescriptor.Defined()) {
+    // objective and/or custom eval metric is actually in play: every other
+    // entry point (and every built-in-loss/built-in-eval_metric
+    // catboost.train() call) keeps running TrainModel() directly on R's main
+    // thread, exactly as before this ticket.
+    if (objectiveDescriptor.Defined() || evalMetricDescriptor.Defined()) {
         bridge.Run(runTraining);
         // catboost-8z4.91/test instrumentation: CatBoostLastCustomObjectiveMaxActiveWorkers_R()
         // reads this back, so a differential test can assert real TBB

@@ -50,7 +50,8 @@
   },
   "CatBoost.grid_search": {
     "state": "green",
-    "test_id": "tests/testthat/test_grid_search.R"
+    "test_id": "tests/testthat/test_grid_search.R",
+    "final_method_note": "catboost-8z4.91: custom_objective/custom_eval_metric_object forwarding to the search itself (not just refit) is differentially tested against a built-in-loss search on the same multi-value grid in tests/testthat/test_custom_objective_metric_search_cv.R."
   },
   "CatBoost.load_model": {
     "state": "green",
@@ -69,7 +70,8 @@
   },
   "CatBoost.randomized_search": {
     "state": "green",
-    "test_id": "tests/testthat/test_grid_search.R"
+    "test_id": "tests/testthat/test_grid_search.R",
+    "final_method_note": "catboost-8z4.91: custom_objective/custom_eval_metric_object forwarding to the search itself (not just refit) is differentially tested against a built-in-loss search on the same multi-value grid in tests/testthat/test_custom_objective_metric_search_cv.R."
   },
   "CatBoost.save_model": {
     "state": "green",
@@ -79,7 +81,8 @@
   "CatBoost.select_features": {
     "state": "green",
     "test_id": "test_select_features.R::select_features: RecursiveByShapValues summary and final model match the Python oracle",
-    "tolerance_justification": "Spec section 4.3 Python-oracle default, not an override. R calls the same native NCB::SelectFeatures entry point Python's CatBoost.select_features calls (catboost/libs/features_selection/select_features.h; _catboost.pyx:1264, :6045), so selected/eliminated feature indices are compared exactly and only the loss-graph values and the final model's predictions carry the 1e-12 numeric tolerance."
+    "tolerance_justification": "Spec section 4.3 Python-oracle default, not an override. R calls the same native NCB::SelectFeatures entry point Python's CatBoost.select_features calls (catboost/libs/features_selection/select_features.h; _catboost.pyx:1264, :6045), so selected/eliminated feature indices are compared exactly and only the loss-graph values and the final model's predictions carry the 1e-12 numeric tolerance.",
+    "final_method_note": "catboost-8z4.91/.94: custom_eval_metric_object (metric only) is smoke-tested in tests/testthat/test_custom_objective_metric_search_cv.R. custom OBJECTIVE support is a documented structural gap, not a bug: NCB::SelectFeatures has no TCustomObjectiveDescriptor parameter (verified against select_features.h/recursive_features_elimination.*), so catboost.select_features() deliberately has no custom_objective formal argument -- asserted by that same test file's \"has no custom_objective formal argument\" test."
   },
   "CatBoost.set_scale_and_bias": {
     "state": "green",
@@ -156,7 +159,8 @@
   },
   "CatBoostClassifier.grid_search": {
     "state": "green",
-    "test_id": "tests/testthat/test_grid_search.R"
+    "test_id": "tests/testthat/test_grid_search.R",
+    "final_method_note": "catboost-8z4.91: custom_objective/custom_eval_metric_object forwarding to the search itself (not just refit) is differentially tested against a built-in-loss search on the same multi-value grid in tests/testthat/test_custom_objective_metric_search_cv.R."
   },
   "CatBoostClassifier.load_model": {
     "state": "green",
@@ -175,7 +179,8 @@
   },
   "CatBoostClassifier.randomized_search": {
     "state": "green",
-    "test_id": "tests/testthat/test_grid_search.R"
+    "test_id": "tests/testthat/test_grid_search.R",
+    "final_method_note": "catboost-8z4.91: custom_objective/custom_eval_metric_object forwarding to the search itself (not just refit) is differentially tested against a built-in-loss search on the same multi-value grid in tests/testthat/test_custom_objective_metric_search_cv.R."
   },
   "CatBoostClassifier.save_model": {
     "state": "green",
@@ -185,7 +190,8 @@
   "CatBoostClassifier.select_features": {
     "state": "green",
     "test_id": "test_select_features.R::select_features: RecursiveByShapValues summary and final model match the Python oracle",
-    "tolerance_justification": "Spec section 4.3 Python-oracle default, not an override. R calls the same native NCB::SelectFeatures entry point Python's CatBoost.select_features calls (catboost/libs/features_selection/select_features.h; _catboost.pyx:1264, :6045), so selected/eliminated feature indices are compared exactly and only the loss-graph values and the final model's predictions carry the 1e-12 numeric tolerance."
+    "tolerance_justification": "Spec section 4.3 Python-oracle default, not an override. R calls the same native NCB::SelectFeatures entry point Python's CatBoost.select_features calls (catboost/libs/features_selection/select_features.h; _catboost.pyx:1264, :6045), so selected/eliminated feature indices are compared exactly and only the loss-graph values and the final model's predictions carry the 1e-12 numeric tolerance.",
+    "final_method_note": "catboost-8z4.91/.94: custom_eval_metric_object (metric only) is smoke-tested in tests/testthat/test_custom_objective_metric_search_cv.R. custom OBJECTIVE support is a documented structural gap, not a bug: NCB::SelectFeatures has no TCustomObjectiveDescriptor parameter (verified against select_features.h/recursive_features_elimination.*), so catboost.select_features() deliberately has no custom_objective formal argument -- asserted by that same test file's \"has no custom_objective formal argument\" test."
   },
   "CatBoostClassifier.set_scale_and_bias": {
     "state": "green",
@@ -261,7 +267,8 @@
   },
   "CatBoostRanker.grid_search": {
     "state": "green",
-    "test_id": "tests/testthat/test_grid_search.R"
+    "test_id": "tests/testthat/test_grid_search.R",
+    "final_method_note": "catboost-8z4.91: custom_objective/custom_eval_metric_object forwarding to the search itself (not just refit) is differentially tested against a built-in-loss search on the same multi-value grid in tests/testthat/test_custom_objective_metric_search_cv.R."
   },
   "CatBoostRanker.load_model": {
     "state": "green",
@@ -280,7 +287,8 @@
   },
   "CatBoostRanker.randomized_search": {
     "state": "green",
-    "test_id": "tests/testthat/test_grid_search.R"
+    "test_id": "tests/testthat/test_grid_search.R",
+    "final_method_note": "catboost-8z4.91: custom_objective/custom_eval_metric_object forwarding to the search itself (not just refit) is differentially tested against a built-in-loss search on the same multi-value grid in tests/testthat/test_custom_objective_metric_search_cv.R."
   },
   "CatBoostRanker.save_model": {
     "state": "green",
@@ -290,7 +298,8 @@
   "CatBoostRanker.select_features": {
     "state": "green",
     "test_id": "test_select_features.R::select_features: RecursiveByShapValues summary and final model match the Python oracle",
-    "tolerance_justification": "Spec section 4.3 Python-oracle default, not an override. R calls the same native NCB::SelectFeatures entry point Python's CatBoost.select_features calls (catboost/libs/features_selection/select_features.h; _catboost.pyx:1264, :6045), so selected/eliminated feature indices are compared exactly and only the loss-graph values and the final model's predictions carry the 1e-12 numeric tolerance."
+    "tolerance_justification": "Spec section 4.3 Python-oracle default, not an override. R calls the same native NCB::SelectFeatures entry point Python's CatBoost.select_features calls (catboost/libs/features_selection/select_features.h; _catboost.pyx:1264, :6045), so selected/eliminated feature indices are compared exactly and only the loss-graph values and the final model's predictions carry the 1e-12 numeric tolerance.",
+    "final_method_note": "catboost-8z4.91/.94: custom_eval_metric_object (metric only) is smoke-tested in tests/testthat/test_custom_objective_metric_search_cv.R. custom OBJECTIVE support is a documented structural gap, not a bug: NCB::SelectFeatures has no TCustomObjectiveDescriptor parameter (verified against select_features.h/recursive_features_elimination.*), so catboost.select_features() deliberately has no custom_objective formal argument -- asserted by that same test file's \"has no custom_objective formal argument\" test."
   },
   "CatBoostRanker.set_scale_and_bias": {
     "state": "green",
@@ -367,7 +376,8 @@
   },
   "CatBoostRegressor.grid_search": {
     "state": "green",
-    "test_id": "tests/testthat/test_grid_search.R"
+    "test_id": "tests/testthat/test_grid_search.R",
+    "final_method_note": "catboost-8z4.91: custom_objective/custom_eval_metric_object forwarding to the search itself (not just refit) is differentially tested against a built-in-loss search on the same multi-value grid in tests/testthat/test_custom_objective_metric_search_cv.R."
   },
   "CatBoostRegressor.load_model": {
     "state": "green",
@@ -386,7 +396,8 @@
   },
   "CatBoostRegressor.randomized_search": {
     "state": "green",
-    "test_id": "tests/testthat/test_grid_search.R"
+    "test_id": "tests/testthat/test_grid_search.R",
+    "final_method_note": "catboost-8z4.91: custom_objective/custom_eval_metric_object forwarding to the search itself (not just refit) is differentially tested against a built-in-loss search on the same multi-value grid in tests/testthat/test_custom_objective_metric_search_cv.R."
   },
   "CatBoostRegressor.save_model": {
     "state": "green",
@@ -396,7 +407,8 @@
   "CatBoostRegressor.select_features": {
     "state": "green",
     "test_id": "test_select_features.R::select_features: RecursiveByShapValues summary and final model match the Python oracle",
-    "tolerance_justification": "Spec section 4.3 Python-oracle default, not an override. R calls the same native NCB::SelectFeatures entry point Python's CatBoost.select_features calls (catboost/libs/features_selection/select_features.h; _catboost.pyx:1264, :6045), so selected/eliminated feature indices are compared exactly and only the loss-graph values and the final model's predictions carry the 1e-12 numeric tolerance."
+    "tolerance_justification": "Spec section 4.3 Python-oracle default, not an override. R calls the same native NCB::SelectFeatures entry point Python's CatBoost.select_features calls (catboost/libs/features_selection/select_features.h; _catboost.pyx:1264, :6045), so selected/eliminated feature indices are compared exactly and only the loss-graph values and the final model's predictions carry the 1e-12 numeric tolerance.",
+    "final_method_note": "catboost-8z4.91/.94: custom_eval_metric_object (metric only) is smoke-tested in tests/testthat/test_custom_objective_metric_search_cv.R. custom OBJECTIVE support is a documented structural gap, not a bug: NCB::SelectFeatures has no TCustomObjectiveDescriptor parameter (verified against select_features.h/recursive_features_elimination.*), so catboost.select_features() deliberately has no custom_objective formal argument -- asserted by that same test file's \"has no custom_objective formal argument\" test."
   },
   "CatBoostRegressor.set_scale_and_bias": {
     "state": "green",

@@ -128,3 +128,146 @@ test_that("built-in-loss training is unaffected by custom_objective plumbing", {
   expect_length(pred, n)
   expect_false(anyNA(pred))
 })
+
+# P6.6 (catboost-8z4.91): differential/parity suite -- fills gaps left by
+# catboost-8z4.89/.90/.94's own smoke tests (see task-6-brief.md cases
+# (e)/(f)/(j)/(k)/(l)). Reuses this file's `features`/`label`/`common_params`.
+
+# --- (e) error-propagation: R closure throws inside calc_ders_range -------
+# The closure's own stop() message does not cross the C++ boundary --
+# RunCalcDersRangeOnMainThread (r_custom_objective.cpp:51) catches the
+# R-side error and rethrows a fixed std::runtime_error with generic text;
+# that generic text, not "boom from calc_ders_range", is what
+# catboost.train() actually raises.
+throwing_custom_objective <- list(
+  calc_ders_range = function(approx, target, weight) stop("boom from calc_ders_range")
+)
+
+test_that("custom_objective: a closure that throws inside calc_ders_range surfaces as a catchable R error (catboost.train)", {
+  pool <- catboost.load_pool(features, label = label)
+  expect_error(
+    catboost.train(pool, params = custom_objective_params(), custom_objective = throwing_custom_objective),
+    "error in R custom objective's calc_ders_range"
+  )
+  # Session survives: an unrelated subsequent call still works (no
+  # PROTECT-stack / R_GlobalEnv corruption from the failed callback).
+  model <- catboost.train(pool, params = c(common_params(), list(loss_function = "RMSE")))
+  expect_false(anyNA(catboost.predict(model, pool, prediction_type = "RawFormulaVal")))
+})
+
+# --- (f) background-thread-death: TrainModel itself throws, unrelated to --
+# the R closure -- exercises catboost-8z4.93's TRCallbackBridge::Run()
+# WorkError_ propagation (r_callback_bridge.cpp: the background std::thread's
+# exception is captured via std::exception_ptr and rethrown on the main
+# thread once DrainLoop() returns), NOT the R-closure-throws path above.
+# depth = 17 with the default SymmetricTree grow policy trips
+# TObliviousTreeLearnerOptions::Validate()'s CB_ENSURE(MaxDepth <= 16,
+# "Maximum tree depth is 16") (oblivious_tree_options.cpp:128), deep inside
+# TrainModel() -- i.e. on the background thread, after the custom-objective
+# descriptor is already wired up and running.
+test_that("custom_objective: an invalid training config that throws inside TrainModel itself surfaces as a catchable R error within a bounded time (background-thread death)", {
+  pool <- catboost.load_pool(features, label = label)
+  started <- Sys.time()
+  expect_error(
+    catboost.train(
+      pool,
+      params = modifyList(custom_objective_params(), list(depth = 17)),
+      custom_objective = rmse_custom_objective
+    ),
+    "Maximum tree depth is 16"
+  )
+  expect_lt(as.numeric(difftime(Sys.time(), started, units = "secs")), 60)
+})
+
+# --- (j) interrupt-responsiveness: the drain loop's wait is bounded -------
+# The bridge mechanism itself (TRCallbackBridge::DrainLoop()'s bounded
+# wait_for(kDrainPollMs) + R_CheckUserInterrupt() poll) is unit-tested
+# directly, with an actual InterruptPolls() count assertion, by
+# test_r_callback_bridge.R's "the drain loop polls for interrupts while the
+# queue is idle" test -- that is the real assertion that Ctrl-C stays
+# responsive (catboost-upw tracks restoring true tryCatch(interrupt=)
+# semantics separately; today it surfaces as an ordinary R error, per
+# r_callback_bridge.h's KNOWN DEVIATION comment). What is NOT covered
+# elsewhere is that a real catboost.train() run with a custom objective
+# active actually goes through that same bounded-wait mechanism end-to-end,
+# rather than some other, unbounded blocking path: this test proves the run
+# completes (does not hang) within a generous wall-clock bound.
+test_that("custom_objective training's background/main-thread handoff completes within a bounded time (does not hang, case j)", {
+  set.seed(1)
+  big_n <- 12000
+  big_features <- data.frame(x1 = rnorm(big_n), x2 = rnorm(big_n))
+  big_label <- with(big_features, x1 - x2 + rnorm(big_n, sd = 0.3))
+  pool <- catboost.load_pool(big_features, label = big_label, thread_count = 4)
+
+  started <- Sys.time()
+  catboost.train(
+    pool,
+    params = modifyList(custom_objective_params(), list(iterations = 5, depth = 2)),
+    custom_objective = rmse_custom_objective
+  )
+  expect_lt(as.numeric(difftime(Sys.time(), started, units = "secs")), 60)
+})
+
+# --- (k) multi-dimensional descriptor: calc_ders_multi / CalcDersMultiTarget
+# Mirrors TMultiRMSEError exactly (error_functions.h -- der1[i] =
+# weight*(target[i]-approx[i]), diagonal Hessian der2[i] = -weight).
+# leaf_estimation_method = "Gradient" sidesteps the Hessian so the R closure
+# only needs to return der1 (der2 = NULL), matching what the built-in loss
+# computes when no Hessian is requested.
+multirmse_custom_objective <- list(
+  calc_ders_multi = function(approx, target, weight) {
+    list(der1 = weight * (target - approx), der2 = NULL)
+  }
+)
+
+test_that("custom_objective calc_ders_multi (CalcDersMultiTarget) reimplementing MultiRMSE matches built-in MultiRMSE", {
+  set.seed(20260808)
+  mt_n <- 200
+  mt_features <- data.frame(x1 = rnorm(mt_n), x2 = rnorm(mt_n), x3 = rnorm(mt_n))
+  mt_label <- cbind(
+    2 * mt_features$x1 - mt_features$x2 + rnorm(mt_n, sd = 0.2),
+    -mt_features$x1 + 0.5 * mt_features$x3 + rnorm(mt_n, sd = 0.2)
+  )
+  pool <- catboost.load_pool(mt_features, label = mt_label)
+
+  mt_params <- list(
+    iterations = 20, learning_rate = 0.1, depth = 4, random_seed = 1,
+    logging_level = "Silent", boost_from_average = FALSE,
+    leaf_estimation_method = "Gradient"
+  )
+
+  model_builtin <- catboost.train(pool, params = c(mt_params, list(loss_function = "MultiRMSE")))
+  model_custom <- catboost.train(
+    pool,
+    params = c(mt_params, list(loss_function = "PythonUserDefinedMultiTarget", eval_metric = "MultiRMSE")),
+    custom_objective = multirmse_custom_objective
+  )
+
+  pred_builtin <- catboost.predict(model_builtin, pool, prediction_type = "RawFormulaVal")
+  pred_custom <- catboost.predict(model_custom, pool, prediction_type = "RawFormulaVal")
+  expect_equal(pred_custom, pred_builtin, tolerance = 1e-6)
+})
+
+# --- (l) logging-through-queue: verbose training with a custom objective --
+# active must produce non-garbled log output via LogFromAnyThread()'s
+# queue-rerouting path (r_callback_bridge.cpp's Log()/DrainLoop()
+# ServiceRequest handling of log-line requests, the same fire-and-forget
+# path test_r_callback_bridge.R's "log" mode exercises directly on the
+# bridge) without corrupting the session.
+test_that("custom_objective: verbose training produces non-garbled log output through the callback queue (case l)", {
+  pool <- catboost.load_pool(features, label = label)
+  out <- capture.output(
+    model <- catboost.train(
+      pool,
+      params = modifyList(custom_objective_params(), list(logging_level = "Verbose", iterations = 5)),
+      custom_objective = rmse_custom_objective
+    )
+  )
+  expect_gt(length(out), 0L)
+  expect_true(any(grepl("learn", out, ignore.case = TRUE)))
+  expect_false(anyNA(catboost.predict(model, pool, prediction_type = "RawFormulaVal")))
+
+  # Session survives: an unrelated subsequent call still works.
+  model2 <- catboost.train(pool, params = c(common_params(), list(loss_function = "RMSE")))
+  expect_false(anyNA(catboost.predict(model2, pool, prediction_type = "RawFormulaVal")))
+})

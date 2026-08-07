@@ -156,3 +156,70 @@ test_that("built-in eval_metric/custom_metric training is unaffected by custom_e
   expect_length(pred, n)
   expect_false(anyNA(pred))
 })
+
+# P6.6 (catboost-8z4.91): differential/parity suite -- fills gaps left by
+# catboost-8z4.90's own smoke tests (see task-6-brief.md cases (e)/(k)).
+
+# --- (e) error-propagation: R closure throws inside evaluate --------------
+throwing_custom_eval_metric <- list(
+  evaluate = function(approx, target, weight) stop("boom from evaluate"),
+  is_max_optimal = function() FALSE
+)
+
+test_that("custom_eval_metric_object: a closure that throws inside evaluate surfaces as a catchable R error (catboost.train)", {
+  pool <- catboost.load_pool(features, label = label)
+  base_params <- common_params()
+  base_params$use_best_model <- NULL
+  base_params$early_stopping_rounds <- NULL
+  expect_error(
+    catboost.train(pool, params = c(base_params, list(loss_function = "RMSE")),
+                   custom_eval_metric_object = throwing_custom_eval_metric),
+    "error in R custom eval metric's evaluate"
+  )
+  # Session survives: an unrelated subsequent call still works.
+  model <- catboost.train(pool, params = c(base_params, list(loss_function = "RMSE")))
+  expect_false(anyNA(catboost.predict(model, pool, prediction_type = "RawFormulaVal")))
+})
+
+# --- (k) multi-dimensional descriptor: TEvalMultiTargetFuncPtr ------------
+# Mirrors TMultiRMSEMetric exactly (metric.cpp:446-505 -- error = sum over
+# dims/rows of weight*(approx-target)^2, weight summed once per row (not
+# multiplied by the number of dims), GetFinalError = sqrt(error/weight)).
+multirmse_custom_eval_metric <- list(
+  evaluate = function(approx, target, weight) {
+    w <- if (is.null(weight)) rep(1, nrow(target)) else weight
+    diff2 <- (approx - target)^2
+    list(error = sum(w * rowSums(diff2)), weight = sum(w))
+  },
+  is_max_optimal = function() FALSE,
+  get_final_error = function(error) if (error[2] == 0) 0 else sqrt(error[1] / error[2]),
+  multi_target = TRUE
+)
+
+test_that("custom_eval_metric_object multi_target = TRUE (TEvalMultiTargetFuncPtr) reimplementing MultiRMSE matches built-in MultiRMSE eval_metric", {
+  set.seed(20260808)
+  mt_n <- 200
+  mt_features <- data.frame(x1 = rnorm(mt_n), x2 = rnorm(mt_n), x3 = rnorm(mt_n))
+  mt_label <- cbind(
+    2 * mt_features$x1 - mt_features$x2 + rnorm(mt_n, sd = 0.2),
+    -mt_features$x1 + 0.5 * mt_features$x3 + rnorm(mt_n, sd = 0.2)
+  )
+  pool <- catboost.load_pool(mt_features, label = mt_label)
+  test_pool <- catboost.load_pool(mt_features, label = mt_label)
+
+  mt_params <- list(
+    loss_function = "MultiRMSE", iterations = 60, learning_rate = 0.15, depth = 4,
+    random_seed = 1, logging_level = "Silent", use_best_model = TRUE,
+    early_stopping_rounds = 10, boost_from_average = FALSE
+  )
+
+  model_builtin <- catboost.train(pool, test_pool, params = c(mt_params, list(eval_metric = "MultiRMSE")))
+  model_custom <- catboost.train(
+    pool, test_pool, params = mt_params, custom_eval_metric_object = multirmse_custom_eval_metric
+  )
+
+  expect_equal(catboost.ntrees(model_custom), catboost.ntrees(model_builtin))
+  pred_builtin <- catboost.predict(model_builtin, pool, prediction_type = "RawFormulaVal")
+  pred_custom <- catboost.predict(model_custom, pool, prediction_type = "RawFormulaVal")
+  expect_equal(pred_custom, pred_builtin, tolerance = 1e-6)
+})

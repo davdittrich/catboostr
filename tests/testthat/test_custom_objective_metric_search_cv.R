@@ -86,6 +86,80 @@ test_that("catboost.cv: omitting custom_objective/custom_eval_metric_object repr
   expect_equal(nrow(result), common_cv_params()$iterations)
 })
 
+# Column-name-agnostic accessor: a bare custom_eval_metric_object (no custom
+# objective) forces eval_metric to the "PythonUserDefinedPerObject" marker
+# (apply_custom_eval_metric_params, R/catboost.R), so cv()'s reported column
+# is named after that marker, not "RMSE" -- unlike the custom_objective case
+# above, where eval_metric = "RMSE" was set explicitly and stays literal.
+cv_test_metric_col <- function(df, suffix) {
+  cols <- grep(paste0("^test\\..*\\.", suffix, "$"), names(df), value = TRUE)
+  df[[cols[1]]]
+}
+
+test_that("catboost.cv: custom_eval_metric_object (no custom objective) reimplementing RMSE matches built-in RMSE cv_results", {
+  pool <- catboost.load_pool(features, label = label)
+
+  cv_builtin <- catboost.cv(
+    pool, params = c(common_cv_params(), list(loss_function = "RMSE")),
+    fold_count = 3, partition_random_seed = 0, shuffle = FALSE
+  )
+  cv_custom <- catboost.cv(
+    pool, params = c(common_cv_params(), list(loss_function = "RMSE")),
+    fold_count = 3, partition_random_seed = 0, shuffle = FALSE,
+    custom_eval_metric_object = rmse_custom_eval_metric
+  )
+
+  expect_equal(cv_test_metric_col(cv_custom, "mean"), cv_test_metric_col(cv_builtin, "mean"), tolerance = 1e-6)
+  expect_equal(cv_test_metric_col(cv_custom, "std"), cv_test_metric_col(cv_builtin, "std"), tolerance = 1e-6)
+})
+
+# --- (e) error-propagation: R closure throws mid-training (catboost.cv) ----
+# catboost.train's side is covered by test_custom_objective.R/
+# test_custom_eval_metric.R's own "a closure that throws ... surfaces as a
+# catchable R error" tests (catboost-8z4.91); this covers catboost.cv's.
+
+test_that("catboost.cv: a closure that throws inside calc_ders_range surfaces as a catchable R error", {
+  pool <- catboost.load_pool(features, label = label)
+  throwing_objective <- list(
+    calc_ders_range = function(approx, target, weight) stop("boom from cv calc_ders_range")
+  )
+  expect_error(
+    catboost.cv(
+      pool, params = c(common_cv_params(), list(eval_metric = "RMSE")),
+      fold_count = 3, partition_random_seed = 0,
+      custom_objective = throwing_objective
+    ),
+    "error in R custom objective's calc_ders_range"
+  )
+  # Session survives: an unrelated subsequent call still works.
+  result <- catboost.cv(
+    pool, params = c(common_cv_params(), list(loss_function = "RMSE")),
+    fold_count = 3, partition_random_seed = 0
+  )
+  expect_true(is.data.frame(result))
+})
+
+test_that("catboost.cv: a closure that throws inside evaluate surfaces as a catchable R error", {
+  pool <- catboost.load_pool(features, label = label)
+  throwing_metric <- list(
+    evaluate = function(approx, target, weight) stop("boom from cv evaluate"),
+    is_max_optimal = function() FALSE
+  )
+  expect_error(
+    catboost.cv(
+      pool, params = c(common_cv_params(), list(loss_function = "RMSE")),
+      fold_count = 3, partition_random_seed = 0,
+      custom_eval_metric_object = throwing_metric
+    ),
+    "error in R custom eval metric's evaluate"
+  )
+  result <- catboost.cv(
+    pool, params = c(common_cv_params(), list(loss_function = "RMSE")),
+    fold_count = 3, partition_random_seed = 0
+  )
+  expect_true(is.data.frame(result))
+})
+
 # --- (b) grid_search/randomized_search refit forwarding ---------------------
 #
 # A single-value grid isolates the fix from the search itself: best_params is
@@ -161,6 +235,77 @@ test_that("catboost.grid_search: omitting the new arguments reproduces prior (bu
   expect_equal(result$params$depth, 4)
   expect_equal(result$params$learning_rate, 0.1)
   expect_false(is.null(result$model))
+})
+
+test_that("catboost.randomized_search: omitting the new arguments reproduces prior (built-in-loss) behavior", {
+  pool <- catboost.load_pool(features, label = label)
+  result <- catboost.randomized_search(
+    single_value_grid, pool,
+    params = list(iterations = 20, loss_function = "RMSE", random_seed = 1, logging_level = "Silent"),
+    cv = 3, n_iter = 1, refit = TRUE, verbose = FALSE
+  )
+  expect_equal(result$params$depth, 4)
+  expect_equal(result$params$learning_rate, 0.1)
+  expect_false(is.null(result$model))
+})
+
+# --- (g) grid_search/randomized_search: the SEARCH ITSELF (src/catboostr.cpp
+# GridSearch/RandomizedSearch call sites, NOT CrossValidate) actually uses the
+# supplied custom objective/metric, not just the refit step (b) above already
+# covers. A multi-value grid gives the search something to differentiate
+# between; refit = FALSE isolates the search from the refit-forwarding fix.
+
+multi_value_grid <- list(depth = c(3, 4), learning_rate = c(0.05, 0.1))
+
+test_that("catboost.grid_search: the search itself (not just refit) uses custom_objective/custom_eval_metric_object", {
+  pool <- catboost.load_pool(features, label = label)
+
+  result_custom <- catboost.grid_search(
+    multi_value_grid, pool,
+    params = list(iterations = 20, random_seed = 1, logging_level = "Silent", boost_from_average = FALSE),
+    cv = 3, refit = FALSE, verbose = FALSE,
+    custom_objective = rmse_custom_objective,
+    custom_eval_metric_object = rmse_custom_eval_metric
+  )
+  result_builtin <- catboost.grid_search(
+    multi_value_grid, pool,
+    params = list(iterations = 20, loss_function = "RMSE", random_seed = 1, logging_level = "Silent", boost_from_average = FALSE),
+    cv = 3, refit = FALSE, verbose = FALSE
+  )
+
+  expect_equal(result_custom$params$depth, result_builtin$params$depth)
+  expect_equal(result_custom$params$learning_rate, result_builtin$params$learning_rate)
+  expect_equal(
+    cv_test_metric_col(result_custom$cv_results, "mean"),
+    cv_test_metric_col(result_builtin$cv_results, "mean"),
+    tolerance = 1e-6
+  )
+})
+
+test_that("catboost.randomized_search: the search itself (not just refit) uses custom_objective/custom_eval_metric_object", {
+  pool <- catboost.load_pool(features, label = label)
+  sample_grid <- list(depth = c(3, 4, 5), learning_rate = c(0.05, 0.1, 0.15))
+
+  result_custom <- catboost.randomized_search(
+    sample_grid, pool,
+    params = list(iterations = 20, random_seed = 1, logging_level = "Silent", boost_from_average = FALSE),
+    cv = 3, n_iter = 3, refit = FALSE, verbose = FALSE,
+    custom_objective = rmse_custom_objective,
+    custom_eval_metric_object = rmse_custom_eval_metric
+  )
+  result_builtin <- catboost.randomized_search(
+    sample_grid, pool,
+    params = list(iterations = 20, loss_function = "RMSE", random_seed = 1, logging_level = "Silent", boost_from_average = FALSE),
+    cv = 3, n_iter = 3, refit = FALSE, verbose = FALSE
+  )
+
+  expect_equal(result_custom$params$depth, result_builtin$params$depth)
+  expect_equal(result_custom$params$learning_rate, result_builtin$params$learning_rate)
+  expect_equal(
+    cv_test_metric_col(result_custom$cv_results, "mean"),
+    cv_test_metric_col(result_builtin$cv_results, "mean"),
+    tolerance = 1e-6
+  )
 })
 
 # --- (c) select_features (metric only) and eval_feature (both) smoke tests --

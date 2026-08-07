@@ -13229,7 +13229,7 @@
     "disposition_confidence": 95,
     "final_method": "elementwise",
     "final_method_confidence": 60,
-    "final_method_note": "returns numeric CV results + best params dict"
+    "final_method_note": "catboost-8z4.91: custom_objective/custom_eval_metric_object forwarding to the search itself (not just refit) is differentially tested against a built-in-loss search on the same multi-value grid in tests/testthat/test_custom_objective_metric_search_cv.R."
   },
   {
     "inventory_row_id": "CatBoost.is_fitted",
@@ -13445,7 +13445,7 @@
     "disposition_confidence": 95,
     "final_method": "elementwise",
     "final_method_confidence": 60,
-    "final_method_note": "returns numeric CV results + best params dict"
+    "final_method_note": "catboost-8z4.91: custom_objective/custom_eval_metric_object forwarding to the search itself (not just refit) is differentially tested against a built-in-loss search on the same multi-value grid in tests/testthat/test_custom_objective_metric_search_cv.R."
   },
   {
     "inventory_row_id": "CatBoost.save_borders",
@@ -13493,7 +13493,7 @@
     "disposition_confidence": 95,
     "final_method": "elementwise",
     "final_method_confidence": 60,
-    "final_method_note": "returns numeric summary + selected/eliminated feature lists"
+    "final_method_note": "catboost-8z4.91/.94: custom_eval_metric_object (metric only) is smoke-tested in tests/testthat/test_custom_objective_metric_search_cv.R. custom OBJECTIVE support is a documented structural gap, not a bug: NCB::SelectFeatures has no TCustomObjectiveDescriptor parameter (verified against select_features.h/recursive_features_elimination.*), so catboost.select_features() deliberately has no custom_objective formal argument -- asserted by that same test file's \"has no custom_objective formal argument\" test."
   },
   {
     "inventory_row_id": "CatBoost.set_feature_names",
@@ -14405,7 +14405,7 @@
     "disposition_confidence": 95,
     "final_method": "elementwise",
     "final_method_confidence": 60,
-    "final_method_note": "returns numeric CV results + best params dict"
+    "final_method_note": "catboost-8z4.91: custom_objective/custom_eval_metric_object forwarding to the search itself (not just refit) is differentially tested against a built-in-loss search on the same multi-value grid in tests/testthat/test_custom_objective_metric_search_cv.R."
   },
   {
     "inventory_row_id": "CatBoostClassifier.is_fitted",
@@ -14669,7 +14669,7 @@
     "disposition_confidence": 95,
     "final_method": "elementwise",
     "final_method_confidence": 60,
-    "final_method_note": "returns numeric CV results + best params dict"
+    "final_method_note": "catboost-8z4.91: custom_objective/custom_eval_metric_object forwarding to the search itself (not just refit) is differentially tested against a built-in-loss search on the same multi-value grid in tests/testthat/test_custom_objective_metric_search_cv.R."
   },
   {
     "inventory_row_id": "CatBoostClassifier.save_borders",
@@ -14741,7 +14741,7 @@
     "disposition_confidence": 95,
     "final_method": "elementwise",
     "final_method_confidence": 60,
-    "final_method_note": "returns numeric summary + selected/eliminated feature lists"
+    "final_method_note": "catboost-8z4.91/.94: custom_eval_metric_object (metric only) is smoke-tested in tests/testthat/test_custom_objective_metric_search_cv.R. custom OBJECTIVE support is a documented structural gap, not a bug: NCB::SelectFeatures has no TCustomObjectiveDescriptor parameter (verified against select_features.h/recursive_features_elimination.*), so catboost.select_features() deliberately has no custom_objective formal argument -- asserted by that same test file's \"has no custom_objective formal argument\" test."
   },
   {
     "inventory_row_id": "CatBoostClassifier.set_feature_names",
@@ -15701,7 +15701,7 @@
     "disposition_confidence": 95,
     "final_method": "elementwise",
     "final_method_confidence": 60,
-    "final_method_note": "returns numeric CV results + best params dict"
+    "final_method_note": "catboost-8z4.91: custom_objective/custom_eval_metric_object forwarding to the search itself (not just refit) is differentially tested against a built-in-loss search on the same multi-value grid in tests/testthat/test_custom_objective_metric_search_cv.R."
   },
   {
     "inventory_row_id": "CatBoostRegressor.is_fitted",
@@ -15917,7 +15917,7 @@
     "disposition_confidence": 95,
     "final_method": "elementwise",
     "final_method_confidence": 60,
-    "final_method_note": "returns numeric CV results + best params dict"
+    "final_method_note": "catboost-8z4.91: custom_objective/custom_eval_metric_object forwarding to the search itself (not just refit) is differentially tested against a built-in-loss search on the same multi-value grid in tests/testthat/test_custom_objective_metric_search_cv.R."
   },
   {
     "inventory_row_id": "CatBoostRegressor.save_borders",
@@ -15989,7 +15989,7 @@
     "disposition_confidence": 95,
     "final_method": "elementwise",
     "final_method_confidence": 60,
-    "final_method_note": "returns numeric summary + selected/eliminated feature lists"
+    "final_method_note": "catboost-8z4.91/.94: custom_eval_metric_object (metric only) is smoke-tested in tests/testthat/test_custom_objective_metric_search_cv.R. custom OBJECTIVE support is a documented structural gap, not a bug: NCB::SelectFeatures has no TCustomObjectiveDescriptor parameter (verified against select_features.h/recursive_features_elimination.*), so catboost.select_features() deliberately has no custom_objective formal argument -- asserted by that same test file's \"has no custom_objective formal argument\" test."
   },
   {
     "inventory_row_id": "CatBoostRegressor.set_feature_names",
@@ -16877,7 +16877,7 @@
     "disposition_confidence": 95,
     "final_method": "elementwise",
     "final_method_confidence": 60,
-    "final_method_note": "returns numeric CV results + best params dict"
+    "final_method_note": "catboost-8z4.91: custom_objective/custom_eval_metric_object forwarding to the search itself (not just refit) is differentially tested against a built-in-loss search on the same multi-value grid in tests/testthat/test_custom_objective_metric_search_cv.R."
   },
   {
     "inventory_row_id": "CatBoostRanker.is_fitted",
@@ -17093,7 +17093,7 @@
     "disposition_confidence": 95,
     "final_method": "elementwise",
     "final_method_confidence": 60,
-    "final_method_note": "returns numeric CV results + best params dict"
+    "final_method_note": "catboost-8z4.91: custom_objective/custom_eval_metric_object forwarding to the search itself (not just refit) is differentially tested against a built-in-loss search on the same multi-value grid in tests/testthat/test_custom_objective_metric_search_cv.R."
   },
   {
     "inventory_row_id": "CatBoostRanker.save_borders",
@@ -17165,7 +17165,7 @@
     "disposition_confidence": 95,
     "final_method": "elementwise",
     "final_method_confidence": 60,
-    "final_method_note": "returns numeric summary + selected/eliminated feature lists"
+    "final_method_note": "catboost-8z4.91/.94: custom_eval_metric_object (metric only) is smoke-tested in tests/testthat/test_custom_objective_metric_search_cv.R. custom OBJECTIVE support is a documented structural gap, not a bug: NCB::SelectFeatures has no TCustomObjectiveDescriptor parameter (verified against select_features.h/recursive_features_elimination.*), so catboost.select_features() deliberately has no custom_objective formal argument -- asserted by that same test file's \"has no custom_objective formal argument\" test."
   },
   {
     "inventory_row_id": "CatBoostRanker.set_feature_names",

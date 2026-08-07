@@ -171,13 +171,17 @@ test_that("custom_eval_metric_object: a closure that throws inside evaluate surf
   base_params <- common_params()
   base_params$use_best_model <- NULL
   base_params$early_stopping_rounds <- NULL
+  # base_params already sets loss_function = "RMSE" (common_params()) -- no
+  # override needed here, avoiding the duplicate-key c() gotcha documented
+  # in the task-6 report (jsonlite::toJSON serializes a repeated list name
+  # as a synthesized "loss_function.1" key).
   expect_error(
-    catboost.train(pool, params = c(base_params, list(loss_function = "RMSE")),
+    catboost.train(pool, params = base_params,
                    custom_eval_metric_object = throwing_custom_eval_metric),
     "error in R custom eval metric's evaluate"
   )
   # Session survives: an unrelated subsequent call still works.
-  model <- catboost.train(pool, params = c(base_params, list(loss_function = "RMSE")))
+  model <- catboost.train(pool, params = base_params)
   expect_false(anyNA(catboost.predict(model, pool, prediction_type = "RawFormulaVal")))
 })
 

@@ -112,3 +112,25 @@ rather than approximating the search with an R-side loop over
 train/test-split reuse live entirely in that native code, so calling it
 directly is what makes best-params/best-score match the Python oracle.
 }
+\examples{
+# (c) refit = TRUE correctly reuses the supplied custom_objective for the
+# final refit, not just for the search itself (P6.5, catboost-8z4.94).
+\dontrun{
+n <- 50
+features <- data.frame(x1 = rnorm(n), x2 = rnorm(n))
+label <- with(features, x1 - x2 + rnorm(n, sd = 0.3))
+pool <- catboost.load_pool(features, label = label)
+rmse_custom_objective <- list(
+    calc_ders_range = function(approx, target, weight) {
+        w <- if (is.null(weight)) 1 else weight
+        cbind(w * (target - approx), w * (-1))
+    })
+result <- catboost.grid_search(
+    list(depth = c(3, 4)), pool,
+    params = list(iterations = 10, logging_level = "Silent",
+                  eval_metric = "RMSE", boost_from_average = FALSE),
+    cv = 3, refit = TRUE, verbose = FALSE,
+    custom_objective = rmse_custom_objective)
+# result$model was refit with rmse_custom_objective, not a built-in loss.
+}
+}

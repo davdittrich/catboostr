@@ -1163,6 +1163,49 @@ The list of parameters
 
 % BEGIN GENERATED PARAM REFERENCE (tools/parity/gen_param_reference.py) -- DO NOT EDIT BY HAND
 }
+\details{
+\strong{Custom objective / custom eval metric support matrix}
+(P6.7, catboost-8z4.92). Every entry point below shares the same
+\code{custom_objective}/\code{custom_eval_metric_object} argument contract
+documented under \code{catboost.train}'s own \code{custom_objective} and
+\code{custom_eval_metric_object} params:
+\itemize{
+  \item{\code{catboost.train}}{ Both \code{custom_objective} and
+    \code{custom_eval_metric_object}.}
+  \item{\code{catboost.cv}}{ Both.}
+  \item{\code{catboost.grid_search}}{ Both -- forwarded to the search
+    itself and, when \code{refit = TRUE}, to the refit.}
+  \item{\code{catboost.randomized_search}}{ Both -- same forwarding as
+    \code{catboost.grid_search}.}
+  \item{\code{catboost.eval_feature}}{ Both.}
+  \item{\code{catboost.select_features}}{ \code{custom_eval_metric_object}
+    \strong{only}. There is no \code{custom_objective} argument: the
+    native entry point it calls, \code{NCB::SelectFeatures} (vendored at
+    \code{catboost/libs/features_selection/select_features.h}), takes no
+    \code{TCustomObjectiveDescriptor} parameter anywhere in its signature
+    or in \code{recursive_features_elimination.*} -- there is no C++-side
+    slot to wire a custom objective into, so the omission is structural,
+    not a missing feature.}
+}
+
+\strong{Multithreading preservation.} CatBoost's own engine parallelizes
+derivative/metric computation across TBB worker threads
+(\code{NPar::TTbbLocalExecutor}), but R's C API may only be called from R's
+own main thread. The naive fix -- forcing \code{params$thread_count = 1}
+whenever a custom objective/metric is supplied -- was rejected: it would
+silently kill CatBoost's own training parallelism for every custom-loss
+user, trading a correctness problem for a performance regression. Instead,
+training runs on a background \code{std::thread} while R's real main
+thread (the \code{.Call} frame the user invoked) runs a drain loop that
+services R-closure-invocation requests queued by any worker thread; each
+request blocks its own thread on a condition variable until the main
+thread has executed it and posted the result back
+(\code{src/r_callback_bridge.h}). TBB's own parallel scheduling of the
+surrounding derivative/metric computation is untouched -- only the R
+closure invocation itself is serialized onto the main thread, not the
+whole computation. \code{params$thread_count} is therefore never forced
+to 1 for a custom objective/metric run.
+}
 \section{Full Parameter Reference (generated)}{
 
 All 139 hyperparameters from the machine-generated capability
@@ -1333,6 +1376,46 @@ fit_params <- list(
     l2_leaf_reg = 3.5,
     train_dir = 'train_dir')
 model <- catboost.train(train_pool, test_pool, fit_params)
+}
+
+# (a) custom_objective: reimplement RMSE's own derivatives (matches
+# calc_ders_range's contract -- weight is applied by the closure itself,
+# unlike the built-in dispatcher, which multiplies by weight for you).
+\dontrun{
+n <- 50
+features <- data.frame(x1 = rnorm(n), x2 = rnorm(n))
+label <- with(features, x1 - x2 + rnorm(n, sd = 0.3))
+pool <- catboost.load_pool(features, label = label)
+rmse_custom_objective <- list(
+    calc_ders_range = function(approx, target, weight) {
+        w <- if (is.null(weight)) 1 else weight
+        cbind(w * (target - approx), w * (-1))
+    })
+model <- catboost.train(
+    pool,
+    params = list(iterations = 10, depth = 3, logging_level = "Silent",
+                  eval_metric = "RMSE", boost_from_average = FALSE),
+    custom_objective = rmse_custom_objective)
+}
+
+# (b) custom_eval_metric_object: reimplement RMSE's own Eval/GetFinalError.
+\dontrun{
+n <- 50
+features <- data.frame(x1 = rnorm(n), x2 = rnorm(n))
+label <- with(features, x1 - x2 + rnorm(n, sd = 0.3))
+pool <- catboost.load_pool(features, label = label)
+rmse_custom_eval_metric <- list(
+    evaluate = function(approx, target, weight) {
+        w <- if (is.null(weight)) rep(1, length(target)) else weight
+        diff <- approx[, 1] - target
+        list(error = sum(w * diff^2), weight = sum(w))
+    },
+    is_max_optimal = function() FALSE,
+    get_final_error = function(error) sqrt(error[1] / (error[2] + 1e-38)))
+model <- catboost.train(
+    pool,
+    params = list(iterations = 10, depth = 3, logging_level = "Silent"),
+    custom_eval_metric_object = rmse_custom_eval_metric)
 }
 }
 \seealso{

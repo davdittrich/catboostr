@@ -437,6 +437,17 @@ EXPORT_FUNCTION CatBoostTextDictionarySave_R(
 
 EXPORT_FUNCTION CatBoostTextDictionaryLoad_R(SEXP frequencyDictPathParam, SEXP bpePathParam);
 
+// P6.2 (catboost-8z4.93): standalone exercise of the R-callback bridge
+// (src/r_callback_bridge.h) with plain std::threads standing in for CatBoost's
+// TBB workers. modeParam is one of "roundtrip", "throw", "orphan", "log".
+// Also the hook catboost-8z4.91 reads the active-worker instrumentation from.
+EXPORT_FUNCTION CatBoostRCallbackBridgeSelfTest_R(
+    SEXP modeParam,
+    SEXP closureParam,
+    SEXP nThreadsParam,
+    SEXP nItemsParam
+);
+
 #if defined(__cplusplus)
 }
 #endif

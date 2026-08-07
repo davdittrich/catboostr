@@ -87,15 +87,25 @@
 #endif
 
 #include "catboostr.h"
+// P6.2 (catboost-8z4.93): background-thread / R-callback bridge. Included
+// after the standard headers above for the R.h `#define length()` vs
+// libstdc++ codecvt::length() collision (catboost-8z4.88 finding).
+#include "r_callback_bridge.h"
 
 
 using namespace NCB;
 
 
+// P6.2 (catboost-8z4.93): CatBoost's own logger fires from whichever thread is
+// writing. Once training runs on a background thread (the custom R
+// loss/metric bridge), calling Rprintf here directly would touch R's C API
+// off R's main thread. LogFromAnyThread() routes the line through the same
+// queue the callback requests use when a bridge is active, and Rprintf()s
+// directly otherwise -- i.e. unchanged behaviour for every entry point that
+// does not use the bridge.
 #define R_API_BEGIN()                                                           \
     auto loggingFunc = [](const char* str, size_t len, TCustomLoggingObject) {  \
-        TString slicedStr(str, 0, len);                                         \
-        Rprintf("%s", slicedStr.c_str());                                       \
+        NCatboostR::LogFromAnyThread(str, len);                                 \
     };                                                                          \
     SetCustomLoggingFunction(loggingFunc, loggingFunc);                         \
     *Singleton<TRPackageInitializer>();                                         \

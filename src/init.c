@@ -66,6 +66,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"CatBoostPredictMulti_R",                (DL_FUNC) &CatBoostPredictMulti_R,                 7},
     {"CatBoostPredictVirtualEnsembles_R",     (DL_FUNC) &CatBoostPredictVirtualEnsembles_R,      7},
     {"CatBoostPrepareEval_R",                 (DL_FUNC) &CatBoostPrepareEval_R,                  5},
+    {"CatBoostRCallbackBridgeSelfTest_R",     (DL_FUNC) &CatBoostRCallbackBridgeSelfTest_R,      4},
     {"CatBoostRandomizedSearch_R",            (DL_FUNC) &CatBoostRandomizedSearch_R,            12},
     {"CatBoostReadModel_R",                   (DL_FUNC) &CatBoostReadModel_R,                    2},
     {"CatBoostSelectFeatures_R",              (DL_FUNC) &CatBoostSelectFeatures_R,               4},

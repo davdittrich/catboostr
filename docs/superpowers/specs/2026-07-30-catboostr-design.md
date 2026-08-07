@@ -87,7 +87,7 @@ The upstream R package is a second-class citizen:
 | Build model | **The fork defines its OWN CMake target** (`add_shared_library`) linking the same upstream targets by name plus the fork's own sources, injected into the disposable copy by appending `add_subdirectory(fork-src)` to the root `CMakeLists.txt` **after** upstream's own `add_subdirectory(catboost)`. **Measured, not assumed:** `-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES` does NOT work for this — it runs too early, before upstream's targets exist, so `target_link_libraries` cannot resolve them by identity. | Corrects two earlier wrong models. Upstream's `catboostr` target hardcodes its source list in the read-only submodule, so the fork's C++ cannot join it — but the R-Makevars alternative would have required hand-reproducing whole-archive semantics for 28 `.global` archives (`cmake/common.cmake:149-166`) plus the mimalloc allocator and export script. Owning a CMake target edits no submodule file and lets CMake resolve whole-archive, allocator, export script and link order for free. **VERIFIED by the spike** (catboost-8z4.8): built, loaded via `dyn.load`, entry point called, and 23/23 `.global` archives confirmed wrapped in `-Wl,--whole-archive` in the actual link line. |
 | API compatibility | Strict superset | Every upstream `catboost.*` name and signature preserved. Nothing that works today breaks. |
 | Scope boundary | CLI/Python parity only | Per explicit user instruction. No new API surface that lacks a CLI or Python counterpart. |
-| Sequencing | Release at R1, immediately after the CPU capability phases | Ship to r-universe and submit to CRAN once Phases 1-5 are green, then continue parity as minor releases. See §5. |
+| Sequencing | Release at R1, after every non-GPU-blocked phase | Ship to r-universe once Phases 1-6 and 8 are green (CRAN out of scope, 2026-07-31 decision), then continue parity as minor releases. Only Phase 7 (GPU, hardware-blocked) sits behind R1. See §5. |
 | Platform scope for R1 | **Linux and macOS. Windows deferred.** | CRAN builds Windows for every accepted package, and MSVC-produced C++ static libraries cannot link into a mingw-built R DLL (different mangling, runtime and C++ ABI); upstream's Windows CMake path targets MSVC/clang-cl while R on Windows uses Rtools mingw-w64. Solving that is real work that would gate R1 on an unmeasured assumption. R1 therefore targets Linux and macOS; full CRAN acceptance follows once Windows is solved, and the spec says so rather than discovering it in Phase 1. |
 | Glue layer | **Raw `.Call` throughout. Decided; no spike.** | The glue is 28 entry points. Upstream already provides the exception safety cpp11 is usually bought for (`R_API_BEGIN`/`R_API_END`, `src/catboostr.cpp:45-58`). cpp11 would buy less PROTECT boilerplate at the cost of a new dependency, the combined-table registration trap, and a maintainer footgun this spec itself called a trap. Zero new mechanism wins. This is what xgboost does. §4.7's trap is thereby designed out rather than mitigated. |
 | GPU | Separate non-CRAN binary channel, identical R API | CRAN and r-universe runners have no CUDA. Parity and CRAN cannot coexist in one artifact. |
@@ -637,19 +637,23 @@ and is signed off. Treating this table as a costed multi-quarter plan would be f
 | 3 | *(Provisional)* Data/Pool parity: multi-target labels, embeddings, sparse/CSR, timestamps, quantized pools, text tokenizers. Includes the CLI's `dataset-statistics` mode. | Differential tests green at default tolerance. |
 | 4 | *(Provisional)* Analysis parity: `calc_feature_statistics`, object-importance MultiClass fix (#869), `plot_tree`, `catboost.compare`, and the `ShapInteractionValues`/`PredictionDiff` **argument values** (§4.2 — not new functions). Includes the CLI's `eval-feature`, `roc`, `model-based-eval` modes. | Differential tests green; structural method per §4.3. |
 | 5 | *(Provisional)* Training-control parity: `init_model`, grid/randomized search, `select_features`, virtual ensembles verified end-to-end, the generated parameter documentation and validation (§4.2). Includes the CLI's `metadata` and `normalize-model` modes. | Differential tests green. |
-| **R1** | **FIRST PUBLIC RELEASE — r-universe + CRAN submission.** CPU-only. Ships the strict-superset upstream surface plus everything green through Phase 5. Documentation and vignettes cover the parity matrix **as it stands**, with red rows listed honestly as not-yet-available. | Installable from r-universe; CRAN submitted. **This is where the user's stated goal is delivered**, not Phase 10. |
 | 6 | *(Provisional)* Custom R loss/metric callback bridge. Highest risk; isolated deliberately. | Differential tests green, or a recorded infeasibility finding. |
-| 7 | *(Provisional)* GPU parity. **Blocked on the §9.1 hardware decision.** | Differential tests green **on real CUDA hardware**; skips never count. Does not gate R1. |
 | 8 | *(Provisional)* Distributed training parity (CLI `run-worker`). | Differential test against the CLI. |
-| 9+ | Each subsequent parity phase ships as a **minor release against the live CRAN package**, not as a gate in front of it. | Per-phase differential tests green. |
+| **R1** | **FIRST PUBLIC RELEASE — r-universe / GitHub (CRAN out of scope, user decision 2026-07-31).** CPU-only. Ships the strict-superset upstream surface plus everything green through Phase 6 and Phase 8 — every non-GPU-blocked phase. Documentation and vignettes cover the parity matrix **as it stands**, with red rows (Phase 7, GPU) listed honestly as not-yet-available. | Installable from r-universe or a git checkout. **This is where the user's stated goal is delivered**, not Phase 10. |
+| 7 | *(Provisional)* GPU parity. **Blocked on the §9.1 hardware decision.** Does not gate R1 — the sole phase excluded from the release gate, since no CUDA hardware exists for this project. | Differential tests green **on real CUDA hardware**; skips never count. |
+| 9+ | Each subsequent parity phase ships as a **minor release against the live package**, not as a gate in front of it. | Per-phase differential tests green. |
 
 **Sequencing rationale.** An earlier draft placed r-universe at Phase 9 and CRAN at Phase 10,
 behind every parity phase — including Phase 7, which is blocked on hardware nobody has. That
 contradicted §3's own "usable install in weeks, not quarters" and put the user's only stated
-success criterion last, gated on the least certain work. R1 moves the release to just after
-the CPU capability phases: the packaging risk that actually threatens CRAN is resolved in
-Phase 1, so there is no reason to sit on it for quarters. Parity then continues against a
-shipped package, where unscoped work is a backlog rather than a blocker.
+success criterion last, gated on the least certain work. A later draft moved R1 to
+immediately after Phase 5, but that let Phase 6 (custom loss/metric bridge) and Phase 8
+(distributed training) — neither of which is hardware-blocked — ship *after* the first public
+release for no reason other than table position. R1's gate is now: everything that is not
+blocked on absent GPU hardware. Only Phase 7 sits behind R1, because it is the only phase
+whose completion this project cannot control. Parity then continues against a shipped
+package, where unscoped work (Phase 7, once hardware exists, and 9+) is a backlog rather than
+a blocker.
 
 ## 6. Alternatives Considered
 
@@ -715,7 +719,7 @@ descope triggers:
 | Phase 1a pruned tarball exceeds 30 MB | Escalate to the user. NOTE: §6's thin-package contingency is REFUTED, so this trigger no longer has a fallback route attached — the only remaining responses are a smaller tarball or abandoning CRAN. |
 | Two consecutive CRAN rejections on grounds that are structural rather than fixable (size, build time, bundled sources) | Stop pursuing CRAN. Ship r-universe only, and record that the stated goal was not reachable on this architecture. |
 | Phase 6 (custom R loss/metric) proves infeasible after one honest attempt | Record the infeasibility with evidence, mark those matrix rows permanently out-of-scope, continue. It does not block anything else. |
-| GPU hardware still unresourced when Phases 1-6 are done | Take the §9.1 decision then, on the terms below. GPU never blocks R1. |
+| GPU hardware still unresourced when Phases 1-6 and 8 are done | Take the §9.1 decision then, on the terms below. GPU never blocks R1. |
 | Upstream ships its own feature-complete R package or accepts these changes | Stop. The fork's purpose is gone; contribute upstream instead. |
 
 The R1 release exists partly so that abandonment after it still leaves the user with a

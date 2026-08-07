@@ -8,7 +8,8 @@ catboost.train(
   learn_pool,
   test_pool = NULL,
   params = list(),
-  init_model = NULL
+  init_model = NULL,
+  custom_objective = NULL
 )
 }
 \arguments{
@@ -36,6 +37,56 @@ or \code{catboost.load_model}), or a string/path to a model file on disk
 format).
 
 Default value: NULL (train a new model from scratch)}
+
+\item{custom_objective}{A user-defined loss function, used instead of
+\code{params$loss_function}. Must be a named \code{list} with one or both
+of the following elements (both are R closures; at least one is
+required):
+\itemize{
+  \item{\code{calc_ders_range = function(approx, target, weight)}}{
+    Called for single-dimension losses (regression, binary
+    classification, ranking). \code{approx}/\code{target} are numeric
+    vectors of the current batch's predictions/labels; \code{weight} is
+    either a numeric vector of the same length or \code{NULL} (unweighted
+    pool). Must return an \code{N x 2} numeric matrix (\code{N} =
+    \code{length(approx)}), column 1 = first derivative, column 2 =
+    second derivative of the loss w.r.t. \code{approx}, one row per
+    observation.}
+  \item{\code{calc_ders_multi = function(approx, target, weight)}}{
+    Called for multi-dimensional losses (multiclass, multi-target
+    regression), once per observation. \code{approx} is a numeric vector
+    of length \code{K} (the current observation's per-dimension
+    predictions); \code{target} is a numeric vector (length 1 for
+    multiclass, length \code{K} for multi-target); \code{weight} is a
+    single number. Must return \code{list(der1 = <numeric vector, length
+    K>, der2 = <K x K numeric matrix, or NULL>)}: \code{der1} is the
+    gradient: \code{der2}, when required by the current
+    \code{leaf_estimation_method}, is the Hessian (a symmetric matrix --
+    only its upper triangle, including the diagonal, is read).}
+}
+Reimplements the two-method contract of Python's
+\code{CatBoost(loss_function = <object with calc_ders_range/
+calc_ders_multi>)} (see \code{_catboost.pyx}'s
+\code{_ObjectiveCalcDersRange}/\code{_ObjectiveCalcDersMultiClass}/
+\code{_ObjectiveCalcDersMultiTarget}), adapted to R's lack of a
+scalar/length-1-vector distinction. Every call is marshaled back onto R's
+main thread (via the package's internal callback bridge) so it is safe to
+call from a multi-threaded training run; \code{params$thread_count} is NOT
+forced to 1.
+
+\code{params$loss_function} is set automatically to
+\code{"PythonUserDefinedPerObject"} (covers \code{calc_ders_range} and
+\code{calc_ders_multi} used for MultiClass-shaped losses) when left
+unset; set it explicitly to \code{"PythonUserDefinedMultiTarget"}
+yourself if \code{calc_ders_multi} implements a multi-target regression
+objective (vector target) instead -- any other value is rejected. A
+custom objective also requires \code{params$eval_metric} to be set
+explicitly (there is no default metric to infer from an opaque R
+closure), and is incompatible with \code{params$boost_from_average =
+TRUE} (native CatBoost only computes that data-dependent starting bias
+for a fixed allowlist of built-in losses).
+
+Default value: NULL (use \code{params$loss_function} as-is)}
 }
 \value{
 Model object.

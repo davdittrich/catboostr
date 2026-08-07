@@ -80,8 +80,15 @@ EXPORT_FUNCTION CatBoostFit_R(
     // P5.1 (catboost-8z4.58): model handle to continue training from, or
     // R_NilValue. Appended as the last argument so existing 3-arg call
     // sites keep compiling; the R wrapper always passes 4 args now.
-    SEXP initModelParam
+    SEXP initModelParam,
+    // P6.3 (catboost-8z4.89): R_NilValue, or a named list with
+    // calc_ders_range/calc_ders_multi closures -- see r_custom_objective.h.
+    SEXP customObjectiveParam
 );
+
+// catboost-8z4.91 test hook: MaxActiveWorkers() from the bridge's most
+// recent custom-objective catboost.train() run, or -1 if none has run yet.
+EXPORT_FUNCTION CatBoostLastCustomObjectiveMaxActiveWorkers_R(void);
 
 EXPORT_FUNCTION CatBoostSumModels_R(
     SEXP modelsParam,

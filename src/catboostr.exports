@@ -24,6 +24,7 @@ C CatBoostHashStrings_R
 C CatBoostIsGroupwiseMetric_R
 C CatBoostIsNullHandle_R
 C CatBoostIsOblivious_R
+C CatBoostLastCustomObjectiveMaxActiveWorkers_R
 C CatBoostModelBasedEval_R
 C CatBoostOutputModel_R
 C CatBoostPoolGetBaseline_R

@@ -2701,6 +2701,55 @@ summary.catboost.Model <- function(object, ...) {
 #' format).
 #'
 #' Default value: NULL (train a new model from scratch)
+#' @param custom_objective A user-defined loss function, used instead of
+#' \code{params$loss_function}. Must be a named \code{list} with one or both
+#' of the following elements (both are R closures; at least one is
+#' required):
+#' \itemize{
+#'   \item{\code{calc_ders_range = function(approx, target, weight)}}{
+#'     Called for single-dimension losses (regression, binary
+#'     classification, ranking). \code{approx}/\code{target} are numeric
+#'     vectors of the current batch's predictions/labels; \code{weight} is
+#'     either a numeric vector of the same length or \code{NULL} (unweighted
+#'     pool). Must return an \code{N x 2} numeric matrix (\code{N} =
+#'     \code{length(approx)}), column 1 = first derivative, column 2 =
+#'     second derivative of the loss w.r.t. \code{approx}, one row per
+#'     observation.}
+#'   \item{\code{calc_ders_multi = function(approx, target, weight)}}{
+#'     Called for multi-dimensional losses (multiclass, multi-target
+#'     regression), once per observation. \code{approx} is a numeric vector
+#'     of length \code{K} (the current observation's per-dimension
+#'     predictions); \code{target} is a numeric vector (length 1 for
+#'     multiclass, length \code{K} for multi-target); \code{weight} is a
+#'     single number. Must return \code{list(der1 = <numeric vector, length
+#'     K>, der2 = <K x K numeric matrix, or NULL>)}: \code{der1} is the
+#'     gradient: \code{der2}, when required by the current
+#'     \code{leaf_estimation_method}, is the Hessian (a symmetric matrix --
+#'     only its upper triangle, including the diagonal, is read).}
+#' }
+#' Reimplements the two-method contract of Python's
+#' \code{CatBoost(loss_function = <object with calc_ders_range/
+#' calc_ders_multi>)} (see \code{_catboost.pyx}'s
+#' \code{_ObjectiveCalcDersRange}/\code{_ObjectiveCalcDersMultiClass}/
+#' \code{_ObjectiveCalcDersMultiTarget}), adapted to R's lack of a
+#' scalar/length-1-vector distinction. Every call is marshaled back onto R's
+#' main thread (via the package's internal callback bridge) so it is safe to
+#' call from a multi-threaded training run; \code{params$thread_count} is NOT
+#' forced to 1.
+#'
+#' \code{params$loss_function} is set automatically to
+#' \code{"PythonUserDefinedPerObject"} (covers \code{calc_ders_range} and
+#' \code{calc_ders_multi} used for MultiClass-shaped losses) when left
+#' unset; set it explicitly to \code{"PythonUserDefinedMultiTarget"}
+#' yourself if \code{calc_ders_multi} implements a multi-target regression
+#' objective (vector target) instead -- any other value is rejected. A
+#' custom objective also requires \code{params$eval_metric} to be set
+#' explicitly (there is no default metric to infer from an opaque R
+#' closure), and is incompatible with \code{params$boost_from_average =
+#' TRUE} (native CatBoost only computes that data-dependent starting bias
+#' for a fixed allowlist of built-in losses).
+#'
+#' Default value: NULL (use \code{params$loss_function} as-is)
 #' @examples
 #' \dontrun{
 #' train_pool_path <- system.file("extdata", "adult_train.1000", package = "catboostr")
@@ -2722,7 +2771,7 @@ summary.catboost.Model <- function(object, ...) {
 #' @return Model object.
 #' @export
 #' @seealso \url{https://catboost.ai/docs/concepts/r-reference_catboost-train.html}
-catboost.train <- function(learn_pool, test_pool = NULL, params = list(), init_model = NULL) {
+catboost.train <- function(learn_pool, test_pool = NULL, params = list(), init_model = NULL, custom_objective = NULL) {
     if (!inherits(learn_pool, "catboost.Pool"))
         stop("Expected catboost.Pool, got: ", class(learn_pool))
     if (is.null.handle(learn_pool))
@@ -2747,9 +2796,40 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list(), init_m
         init_model_handle <- init_model$cpp_obj$handle
     }
 
+    # P6.3 (catboost-8z4.89): custom_objective travels as its own .Call
+    # argument -- params is jsonlite::toJSON'd below and has no asJSON method
+    # for R closures, so an R function/list cannot cross that path.
+    if (!is.null(custom_objective)) {
+        if (!is.list(custom_objective))
+            stop("'custom_objective' must be a list with 'calc_ders_range' and/or 'calc_ders_multi' function elements, got: ", class(custom_objective))
+        has_calc_ders_range <- is.function(custom_objective$calc_ders_range)
+        has_calc_ders_multi <- is.function(custom_objective$calc_ders_multi)
+        if (!has_calc_ders_range && !has_calc_ders_multi)
+            stop("'custom_objective' must define at least one of 'calc_ders_range' or 'calc_ders_multi' as a function")
+
+        # Mirrors Python's _PreprocessParams (_catboost.pyx): a custom
+        # objective is dispatched to TCustomError/TMultiTargetCustomError
+        # (vendor/catboost/catboost/private/libs/algo/tensor_search_helpers.cpp)
+        # purely by loss_function's *value*, not by any separate flag, so
+        # this value must be one of these two markers whenever
+        # custom_objective is supplied. "PythonUserDefinedPerObject" covers
+        # both calc_ders_range (single-dimension) and calc_ders_multi used
+        # for MultiClass-shaped losses (scalar target); set loss_function to
+        # "PythonUserDefinedMultiTarget" explicitly yourself if
+        # calc_ders_multi implements a multi-target regression objective
+        # (vector target) instead.
+        if (is.null(params$loss_function)) {
+            params$loss_function <- "PythonUserDefinedPerObject"
+        } else if (!(params$loss_function %in% c("PythonUserDefinedPerObject", "PythonUserDefinedMultiTarget"))) {
+            stop("'loss_function' must be \"PythonUserDefinedPerObject\" or \"PythonUserDefinedMultiTarget\" ",
+                 "when 'custom_objective' is supplied (got: ", params$loss_function, "). ",
+                 "Leave 'loss_function' unset to default to \"PythonUserDefinedPerObject\".")
+        }
+    }
+
     params <- process_synonyms(params)
     json_params <- prepare_train_export_parameters(params)
-    handle <- .Call("CatBoostFit_R", learn_pool, test_pool, json_params, init_model_handle)
+    handle <- .Call("CatBoostFit_R", learn_pool, test_pool, json_params, init_model_handle, custom_objective)
     raw <- .Call("CatBoostSerializeModel_R", handle)
     model <- create.model.base(handle, raw)
 

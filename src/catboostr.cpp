@@ -91,6 +91,8 @@
 // after the standard headers above for the R.h `#define length()` vs
 // libstdc++ codecvt::length() collision (catboost-8z4.88 finding).
 #include "r_callback_bridge.h"
+// P6.3 (catboost-8z4.89): custom-R-objective trampolines built on it.
+#include "r_custom_objective.h"
 
 
 using namespace NCB;
@@ -1481,7 +1483,14 @@ EXPORT_FUNCTION CatBoostDatasetStatistics_R(
     return R_NilValue;
 }
 
-EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitParamsAsJsonParam, SEXP initModelParam) {
+// P6.3 (catboost-8z4.89) / catboost-8z4.91 hook: MaxActiveWorkers() from the
+// bridge's most recent custom-objective training run, or -1 if none has run
+// yet in this session. Read by CatBoostLastCustomObjectiveMaxActiveWorkers_R
+// below -- exists purely so a differential test can assert real TBB
+// parallelism (not just correctness) without a broader instrumentation API.
+static int LastCustomObjectiveMaxActiveWorkers = -1;
+
+EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitParamsAsJsonParam, SEXP initModelParam, SEXP customObjectiveParam) {
     SEXP result = NULL;
     R_API_BEGIN();
     TPoolHandle learnPool = static_cast<TPoolHandle>(R_ExternalPtrAddr(learnPoolParam));
@@ -1503,46 +1512,77 @@ EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitP
         initModel = static_cast<TFullModelHandle>(R_ExternalPtrAddr(initModelParam));
     }
 
-    if (testPoolParam != R_NilValue) {
-        TEvalResult evalResult;
-        TPoolHandle testPool = static_cast<TPoolHandle>(R_ExternalPtrAddr(testPoolParam));
-        pools.Test.emplace_back(testPool);
-        pools.Test.back()->Ref();
-        TrainModel(
-            fitParams,
-            nullptr,
-            Nothing(),
-            Nothing(),
-            Nothing(),
-            pools,
-            initModel,
-            /*initLearnProgress*/ nullptr,
-            "",
-            modelPtr.get(),
-            {&evalResult}
-        );
+    // P6.3 (catboost-8z4.89): customObjectiveParam is R_NilValue unless the
+    // caller supplied catboost.train(..., custom_objective = list(...)) --
+    // Nothing() is passed to TrainModel() below in that case, so dispatch for
+    // built-in losses is byte-for-byte unchanged from before this ticket.
+    NCatboostR::TRCallbackBridge bridge;
+    NCatboostR::TRCustomObjectiveContext objectiveContext;
+    TMaybe<TCustomObjectiveDescriptor> objectiveDescriptor =
+        NCatboostR::BuildCustomObjectiveDescriptor(customObjectiveParam, &bridge, &objectiveContext);
+
+    auto runTraining = [&] {
+        if (testPoolParam != R_NilValue) {
+            TEvalResult evalResult;
+            TPoolHandle testPool = static_cast<TPoolHandle>(R_ExternalPtrAddr(testPoolParam));
+            pools.Test.emplace_back(testPool);
+            pools.Test.back()->Ref();
+            TrainModel(
+                fitParams,
+                nullptr,
+                objectiveDescriptor,
+                Nothing(),
+                Nothing(),
+                pools,
+                initModel,
+                /*initLearnProgress*/ nullptr,
+                "",
+                modelPtr.get(),
+                {&evalResult}
+            );
+        }
+        else {
+            TrainModel(
+                fitParams,
+                nullptr,
+                objectiveDescriptor,
+                Nothing(),
+                Nothing(),
+                pools,
+                initModel,
+                /*initLearnProgress*/ nullptr,
+                "",
+                modelPtr.get(),
+                {}
+            );
+        }
+    };
+
+    // Only route through the background-thread bridge when a custom
+    // objective is actually in play: every other entry point (and every
+    // built-in-loss catboost.train() call) keeps running TrainModel()
+    // directly on R's main thread, exactly as before this ticket.
+    if (objectiveDescriptor.Defined()) {
+        bridge.Run(runTraining);
+        // catboost-8z4.91/test instrumentation: CatBoostLastCustomObjectiveMaxActiveWorkers_R()
+        // reads this back, so a differential test can assert real TBB
+        // parallelism was preserved (>1 concurrently active worker) rather
+        // than only checking the resulting model's correctness.
+        LastCustomObjectiveMaxActiveWorkers = bridge.MaxActiveWorkers();
+    } else {
+        runTraining();
     }
-    else {
-        TrainModel(
-            fitParams,
-            nullptr,
-            Nothing(),
-            Nothing(),
-            Nothing(),
-            pools,
-            initModel,
-            /*initLearnProgress*/ nullptr,
-            "",
-            modelPtr.get(),
-            {}
-        );
-    }
+
     result = PROTECT(R_MakeExternalPtr(modelPtr.get(), R_NilValue, R_NilValue));
     R_RegisterCFinalizerEx(result, _Finalizer<TFullModelHandle>, TRUE);
     modelPtr.release();
     R_API_END();
     UNPROTECT(1);
     return result;
+}
+
+EXPORT_FUNCTION CatBoostLastCustomObjectiveMaxActiveWorkers_R(void) {
+    return ScalarInteger(LastCustomObjectiveMaxActiveWorkers);
 }
 
 EXPORT_FUNCTION CatBoostSumModels_R(SEXP modelsParam,

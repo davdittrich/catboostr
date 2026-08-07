@@ -42,6 +42,8 @@ target_sources(catboostr PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/catboostr.cpp
   # P6.2 (catboost-8z4.93): fork-owned background-thread / R-callback bridge.
   ${CMAKE_CURRENT_SOURCE_DIR}/r_callback_bridge.cpp
+  # P6.3 (catboost-8z4.89): custom-R-objective trampolines built on it.
+  ${CMAKE_CURRENT_SOURCE_DIR}/r_custom_objective.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/init.c
 )
 

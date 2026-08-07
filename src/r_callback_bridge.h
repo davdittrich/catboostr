@@ -67,7 +67,9 @@ public:
 
     // --- any other thread ---------------------------------------------------
     // Runs `action` on R's main thread; blocks until it has run. Exceptions
-    // thrown by `action` are rethrown here, on the calling thread.
+    // thrown by `action` are rethrown here, on the calling thread. Throws
+    // immediately if called ON the main thread -- that would block the drain
+    // loop against itself.
     void Call(const std::function<void()>& action);
 
     // Fire-and-forget: queue `len` bytes of log text for Rprintf on the main
@@ -79,6 +81,16 @@ public:
     // are expected to feed this to CatBoost's own SetInterruptHandler()
     // (catboost/libs/helpers/interrupt.h) so training stops at its next
     // CheckInterrupted() rather than only at its next R callback.
+    //
+    // KNOWN DEVIATION (catboost-upw): detecting the interrupt consumes it.
+    // The drain loop polls through R_ToplevelExec(R_CheckUserInterrupt), and
+    // R clears R_interrupts_pending before longjmping, so nothing is left
+    // pending afterwards. Ctrl-C consequently surfaces as an ordinary R error
+    // ("interrupted while waiting for the R callback queue"), NOT as an
+    // interrupt condition -- tryCatch(..., interrupt = ) will not fire on it.
+    // Restoring true interrupt semantics needs R_interrupts_pending /
+    // Rf_onintr(), which are not part of R's package API, so it is tracked
+    // separately rather than papered over here.
     bool Interrupted() const { return Interrupted_.load(); }
 
     // --- instrumentation (catboost-8z4.91) ----------------------------------

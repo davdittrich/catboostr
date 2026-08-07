@@ -41,6 +41,16 @@ void CheckInterruptFn(void*) {
 // interrupt is pending, which would skip the background thread's join and
 // leave it running against a dead R stack. R_ToplevelExec catches that
 // longjmp and reports it as a return value instead.
+//
+// KNOWN DEVIATION (catboost-upw): this CONSUMES the interrupt. R's
+// onintr() clears R_interrupts_pending before jumping, and R_ToplevelExec
+// swallows the jump, so by the time this returns true there is no pending
+// interrupt left for R to deliver. The Ctrl-C therefore reaches the user as
+// an ordinary R error (R_API_END's error(e.what())) rather than as a genuine
+// interrupt condition: tryCatch(..., interrupt = ) will NOT fire on it.
+// Re-arming it needs R_interrupts_pending / Rf_onintr(), which are not part
+// of R's API for packages -- see the report for catboost-8z4.93 and the
+// follow-up ticket.
 bool PendingInterrupt() {
     return R_ToplevelExec(CheckInterruptFn, nullptr) == FALSE;
 }
@@ -69,6 +79,19 @@ void TRCallbackBridge::LeaveWork() {
 }
 
 void TRCallbackBridge::Call(const std::function<void()>& action) {
+    // The main thread IS the drain loop. Enqueueing from it and then waiting
+    // would block the only reader of the queue -- an unkillable hang, since
+    // the interrupt poll lives in that same loop. TBB runs tasks inline on the
+    // thread that called parallel_for often enough that this is a realistic
+    // mistake for catboost-8z4.89/.90/.94 to make, so it is a loud error
+    // rather than a silent deadlock.
+    if (std::this_thread::get_id() == g_mainThreadId) {
+        throw std::runtime_error(
+            "catboost: R callback bridge Call() invoked on R's main thread "
+            "(the drain loop) -- this would deadlock; run the work on a "
+            "background thread via TRCallbackBridge::Run()");
+    }
+
     TRequest req;
     req.Action = &action;
 
@@ -315,6 +338,7 @@ extern "C" SEXP CatBoostRCallbackBridgeSelfTest_R(
         const bool logMode = std::strcmp(mode, "log") == 0;
         const bool throwMode = std::strcmp(mode, "throw") == 0;
         const bool orphanMode = std::strcmp(mode, "orphan") == 0;
+        const bool reentrantMode = std::strcmp(mode, "reentrant") == 0;
 
         // "orphan": the background thread dies while a worker is still going
         // to want the queue. The drain loop must have closed the queue, so
@@ -365,6 +389,16 @@ extern "C" SEXP CatBoostRCallbackBridgeSelfTest_R(
                                     // Same path CatBoost's own logger takes.
                                     NCatboostR::LogFromAnyThread(line.data(), line.size());
                                     results[i] = i;
+                                    continue;
+                                }
+                                if (reentrantMode) {
+                                    // The outer action runs on the main
+                                    // thread, so the inner Call() is a
+                                    // main-thread Call(). Without the guard in
+                                    // Call() this deadlocks the R session
+                                    // outright -- the drain loop would be
+                                    // waiting on a queue only it can read.
+                                    bridge.Call([&] { bridge.Call([] {}); });
                                     continue;
                                 }
                                 // Stand-in for non-callback training work, so

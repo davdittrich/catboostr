@@ -83,6 +83,18 @@ test_that("a worker that wants the queue after the producer died throws, not han
   expect_lt(as.numeric(difftime(Sys.time(), started, units = "secs")), 30)
 })
 
+test_that("Call() from R's main thread errors instead of deadlocking", {
+  # "reentrant": a queued action (which runs on the main thread) calls Call()
+  # again. That inner request would be enqueued onto a queue whose only reader
+  # is the now-blocked drain loop -- an unkillable hang. The guard in Call()
+  # turns it into a diagnosable error. This test hangs forever if the guard is
+  # removed, so its 30 s bound is the real assertion.
+  started <- Sys.time()
+  expect_error(bridge_self_test("reentrant", n_items = 4L),
+               "invoked on R's main thread")
+  expect_lt(as.numeric(difftime(Sys.time(), started, units = "secs")), 30)
+})
+
 test_that("log lines emitted off the main thread reach R's console", {
   n_items <- 8L
   out <- capture.output(res <- bridge_self_test("log", n_items = n_items))

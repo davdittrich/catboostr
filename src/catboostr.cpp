@@ -1633,7 +1633,9 @@ EXPORT_FUNCTION CatBoostCV_R(SEXP fitParamsAsJsonParam,
                   SEXP typeParam,
                   SEXP partitionRandomSeedParam,
                   SEXP shuffleParam,
-                  SEXP stratifiedParam) {
+                  SEXP stratifiedParam,
+                  SEXP customObjectiveParam,
+                  SEXP customEvalMetricParam) {
 
     SEXP result = NULL;
     size_t metricCount;
@@ -1655,14 +1657,32 @@ EXPORT_FUNCTION CatBoostCV_R(SEXP fitParamsAsJsonParam,
 
     TVector<TCVResult> cvResults;
 
-    CrossValidate(
-        fitParams,
-        TQuantizedFeaturesInfoPtr(nullptr),
-        Nothing(),
-        Nothing(),
-        pool,
-        cvParams,
-        &cvResults);
+    // P6.5 (catboost-8z4.94): same bridge/descriptor-building pattern as
+    // CatBoostFit_R -- Nothing()/Nothing() when neither argument is supplied,
+    // so built-in-loss/built-in-metric CrossValidate() calls are unchanged.
+    NCatboostR::TRCallbackBridge bridge;
+    NCatboostR::TRCustomObjectiveContext objectiveContext;
+    TMaybe<TCustomObjectiveDescriptor> objectiveDescriptor =
+        NCatboostR::BuildCustomObjectiveDescriptor(customObjectiveParam, &bridge, &objectiveContext);
+    NCatboostR::TRCustomMetricContext metricContext;
+    TMaybe<TCustomMetricDescriptor> evalMetricDescriptor =
+        NCatboostR::BuildCustomMetricDescriptor(customEvalMetricParam, &bridge, &metricContext);
+
+    auto runCrossValidate = [&] {
+        CrossValidate(
+            fitParams,
+            TQuantizedFeaturesInfoPtr(nullptr),
+            objectiveDescriptor,
+            evalMetricDescriptor,
+            pool,
+            cvParams,
+            &cvResults);
+    };
+    if (objectiveDescriptor.Defined() || evalMetricDescriptor.Defined()) {
+        bridge.Run(runCrossValidate);
+    } else {
+        runCrossValidate();
+    }
 
     metricCount = cvResults.size();
     TVector<size_t> offsets(metricCount);
@@ -1828,7 +1848,9 @@ EXPORT_FUNCTION CatBoostGridSearch_R(
     SEXP trainSizeParam,
     SEXP searchByTrainTestSplitParam,
     SEXP calcCvStatisticsParam,
-    SEXP verboseParam
+    SEXP verboseParam,
+    SEXP customObjectiveParam,
+    SEXP customEvalMetricParam
 ) {
     SEXP result = NULL;
     R_API_BEGIN();
@@ -1859,20 +1881,38 @@ EXPORT_FUNCTION CatBoostGridSearch_R(
     TBestOptionValuesWithCvResult bestOptionValuesWithCvResult;
     TMetricsAndTimeLeftHistory trainTestResult;
 
-    GridSearch(
-        gridJsonValues,
-        modelJsonParams,
-        ttParams,
-        cvParams,
-        /*objectiveDescriptor*/ Nothing(),
-        /*evalMetricDescriptor*/ Nothing(),
-        pool,
-        &bestOptionValuesWithCvResult,
-        &trainTestResult,
-        static_cast<bool>(asLogical(searchByTrainTestSplitParam)),
-        static_cast<bool>(asLogical(calcCvStatisticsParam)),
-        asInteger(verboseParam)
-    );
+    // P6.5 (catboost-8z4.94): same bridge/descriptor-building pattern as
+    // CatBoostFit_R/CatBoostCV_R -- GridSearch (a distinct function from
+    // CrossValidate, hyperparameter_tuning.h) accepts BOTH descriptors.
+    NCatboostR::TRCallbackBridge bridge;
+    NCatboostR::TRCustomObjectiveContext objectiveContext;
+    TMaybe<TCustomObjectiveDescriptor> objectiveDescriptor =
+        NCatboostR::BuildCustomObjectiveDescriptor(customObjectiveParam, &bridge, &objectiveContext);
+    NCatboostR::TRCustomMetricContext metricContext;
+    TMaybe<TCustomMetricDescriptor> evalMetricDescriptor =
+        NCatboostR::BuildCustomMetricDescriptor(customEvalMetricParam, &bridge, &metricContext);
+
+    auto runGridSearch = [&] {
+        GridSearch(
+            gridJsonValues,
+            modelJsonParams,
+            ttParams,
+            cvParams,
+            objectiveDescriptor,
+            evalMetricDescriptor,
+            pool,
+            &bestOptionValuesWithCvResult,
+            &trainTestResult,
+            static_cast<bool>(asLogical(searchByTrainTestSplitParam)),
+            static_cast<bool>(asLogical(calcCvStatisticsParam)),
+            asInteger(verboseParam)
+        );
+    };
+    if (objectiveDescriptor.Defined() || evalMetricDescriptor.Defined()) {
+        bridge.Run(runGridSearch);
+    } else {
+        runGridSearch();
+    }
 
     result = PROTECT(BestOptionValuesToRList(bestOptionValuesWithCvResult));
     R_API_END();
@@ -1892,7 +1932,9 @@ EXPORT_FUNCTION CatBoostRandomizedSearch_R(
     SEXP trainSizeParam,
     SEXP searchByTrainTestSplitParam,
     SEXP calcCvStatisticsParam,
-    SEXP verboseParam
+    SEXP verboseParam,
+    SEXP customObjectiveParam,
+    SEXP customEvalMetricParam
 ) {
     SEXP result = NULL;
     R_API_BEGIN();
@@ -1927,22 +1969,39 @@ EXPORT_FUNCTION CatBoostRandomizedSearch_R(
     // string values are simply never produced R-side.
     THashMap<TString, TCustomRandomDistributionGenerator> randDistGenerators;
 
-    RandomizedSearch(
-        static_cast<ui32>(asInteger(nIterParam)),
-        randDistGenerators,
-        gridJsonValues,
-        modelJsonParams,
-        ttParams,
-        cvParams,
-        /*objectiveDescriptor*/ Nothing(),
-        /*evalMetricDescriptor*/ Nothing(),
-        pool,
-        &bestOptionValuesWithCvResult,
-        &trainTestResult,
-        static_cast<bool>(asLogical(searchByTrainTestSplitParam)),
-        static_cast<bool>(asLogical(calcCvStatisticsParam)),
-        asInteger(verboseParam)
-    );
+    // P6.5 (catboost-8z4.94): same bridge/descriptor-building pattern as
+    // CatBoostGridSearch_R -- RandomizedSearch accepts BOTH descriptors.
+    NCatboostR::TRCallbackBridge bridge;
+    NCatboostR::TRCustomObjectiveContext objectiveContext;
+    TMaybe<TCustomObjectiveDescriptor> objectiveDescriptor =
+        NCatboostR::BuildCustomObjectiveDescriptor(customObjectiveParam, &bridge, &objectiveContext);
+    NCatboostR::TRCustomMetricContext metricContext;
+    TMaybe<TCustomMetricDescriptor> evalMetricDescriptor =
+        NCatboostR::BuildCustomMetricDescriptor(customEvalMetricParam, &bridge, &metricContext);
+
+    auto runRandomizedSearch = [&] {
+        RandomizedSearch(
+            static_cast<ui32>(asInteger(nIterParam)),
+            randDistGenerators,
+            gridJsonValues,
+            modelJsonParams,
+            ttParams,
+            cvParams,
+            objectiveDescriptor,
+            evalMetricDescriptor,
+            pool,
+            &bestOptionValuesWithCvResult,
+            &trainTestResult,
+            static_cast<bool>(asLogical(searchByTrainTestSplitParam)),
+            static_cast<bool>(asLogical(calcCvStatisticsParam)),
+            asInteger(verboseParam)
+        );
+    };
+    if (objectiveDescriptor.Defined() || evalMetricDescriptor.Defined()) {
+        bridge.Run(runRandomizedSearch);
+    } else {
+        runRandomizedSearch();
+    }
 
     result = PROTECT(BestOptionValuesToRList(bestOptionValuesWithCvResult));
     R_API_END();
@@ -1971,7 +2030,8 @@ EXPORT_FUNCTION CatBoostSelectFeatures_R(
     SEXP learnPoolParam,
     SEXP testPoolParam,
     SEXP fitParamsAsJsonParam,
-    SEXP trainFinalModelParam
+    SEXP trainFinalModelParam,
+    SEXP customEvalMetricParam
 ) {
     SEXP result = NULL;
     R_API_BEGIN();
@@ -1995,15 +2055,33 @@ EXPORT_FUNCTION CatBoostSelectFeatures_R(
         evalResultPtrs.push_back(&evalResult);
     }
 
+    // P6.5 (catboost-8z4.94): same bridge/descriptor-building pattern as
+    // CatBoostFit_R, metric only -- NCB::SelectFeatures has no
+    // TCustomObjectiveDescriptor parameter (verified against
+    // select_features.h/recursive_features_elimination.*), so unlike the
+    // other four entry points this one wires the eval-metric descriptor only.
+    NCatboostR::TRCallbackBridge bridge;
+    NCatboostR::TRCustomMetricContext metricContext;
+    TMaybe<TCustomMetricDescriptor> evalMetricDescriptor =
+        NCatboostR::BuildCustomMetricDescriptor(customEvalMetricParam, &bridge, &metricContext);
+
     TFullModelPtr modelPtr = std::make_unique<TFullModel>();
-    const NJson::TJsonValue summaryJson = NCB::SelectFeatures(
-        fitParams,
-        /*evalMetricDescriptor*/ Nothing(),
-        pools,
-        modelPtr.get(),
-        evalResultPtrs,
-        /*metricsAndTimeHistory*/ nullptr
-    );
+    NJson::TJsonValue summaryJson;
+    auto runSelectFeatures = [&] {
+        summaryJson = NCB::SelectFeatures(
+            fitParams,
+            evalMetricDescriptor,
+            pools,
+            modelPtr.get(),
+            evalResultPtrs,
+            /*metricsAndTimeHistory*/ nullptr
+        );
+    };
+    if (evalMetricDescriptor.Defined()) {
+        bridge.Run(runSelectFeatures);
+    } else {
+        runSelectFeatures();
+    }
 
     SEXP modelHandle = R_NilValue;
     if (asLogical(trainFinalModelParam)) {
@@ -2063,7 +2141,9 @@ EXPORT_FUNCTION CatBoostEvaluateFeatures_R(
     SEXP foldSizeUnitParam,
     SEXP foldSizeParam,
     SEXP relativeFoldSizeParam,
-    SEXP timeSplitQuantileParam
+    SEXP timeSplitQuantileParam,
+    SEXP customObjectiveParam,
+    SEXP customEvalMetricParam
 ) {
     SEXP result = NULL;
     R_API_BEGIN();
@@ -2138,13 +2218,31 @@ EXPORT_FUNCTION CatBoostEvaluateFeatures_R(
     // (eval_feature.cpp:1181).
     TCvDataPartitionParams cvParams;
 
-    const auto summary = EvaluateFeatures(
-        fitParams,
-        featureEvalOptions,
-        /*objectiveDescriptor*/ Nothing(),
-        /*evalMetricDescriptor*/ Nothing(),
-        cvParams,
-        pool);
+    // P6.5 (catboost-8z4.94): same bridge/descriptor-building pattern as
+    // CatBoostFit_R -- EvaluateFeatures accepts BOTH descriptors.
+    NCatboostR::TRCallbackBridge bridge;
+    NCatboostR::TRCustomObjectiveContext objectiveContext;
+    TMaybe<TCustomObjectiveDescriptor> objectiveDescriptor =
+        NCatboostR::BuildCustomObjectiveDescriptor(customObjectiveParam, &bridge, &objectiveContext);
+    NCatboostR::TRCustomMetricContext metricContext;
+    TMaybe<TCustomMetricDescriptor> evalMetricDescriptor =
+        NCatboostR::BuildCustomMetricDescriptor(customEvalMetricParam, &bridge, &metricContext);
+
+    TFeatureEvaluationSummary summary;
+    auto runEvaluateFeatures = [&] {
+        summary = EvaluateFeatures(
+            fitParams,
+            featureEvalOptions,
+            objectiveDescriptor,
+            evalMetricDescriptor,
+            cvParams,
+            pool);
+    };
+    if (objectiveDescriptor.Defined() || evalMetricDescriptor.Defined()) {
+        bridge.Run(runEvaluateFeatures);
+    } else {
+        runEvaluateFeatures();
+    }
 
     const size_t setCount = summary.GetFeatureSetCount();
     const size_t metricCount = summary.MetricNames.size();

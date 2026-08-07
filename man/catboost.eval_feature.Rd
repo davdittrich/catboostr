@@ -14,7 +14,9 @@ catboost.eval_feature(
   fold_size_unit = "Object",
   fold_size = 0,
   relative_fold_size = 0,
-  timesplit_quantile = 0.5
+  timesplit_quantile = 0.5,
+  custom_objective = NULL,
+  custom_eval_metric_object = NULL
 )
 }
 \arguments{
@@ -63,6 +65,18 @@ Default value: 0}
 \item{timesplit_quantile}{Quantile for the time split (CLI: \code{--timesplit-quantile}).
 
 Default value: 0.5}
+
+\item{custom_objective}{A user-defined loss function, used instead of
+\code{params$loss_function}. See \code{\link{catboost.train}}'s
+\code{custom_objective} argument for the full contract.
+
+Default value: NULL (use \code{params$loss_function} as-is)}
+
+\item{custom_eval_metric_object}{A user-defined eval metric, used instead
+of \code{params$eval_metric}. See \code{\link{catboost.train}}'s
+\code{custom_eval_metric_object} argument for the full contract.
+
+Default value: NULL (use \code{params$eval_metric} as-is)}
 }
 \value{
 A list with one entry per tested feature set, mirroring the columns of the CLI's

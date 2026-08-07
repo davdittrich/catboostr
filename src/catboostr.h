@@ -109,7 +109,11 @@ EXPORT_FUNCTION CatBoostCV_R(
     SEXP typeParam,
     SEXP partitionRandomSeedParam,
     SEXP shuffleParam,
-    SEXP stratifiedParam
+    SEXP stratifiedParam,
+    // P6.5 (catboost-8z4.94): same convention as CatBoostFit_R -- R_NilValue,
+    // or a named list, see r_custom_objective.h/r_custom_metric.h.
+    SEXP customObjectiveParam,
+    SEXP customEvalMetricParam
 );
 
 EXPORT_FUNCTION CatBoostGridSearch_R(
@@ -123,7 +127,10 @@ EXPORT_FUNCTION CatBoostGridSearch_R(
     SEXP trainSizeParam,
     SEXP searchByTrainTestSplitParam,
     SEXP calcCvStatisticsParam,
-    SEXP verboseParam
+    SEXP verboseParam,
+    // P6.5 (catboost-8z4.94): see CatBoostCV_R above.
+    SEXP customObjectiveParam,
+    SEXP customEvalMetricParam
 );
 
 EXPORT_FUNCTION CatBoostRandomizedSearch_R(
@@ -138,14 +145,23 @@ EXPORT_FUNCTION CatBoostRandomizedSearch_R(
     SEXP trainSizeParam,
     SEXP searchByTrainTestSplitParam,
     SEXP calcCvStatisticsParam,
-    SEXP verboseParam
+    SEXP verboseParam,
+    // P6.5 (catboost-8z4.94): see CatBoostCV_R above.
+    SEXP customObjectiveParam,
+    SEXP customEvalMetricParam
 );
 
 EXPORT_FUNCTION CatBoostSelectFeatures_R(
     SEXP learnPoolParam,
     SEXP testPoolParam,
     SEXP fitParamsAsJsonParam,
-    SEXP trainFinalModelParam
+    SEXP trainFinalModelParam,
+    // P6.5 (catboost-8z4.94): R_NilValue, or a named list -- see
+    // r_custom_metric.h. NCB::SelectFeatures has no
+    // TCustomObjectiveDescriptor parameter (verified against
+    // select_features.h/recursive_features_elimination.*), so unlike the
+    // other four entry points this one takes a metric descriptor ONLY.
+    SEXP customEvalMetricParam
 );
 
 EXPORT_FUNCTION CatBoostOutputModel_R(
@@ -363,7 +379,10 @@ EXPORT_FUNCTION CatBoostEvaluateFeatures_R(
     SEXP foldSizeUnitParam,
     SEXP foldSizeParam,
     SEXP relativeFoldSizeParam,
-    SEXP timeSplitQuantileParam
+    SEXP timeSplitQuantileParam,
+    // P6.5 (catboost-8z4.94): see CatBoostCV_R above.
+    SEXP customObjectiveParam,
+    SEXP customEvalMetricParam
 );
 
 // P4.8: R equivalent of the CLI's `model-based-eval` mode (catboost-8z4.57).

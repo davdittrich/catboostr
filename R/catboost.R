@@ -1511,6 +1511,80 @@ summary.catboost.Model <- function(object, ...) {
     print.catboost.Model(object)
 }
 
+# P6.5 (catboost-8z4.94): custom_objective's params$loss_function
+# validation/defaulting, factored out of catboost.train (catboost-8z4.89)
+# now that catboost.cv/grid_search/randomized_search/eval_feature need the
+# identical check before serializing their own params JSON (5 more call
+# sites -- past the "3+ occurrences" duplication threshold). Returns params
+# unchanged when custom_objective is NULL. Not roxygen-documented (internal
+# helper, not exported); placed above catboost.train's own docblock (rather
+# than directly above catboost.train's definition) so roxygen2 attaches that
+# docblock to catboost.train and not to this function.
+apply_custom_objective_params <- function(params, custom_objective) {
+    if (is.null(custom_objective)) {
+        return(params)
+    }
+    if (!is.list(custom_objective))
+        stop("'custom_objective' must be a list with 'calc_ders_range' and/or 'calc_ders_multi' function elements, got: ", class(custom_objective))
+    has_calc_ders_range <- is.function(custom_objective$calc_ders_range)
+    has_calc_ders_multi <- is.function(custom_objective$calc_ders_multi)
+    if (!has_calc_ders_range && !has_calc_ders_multi)
+        stop("'custom_objective' must define at least one of 'calc_ders_range' or 'calc_ders_multi' as a function")
+
+    # Mirrors Python's _PreprocessParams (_catboost.pyx): a custom objective
+    # is dispatched to TCustomError/TMultiTargetCustomError
+    # (vendor/catboost/catboost/private/libs/algo/tensor_search_helpers.cpp)
+    # purely by loss_function's *value*, not by any separate flag, so this
+    # value must be one of these two markers whenever custom_objective is
+    # supplied. "PythonUserDefinedPerObject" covers both calc_ders_range
+    # (single-dimension) and calc_ders_multi used for MultiClass-shaped
+    # losses (scalar target); set loss_function to
+    # "PythonUserDefinedMultiTarget" explicitly yourself if calc_ders_multi
+    # implements a multi-target regression objective (vector target) instead.
+    if (is.null(params$loss_function)) {
+        params$loss_function <- "PythonUserDefinedPerObject"
+    } else if (!(params$loss_function %in% c("PythonUserDefinedPerObject", "PythonUserDefinedMultiTarget"))) {
+        stop("'loss_function' must be \"PythonUserDefinedPerObject\" or \"PythonUserDefinedMultiTarget\" ",
+             "when 'custom_objective' is supplied (got: ", params$loss_function, "). ",
+             "Leave 'loss_function' unset to default to \"PythonUserDefinedPerObject\".")
+    }
+    return(params)
+}
+
+# P6.5 (catboost-8z4.94): custom_eval_metric_object's params$eval_metric
+# validation/defaulting, factored out of catboost.train (catboost-8z4.90) --
+# see apply_custom_objective_params above for why (including the
+# not-roxygen-documented / placement rationale).
+apply_custom_eval_metric_params <- function(params, custom_eval_metric_object) {
+    if (is.null(custom_eval_metric_object)) {
+        return(params)
+    }
+    if (!is.list(custom_eval_metric_object))
+        stop("'custom_eval_metric_object' must be a list with 'evaluate' and 'is_max_optimal' function elements, got: ", class(custom_eval_metric_object))
+    if (!is.function(custom_eval_metric_object$evaluate))
+        stop("'custom_eval_metric_object' must define an 'evaluate' function")
+    if (!is.function(custom_eval_metric_object$is_max_optimal))
+        stop("'custom_eval_metric_object' must define an 'is_max_optimal' function")
+
+    # Mirrors Python's own validation (_catboost.pyx's _PreprocessParams):
+    # dispatch to TCustomMetric/TMultiTargetCustomMetric
+    # (vendor/catboost/catboost/libs/metrics/metric.cpp) is driven purely by
+    # which of EvalFunc/EvalMultiTargetFunc this package wires (from
+    # 'multi_target' below), but eval_metric's *value* must still be one of
+    # these two markers for native CreateMetrics() to route to a custom
+    # metric at all (IsUserDefined() check).
+    is_multi_target_metric <- isTRUE(custom_eval_metric_object$multi_target)
+    expected_eval_metric <- if (is_multi_target_metric) "PythonUserDefinedMultiTarget" else "PythonUserDefinedPerObject"
+    if (is.null(params$eval_metric)) {
+        params$eval_metric <- expected_eval_metric
+    } else if (!identical(params$eval_metric, expected_eval_metric)) {
+        stop("'eval_metric' must be \"", expected_eval_metric, "\" when 'custom_eval_metric_object' is supplied ",
+             "with multi_target = ", is_multi_target_metric, " (got: ", params$eval_metric, "). ",
+             "Leave 'eval_metric' unset to default to \"", expected_eval_metric, "\".")
+    }
+    return(params)
+}
+
 
 #' @name catboost.train
 #' @title Train the model
@@ -2854,64 +2928,13 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list(), init_m
         init_model_handle <- init_model$cpp_obj$handle
     }
 
-    # P6.3 (catboost-8z4.89): custom_objective travels as its own .Call
-    # argument -- params is jsonlite::toJSON'd below and has no asJSON method
-    # for R closures, so an R function/list cannot cross that path.
-    if (!is.null(custom_objective)) {
-        if (!is.list(custom_objective))
-            stop("'custom_objective' must be a list with 'calc_ders_range' and/or 'calc_ders_multi' function elements, got: ", class(custom_objective))
-        has_calc_ders_range <- is.function(custom_objective$calc_ders_range)
-        has_calc_ders_multi <- is.function(custom_objective$calc_ders_multi)
-        if (!has_calc_ders_range && !has_calc_ders_multi)
-            stop("'custom_objective' must define at least one of 'calc_ders_range' or 'calc_ders_multi' as a function")
-
-        # Mirrors Python's _PreprocessParams (_catboost.pyx): a custom
-        # objective is dispatched to TCustomError/TMultiTargetCustomError
-        # (vendor/catboost/catboost/private/libs/algo/tensor_search_helpers.cpp)
-        # purely by loss_function's *value*, not by any separate flag, so
-        # this value must be one of these two markers whenever
-        # custom_objective is supplied. "PythonUserDefinedPerObject" covers
-        # both calc_ders_range (single-dimension) and calc_ders_multi used
-        # for MultiClass-shaped losses (scalar target); set loss_function to
-        # "PythonUserDefinedMultiTarget" explicitly yourself if
-        # calc_ders_multi implements a multi-target regression objective
-        # (vector target) instead.
-        if (is.null(params$loss_function)) {
-            params$loss_function <- "PythonUserDefinedPerObject"
-        } else if (!(params$loss_function %in% c("PythonUserDefinedPerObject", "PythonUserDefinedMultiTarget"))) {
-            stop("'loss_function' must be \"PythonUserDefinedPerObject\" or \"PythonUserDefinedMultiTarget\" ",
-                 "when 'custom_objective' is supplied (got: ", params$loss_function, "). ",
-                 "Leave 'loss_function' unset to default to \"PythonUserDefinedPerObject\".")
-        }
-    }
-
-    # P6.4 (catboost-8z4.90): custom_eval_metric_object travels as its own
-    # .Call argument, same reason as custom_objective above.
-    if (!is.null(custom_eval_metric_object)) {
-        if (!is.list(custom_eval_metric_object))
-            stop("'custom_eval_metric_object' must be a list with 'evaluate' and 'is_max_optimal' function elements, got: ", class(custom_eval_metric_object))
-        if (!is.function(custom_eval_metric_object$evaluate))
-            stop("'custom_eval_metric_object' must define an 'evaluate' function")
-        if (!is.function(custom_eval_metric_object$is_max_optimal))
-            stop("'custom_eval_metric_object' must define an 'is_max_optimal' function")
-
-        # Mirrors Python's own validation (_catboost.pyx's _PreprocessParams):
-        # dispatch to TCustomMetric/TMultiTargetCustomMetric
-        # (vendor/catboost/catboost/libs/metrics/metric.cpp) is driven purely
-        # by which of EvalFunc/EvalMultiTargetFunc this package wires (from
-        # 'multi_target' below), but eval_metric's *value* must still be one
-        # of these two markers for native CreateMetrics() to route to a
-        # custom metric at all (IsUserDefined() check).
-        is_multi_target_metric <- isTRUE(custom_eval_metric_object$multi_target)
-        expected_eval_metric <- if (is_multi_target_metric) "PythonUserDefinedMultiTarget" else "PythonUserDefinedPerObject"
-        if (is.null(params$eval_metric)) {
-            params$eval_metric <- expected_eval_metric
-        } else if (!identical(params$eval_metric, expected_eval_metric)) {
-            stop("'eval_metric' must be \"", expected_eval_metric, "\" when 'custom_eval_metric_object' is supplied ",
-                 "with multi_target = ", is_multi_target_metric, " (got: ", params$eval_metric, "). ",
-                 "Leave 'eval_metric' unset to default to \"", expected_eval_metric, "\".")
-        }
-    }
+    # P6.3/P6.4 (catboost-8z4.89/.90): custom_objective/custom_eval_metric_object
+    # travel as their own .Call arguments -- params is jsonlite::toJSON'd below
+    # and has no asJSON method for R closures, so an R function/list cannot
+    # cross that path. Validation/defaulting factored into shared helpers
+    # (catboost-8z4.94) now that 5 more entry points need the identical checks.
+    params <- apply_custom_objective_params(params, custom_objective)
+    params <- apply_custom_eval_metric_params(params, custom_eval_metric_object)
 
     params <- process_synonyms(params)
     json_params <- prepare_train_export_parameters(params)
@@ -3099,6 +3122,16 @@ prepare_train_export_parameters <- function(params) {
 #' @param shuffle Shuffle the dataset objects before splitting into folds.
 #' @param stratified Perform stratified sampling.
 #' @param early_stopping_rounds Activates Iter overfitting detector with od_wait set to early_stopping_rounds.
+#' @param custom_objective A user-defined loss function, used instead of
+#' \code{params$loss_function}. See \code{\link{catboost.train}}'s
+#' \code{custom_objective} argument for the full contract.
+#'
+#' Default value: NULL (use \code{params$loss_function} as-is)
+#' @param custom_eval_metric_object A user-defined eval metric, used instead
+#' of \code{params$eval_metric}. See \code{\link{catboost.train}}'s
+#' \code{custom_eval_metric_object} argument for the full contract.
+#'
+#' Default value: NULL (use \code{params$eval_metric} as-is)
 #' @return A data.frame of evaluation results from cross-validation.
 #' @export
 catboost.cv <- function(pool,
@@ -3108,7 +3141,9 @@ catboost.cv <- function(pool,
                         partition_random_seed = 0,
                         shuffle = TRUE,
                         stratified = FALSE,
-                        early_stopping_rounds = NULL) {
+                        early_stopping_rounds = NULL,
+                        custom_objective = NULL,
+                        custom_eval_metric_object = NULL) {
 
     if (!inherits(pool, "catboost.Pool"))
         stop("Expected catboost.Pool, got: ", class(pool))
@@ -3123,6 +3158,11 @@ catboost.cv <- function(pool,
         params$od_wait <- early_stopping_rounds
     }
 
+    # P6.5 (catboost-8z4.94): same validation/defaulting as catboost.train,
+    # via the shared helpers factored out there.
+    params <- apply_custom_objective_params(params, custom_objective)
+    params <- apply_custom_eval_metric_params(params, custom_eval_metric_object)
+
     # P5.5 (catboost-8z4.62): unlike catboost.train/grid_search/randomized_search,
     # catboost.cv does not call process_synonyms() (pre-existing behavior, left
     # untouched here), but every process_synonyms alias name is itself a member
@@ -3131,7 +3171,8 @@ catboost.cv <- function(pool,
     validate_params_keys(params)
 
     json_params <- prepare_train_export_parameters(params)
-    result <- .Call("CatBoostCV_R", json_params, pool, fold_count, type, partition_random_seed, shuffle, stratified)
+    result <- .Call("CatBoostCV_R", json_params, pool, fold_count, type, partition_random_seed, shuffle, stratified,
+                     custom_objective, custom_eval_metric_object)
 
     return(data.frame(result))
 }
@@ -3212,6 +3253,18 @@ prepare_grid_json <- function(param_grid) {
 #' @param verbose Whether to print search progress.
 #'
 #' Default value: \code{TRUE}
+#' @param custom_objective A user-defined loss function, used instead of
+#' \code{params$loss_function} for both the search itself and (when
+#' \code{refit = TRUE}) the final refit. See \code{\link{catboost.train}}'s
+#' \code{custom_objective} argument for the full contract.
+#'
+#' Default value: NULL (use \code{params$loss_function} as-is)
+#' @param custom_eval_metric_object A user-defined eval metric, used instead
+#' of \code{params$eval_metric} for both the search itself and (when
+#' \code{refit = TRUE}) the final refit. See \code{\link{catboost.train}}'s
+#' \code{custom_eval_metric_object} argument for the full contract.
+#'
+#' Default value: NULL (use \code{params$eval_metric} as-is)
 #' @return A list with \code{$params} (best found parameters, as a named list),
 #' \code{$cv_results} (a \code{data.frame} of cross-validation results with the
 #' same columns \code{catboost.cv} returns), and, if \code{refit = TRUE},
@@ -3228,7 +3281,9 @@ catboost.grid_search <- function(param_grid,
                                   shuffle = TRUE,
                                   stratified = FALSE,
                                   train_size = 0.8,
-                                  verbose = TRUE) {
+                                  verbose = TRUE,
+                                  custom_objective = NULL,
+                                  custom_eval_metric_object = NULL) {
     if (!inherits(pool, "catboost.Pool"))
         stop("Expected catboost.Pool, got: ", class(pool))
     if (is.null.handle(pool))
@@ -3236,18 +3291,30 @@ catboost.grid_search <- function(param_grid,
 
     grid_json <- prepare_grid_json(param_grid)
     fit_params <- process_synonyms(params)
+    # P6.5 (catboost-8z4.94): same validation/defaulting as catboost.train,
+    # applied before serialization so the search itself (not just a refit)
+    # uses the custom objective/metric.
+    fit_params <- apply_custom_objective_params(fit_params, custom_objective)
+    fit_params <- apply_custom_eval_metric_params(fit_params, custom_eval_metric_object)
     json_params <- prepare_train_export_parameters(fit_params)
 
     result <- .Call("CatBoostGridSearch_R", grid_json, pool, json_params,
                      as.integer(cv), as.integer(partition_random_seed),
                      shuffle, stratified, train_size,
-                     search_by_train_test_split, calc_cv_statistics, as.integer(verbose))
+                     search_by_train_test_split, calc_cv_statistics, as.integer(verbose),
+                     custom_objective, custom_eval_metric_object)
 
     best_params <- jsonlite::fromJSON(result$params)
     search_result <- list(params = best_params, cv_results = data.frame(result$cv_results))
 
     if (refit) {
-        search_result$model <- catboost.train(pool, params = modifyList(fit_params, best_params))
+        # P6.5 (catboost-8z4.94): forward the same custom objective/metric to
+        # the refit -- otherwise the returned $model would silently train with
+        # a built-in loss while the search that chose best_params used the
+        # custom one (a silent correctness bug, not just a missing feature).
+        search_result$model <- catboost.train(pool, params = modifyList(fit_params, best_params),
+                                               custom_objective = custom_objective,
+                                               custom_eval_metric_object = custom_eval_metric_object)
     }
 
     return(search_result)
@@ -3320,6 +3387,18 @@ catboost.grid_search <- function(param_grid,
 #' @param verbose Whether to print search progress.
 #'
 #' Default value: \code{TRUE}
+#' @param custom_objective A user-defined loss function, used instead of
+#' \code{params$loss_function} for both the search itself and (when
+#' \code{refit = TRUE}) the final refit. See \code{\link{catboost.train}}'s
+#' \code{custom_objective} argument for the full contract.
+#'
+#' Default value: NULL (use \code{params$loss_function} as-is)
+#' @param custom_eval_metric_object A user-defined eval metric, used instead
+#' of \code{params$eval_metric} for both the search itself and (when
+#' \code{refit = TRUE}) the final refit. See \code{\link{catboost.train}}'s
+#' \code{custom_eval_metric_object} argument for the full contract.
+#'
+#' Default value: NULL (use \code{params$eval_metric} as-is)
 #' @return A list with \code{$params} (best found parameters, as a named list),
 #' \code{$cv_results} (a \code{data.frame} of cross-validation results with the
 #' same columns \code{catboost.cv} returns), and, if \code{refit = TRUE},
@@ -3337,7 +3416,9 @@ catboost.randomized_search <- function(param_distributions,
                                         shuffle = TRUE,
                                         stratified = FALSE,
                                         train_size = 0.8,
-                                        verbose = TRUE) {
+                                        verbose = TRUE,
+                                        custom_objective = NULL,
+                                        custom_eval_metric_object = NULL) {
     if (!inherits(pool, "catboost.Pool"))
         stop("Expected catboost.Pool, got: ", class(pool))
     if (is.null.handle(pool))
@@ -3347,18 +3428,28 @@ catboost.randomized_search <- function(param_distributions,
 
     grid_json <- prepare_grid_json(param_distributions)
     fit_params <- process_synonyms(params)
+    # P6.5 (catboost-8z4.94): same validation/defaulting as catboost.train,
+    # applied before serialization so the search itself (not just a refit)
+    # uses the custom objective/metric.
+    fit_params <- apply_custom_objective_params(fit_params, custom_objective)
+    fit_params <- apply_custom_eval_metric_params(fit_params, custom_eval_metric_object)
     json_params <- prepare_train_export_parameters(fit_params)
 
     result <- .Call("CatBoostRandomizedSearch_R", grid_json, pool, json_params,
                      as.integer(n_iter), as.integer(cv), as.integer(partition_random_seed),
                      shuffle, stratified, train_size,
-                     search_by_train_test_split, calc_cv_statistics, as.integer(verbose))
+                     search_by_train_test_split, calc_cv_statistics, as.integer(verbose),
+                     custom_objective, custom_eval_metric_object)
 
     best_params <- jsonlite::fromJSON(result$params)
     search_result <- list(params = best_params, cv_results = data.frame(result$cv_results))
 
     if (refit) {
-        search_result$model <- catboost.train(pool, params = modifyList(fit_params, best_params))
+        # P6.5 (catboost-8z4.94): forward the same custom objective/metric to
+        # the refit -- see catboost.grid_search's identical fix for why.
+        search_result$model <- catboost.train(pool, params = modifyList(fit_params, best_params),
+                                               custom_objective = custom_objective,
+                                               custom_eval_metric_object = custom_eval_metric_object)
     }
 
     return(search_result)
@@ -3425,6 +3516,18 @@ catboost.randomized_search <- function(param_distributions,
 #' return it.
 #'
 #' Default value: \code{TRUE}
+#' @param custom_eval_metric_object A user-defined eval metric, used instead
+#' of \code{params$eval_metric}. See \code{\link{catboost.train}}'s
+#' \code{custom_eval_metric_object} argument for the full contract. There is
+#' no \code{custom_objective} argument here: the underlying native engine
+#' (\code{NCB::SelectFeatures}, \code{catboost/libs/features_selection/
+#' select_features.h}) has no custom-objective-descriptor parameter at all
+#' (verified against that header and \code{recursive_features_elimination.*}
+#' -- zero \code{TCustomObjectiveDescriptor} references), so a
+#' \code{custom_objective} argument here would be dead: it would have nothing
+#' to wire it to.
+#'
+#' Default value: NULL (use \code{params$eval_metric} as-is)
 #' @return A list with the fields of the vendor's selection summary:
 #' \itemize{
 #'   \item \code{selected_features} -- 0-based indices of the kept features.
@@ -3446,7 +3549,8 @@ catboost.select_features <- function(learn_pool,
                                      algorithm = NULL,
                                      steps = NULL,
                                      shap_calc_type = NULL,
-                                     train_final_model = TRUE) {
+                                     train_final_model = TRUE,
+                                     custom_eval_metric_object = NULL) {
     if (!inherits(learn_pool, "catboost.Pool"))
         stop("Expected catboost.Pool, got: ", class(learn_pool))
     if (is.null.handle(learn_pool))
@@ -3476,10 +3580,13 @@ catboost.select_features <- function(learn_pool,
         fit_params$features_selection_steps <- as.integer(steps)
     if (!is.null(shap_calc_type))
         fit_params$shap_calc_type <- shap_calc_type
+    # P6.5 (catboost-8z4.94): metric only -- see custom_eval_metric_object's
+    # roxygen doc above for why there is no custom_objective counterpart here.
+    fit_params <- apply_custom_eval_metric_params(fit_params, custom_eval_metric_object)
 
     json_params <- prepare_train_export_parameters(fit_params)
     result <- .Call("CatBoostSelectFeatures_R", learn_pool, test_pool, json_params,
-                    isTRUE(train_final_model))
+                    isTRUE(train_final_model), custom_eval_metric_object)
 
     selection <- jsonlite::fromJSON(result$summary, simplifyVector = TRUE)
     if (!is.null(result$model)) {
@@ -3542,6 +3649,16 @@ catboost.select_features <- function(learn_pool,
 #' @param timesplit_quantile Quantile for the time split (CLI: \code{--timesplit-quantile}).
 #'
 #' Default value: 0.5
+#' @param custom_objective A user-defined loss function, used instead of
+#' \code{params$loss_function}. See \code{\link{catboost.train}}'s
+#' \code{custom_objective} argument for the full contract.
+#'
+#' Default value: NULL (use \code{params$loss_function} as-is)
+#' @param custom_eval_metric_object A user-defined eval metric, used instead
+#' of \code{params$eval_metric}. See \code{\link{catboost.train}}'s
+#' \code{custom_eval_metric_object} argument for the full contract.
+#'
+#' Default value: NULL (use \code{params$eval_metric} as-is)
 #' @return A list with one entry per tested feature set, mirroring the columns of the CLI's
 #' \code{--feature-eval-output-file} TSV but at full double precision:
 #' \itemize{
@@ -3562,7 +3679,9 @@ catboost.eval_feature <- function(pool,
                                   fold_size_unit = "Object",
                                   fold_size = 0,
                                   relative_fold_size = 0,
-                                  timesplit_quantile = 0.5) {
+                                  timesplit_quantile = 0.5,
+                                  custom_objective = NULL,
+                                  custom_eval_metric_object = NULL) {
 
     if (!inherits(pool, "catboost.Pool"))
         stop("Expected catboost.Pool, got: ", class(pool))
@@ -3582,12 +3701,17 @@ catboost.eval_feature <- function(pool,
 
     features_to_evaluate <- lapply(features_to_evaluate, as.integer)
 
+    # P6.5 (catboost-8z4.94): same validation/defaulting as catboost.train.
+    params <- apply_custom_objective_params(params, custom_objective)
+    params <- apply_custom_eval_metric_params(params, custom_eval_metric_object)
+
     json_params <- prepare_train_export_parameters(params)
     return(.Call("CatBoostEvaluateFeatures_R", json_params, pool,
                  features_to_evaluate, eval_mode,
                  as.integer(offset), as.integer(fold_count),
                  fold_size_unit, as.integer(fold_size),
-                 as.numeric(relative_fold_size), as.numeric(timesplit_quantile)))
+                 as.numeric(relative_fold_size), as.numeric(timesplit_quantile),
+                 custom_objective, custom_eval_metric_object))
 }
 
 #' @name catboost.model_based_eval

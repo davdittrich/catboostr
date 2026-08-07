@@ -16,7 +16,9 @@ catboost.grid_search(
   shuffle = TRUE,
   stratified = FALSE,
   train_size = 0.8,
-  verbose = TRUE
+  verbose = TRUE,
+  custom_objective = NULL,
+  custom_eval_metric_object = NULL
 )
 }
 \arguments{
@@ -79,6 +81,20 @@ Default value: 0.8}
 \item{verbose}{Whether to print search progress.
 
 Default value: \code{TRUE}}
+
+\item{custom_objective}{A user-defined loss function, used instead of
+\code{params$loss_function} for both the search itself and (when
+\code{refit = TRUE}) the final refit. See \code{\link{catboost.train}}'s
+\code{custom_objective} argument for the full contract.
+
+Default value: NULL (use \code{params$loss_function} as-is)}
+
+\item{custom_eval_metric_object}{A user-defined eval metric, used instead
+of \code{params$eval_metric} for both the search itself and (when
+\code{refit = TRUE}) the final refit. See \code{\link{catboost.train}}'s
+\code{custom_eval_metric_object} argument for the full contract.
+
+Default value: NULL (use \code{params$eval_metric} as-is)}
 }
 \value{
 A list with \code{$params} (best found parameters, as a named list),

@@ -13,7 +13,8 @@ catboost.select_features(
   algorithm = NULL,
   steps = NULL,
   shap_calc_type = NULL,
-  train_final_model = TRUE
+  train_final_model = TRUE,
+  custom_eval_metric_object = NULL
 )
 }
 \arguments{
@@ -65,6 +66,19 @@ Default value: \code{NULL}}
 return it.
 
 Default value: \code{TRUE}}
+
+\item{custom_eval_metric_object}{A user-defined eval metric, used instead
+of \code{params$eval_metric}. See \code{\link{catboost.train}}'s
+\code{custom_eval_metric_object} argument for the full contract. There is
+no \code{custom_objective} argument here: the underlying native engine
+(\code{NCB::SelectFeatures}, \code{catboost/libs/features_selection/
+select_features.h}) has no custom-objective-descriptor parameter at all
+(verified against that header and \code{recursive_features_elimination.*}
+-- zero \code{TCustomObjectiveDescriptor} references), so a
+\code{custom_objective} argument here would be dead: it would have nothing
+to wire it to.
+
+Default value: NULL (use \code{params$eval_metric} as-is)}
 }
 \value{
 A list with the fields of the vendor's selection summary:

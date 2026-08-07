@@ -12,7 +12,9 @@ catboost.cv(
   partition_random_seed = 0,
   shuffle = TRUE,
   stratified = FALSE,
-  early_stopping_rounds = NULL
+  early_stopping_rounds = NULL,
+  custom_objective = NULL,
+  custom_eval_metric_object = NULL
 )
 }
 \arguments{
@@ -31,6 +33,18 @@ catboost.cv(
 \item{stratified}{Perform stratified sampling.}
 
 \item{early_stopping_rounds}{Activates Iter overfitting detector with od_wait set to early_stopping_rounds.}
+
+\item{custom_objective}{A user-defined loss function, used instead of
+\code{params$loss_function}. See \code{\link{catboost.train}}'s
+\code{custom_objective} argument for the full contract.
+
+Default value: NULL (use \code{params$loss_function} as-is)}
+
+\item{custom_eval_metric_object}{A user-defined eval metric, used instead
+of \code{params$eval_metric}. See \code{\link{catboost.train}}'s
+\code{custom_eval_metric_object} argument for the full contract.
+
+Default value: NULL (use \code{params$eval_metric} as-is)}
 }
 \value{
 A data.frame of evaluation results from cross-validation.

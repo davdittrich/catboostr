@@ -114,7 +114,7 @@ directly is what makes best-params/best-score match the Python oracle.
 }
 \examples{
 # (c) refit = TRUE correctly reuses the supplied custom_objective for the
-# final refit, not just for the search itself (P6.5, catboost-8z4.94).
+# final refit, not just for the search itself.
 \dontrun{
 n <- 50
 features <- data.frame(x1 = rnorm(n), x2 = rnorm(n))

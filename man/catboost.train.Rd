@@ -1164,8 +1164,8 @@ The list of parameters
 % BEGIN GENERATED PARAM REFERENCE (tools/parity/gen_param_reference.py) -- DO NOT EDIT BY HAND
 }
 \details{
-\strong{Custom objective / custom eval metric support matrix}
-(P6.7, catboost-8z4.92). Every entry point below shares the same
+\strong{Custom objective / custom eval metric support matrix.}
+Every entry point below shares the same
 \code{custom_objective}/\code{custom_eval_metric_object} argument contract
 documented under \code{catboost.train}'s own \code{custom_objective} and
 \code{custom_eval_metric_object} params:
@@ -1206,7 +1206,7 @@ closure invocation itself is serialized onto the main thread, not the
 whole computation. \code{params$thread_count} is therefore never forced
 to 1 for a custom objective/metric run.
 
-\strong{Ctrl-C during a bridged run (catboost-upw).} Detecting the
+\strong{Ctrl-C during a bridged run.} Detecting the
 interrupt on the drain loop's polling thread consumes it -- R clears its
 pending-interrupt flag before the drain loop observes it, so nothing is
 left for R to deliver afterwards. Ctrl-C during a custom-objective/metric

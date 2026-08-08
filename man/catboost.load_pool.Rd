@@ -35,7 +35,7 @@ Caveat: because the sparse layout is not preserved, training on such a Pool repr
 \emph{dense} Pool, not its native sparse one. CatBoost breaks ties between equal-scoring split
 candidates differently in its sparse and dense column layouts, so on degenerate/tie-heavy data
 the two can differ (a delta of 0.0298 was measured inside Python itself between its own dense
-and sparse Pools). Tracked as catboost-8z4.46.
+and sparse Pools).
 The following column types are supported:
 \itemize{
     \item double
@@ -54,7 +54,7 @@ Default value: Required argument}
 A plain (non-factor, non-character) integer label \emph{matrix} with more than one column
 (e.g. a multi-target 0/1 matrix for \code{MultiLogloss}) is automatically read as a float
 target, matching Python's \code{Pool}. A single-column integer label vector keeps its
-existing integer-target behavior (catboost-8z4.47).}
+existing integer-target behavior.}
 
 \item{cat_features}{A vector of categorical features indices.
 The indices are zero based and can differ from the given in the Column descriptions file.
@@ -102,15 +102,14 @@ here) defaults to \code{list(default = list("LDA", "KNN"))}. The LDA calcer's ou
 bit-reproducible against the Python package: LDA solves a float32 symmetric eigenproblem whose
 eigenvector signs and near-degenerate eigenvalue ordering depend on the LAPACK/BLAS build, so
 this package and the Python wheel legitimately disagree. The KNN calcer agrees exactly. For
-parity-sensitive use, pass \code{embedding_processing = list(default = list("KNN"))}.
-Tracked as catboost-8z4.45.}
+parity-sensitive use, pass \code{embedding_processing = list(default = list("KNN"))}.}
 
 \item{timestamp}{A numeric vector of per-object timestamps, length equal to the number of
 objects. Convenience wrapper around \code{\link{catboost.pool.set_timestamp}}: applied to the
 constructed Pool before it is returned, equivalent to calling
 \code{catboost.pool.set_timestamp(pool, timestamp)} afterward.}
 
-\item{feature_tags}{Not currently supported by catboostr (tracked as catboost-8z4.49); passing
+\item{feature_tags}{Not currently supported by catboostr; passing
 a non-NULL value raises an error rather than being silently ignored.}
 }
 \value{

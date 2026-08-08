@@ -21,7 +21,7 @@ NULL
 #' \emph{dense} Pool, not its native sparse one. CatBoost breaks ties between equal-scoring split
 #' candidates differently in its sparse and dense column layouts, so on degenerate/tie-heavy data
 #' the two can differ (a delta of 0.0298 was measured inside Python itself between its own dense
-#' and sparse Pools). Tracked as catboost-8z4.46.
+#' and sparse Pools).
 #' The following column types are supported:
 #' \itemize{
 #'     \item double
@@ -39,7 +39,7 @@ NULL
 #' A plain (non-factor, non-character) integer label \emph{matrix} with more than one column
 #' (e.g. a multi-target 0/1 matrix for \code{MultiLogloss}) is automatically read as a float
 #' target, matching Python's \code{Pool}. A single-column integer label vector keeps its
-#' existing integer-target behavior (catboost-8z4.47).
+#' existing integer-target behavior.
 #' @param cat_features A vector of categorical features indices.
 #' The indices are zero based and can differ from the given in the Column descriptions file.
 #' If data parameter is data.frame don't use cat_features, categorical features are determined automatically
@@ -57,7 +57,6 @@ NULL
 #' eigenvector signs and near-degenerate eigenvalue ordering depend on the LAPACK/BLAS build, so
 #' this package and the Python wheel legitimately disagree. The KNN calcer agrees exactly. For
 #' parity-sensitive use, pass \code{embedding_processing = list(default = list("KNN"))}.
-#' Tracked as catboost-8z4.45.
 #' @param pairs A file path, matrix or data.frame that contains the pairs descriptions. The shape should be Nx2, where N is the pairs' count.
 #' The first element of pair is the index of winner document in training set. The second element of pair is the index of loser document in training set.
 #' @param delimiter Delimiter character to use to separate features in a file.
@@ -78,7 +77,7 @@ NULL
 #' objects. Convenience wrapper around \code{\link{catboost.pool.set_timestamp}}: applied to the
 #' constructed Pool before it is returned, equivalent to calling
 #' \code{catboost.pool.set_timestamp(pool, timestamp)} afterward.
-#' @param feature_tags Not currently supported by catboostr (tracked as catboost-8z4.49); passing
+#' @param feature_tags Not currently supported by catboostr; passing
 #' a non-NULL value raises an error rather than being silently ignored.
 #'
 #' @examples
@@ -2754,8 +2753,8 @@ apply_custom_eval_metric_params <- function(params, custom_eval_metric_object) {
 #' }
 #' % END GENERATED PARAM REFERENCE
 #'
-#' @details \strong{Custom objective / custom eval metric support matrix}
-#' (P6.7, catboost-8z4.92). Every entry point below shares the same
+#' @details \strong{Custom objective / custom eval metric support matrix.}
+#' Every entry point below shares the same
 #' \code{custom_objective}/\code{custom_eval_metric_object} argument contract
 #' documented under \code{catboost.train}'s own \code{custom_objective} and
 #' \code{custom_eval_metric_object} params:
@@ -2796,7 +2795,7 @@ apply_custom_eval_metric_params <- function(params, custom_eval_metric_object) {
 #' whole computation. \code{params$thread_count} is therefore never forced
 #' to 1 for a custom objective/metric run.
 #'
-#' \strong{Ctrl-C during a bridged run (catboost-upw).} Detecting the
+#' \strong{Ctrl-C during a bridged run.} Detecting the
 #' interrupt on the drain loop's polling thread consumes it -- R clears its
 #' pending-interrupt flag before the drain loop observes it, so nothing is
 #' left for R to deliver afterwards. Ctrl-C during a custom-objective/metric
@@ -3390,7 +3389,7 @@ prepare_grid_json <- function(param_grid) {
 #' \code{$model} (a \code{catboost.Model} fit with the best parameters).
 #' @examples
 #' # (c) refit = TRUE correctly reuses the supplied custom_objective for the
-#' # final refit, not just for the search itself (P6.5, catboost-8z4.94).
+#' # final refit, not just for the search itself.
 #' \dontrun{
 #' n <- 50
 #' features <- data.frame(x1 = rnorm(n), x2 = rnorm(n))

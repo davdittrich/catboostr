@@ -9592,9 +9592,9 @@
     "kind": "flag",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
+    "test_id": "tests/testthat/test_distributed_training.R",
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "BLOCKED, not green. select-features family member proven green: catboost.select_features(node_type = \"Master\", ...) against a live catboost-v1.2.10 run-worker process completes for real (catboost-8z4.103). The fit family member remains unproven: catboost.train()'s distributed path is unconditionally blocked by a vendored guard (train_model.cpp:1632, \"CatBoost Python module does not support distributed training\") that R's CatBoostFit_R calls the same guarded TrainModel() overload as Python's binding -- not fixable in a test-only ticket. Tracked in catboost-8z4.105 (unblock catboost.train's distributed path); this row stays red until that closes.",
     "needs_disposition": false,
     "members": [
       {
@@ -9619,9 +9619,9 @@
     "kind": "flag",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
+    "test_id": "tests/testthat/test_distributed_training.R",
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "BLOCKED, not green. run-worker and select-features family members proven green: catboost.run_worker(node_port = ...) (catboost-8z4.102) and catboost.select_features(node_port = ..., node_type = \"Master\", file_with_hosts = ...) (catboost-8z4.103) both exercise --node-port for real against a live catboost-v1.2.10 run-worker process. The fit family member remains unproven: catboost.train()'s distributed path is unconditionally blocked by a vendored guard (train_model.cpp:1632, \"CatBoost Python module does not support distributed training\") that R's CatBoostFit_R calls the same guarded TrainModel() overload as Python's binding -- not fixable in a test-only ticket. Tracked in catboost-8z4.105 (unblock catboost.train's distributed path); this row stays red until that closes.",
     "needs_disposition": false,
     "members": [
       {
@@ -9650,9 +9650,9 @@
     "kind": "flag",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
+    "test_id": "tests/testthat/test_distributed_training.R",
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "BLOCKED, not green. select-features family member proven green: catboost.select_features(node_type = \"Master\", file_with_hosts = <path>, ...) against a live catboost-v1.2.10 run-worker process completes for real (catboost-8z4.103). The fit family member remains unproven: catboost.train()'s distributed path is unconditionally blocked by a vendored guard (train_model.cpp:1632, \"CatBoost Python module does not support distributed training\") that R's CatBoostFit_R calls the same guarded TrainModel() overload as Python's binding -- not fixable in a test-only ticket. Tracked in catboost-8z4.105 (unblock catboost.train's distributed path); this row stays red until that closes.",
     "needs_disposition": false,
     "members": [
       {
@@ -20133,8 +20133,8 @@
     "kind": "mode",
     "method": "roundtrip",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_distributed_training.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -20148,8 +20148,8 @@
     "disposition_rule": "everything else (method/mode/submode/function/class/property/attribute, or needs_disposition: true)",
     "disposition_confidence": 95,
     "final_method": "roundtrip",
-    "final_method_confidence": 35,
-    "final_method_note": "distributed-training worker; no single-node comparable output established yet, low confidence"
+    "final_method_confidence": 95,
+    "final_method_note": "catboost.run_worker() (catboost-8z4.102) spawns a real worker that interoperates with the pinned CLI binary as master: catboost.select_features(node_type = \"Master\", file_with_hosts = ..., node_port = ...) against a live catboost-v1.2.10 run-worker process (catboost-8z4.103) completes and returns a result structurally consistent with single-host selection, proving genuine master/worker network coordination over the par protocol -- not a self-consistency check. catboost.train()'s own distributed path is separately blocked by a vendored guard unrelated to run-worker itself (train_model.cpp:1632, tracked in catboost-8z4.105); the run-worker binding's own correctness does not depend on that guard."
   },
   {
     "inventory_row_id": "mode:roc",

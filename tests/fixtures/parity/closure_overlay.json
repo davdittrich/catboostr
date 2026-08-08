@@ -465,10 +465,22 @@
     "test_id": "tests/testthat/test_model.R",
     "tolerance_justification": "BLOCKED, not green. Verified directly: ran the pinned CLI oracle (tools/oracle/cli/bin/catboost-v1.2.10, v1.2.10) `fit --cv Classical:{0,1,2};3 --cv-no-shuffle` against R's `catboost.cv(fold_count = 3, type = \"Classical\", shuffle = FALSE)`, same params (iterations=10, depth=2, learning_rate=0.3, random_seed=42, loss_function=Logloss, boosting_type=Plain, thread_count=1, use_best_model=FALSE) and the same shared numeric-only dataset (tests/fixtures/oracle-cli/smoke_data.csv). The two produce entirely different per-iteration test-metric curves for every fold (not a reordering) because they run different native code paths: the CLI's fit/eval-feature/model-based-eval/select-features `--cv` flag is parsed into TCvDataPartitionParams (catboost/private/libs/options/cross_validation_params.h) at data-load time to pick a single train/test split (fold n of k) -- used by catboost/libs/train_lib/eval_feature.cpp's single-split path -- while R's catboost.cv binds directly to CrossValidate() (catboost/libs/train_lib/cross_validation.cpp), which builds and averages ALL k folds via the separate TCrossValidationParams struct. The matrix's matched_r_symbol=catboost.cv is a name-based match, not a verified mechanism match; per spec 4.4 this is left red rather than fabricated green. catboost.cv itself is real, extensively tested surface (test_model.R, test_params_validation.R) -- the gap is specifically the CLI --cv flag's own data-partition code path, which the R package has no binding for."
   },
+  "flag:--file-with-hosts": {
+    "test_id": "tests/testthat/test_distributed_training.R",
+    "tolerance_justification": "BLOCKED, not green. select-features family member proven green: catboost.select_features(node_type = \"Master\", file_with_hosts = <path>, ...) against a live catboost-v1.2.10 run-worker process completes for real (catboost-8z4.103). The fit family member remains unproven: catboost.train()'s distributed path is unconditionally blocked by a vendored guard (train_model.cpp:1632, \"CatBoost Python module does not support distributed training\") that R's CatBoostFit_R calls the same guarded TrainModel() overload as Python's binding -- not fixable in a test-only ticket. Tracked in catboost-8z4.105 (unblock catboost.train's distributed path); this row stays red until that closes."
+  },
   "flag:--input-path/-i": {
     "state": "green",
     "test_id": "tests/testthat/test_scale_and_bias.R",
     "tolerance_justification": "CLI-only capability (mode_normalize_model.cpp's PoolPaths auto min-max branch; no Python get_scale_and_bias/set_scale_and_bias equivalent). catboost.normalize_model_from_pool() reimplements the same CalcMinMaxOnAllPools + SetScaleAndBias logic and matches the CLI oracle's `normalize-model -i` output at relative 1e-9 (tests/fixtures/oracle-cli/scale_and_bias.json auto_min_max), per Section III's CLI-only-residual tolerance."
+  },
+  "flag:--node-port": {
+    "test_id": "tests/testthat/test_distributed_training.R",
+    "tolerance_justification": "BLOCKED, not green. run-worker and select-features family members proven green: catboost.run_worker(node_port = ...) (catboost-8z4.102) and catboost.select_features(node_port = ..., node_type = \"Master\", file_with_hosts = ...) (catboost-8z4.103) both exercise --node-port for real against a live catboost-v1.2.10 run-worker process. The fit family member remains unproven: catboost.train()'s distributed path is unconditionally blocked by a vendored guard (train_model.cpp:1632, \"CatBoost Python module does not support distributed training\") that R's CatBoostFit_R calls the same guarded TrainModel() overload as Python's binding -- not fixable in a test-only ticket. Tracked in catboost-8z4.105 (unblock catboost.train's distributed path); this row stays red until that closes."
+  },
+  "flag:--node-type": {
+    "test_id": "tests/testthat/test_distributed_training.R",
+    "tolerance_justification": "BLOCKED, not green. select-features family member proven green: catboost.select_features(node_type = \"Master\", ...) against a live catboost-v1.2.10 run-worker process completes for real (catboost-8z4.103). The fit family member remains unproven: catboost.train()'s distributed path is unconditionally blocked by a vendored guard (train_model.cpp:1632, \"CatBoost Python module does not support distributed training\") that R's CatBoostFit_R calls the same guarded TrainModel() overload as Python's binding -- not fixable in a test-only ticket. Tracked in catboost-8z4.105 (unblock catboost.train's distributed path); this row stays red until that closes."
   },
   "flag:--output-model": {
     "state": "green",
@@ -539,6 +551,12 @@
   "mode:roc": {
     "state": "green",
     "test_id": "tests/testthat/test_roc_curve.R"
+  },
+  "mode:run-worker": {
+    "state": "green",
+    "test_id": "tests/testthat/test_distributed_training.R",
+    "final_method_confidence": 95,
+    "final_method_note": "catboost.run_worker() (catboost-8z4.102) spawns a real worker that interoperates with the pinned CLI binary as master: catboost.select_features(node_type = \"Master\", file_with_hosts = ..., node_port = ...) against a live catboost-v1.2.10 run-worker process (catboost-8z4.103) completes and returns a result structurally consistent with single-host selection, proving genuine master/worker network coordination over the par protocol -- not a self-consistency check. catboost.train()'s own distributed path is separately blocked by a vendored guard unrelated to run-worker itself (train_model.cpp:1632, tracked in catboost-8z4.105); the run-worker binding's own correctness does not depend on that guard."
   },
   "param:X": {
     "state": "green",

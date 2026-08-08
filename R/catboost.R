@@ -3015,10 +3015,10 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list(), init_m
     # and has no asJSON method for R closures, so an R function/list cannot
     # cross that path. Validation/defaulting factored into shared helpers
     # (catboost-8z4.94) now that 5 more entry points need the identical checks.
+    params <- process_synonyms(params)
     params <- apply_custom_objective_params(params, custom_objective)
     params <- apply_custom_eval_metric_params(params, custom_eval_metric_object)
 
-    params <- process_synonyms(params)
     json_params <- prepare_train_export_parameters(params)
     handle <- .Call("CatBoostFit_R", learn_pool, test_pool, json_params, init_model_handle, custom_objective, custom_eval_metric_object)
     raw <- .Call("CatBoostSerializeModel_R", handle)

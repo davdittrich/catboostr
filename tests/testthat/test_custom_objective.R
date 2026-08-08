@@ -83,6 +83,30 @@ test_that("custom_objective validates its structure before reaching native code"
   )
 })
 
+# catboost-8z4.97: catboost.train used to apply_custom_objective_params()/
+# apply_custom_eval_metric_params() BEFORE process_synonyms(params), unlike
+# catboost.grid_search/catboost.randomized_search (which already ran
+# process_synonyms() first). A conflicting loss_function supplied via the
+# 'objective' alias (process_synonyms' loss_function/objective group) was
+# therefore invisible to apply_custom_objective_params's params$loss_function
+# check -- it saw NULL, silently defaulted to "PythonUserDefinedPerObject",
+# and left the stray 'objective' = "RMSE" key for process_synonyms to
+# resolve afterward, masking the same conflict the loss_function-spelled
+# case above correctly rejects. Now that process_synonyms() runs first,
+# the alias resolves to params$loss_function before validation, so this
+# must fail the same way as the loss_function-spelled case.
+test_that("custom_objective: a conflicting loss_function supplied via the 'objective' alias is rejected the same way as 'loss_function' (catboost-8z4.97)", {
+  pool <- catboost.load_pool(features, label = label)
+  expect_error(
+    catboost.train(
+      pool,
+      params = c(common_params(), list(objective = "RMSE")),
+      custom_objective = rmse_custom_objective
+    ),
+    "PythonUserDefinedPerObject"
+  )
+})
+
 test_that("custom_objective calc_ders_range reimplementing RMSE matches built-in RMSE", {
   pool <- catboost.load_pool(features, label = label)
 

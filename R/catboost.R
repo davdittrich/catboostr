@@ -3346,9 +3346,28 @@ catboost.cv <- function(pool,
 #' @export
 #' @seealso \url{https://catboost.ai/docs/features/distributed-training.html}
 catboost.run_worker <- function(node_port, thread_count = parallel::detectCores()) {
-    if (is.na(thread_count)) {
+    # P8 fix (catboost-8z4.103 followup): thread_count's default expression
+    # (parallel::detectCores()) can itself return NA on some platforms, which
+    # is not a user error -- fall back to 1 only when the caller relied on
+    # the default. missing() must be checked before is.na() forces evaluation
+    # of the default, so an explicitly-passed NA still falls through to the
+    # validation below and errors like any other bad value.
+    if (missing(thread_count) && is.na(thread_count)) {
         thread_count <- 1L
     }
+
+    if (!is.numeric(node_port) || length(node_port) != 1L || is.na(node_port) ||
+            node_port != as.integer(node_port) || node_port < 1L || node_port > 65535L) {
+        stop("Parameter 'node_port' must be a single integer in 1:65535, got: ", node_port)
+    }
+    node_port <- as.integer(node_port)
+
+    if (!is.numeric(thread_count) || length(thread_count) != 1L || is.na(thread_count) ||
+            thread_count != as.integer(thread_count) || thread_count < 1L) {
+        stop("Parameter 'thread_count' must be a single positive integer, got: ", thread_count)
+    }
+    thread_count <- as.integer(thread_count)
+
     invisible(.Call("CatBoostRunWorker_R", node_port, thread_count))
 }
 

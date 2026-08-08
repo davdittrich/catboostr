@@ -41,11 +41,18 @@ context("test_distributed_training.R")
 #
 # The master's own node_port (systemOptions.NodePort, master.cpp:39-45) is a
 # second, independent port from the worker's --node-port: it is where this R
-# process's own par-framework listener binds. It defaults to 0 (OS-assigned)
-# when omitted, but the flag:--node-port family (tests/fixtures/parity/
-# matrix.dispositioned.json) has a "fit"/"select-features" member for it
-# alongside run-worker's, so it is passed explicitly here too (picked the
-# same way, with retry on bind failure) to close that family for real.
+# process's own par-framework listener binds. Its default, GetUnusedNodePort()
+# == 0 (system_options.h:33), is passed straight through to NPar::RunMaster
+# (master.cpp:47-52) unchanged when node_port is omitted from params, and
+# par_network.cpp:72 (`if (port == 0)`) treats that as "bind an OS-assigned
+# free port" -- collision-free by construction, unlike picking an explicit
+# port ourselves and hoping nothing else holds it. So node_port is omitted
+# from the master-side params below rather than set explicitly: an earlier
+# version of this test picked an explicit random master port with a
+# retry-on-failure wrapper, but a real collision on that port crashes the
+# par library inside a C++ assert (a hard process abort, not a catchable R
+# condition), so the retry logic could never actually run. Omitting node_port
+# removes the collision class entirely instead of working around it.
 
 CLI_BIN <- testthat::test_path("..", "..", "tools", "oracle", "cli", "bin", "catboost-v1.2.10")
 
@@ -68,32 +75,17 @@ worker_is_listening <- function(port) {
 }
 
 # Spawns the real CLI binary as `run-worker --node-port <port>` in the
-# background. Two shell quirks discovered empirically while writing this
-# test (system2() does not return a PID on Unix, and does not shQuote() its
-# own `args` elements before handing them to the shell -- verified by
-# tracing both failure modes directly against this binary):
-#
-# 1. `system2(command, args, wait = FALSE)` assembles "command arg1 arg2..."
-#    literally (no per-arg quoting) and appends " &" to background it, all
-#    run through one more implicit shell. Passing a single `exec BIN ...`
-#    statement as the "-c" argument then does NOT reliably end up
-#    persisting the exec'd process (observed: it silently vanishes,
-#    reproducible across repeated runs) -- but prefixing the "-c" string
-#    with any leading no-op statement ("true; exec BIN ...") does, reliably.
-#    Root cause not fully pinned down (almost certainly how the extra
-#    implicit shell layer word-splits an unquoted "-c" argument), but the
-#    workaround is stable, so it is used as-is rather than chased further.
-# 2. There is therefore no `$!` to capture. The worker's PID is instead
-#    recovered after the fact via `pgrep -f`, matched on the --node-port
-#    value (unique per spawn attempt -- a fresh random port every retry --
-#    so this cannot cross-match a leftover process from a prior attempt).
+# background. system2(wait = FALSE) does not return a PID, so the worker's
+# PID is recovered after the fact via `pgrep -f`, matched on the
+# --node-port value (unique per spawn attempt -- a fresh random port every
+# retry -- so this cannot cross-match a leftover process from a prior
+# attempt). If the process hasn't shown up under pgrep by the time the
+# polling window below gives up, sweep for it once more by the same
+# pattern and kill it rather than leaking it to the caller.
 spawn_cli_worker <- function(port) {
   logfile <- tempfile()
-  cmd <- sprintf(
-    "true; exec %s run-worker --node-port %d >%s 2>&1",
-    shQuote(CLI_BIN), port, shQuote(logfile)
-  )
-  system2("/bin/sh", c("-c", cmd), wait = FALSE, stdout = FALSE, stderr = FALSE)
+  system2(CLI_BIN, c("run-worker", "--node-port", port), wait = FALSE,
+          stdout = logfile, stderr = logfile)
 
   pattern <- sprintf("run-worker --node-port %d$", port)
   pid <- NA_integer_
@@ -106,6 +98,12 @@ spawn_cli_worker <- function(port) {
       if (!is.na(pid)) break
     }
     Sys.sleep(0.1)
+  }
+  if (is.na(pid)) {
+    # ponytail: covers the race where the process appears just after the
+    # last pgrep check above -- sweep once more and kill anything matching
+    # this attempt's unique port pattern so it isn't leaked to the caller.
+    system2("pkill", c("-f", shQuote(pattern)), stdout = FALSE, stderr = FALSE)
   }
   pid
 }
@@ -148,28 +146,6 @@ kill_cli_worker <- function(worker) {
   if (!is.null(worker) && !is.na(worker$pid)) tools::pskill(worker$pid, signal = tools::SIGKILL)
 }
 
-# Master's own node_port is not health-probed the way the worker's is (it is
-# this R process's own par-framework listener, brought up synchronously
-# inside the .Call training frame, not a separately observable process) --
-# so bind-failure is instead handled by retrying catboost.train()/
-# catboost.select_features() itself with a fresh random port, up to 3 times,
-# matching the ticket's "retry fresh port up to 3 times on bind failure"
-# guidance applied to the port-selection method that actually works
-# (test_run_worker.R's random-pick-and-retry, not the accept()-blocking
-# socketConnection(server = TRUE) probe).
-with_master_port_retry <- function(make_params_fn, call_fn) {
-  last_error <- NULL
-  for (attempt in 1:3) {
-    master_port <- sample(20000:60000, 1)
-    params <- make_params_fn(master_port)
-    result <- tryCatch(list(ok = TRUE, value = call_fn(params)),
-                        error = function(e) list(ok = FALSE, error = e))
-    if (result$ok) return(result$value)
-    last_error <- result$error
-  }
-  stop("distributed call never succeeded after 3 master-port attempts: ", conditionMessage(last_error))
-}
-
 set.seed(20260808)
 n <- 200
 features <- data.frame(
@@ -209,25 +185,23 @@ test_that("distributed catboost.train (Master + real CLI worker): documents the 
   # scope for this test-only ticket. So this test documents the real,
   # reproducible block instead of a working distributed fit, pending a
   # scoping decision on the compiled-code follow-up.
+  #
+  # No CLI worker is spawned here (P8 fix, catboost-8z4.103 followup): the
+  # CB_ENSURE above fires before catboost.train() makes any network contact,
+  # so file_with_hosts never needs to resolve to a live worker for this
+  # assertion -- spawning one would only add an orphan-process surface for
+  # no coverage benefit.
   pool <- catboost.load_pool(features, label = label)
-
-  worker <- NULL
-  on.exit(kill_cli_worker(worker), add = TRUE)
-  worker <- start_cli_worker()
 
   dist_params <- c(base_train_params, list(
     node_type = "Master",
-    file_with_hosts = worker$hosts_path,
-    node_port = sample(20000:60000, 1)
+    file_with_hosts = tempfile()
   ))
 
   expect_error(
     catboost.train(pool, params = dist_params),
     "CatBoost Python module does not support distributed training"
   )
-
-  kill_cli_worker(worker)
-  worker <- NULL
 })
 
 test_that("distributed catboost.select_features (Master + real CLI worker) is structurally consistent with single-host", {
@@ -256,24 +230,18 @@ test_that("distributed catboost.select_features (Master + real CLI worker) is st
   on.exit(kill_cli_worker(worker), add = TRUE)
   worker <- start_cli_worker()
 
-  result_dist <- with_master_port_retry(
-    make_params_fn = function(master_port) {
-      c(select_params, list(
-        node_type = "Master",
-        file_with_hosts = worker$hosts_path,
-        node_port = master_port
-      ))
-    },
-    call_fn = function(params) {
-      catboost.select_features(
-        pool,
-        features_for_select = c(0, 1, 2, 3, 4),
-        num_features_to_select = 3,
-        params = params,
-        steps = 1,
-        train_final_model = FALSE
-      )
-    }
+  dist_params <- c(select_params, list(
+    node_type = "Master",
+    file_with_hosts = worker$hosts_path
+  ))
+
+  result_dist <- catboost.select_features(
+    pool,
+    features_for_select = c(0, 1, 2, 3, 4),
+    num_features_to_select = 3,
+    params = dist_params,
+    steps = 1,
+    train_final_model = FALSE
   )
 
   kill_cli_worker(worker)

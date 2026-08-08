@@ -122,6 +122,55 @@ using namespace NCB;
     }                                                               \
     RestoreOriginalLogger();                                        \
 
+// P6.6 (catboost-8z4.95): shared bridge + objective/metric descriptor wiring.
+// The six .Call entry points that support custom R objectives/metrics
+// (CatBoostFit_R, CatBoostCV_R, CatBoostGridSearch_R,
+// CatBoostRandomizedSearch_R, CatBoostSelectFeatures_R,
+// CatBoostEvaluateFeatures_R) each used to repeat: construct a
+// TRCallbackBridge, build both descriptors via BuildCustomObjectiveDescriptor/
+// BuildCustomMetricDescriptor, wrap the native call in a lambda, and
+// `if (Defined()) bridge.Run(lambda) else lambda()`. This RAII helper owns
+// the bridge and both context structs for the lifetime of one entry-point
+// call (their addresses become each built descriptor's CustomData, so they
+// must outlive Run()) and reproduces that exact gating in Run().
+//
+// CatBoostSelectFeatures_R wires the metric side only (NCB::SelectFeatures
+// has no TCustomObjectiveDescriptor parameter): pass R_NilValue for
+// customObjectiveParam, for which BuildCustomObjectiveDescriptor returns
+// Nothing(), so ObjectiveDescriptor stays undefined and Run()'s gate reduces
+// to EvalMetricDescriptor.Defined() -- metric-only callers wire naturally,
+// no special-case constructor needed.
+namespace NCatboostR {
+    class TRCustomCallbackWiring {
+    public:
+        TRCustomCallbackWiring(SEXP customObjectiveParam, SEXP customEvalMetricParam)
+            : ObjectiveDescriptor(
+                  BuildCustomObjectiveDescriptor(customObjectiveParam, &Bridge, &ObjectiveContext))
+            , EvalMetricDescriptor(
+                  BuildCustomMetricDescriptor(customEvalMetricParam, &Bridge, &MetricContext))
+        {}
+
+        bool Defined() const {
+            return ObjectiveDescriptor.Defined() || EvalMetricDescriptor.Defined();
+        }
+
+        template <typename TBody>
+        void Run(const TBody& body) {
+            if (Defined()) {
+                Bridge.Run(body);
+            } else {
+                body();
+            }
+        }
+
+        TRCallbackBridge Bridge;
+        TRCustomObjectiveContext ObjectiveContext;
+        TMaybe<TCustomObjectiveDescriptor> ObjectiveDescriptor;
+        TRCustomMetricContext MetricContext;
+        TMaybe<TCustomMetricDescriptor> EvalMetricDescriptor;
+    };
+}  // namespace NCatboostR
+
 typedef TDataProvider* TPoolHandle;
 typedef TDataProviderPtr TPoolPtr;
 
@@ -1518,24 +1567,17 @@ EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitP
         initModel = static_cast<TFullModelHandle>(R_ExternalPtrAddr(initModelParam));
     }
 
-    // P6.3 (catboost-8z4.89): customObjectiveParam is R_NilValue unless the
-    // caller supplied catboost.train(..., custom_objective = list(...)) --
-    // Nothing() is passed to TrainModel() below in that case, so dispatch for
-    // built-in losses is byte-for-byte unchanged from before this ticket.
-    NCatboostR::TRCallbackBridge bridge;
-    NCatboostR::TRCustomObjectiveContext objectiveContext;
-    TMaybe<TCustomObjectiveDescriptor> objectiveDescriptor =
-        NCatboostR::BuildCustomObjectiveDescriptor(customObjectiveParam, &bridge, &objectiveContext);
-
-    // P6.4 (catboost-8z4.90): customEvalMetricParam is R_NilValue unless the
-    // caller supplied catboost.train(..., custom_eval_metric_object =
-    // list(...)) -- Nothing() is passed to TrainModel() below in that case,
-    // so the existing eval_metric/custom_metric params-list behaviour is
-    // byte-for-byte unchanged from before this ticket. Shares `bridge` with
-    // the custom-objective wiring above rather than opening a second queue.
-    NCatboostR::TRCustomMetricContext metricContext;
-    TMaybe<TCustomMetricDescriptor> evalMetricDescriptor =
-        NCatboostR::BuildCustomMetricDescriptor(customEvalMetricParam, &bridge, &metricContext);
+    // P6.6 (catboost-8z4.95): shared bridge + objective/metric descriptor
+    // wiring (see TRCustomCallbackWiring above). customObjectiveParam/
+    // customEvalMetricParam are R_NilValue unless the caller supplied
+    // catboost.train(..., custom_objective = list(...)) /
+    // custom_eval_metric_object = list(...)) respectively -- Nothing() is
+    // passed to TrainModel() below in that case, so dispatch for built-in
+    // losses/eval_metric-or-custom_metric-params-list behaviour is
+    // byte-for-byte unchanged from before this ticket.
+    NCatboostR::TRCustomCallbackWiring callbackWiring(customObjectiveParam, customEvalMetricParam);
+    TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor = callbackWiring.ObjectiveDescriptor;
+    TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor = callbackWiring.EvalMetricDescriptor;
 
     auto runTraining = [&] {
         if (testPoolParam != R_NilValue) {
@@ -1579,13 +1621,13 @@ EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitP
     // entry point (and every built-in-loss/built-in-eval_metric
     // catboost.train() call) keeps running TrainModel() directly on R's main
     // thread, exactly as before this ticket.
-    if (objectiveDescriptor.Defined() || evalMetricDescriptor.Defined()) {
-        bridge.Run(runTraining);
+    if (callbackWiring.Defined()) {
+        callbackWiring.Bridge.Run(runTraining);
         // catboost-8z4.91/test instrumentation: CatBoostLastCustomObjectiveMaxActiveWorkers_R()
         // reads this back, so a differential test can assert real TBB
         // parallelism was preserved (>1 concurrently active worker) rather
         // than only checking the resulting model's correctness.
-        LastCustomObjectiveMaxActiveWorkers = bridge.MaxActiveWorkers();
+        LastCustomObjectiveMaxActiveWorkers = callbackWiring.Bridge.MaxActiveWorkers();
     } else {
         runTraining();
     }
@@ -1657,32 +1699,23 @@ EXPORT_FUNCTION CatBoostCV_R(SEXP fitParamsAsJsonParam,
 
     TVector<TCVResult> cvResults;
 
-    // P6.5 (catboost-8z4.94): same bridge/descriptor-building pattern as
-    // CatBoostFit_R -- Nothing()/Nothing() when neither argument is supplied,
-    // so built-in-loss/built-in-metric CrossValidate() calls are unchanged.
-    NCatboostR::TRCallbackBridge bridge;
-    NCatboostR::TRCustomObjectiveContext objectiveContext;
-    TMaybe<TCustomObjectiveDescriptor> objectiveDescriptor =
-        NCatboostR::BuildCustomObjectiveDescriptor(customObjectiveParam, &bridge, &objectiveContext);
-    NCatboostR::TRCustomMetricContext metricContext;
-    TMaybe<TCustomMetricDescriptor> evalMetricDescriptor =
-        NCatboostR::BuildCustomMetricDescriptor(customEvalMetricParam, &bridge, &metricContext);
+    // P6.6 (catboost-8z4.95): shared bridge/descriptor wiring (see
+    // TRCustomCallbackWiring above) -- Nothing()/Nothing() when neither
+    // argument is supplied, so built-in-loss/built-in-metric CrossValidate()
+    // calls are unchanged.
+    NCatboostR::TRCustomCallbackWiring callbackWiring(customObjectiveParam, customEvalMetricParam);
 
     auto runCrossValidate = [&] {
         CrossValidate(
             fitParams,
             TQuantizedFeaturesInfoPtr(nullptr),
-            objectiveDescriptor,
-            evalMetricDescriptor,
+            callbackWiring.ObjectiveDescriptor,
+            callbackWiring.EvalMetricDescriptor,
             pool,
             cvParams,
             &cvResults);
     };
-    if (objectiveDescriptor.Defined() || evalMetricDescriptor.Defined()) {
-        bridge.Run(runCrossValidate);
-    } else {
-        runCrossValidate();
-    }
+    callbackWiring.Run(runCrossValidate);
 
     metricCount = cvResults.size();
     TVector<size_t> offsets(metricCount);
@@ -1881,16 +1914,10 @@ EXPORT_FUNCTION CatBoostGridSearch_R(
     TBestOptionValuesWithCvResult bestOptionValuesWithCvResult;
     TMetricsAndTimeLeftHistory trainTestResult;
 
-    // P6.5 (catboost-8z4.94): same bridge/descriptor-building pattern as
-    // CatBoostFit_R/CatBoostCV_R -- GridSearch (a distinct function from
+    // P6.6 (catboost-8z4.95): shared bridge/descriptor wiring (see
+    // TRCustomCallbackWiring above) -- GridSearch (a distinct function from
     // CrossValidate, hyperparameter_tuning.h) accepts BOTH descriptors.
-    NCatboostR::TRCallbackBridge bridge;
-    NCatboostR::TRCustomObjectiveContext objectiveContext;
-    TMaybe<TCustomObjectiveDescriptor> objectiveDescriptor =
-        NCatboostR::BuildCustomObjectiveDescriptor(customObjectiveParam, &bridge, &objectiveContext);
-    NCatboostR::TRCustomMetricContext metricContext;
-    TMaybe<TCustomMetricDescriptor> evalMetricDescriptor =
-        NCatboostR::BuildCustomMetricDescriptor(customEvalMetricParam, &bridge, &metricContext);
+    NCatboostR::TRCustomCallbackWiring callbackWiring(customObjectiveParam, customEvalMetricParam);
 
     auto runGridSearch = [&] {
         GridSearch(
@@ -1898,8 +1925,8 @@ EXPORT_FUNCTION CatBoostGridSearch_R(
             modelJsonParams,
             ttParams,
             cvParams,
-            objectiveDescriptor,
-            evalMetricDescriptor,
+            callbackWiring.ObjectiveDescriptor,
+            callbackWiring.EvalMetricDescriptor,
             pool,
             &bestOptionValuesWithCvResult,
             &trainTestResult,
@@ -1908,11 +1935,7 @@ EXPORT_FUNCTION CatBoostGridSearch_R(
             asInteger(verboseParam)
         );
     };
-    if (objectiveDescriptor.Defined() || evalMetricDescriptor.Defined()) {
-        bridge.Run(runGridSearch);
-    } else {
-        runGridSearch();
-    }
+    callbackWiring.Run(runGridSearch);
 
     result = PROTECT(BestOptionValuesToRList(bestOptionValuesWithCvResult));
     R_API_END();
@@ -1969,15 +1992,10 @@ EXPORT_FUNCTION CatBoostRandomizedSearch_R(
     // string values are simply never produced R-side.
     THashMap<TString, TCustomRandomDistributionGenerator> randDistGenerators;
 
-    // P6.5 (catboost-8z4.94): same bridge/descriptor-building pattern as
-    // CatBoostGridSearch_R -- RandomizedSearch accepts BOTH descriptors.
-    NCatboostR::TRCallbackBridge bridge;
-    NCatboostR::TRCustomObjectiveContext objectiveContext;
-    TMaybe<TCustomObjectiveDescriptor> objectiveDescriptor =
-        NCatboostR::BuildCustomObjectiveDescriptor(customObjectiveParam, &bridge, &objectiveContext);
-    NCatboostR::TRCustomMetricContext metricContext;
-    TMaybe<TCustomMetricDescriptor> evalMetricDescriptor =
-        NCatboostR::BuildCustomMetricDescriptor(customEvalMetricParam, &bridge, &metricContext);
+    // P6.6 (catboost-8z4.95): shared bridge/descriptor wiring (see
+    // TRCustomCallbackWiring above) -- RandomizedSearch accepts BOTH
+    // descriptors.
+    NCatboostR::TRCustomCallbackWiring callbackWiring(customObjectiveParam, customEvalMetricParam);
 
     auto runRandomizedSearch = [&] {
         RandomizedSearch(
@@ -1987,8 +2005,8 @@ EXPORT_FUNCTION CatBoostRandomizedSearch_R(
             modelJsonParams,
             ttParams,
             cvParams,
-            objectiveDescriptor,
-            evalMetricDescriptor,
+            callbackWiring.ObjectiveDescriptor,
+            callbackWiring.EvalMetricDescriptor,
             pool,
             &bestOptionValuesWithCvResult,
             &trainTestResult,
@@ -1997,11 +2015,7 @@ EXPORT_FUNCTION CatBoostRandomizedSearch_R(
             asInteger(verboseParam)
         );
     };
-    if (objectiveDescriptor.Defined() || evalMetricDescriptor.Defined()) {
-        bridge.Run(runRandomizedSearch);
-    } else {
-        runRandomizedSearch();
-    }
+    callbackWiring.Run(runRandomizedSearch);
 
     result = PROTECT(BestOptionValuesToRList(bestOptionValuesWithCvResult));
     R_API_END();
@@ -2055,33 +2069,27 @@ EXPORT_FUNCTION CatBoostSelectFeatures_R(
         evalResultPtrs.push_back(&evalResult);
     }
 
-    // P6.5 (catboost-8z4.94): same bridge/descriptor-building pattern as
-    // CatBoostFit_R, metric only -- NCB::SelectFeatures has no
-    // TCustomObjectiveDescriptor parameter (verified against
+    // P6.6 (catboost-8z4.95): shared bridge/descriptor wiring (see
+    // TRCustomCallbackWiring above), metric only -- NCB::SelectFeatures has
+    // no TCustomObjectiveDescriptor parameter (verified against
     // select_features.h/recursive_features_elimination.*), so unlike the
-    // other four entry points this one wires the eval-metric descriptor only.
-    NCatboostR::TRCallbackBridge bridge;
-    NCatboostR::TRCustomMetricContext metricContext;
-    TMaybe<TCustomMetricDescriptor> evalMetricDescriptor =
-        NCatboostR::BuildCustomMetricDescriptor(customEvalMetricParam, &bridge, &metricContext);
+    // other five entry points this one passes R_NilValue for the objective
+    // side; Run()'s gate then reduces to EvalMetricDescriptor.Defined().
+    NCatboostR::TRCustomCallbackWiring callbackWiring(R_NilValue, customEvalMetricParam);
 
     TFullModelPtr modelPtr = std::make_unique<TFullModel>();
     NJson::TJsonValue summaryJson;
     auto runSelectFeatures = [&] {
         summaryJson = NCB::SelectFeatures(
             fitParams,
-            evalMetricDescriptor,
+            callbackWiring.EvalMetricDescriptor,
             pools,
             modelPtr.get(),
             evalResultPtrs,
             /*metricsAndTimeHistory*/ nullptr
         );
     };
-    if (evalMetricDescriptor.Defined()) {
-        bridge.Run(runSelectFeatures);
-    } else {
-        runSelectFeatures();
-    }
+    callbackWiring.Run(runSelectFeatures);
 
     SEXP modelHandle = R_NilValue;
     if (asLogical(trainFinalModelParam)) {
@@ -2218,31 +2226,22 @@ EXPORT_FUNCTION CatBoostEvaluateFeatures_R(
     // (eval_feature.cpp:1181).
     TCvDataPartitionParams cvParams;
 
-    // P6.5 (catboost-8z4.94): same bridge/descriptor-building pattern as
-    // CatBoostFit_R -- EvaluateFeatures accepts BOTH descriptors.
-    NCatboostR::TRCallbackBridge bridge;
-    NCatboostR::TRCustomObjectiveContext objectiveContext;
-    TMaybe<TCustomObjectiveDescriptor> objectiveDescriptor =
-        NCatboostR::BuildCustomObjectiveDescriptor(customObjectiveParam, &bridge, &objectiveContext);
-    NCatboostR::TRCustomMetricContext metricContext;
-    TMaybe<TCustomMetricDescriptor> evalMetricDescriptor =
-        NCatboostR::BuildCustomMetricDescriptor(customEvalMetricParam, &bridge, &metricContext);
+    // P6.6 (catboost-8z4.95): shared bridge/descriptor wiring (see
+    // TRCustomCallbackWiring above) -- EvaluateFeatures accepts BOTH
+    // descriptors.
+    NCatboostR::TRCustomCallbackWiring callbackWiring(customObjectiveParam, customEvalMetricParam);
 
     TFeatureEvaluationSummary summary;
     auto runEvaluateFeatures = [&] {
         summary = EvaluateFeatures(
             fitParams,
             featureEvalOptions,
-            objectiveDescriptor,
-            evalMetricDescriptor,
+            callbackWiring.ObjectiveDescriptor,
+            callbackWiring.EvalMetricDescriptor,
             cvParams,
             pool);
     };
-    if (objectiveDescriptor.Defined() || evalMetricDescriptor.Defined()) {
-        bridge.Run(runEvaluateFeatures);
-    } else {
-        runEvaluateFeatures();
-    }
+    callbackWiring.Run(runEvaluateFeatures);
 
     const size_t setCount = summary.GetFeatureSetCount();
     const size_t metricCount = summary.MetricNames.size();

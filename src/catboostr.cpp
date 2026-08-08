@@ -1635,8 +1635,9 @@ static void TrainModelDistributed(
     NCatboostOptions::TCatBoostOptions catBoostOptions(taskType);
     catBoostOptions.Load(trainOptionsJson);
 
-    // Registers this process as the par-framework master (RunMaster) for the
-    // whole call, as both the guarded wrapper and select_features.cpp do.
+    // For CPU, this yields an empty no-op TCpuTrainerEnv (trainer_env.h) --
+    // RunMaster happens below, in TMasterContext's constructor, not here.
+    // Called anyway since both the guarded wrapper and select_features.cpp do.
     auto trainerEnv = NCB::CreateTrainerEnv(catBoostOptions);
 
     NPar::TTbbLocalExecutor<> executor(catBoostOptions.SystemOptions->NumThreads.Get());

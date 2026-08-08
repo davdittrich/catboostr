@@ -3117,7 +3117,16 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list(), init_m
 # members of .catboostr_known_params, so checking post-resolution or
 # pre-resolution both accept them, but post-resolution also means the
 # canonical spelling is what actually gets validated and serialized.
-validate_params_keys <- function(params) {
+# Duplicate-key check factored out (catboost-8z4.95 batch review finding):
+# validate_params_keys() alone is not enough for catboost.train/grid_search/
+# randomized_search/select_features, which all call process_synonyms() first.
+# process_synonyms_in_one_group()'s `params[[synonym]] <- NULL` removes only
+# the FIRST match of a duplicated alias-group name (e.g. two 'iterations'
+# entries from c(list(iterations=5), list(iterations=9))), silently keeping
+# the first value and dropping the second BEFORE validate_params_keys ever
+# runs -- the opposite of erroring, and opposite of what a caller overriding
+# via c() expects. Must run on the RAW params, before any synonym resolution.
+check_no_duplicate_params_keys <- function(params) {
     dup <- unique(names(params)[duplicated(names(params))])
     if (length(dup) > 0) {
         stop("Duplicate 'params' key(s): ", paste(dup, collapse = ", "),
@@ -3125,6 +3134,11 @@ validate_params_keys <- function(params) {
              "which native CatBoost then rejects or misapplies. Use modifyList() ",
              "or list assignment to override a key instead of concatenating lists with c().")
     }
+    invisible(NULL)
+}
+
+validate_params_keys <- function(params) {
+    check_no_duplicate_params_keys(params)
     if (isTRUE(getOption("catboostr.allow_unknown_params", FALSE))) {
         return(invisible(NULL))
     }
@@ -3139,6 +3153,13 @@ validate_params_keys <- function(params) {
 }
 
 process_synonyms <- function(params) {
+    # Must check for raw duplicate keys BEFORE any alias-group resolution
+    # below: process_synonyms_in_one_group() silently drops all but the
+    # first occurrence of a duplicated alias-group name (e.g. two
+    # 'iterations' entries), which would otherwise defeat this check by the
+    # time validate_params_keys() runs at the end of this function.
+    check_no_duplicate_params_keys(params)
+
     params <- process_synonyms_in_one_group(c('loss_function', 'objective'), params)
     params <- process_synonyms_in_one_group(c('iterations', 'n_estimators', 'num_boost_round', 'num_trees'), params)
     params <- process_synonyms_in_one_group(c('learning_rate', 'eta'), params)

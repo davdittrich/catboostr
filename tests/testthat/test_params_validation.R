@@ -89,6 +89,20 @@ test_that("catboost.train: a duplicate params key (e.g. from c(list(...), list(.
   )
 })
 
+test_that("catboost.train: a duplicate key on a process_synonyms alias-group name is also rejected, not silently collapsed (batch review finding)", {
+  # process_synonyms_in_one_group() silently drops all but the FIRST
+  # occurrence of a duplicated alias-group name (e.g. two 'iterations'
+  # entries) before validate_params_keys() ever runs -- unlike the
+  # non-alias 'logging_level' case above, this bypassed the check entirely
+  # until check_no_duplicate_params_keys() was hoisted to the top of
+  # process_synonyms(). 'iterations' is one of the 24 alias-group names.
+  dup_params <- c(list(iterations = 5), tiny_params(list(iterations = 9)))
+  expect_error(
+    catboost.train(pool, params = dup_params),
+    "Duplicate 'params' key.*iterations"
+  )
+})
+
 # --- Blocked-capability closures (review-round fix) ---------------------
 # These params keys are accepted by R's *own* unknown-key gate (they are in
 # .catboostr_known_params) but the underlying capability does not actually

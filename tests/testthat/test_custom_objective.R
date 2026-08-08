@@ -134,7 +134,7 @@ test_that("custom_objective training preserves multithreading (bridge instrument
 
   catboost.train(
     pool,
-    params = c(custom_objective_params(), list(iterations = 3, depth = 2)),
+    params = modifyList(custom_objective_params(), list(iterations = 3, depth = 2)),
     custom_objective = rmse_custom_objective
   )
   max_active_workers <- .Call("CatBoostLastCustomObjectiveMaxActiveWorkers_R")

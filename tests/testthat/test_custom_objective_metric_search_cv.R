@@ -12,32 +12,18 @@ context("test_custom_objective_metric_search_cv.R")
 # CatBoostFit_R already calls (src/r_custom_objective.h, src/r_custom_metric.h)
 # -- no new bridge mechanism.
 
-set.seed(20260807)
-n <- 300
-features <- data.frame(
-  x1 = rnorm(n), x2 = rnorm(n), x3 = rnorm(n), x4 = rnorm(n), x5 = rnorm(n)
-)
-label <- with(features, 2 * x1 - 1.5 * x2 + 0.5 * x3 + rnorm(n, sd = 0.3))
+# Synthetic-data preamble (set.seed/n/features/label) and
+# rmse_custom_eval_metric live in helper-custom-callbacks.R (auto-sourced by
+# testthat).
 
 # Mirrors TRMSEError exactly (error_functions.h:379-403), same as
-# test_custom_objective.R's rmse_custom_objective.
+# test_custom_objective.R's rmse_custom_objective (functionally, not
+# byte-identical -- kept file-local, see helper-custom-callbacks.R).
 rmse_custom_objective <- list(
   calc_ders_range = function(approx, target, weight) {
     w <- if (is.null(weight)) 1 else weight
     cbind(w * (target - approx), w * (-1))
   }
-)
-
-# Mirrors TRMSEMetric exactly (metric.cpp:716-748), same as
-# test_custom_eval_metric.R's rmse_custom_eval_metric.
-rmse_custom_eval_metric <- list(
-  evaluate = function(approx, target, weight) {
-    w <- if (is.null(weight)) rep(1, length(target)) else weight
-    diff <- approx[, 1] - target
-    list(error = sum(w * diff^2), weight = sum(w))
-  },
-  is_max_optimal = function() FALSE,
-  get_final_error = function(error) sqrt(error[1] / (error[2] + 1e-38))
 )
 
 # boost_from_average = FALSE: a user-defined loss_function is rejected

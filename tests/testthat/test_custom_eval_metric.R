@@ -21,12 +21,9 @@ context("test_custom_eval_metric.R")
 # TRCallbackBridge instance CatBoostFit_R constructs once per call and shares
 # between the objective and metric trampolines, not per descriptor type.
 
-set.seed(20260807)
-n <- 300
-features <- data.frame(
-  x1 = rnorm(n), x2 = rnorm(n), x3 = rnorm(n), x4 = rnorm(n), x5 = rnorm(n)
-)
-label <- with(features, 2 * x1 - 1.5 * x2 + 0.5 * x3 + rnorm(n, sd = 0.3))
+# Synthetic-data preamble (set.seed/n/features/label) and
+# rmse_custom_eval_metric live in helper-custom-callbacks.R (auto-sourced by
+# testthat).
 
 # Deep + many iterations + early stopping so noisy synthetic data actually
 # overfits before the iteration cap -- otherwise use_best_model would just
@@ -45,16 +42,6 @@ common_params <- function() {
     boost_from_average = FALSE
   )
 }
-
-rmse_custom_eval_metric <- list(
-  evaluate = function(approx, target, weight) {
-    w <- if (is.null(weight)) rep(1, length(target)) else weight
-    diff <- approx[, 1] - target
-    list(error = sum(w * diff^2), weight = sum(w))
-  },
-  is_max_optimal = function() FALSE,
-  get_final_error = function(error) sqrt(error[1] / (error[2] + 1e-38))
-)
 
 test_that("custom_eval_metric_object validates its structure before reaching native code", {
   pool <- catboost.load_pool(features, label = label)

@@ -14,12 +14,8 @@ context("test_custom_objective.R")
 # NOT silently downgraded to thread_count = 1) via the bridge's own
 # active-worker instrumentation (catboost-8z4.93/.91).
 
-set.seed(20260807)
-n <- 300
-features <- data.frame(
-  x1 = rnorm(n), x2 = rnorm(n), x3 = rnorm(n), x4 = rnorm(n), x5 = rnorm(n)
-)
-label <- with(features, 2 * x1 - 1.5 * x2 + 0.5 * x3 + rnorm(n, sd = 0.3))
+# Synthetic-data preamble (set.seed/n/features/label) lives in
+# helper-custom-callbacks.R (auto-sourced by testthat).
 
 common_params <- function() {
   list(

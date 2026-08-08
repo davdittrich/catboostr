@@ -3845,6 +3845,13 @@ catboost.eval_feature <- function(pool,
     params <- apply_custom_objective_params(params, custom_objective)
     params <- apply_custom_eval_metric_params(params, custom_eval_metric_object)
 
+    # catboost-8z4.100: like catboost.cv, this function does not document or
+    # test accepting process_synonyms() alias spellings (e.g. 'eta'), so it
+    # skips resolution and validates the raw params directly -- every alias
+    # name is itself a member of .catboostr_known_params, so this still
+    # accepts both canonical and alias spellings without requiring resolution.
+    validate_params_keys(params)
+
     json_params <- prepare_train_export_parameters(params)
     return(.Call("CatBoostEvaluateFeatures_R", json_params, pool,
                  features_to_evaluate, eval_mode,
@@ -3965,6 +3972,13 @@ catboost.model_based_eval <- function(learn_set,
     params$experiment_size <- as.integer(experiment_size)
     params$use_evaluated_features_in_baseline_model <-
         as.logical(use_evaluated_features_in_baseline_model)
+
+    # catboost-8z4.100: like catboost.cv, this function does not document or
+    # test accepting process_synonyms() alias spellings, so it skips
+    # resolution and validates the final params directly -- every alias name
+    # is itself a member of .catboostr_known_params, so this still accepts
+    # both canonical and alias spellings without requiring resolution.
+    validate_params_keys(params)
 
     json_params <- prepare_train_export_parameters(params)
     .Call("CatBoostModelBasedEval_R", json_params,

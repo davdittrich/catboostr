@@ -250,6 +250,62 @@ test_that("catboost.cv: a canonical params key (including one set by early_stopp
   )
 })
 
+# --- catboost-8z4.100: catboost.eval_feature/catboost.model_based_eval ------
+# previously called prepare_train_export_parameters(params) directly with no
+# validate_params_keys()/process_synonyms() call at all. Neither function
+# documents or tests accepting process_synonyms() alias spellings (their
+# roxygen docs just point to catboost.train's own params reference), so they
+# follow the catboost.cv precedent exactly: validate_params_keys() directly,
+# no process_synonyms() resolution.
+
+test_that("catboost.eval_feature: an unknown params key is rejected the same way as catboost.train", {
+  expect_error(
+    catboost.eval_feature(pool, features_to_evaluate = list(),
+                           params = tiny_params(list(depht = 3)),
+                           relative_fold_size = 0.5),
+    "Unknown catboost 'params' key.*depht"
+  )
+})
+
+test_that("catboost.eval_feature: a duplicate params key is rejected before JSON export", {
+  dup_params <- c(list(logging_level = "Silent"), tiny_params(list(logging_level = "Verbose")))
+  expect_error(
+    catboost.eval_feature(pool, features_to_evaluate = list(),
+                           params = dup_params, relative_fold_size = 0.5),
+    "Duplicate 'params' key.*logging_level"
+  )
+})
+
+model_based_eval_fixture_paths <- function() {
+  list(data = testthat::test_path("..", "fixtures", "oracle-cli", "smoke_data.csv"),
+       cd = testthat::test_path("..", "fixtures", "oracle-cli", "smoke.cd"))
+}
+
+test_that("catboost.model_based_eval: an unknown params key is rejected the same way as catboost.train", {
+  fx <- model_based_eval_fixture_paths()
+  expect_error(
+    catboost.model_based_eval(
+      learn_set = fx$data, test_set = fx$data, features_to_evaluate = "0",
+      column_description = fx$cd,
+      params = list(depht = 3, logging_level = "Silent", task_type = "GPU")
+    ),
+    "Unknown catboost 'params' key.*depht"
+  )
+})
+
+test_that("catboost.model_based_eval: a duplicate params key is rejected before JSON export", {
+  fx <- model_based_eval_fixture_paths()
+  dup_params <- c(list(logging_level = "Silent"),
+                   list(logging_level = "Verbose", task_type = "GPU"))
+  expect_error(
+    catboost.model_based_eval(
+      learn_set = fx$data, test_set = fx$data, features_to_evaluate = "0",
+      column_description = fx$cd, params = dup_params
+    ),
+    "Duplicate 'params' key.*logging_level"
+  )
+})
+
 # --- One regression case per process_synonyms_in_one_group() alias group ---
 # (R/catboost.R:~2620-2632) -- every alias name must still validate and train
 # successfully post-P5.5, matching the pre-P5.5 (unvalidated) behavior.

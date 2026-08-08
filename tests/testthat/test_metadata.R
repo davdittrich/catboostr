@@ -75,6 +75,29 @@ context("test_metadata.R")
 PY_TOL <- 1e-12
 CLI_TOL <- 1e-9
 
+# Cross-architecture FP bound (catboost-8z4.112). The "training" metadata block
+# is a JSON dump of the per-iteration loss history. Both oracle fixtures were
+# generated on x86_64; macOS CI runs arm64, where the compiler may contract
+# multiply-add pairs (FMA) in the boosting/metric accumulation. The histories
+# therefore agree to a few float ULP rather than byte-for-byte: worst observed
+# deviation on macos-14 is 1.6e-07 relative on a Logloss of 0.684 (CI run
+# 31280833801), while both x86_64 Linux jobs reproduce the fixture exactly.
+# 1e-6 is ~8 float32 ULP and matches the oracle-comparison magnitude used
+# across the differential suite.
+ARCH_TOL <- 1e-6
+
+# Compare two "training" metadata blocks: structure (key set, nesting, history
+# length) exactly, leaf numbers to ARCH_TOL. Deliberately not expect_identical()
+# on the raw JSON strings -- that asserts cross-architecture bit-reproducibility
+# of a floating-point training run, which CatBoost does not provide.
+expect_training_equal <- function(actual_json, expected_json) {
+  expect_equal(
+    jsonlite::fromJSON(actual_json, simplifyVector = FALSE),
+    jsonlite::fromJSON(expected_json, simplifyVector = FALSE),
+    tolerance = ARCH_TOL
+  )
+}
+
 `%||%` <- function(a, b) if (is.null(a)) b else a
 
 VOLATILE_KEYS <- c("train_finish_time", "model_guid", "catboost_version_info")
@@ -130,10 +153,10 @@ test_that("get_metadata: key set matches the Python oracle", {
   )
 })
 
-test_that("get_metadata: class_params and training values are byte-identical to the Python oracle", {
+test_that("get_metadata: class_params and training values match the Python oracle", {
   md <- catboost.get_metadata(py_model)
   expect_identical(md[["class_params"]], expected$metadata_before$class_params)
-  expect_identical(md[["training"]], expected$metadata_before$training)
+  expect_training_equal(md[["training"]], expected$metadata_before$training)
 })
 
 test_that("get_metadata: params and output_options match the Python oracle up to the run-specific train_dir", {
@@ -218,8 +241,8 @@ test_that("mode:metadata dump / mode:metadata -- key set matches the CLI oracle"
   )
 })
 
-test_that("mode:metadata dump -- the deterministic training metrics block is byte-identical to the CLI oracle", {
-  expect_identical(catboost.get_metadata(cli_model)[["training"]], cli_fixture$dump$training)
+test_that("mode:metadata dump -- the deterministic training metrics block matches the CLI oracle", {
+  expect_training_equal(catboost.get_metadata(cli_model)[["training"]], cli_fixture$dump$training)
 })
 
 test_that("mode:metadata get -- representative params/output_options fields match the CLI oracle", {

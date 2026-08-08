@@ -2810,14 +2810,18 @@ apply_custom_eval_metric_params <- function(params, custom_eval_metric_object) {
 #' with \code{\link{catboost.run_worker}}, then set \code{node_type =
 #' "Master"}, \code{file_with_hosts = <path to a "host:port"-per-line file>}
 #' and \code{node_port = <this machine's own par-framework port>} in the
-#' master-side \code{params} list. \strong{This currently does not work via
-#' \code{catboost.train}}: its native entry point unconditionally rejects any
-#' \code{node_type} other than \code{"SingleHost"} with \code{"CatBoost
-#' Python module does not support distributed training"}, regardless of the
-#' other params -- the same restriction Python's in-memory \code{.train()}
-#' has. \code{\link{catboost.select_features}} calls a different native
-#' entry point that does not have this restriction, so it is, for now, the
-#' only master-side function that can drive real distributed training.
+#' master-side \code{params} list. Setting any \code{node_type} other than
+#' \code{"SingleHost"} routes the call to the native distributed training
+#' engine (the same one the command-line client's \code{--node-type Master}
+#' fit uses); the default single-host path is untouched by this and behaves
+#' exactly as before.
+#'
+#' Distributed training shards the dataset across the workers and builds each
+#' split's histograms per shard, so a distributed model is not bit-for-bit
+#' identical to a single-host model trained on the same data with the same
+#' seed -- it is statistically equivalent, not reproducible against it.
+#' \code{node_type = "Master"} requires \code{task_type = "CPU"} (the
+#' default); it is rejected for GPU training.
 #'
 #' @param learn_pool The dataset used for training the model.
 #'
@@ -3322,10 +3326,9 @@ catboost.cv <- function(pool,
 #' Call this from a separate R process (or session) on each worker machine,
 #' \emph{before} starting the master-side training call. On the master side,
 #' pass \code{params = list(node_type = "Master", file_with_hosts = <path>,
-#' node_port = <port>)} to \code{\link{catboost.select_features}} -- the only
-#' master-side entry point that currently drives real distributed training;
-#' see \code{\link{catboost.train}}'s \strong{Distributed training} section
-#' for that function's current limitation. \code{file_with_hosts} is a plain
+#' node_port = <port>)} to \code{\link{catboost.train}} (see its
+#' \strong{Distributed training} section) or to
+#' \code{\link{catboost.select_features}}. \code{file_with_hosts} is a plain
 #' text file with one \code{host:port} line per worker, where each
 #' \code{port} matches that worker's own \code{node_port} below.
 #' @param node_port TCP port for this worker. Must match this worker's line

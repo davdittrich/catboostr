@@ -18,6 +18,24 @@
 #include <catboost/libs/train_lib/train_model.h>
 #include <catboost/libs/train_lib/cross_validation.h>
 #include <catboost/libs/train_lib/eval_feature.h>
+// P8.4 (catboost-8z4.105): pieces of the training-engine entry path that the
+// distributed (node_type != "SingleHost") branch of CatBoostFit_R below needs
+// to drive TCPUModelTrainer::TrainModel directly, the way
+// NCB::SelectFeatures (libs/features_selection/select_features.cpp) already
+// does. The plain-JSON TrainModel() free function used by the single-host
+// branch hard-forbids distributed training
+// (train_model.cpp:1632 CB_ENSURE "CatBoost Python module does not support
+// distributed training"), and the unguarded preprocessing that sits between
+// it and the trainer is a file-static function there, so it cannot be reused
+// from here -- only these public/private-but-exported helpers can.
+#include <catboost/libs/train_lib/dir_helper.h>
+#include <catboost/libs/train_lib/options_helper.h>
+#include <catboost/libs/train_lib/trainer_env.h>
+#include <catboost/libs/helpers/memory_utils.h>
+#include <catboost/private/libs/algo/data.h>
+#include <catboost/private/libs/algo/preprocess.h>
+#include <catboost/private/libs/distributed/master.h>
+#include <catboost/private/libs/options/defaults_helper.h>
 // P8.1 (catboost-8z4.102): catboost.run_worker's native entry point -- the
 // same RunWorker(numThreads, nodePort) the CLI's `run-worker` mode calls
 // (catboost/app/mode_run_worker.cpp).
@@ -72,6 +90,10 @@
 // build/scripts/vcs_info.py + generate_vcs_info.py) already linked into this
 // target's own vcs_info(catboostr) call in src/CMakeLists.txt.
 #include <library/cpp/svnversion/svnversion.h>
+// P8.4 (catboost-8z4.105): same executor type CreateLocalExecutor()
+// (train_model.cpp:61) builds for CPU training, so the distributed branch runs
+// on the same TBB executor the single-host branch does.
+#include <library/cpp/threading/local_executor/tbb_local_executor.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/cast.h>
@@ -1549,6 +1571,194 @@ EXPORT_FUNCTION CatBoostDatasetStatistics_R(
 // without a broader instrumentation API.
 static int LastCustomObjectiveMaxActiveWorkers = -1;
 
+// P8.4 (catboost-8z4.105): distributed-training (node_type = "Master") call
+// path for catboost.train().
+//
+// The plain-JSON TrainModel() overload the single-host path uses
+// (train_model.h:153, the same one Python's _CatBoost._train calls) opens with
+//   CB_ENSURE(!plainJsonParams.Has("node_type") ||
+//             plainJsonParams["node_type"] == "SingleHost",
+//             "CatBoost Python module does not support distributed training");
+// (train_model.cpp:1632) and is otherwise a thin wrapper: it converts plain
+// params to options JSON, creates the trainer env and a local executor, and
+// forwards to a *file-static* TrainModel() (train_model.cpp:950) that does the
+// real preprocessing and then calls IModelTrainer::TrainModel. That static
+// function is what actually supports distributed training (its master branch
+// at train_model.cpp:1100 sets up TMasterContext + SetTrainDataFromMaster, and
+// TCPUModelTrainer::TrainModel's !IsSingleHost() branch at train_model.cpp:885
+// ships target/weights/baseline/binarized features to the workers), but being
+// static it is unreachable from this translation unit, and vendor/catboost is
+// pinned/read-only.
+//
+// So this function reproduces that unguarded preprocessing for the in-memory
+// pools case (poolLoadOptions == nullptr, i.e. everything catboost.train()
+// can pass) and calls IModelTrainer::TrainModel itself -- exactly the shape of
+// NCB::SelectFeatures (select_features.cpp:220-320), which is why
+// catboost.select_features already trains distributed today. Only the branches
+// the static function takes for `poolLoadOptions != nullptr` (quantized pools
+// loaded on the workers via SetTrainDataFromQuantizedPools, the pairs-file
+// warning, the CLI-only "plain boosting required" check) are dropped: with
+// in-memory pools HaveFeaturesInMemory() is unconditionally true, so those
+// branches are dead here.
+//
+// Single-host training does NOT come through here (see CatBoostFit_R's
+// dispatch below): it keeps calling the guarded free function unchanged, so
+// default behaviour is byte-for-byte identical to before this ticket.
+static void TrainModelDistributed(
+    NJson::TJsonValue plainJsonParams,
+    const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+    const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+    TDataProviders pools,
+    TMaybe<TFullModel*> initModel,
+    TFullModel* dstModel,
+    const TVector<TEvalResult*>& evalResultPtrs
+) {
+    NJson::TJsonValue trainOptionsJson;
+    NJson::TJsonValue outputFilesOptionsJson;
+    ConvertIgnoredFeaturesFromStringToIndices(pools.Learn->MetaInfo, &plainJsonParams);
+    NCatboostOptions::PlainJsonToOptions(plainJsonParams, &trainOptionsJson, &outputFilesOptionsJson);
+    ConvertParamsToCanonicalFormat(pools.Learn->MetaInfo, &trainOptionsJson);
+
+    const ETaskType taskType = NCatboostOptions::GetTaskType(trainOptionsJson);
+    CB_ENSURE(
+        taskType == ETaskType::CPU,
+        "distributed training (node_type other than SingleHost) is supported only for task_type = CPU");
+
+    NCatboostOptions::TOutputFilesOptions outputOptions;
+    outputOptions.Load(outputFilesOptionsJson);
+    if (outputOptions.SaveSnapshot()) {
+        UpdateUndefinedRandomSeed(taskType, outputOptions, &trainOptionsJson, [&](IInputStream* in, TString& params) {
+            ::Load(in, params);
+        });
+    }
+
+    NCatboostOptions::TCatBoostOptions catBoostOptions(taskType);
+    catBoostOptions.Load(trainOptionsJson);
+
+    // Registers this process as the par-framework master (RunMaster) for the
+    // whole call, as both the guarded wrapper and select_features.cpp do.
+    auto trainerEnv = NCB::CreateTrainerEnv(catBoostOptions);
+
+    NPar::TTbbLocalExecutor<> executor(catBoostOptions.SystemOptions->NumThreads.Get());
+
+    if (outputOptions.GetVerbosePeriod() == 0 && catBoostOptions.LoggingLevel.NotSet()) {
+        catBoostOptions.LoggingLevel.SetDefault(ELoggingLevel::Silent);
+    }
+    TSetLogging inThisScope(catBoostOptions.LoggingLevel);
+
+    const auto learnFeaturesLayout = pools.Learn->MetaInfo.FeaturesLayout;
+    auto quantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
+        *learnFeaturesLayout,
+        catBoostOptions.DataProcessingOptions.Get().IgnoredFeatures.Get(),
+        catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization.Get(),
+        catBoostOptions.DataProcessingOptions->PerFloatFeatureQuantization.Get(),
+        catBoostOptions.DataProcessingOptions->TextProcessingOptions.Get(),
+        catBoostOptions.DataProcessingOptions->EmbeddingProcessingOptions.Get(),
+        /*allowNansInTestOnly*/true
+    );
+
+    for (auto testPoolIdx : xrange(pools.Test.size())) {
+        const auto& testPool = *pools.Test[testPoolIdx];
+        if (testPool.GetObjectCount() == 0) {
+            continue;
+        }
+        CheckCompatibleForApply(
+            *learnFeaturesLayout,
+            *testPool.MetaInfo.FeaturesLayout,
+            TStringBuilder() << "test dataset #" << testPoolIdx);
+    }
+
+    if (pools.Learn->ObjectsData->GetOrder() == EObjectsOrder::Ordered) {
+        catBoostOptions.DataProcessingOptions->HasTimeFlag = true;
+    }
+    pools.Learn = ReorderByTimestampLearnDataIfNeeded(catBoostOptions, pools.Learn, &executor);
+
+    TRestorableFastRng64 rand(catBoostOptions.RandomSeed.Get());
+    pools.Learn = ShuffleLearnDataIfNeeded(catBoostOptions, pools.Learn, &executor, &rand);
+
+    const ui64 cpuUsedRamLimit = ParseMemorySizeDescription(
+        catBoostOptions.SystemOptions->CpuUsedRamLimit.Get());
+
+    // We need data to be consecutive for efficient blocked permutations.
+    EnsureObjectsDataIsConsecutiveIfQuantized(cpuUsedRamLimit, &executor, &pools.Learn);
+
+    TString tmpDir;
+    if (outputOptions.AllowWriteFiles()) {
+        NCB::NPrivate::CreateTrainDirWithTmpDirIfNotExist(outputOptions.GetTrainDir(), &tmpDir);
+    }
+
+    TLabelConverter labelConverter;
+    const bool needInitModelApplyCompatiblePools = initModel.Defined();
+    TTrainingDataProviders trainingData = GetTrainingData(
+        needInitModelApplyCompatiblePools ? pools : std::move(pools),
+        /*dataCanBeEmpty*/ false,
+        /*bordersFile*/ Nothing(),
+        /*ensureConsecutiveIfDenseLearnFeaturesDataForCpu*/ true,
+        outputOptions.AllowWriteFiles(),
+        tmpDir,
+        quantizedFeaturesInfo,
+        &catBoostOptions,
+        &labelConverter,
+        &executor,
+        &rand,
+        initModel);
+
+    THolder<TMasterContext> masterContext;
+    if (catBoostOptions.SystemOptions->IsMaster()) {
+        masterContext.Reset(new TMasterContext(catBoostOptions.SystemOptions));
+        SetTrainDataFromMaster(trainingData, cpuUsedRamLimit, &executor);
+    }
+
+    CheckConsistency(trainingData);
+
+    SetDataDependentDefaults(
+        trainingData.Learn->MetaInfo,
+        trainingData.Test.size() > 0 ?
+            TMaybe<NCB::TDataMetaInfo>(trainingData.Test[0]->MetaInfo) :
+            Nothing(),
+        initModel.Defined(),
+        /*continueFromProgress*/ false,
+        &outputOptions,
+        &catBoostOptions
+    );
+
+    InitializeEvalMetricIfNotSet(
+        catBoostOptions.MetricOptions->ObjectiveMetric,
+        &catBoostOptions.MetricOptions->EvalMetric);
+
+    UpdateMetricPeriodOption(catBoostOptions, &outputOptions);
+
+    if (outputOptions.NeedSaveBorders()) {
+        SaveBordersAndNanModesToFileInMatrixnetFormat(
+            outputOptions.CreateOutputBordersFullPath(),
+            *trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo());
+    }
+
+    const auto defaultTrainingCallbacks = MakeHolder<ITrainingCallbacks>();
+    const auto customCallbacks = MakeHolder<TCustomCallbacks>(/*callbackDescriptor*/ Nothing());
+    THolder<IModelTrainer> modelTrainerHolder(TTrainerFactory::Construct(ETaskType::CPU));
+    modelTrainerHolder->TrainModel(
+        TTrainModelInternalOptions(),
+        catBoostOptions,
+        outputOptions,
+        objectiveDescriptor,
+        evalMetricDescriptor,
+        std::move(trainingData),
+        /*precomputedSingleOnlineCtrDataForSingleFold*/ Nothing(),
+        labelConverter,
+        defaultTrainingCallbacks.Get(),
+        customCallbacks.Get(),
+        std::move(initModel),
+        /*initLearnProgress*/ THolder<TLearnProgress>(),
+        needInitModelApplyCompatiblePools ? std::move(pools) : TDataProviders(),
+        &executor,
+        &rand,
+        dstModel,
+        evalResultPtrs,
+        /*metricsAndTimeHistory*/ nullptr,
+        /*dstLearnProgress*/ nullptr);
+}
+
 EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitParamsAsJsonParam, SEXP initModelParam, SEXP customObjectiveParam, SEXP customEvalMetricParam) {
     SEXP result = NULL;
     R_API_BEGIN();
@@ -1583,27 +1793,45 @@ EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitP
     TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor = callbackWiring.ObjectiveDescriptor;
     TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor = callbackWiring.EvalMetricDescriptor;
 
+    // P8.4 (catboost-8z4.105): dispatch. Distributed runs go through
+    // TrainModelDistributed above (which reaches the same
+    // TCPUModelTrainer::TrainModel the CLI's --node-type Master fit uses);
+    // everything else -- i.e. every default, single-host catboost.train() call
+    // -- keeps calling the guarded plain-JSON TrainModel() free function with
+    // the exact same arguments as before, so single-host behaviour is
+    // unchanged. The condition mirrors that guard's own test
+    // (train_model.cpp:1632) so the two are exhaustive by construction: any
+    // params combination the guard would reject is routed away from it here,
+    // and nothing else is.
+    const bool isDistributed =
+        fitParams.Has("node_type") && !(fitParams["node_type"] == "SingleHost");
+
     auto runTraining = [&] {
+        // The test-pool and no-test-pool cases used to repeat the whole
+        // TrainModel() call just to pass {&evalResult} vs {}; P8.4
+        // (catboost-8z4.105) hoists that difference into evalResultPtrs so the
+        // single-host/distributed dispatch below has one call site each
+        // instead of four. Argument values are unchanged.
+        TEvalResult evalResult;
+        TVector<TEvalResult*> evalResultPtrs;
         if (testPoolParam != R_NilValue) {
-            TEvalResult evalResult;
             TPoolHandle testPool = static_cast<TPoolHandle>(R_ExternalPtrAddr(testPoolParam));
             pools.Test.emplace_back(testPool);
             pools.Test.back()->Ref();
-            TrainModel(
-                fitParams,
-                nullptr,
-                objectiveDescriptor,
-                evalMetricDescriptor,
-                Nothing(),
-                pools,
-                initModel,
-                /*initLearnProgress*/ nullptr,
-                "",
-                modelPtr.get(),
-                {&evalResult}
-            );
+            evalResultPtrs.push_back(&evalResult);
         }
-        else {
+
+        if (isDistributed) {
+            TrainModelDistributed(
+                fitParams,
+                objectiveDescriptor,
+                evalMetricDescriptor,
+                pools,
+                initModel,
+                modelPtr.get(),
+                evalResultPtrs
+            );
+        } else {
             TrainModel(
                 fitParams,
                 nullptr,
@@ -1615,7 +1843,7 @@ EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitP
                 /*initLearnProgress*/ nullptr,
                 "",
                 modelPtr.get(),
-                {}
+                evalResultPtrs
             );
         }
     };

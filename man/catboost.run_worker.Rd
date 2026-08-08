@@ -32,10 +32,9 @@ command through the par protocol.
 Call this from a separate R process (or session) on each worker machine,
 \emph{before} starting the master-side training call. On the master side,
 pass \code{params = list(node_type = "Master", file_with_hosts = <path>,
-node_port = <port>)} to \code{\link{catboost.select_features}} -- the only
-master-side entry point that currently drives real distributed training;
-see \code{\link{catboost.train}}'s \strong{Distributed training} section
-for that function's current limitation. \code{file_with_hosts} is a plain
+node_port = <port>)} to \code{\link{catboost.train}} (see its
+\strong{Distributed training} section) or to
+\code{\link{catboost.select_features}}. \code{file_with_hosts} is a plain
 text file with one \code{host:port} line per worker, where each
 \code{port} matches that worker's own \code{node_port} below.
 }

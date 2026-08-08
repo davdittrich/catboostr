@@ -1221,14 +1221,18 @@ run multi-machine training: start a worker process on each remote machine
 with \code{\link{catboost.run_worker}}, then set \code{node_type =
 "Master"}, \code{file_with_hosts = <path to a "host:port"-per-line file>}
 and \code{node_port = <this machine's own par-framework port>} in the
-master-side \code{params} list. \strong{This currently does not work via
-\code{catboost.train}}: its native entry point unconditionally rejects any
-\code{node_type} other than \code{"SingleHost"} with \code{"CatBoost
-Python module does not support distributed training"}, regardless of the
-other params -- the same restriction Python's in-memory \code{.train()}
-has. \code{\link{catboost.select_features}} calls a different native
-entry point that does not have this restriction, so it is, for now, the
-only master-side function that can drive real distributed training.
+master-side \code{params} list. Setting any \code{node_type} other than
+\code{"SingleHost"} routes the call to the native distributed training
+engine (the same one the command-line client's \code{--node-type Master}
+fit uses); the default single-host path is untouched by this and behaves
+exactly as before.
+
+Distributed training shards the dataset across the workers and builds each
+split's histograms per shard, so a distributed model is not bit-for-bit
+identical to a single-host model trained on the same data with the same
+seed -- it is statistically equivalent, not reproducible against it.
+\code{node_type = "Master"} requires \code{task_type = "CPU"} (the
+default); it is rejected for GPU training.
 }
 \section{Full Parameter Reference (generated)}{
 

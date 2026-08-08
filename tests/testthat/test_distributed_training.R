@@ -8,12 +8,11 @@ context("test_distributed_training.R")
 # itself, not a real master/worker round-trip).
 #
 # Two assertions against the SAME live CLI worker:
-#   (a) catboost.train(..., node_type = "Master") -- discovered, while
-#       writing this test, to be unconditionally blocked by a vendored
-#       CB_ENSURE (see that test's own comment for the full trace); this
-#       assertion documents the real, reproducible block via expect_error()
-#       instead of the working differential comparison the ticket assumed.
-#       Reported BLOCKED to the ticket owner -- see task-2-report.md.
+#   (a) catboost.train(..., node_type = "Master") -- a real master/worker fit,
+#       compared against a single-host fit on the same data (P8.4,
+#       catboost-8z4.105 made this path reach the training engine; before that
+#       it was blocked by a vendored CB_ENSURE and this assertion was an
+#       expect_error() documenting the block).
 #   (b) catboost.select_features(..., node_type = "Master") against the same
 #       distributed params -- this path does NOT go through the blocked
 #       free function (NCB::SelectFeatures calls TCPUModelTrainer::TrainModel
@@ -163,45 +162,61 @@ base_train_params <- list(
   logging_level = "Silent"
 )
 
-test_that("distributed catboost.train (Master + real CLI worker): documents the vendored CB_ENSURE block", {
-  # catboost-8z4.103 finding (see task-2-report.md, reported BLOCKED to the
-  # ticket owner): catboost.train()'s node_type = "Master" path is NOT
-  # exercisable, in R or in Python. CatBoostFit_R (src/catboostr.cpp) calls
-  # the same in-memory-pools TrainModel() overload Python's
-  # _catboost.pyx/_CatBoost._train calls (train_model.h:153, comment at
-  # catboostr.cpp:1565), and that overload has an unconditional guard
-  # (vendor/catboost/catboost/libs/train_lib/train_model.cpp:1632):
-  #   CB_ENSURE(!plainJsonParams.Has("node_type") ||
-  #             plainJsonParams["node_type"] == "SingleHost",
-  #             "CatBoost Python module does not support distributed training");
-  # This is unconditional on any other option -- there is no params
-  # combination that avoids it. The underlying engine (TCPUModelTrainer::
-  # TrainModel, same file, IsSingleHost() branch at line ~875) does support
-  # distributed training; it is this specific free-function wrapper -- the
-  # one both Python's and R's in-memory `.train()` bindings share -- that
-  # forbids it. Fixing this would mean changing CatBoostFit_R to call a
-  # different (CLI-style, TPoolLoadParams-based) TrainModel overload or to
-  # bypass this guard -- a compiled-code (src/catboostr.cpp) change, out of
-  # scope for this test-only ticket. So this test documents the real,
-  # reproducible block instead of a working distributed fit, pending a
-  # scoping decision on the compiled-code follow-up.
-  #
-  # No CLI worker is spawned here (P8 fix, catboost-8z4.103 followup): the
-  # CB_ENSURE above fires before catboost.train() makes any network contact,
-  # so file_with_hosts never needs to resolve to a live worker for this
-  # assertion -- spawning one would only add an orphan-process surface for
-  # no coverage benefit.
+test_that("distributed catboost.train (Master + real CLI worker) matches single-host training", {
+  # P8.4 (catboost-8z4.105): CatBoostFit_R now routes node_type != "SingleHost"
+  # to TrainModelDistributed (src/catboostr.cpp), which drives
+  # TCPUModelTrainer::TrainModel directly instead of the plain-JSON
+  # TrainModel() free function whose CB_ENSURE
+  # (vendor/catboost/catboost/libs/train_lib/train_model.cpp:1632) forbids
+  # distributed training. Single-host calls still go through that free
+  # function unchanged -- result_single below is produced by the unchanged
+  # path and is the reference the distributed fit is compared against.
   pool <- catboost.load_pool(features, label = label)
+
+  model_single <- catboost.train(pool, params = base_train_params)
+  pred_single <- catboost.predict(model_single, pool)
+
+  worker <- NULL
+  on.exit(kill_cli_worker(worker), add = TRUE)
+  worker <- start_cli_worker()
 
   dist_params <- c(base_train_params, list(
     node_type = "Master",
-    file_with_hosts = tempfile()
+    file_with_hosts = worker$hosts_path
   ))
 
-  expect_error(
-    catboost.train(pool, params = dist_params),
-    "CatBoost Python module does not support distributed training"
-  )
+  model_dist <- catboost.train(pool, params = dist_params)
+  pred_dist <- catboost.predict(model_dist, pool)
+
+  kill_cli_worker(worker)
+  worker <- NULL
+
+  # Tolerance justification. Distributed training is NOT a
+  # bit-for-bit-reproducible variant of single-host training: the master
+  # ships binarized features to the workers and each split's histograms are
+  # computed per shard (TCPUModelTrainer::TrainModel's !IsSingleHost()
+  # branch), so floating-point summation order -- and hence the chosen splits
+  # and leaf values -- legitimately differ from the single-host run even with
+  # an identical random_seed. Exact-equality (or a tight per-prediction
+  # epsilon) is therefore the wrong gate here, the same reason assertion (b)
+  # below compares select_features structurally.
+  #
+  # What IS asserted is that the distributed fit really trained the same
+  # model family on the same data: the same number of trees, predictions that
+  # track the single-host model's almost perfectly, and a train RMSE within a
+  # margin of it. Margins are set from the observed run (max abs prediction
+  # difference 0.63 == 0.23 * sd(label); correlation 0.9966; RMSE 0.2323
+  # distributed vs 0.2146 single-host == +8.2%) with ~3x headroom, so a
+  # genuine regression -- a worker that silently contributes nothing, a
+  # dropped iteration, an untrained model -- fails, while shard-order noise
+  # does not. sd(label) is ~2.70, so both RMSEs are ~8% of it: both models
+  # genuinely learned the signal.
+  expect_equal(model_dist$tree_count, model_single$tree_count)
+  expect_gt(cor(pred_dist, pred_single), 0.99)
+  expect_lt(max(abs(pred_dist - pred_single)), 0.7 * sd(label))
+
+  rmse <- function(pred) sqrt(mean((pred - label)^2))
+  expect_lt(rmse(pred_dist), 1.25 * rmse(pred_single))
 })
 
 test_that("distributed catboost.select_features (Master + real CLI worker) is structurally consistent with single-host", {

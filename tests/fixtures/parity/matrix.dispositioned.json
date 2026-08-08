@@ -9593,8 +9593,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": "tests/testthat/test_distributed_training.R",
-    "state": "red",
-    "tolerance_justification": "BLOCKED, not green. select-features family member proven green: catboost.select_features(node_type = \"Master\", ...) against a live catboost-v1.2.10 run-worker process completes for real (catboost-8z4.103). The fit family member remains unproven: catboost.train()'s distributed path is unconditionally blocked by a vendored guard (train_model.cpp:1632, \"CatBoost Python module does not support distributed training\") that R's CatBoostFit_R calls the same guarded TrainModel() overload as Python's binding -- not fixable in a test-only ticket. Tracked in catboost-8z4.105 (unblock catboost.train's distributed path); this row stays red until that closes.",
+    "state": "green",
+    "tolerance_justification": "Both family members proven against a live catboost-v1.2.10 run-worker process: catboost.select_features(node_type = \"Master\", ...) completes for real (catboost-8z4.103), and catboost.train(params = list(node_type = \"Master\", ...)) now trains for real too (catboost-8z4.105: CatBoostFit_R dispatches any node_type other than \"SingleHost\" to a call path that drives TCPUModelTrainer::TrainModel directly, the same engine method the CLI's --node-type Master fit reaches, instead of the plain-JSON TrainModel() wrapper whose CB_ENSURE at train_model.cpp:1632 forbids it; SingleHost keeps using that wrapper unchanged). Distributed fit compared statistically rather than bit-for-bit against single-host -- see flag:--file-with-hosts for the tolerance margins and why exact equality is not the right gate.",
     "needs_disposition": false,
     "members": [
       {
@@ -9620,8 +9620,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": "tests/testthat/test_distributed_training.R",
-    "state": "red",
-    "tolerance_justification": "BLOCKED, not green. run-worker and select-features family members proven green: catboost.run_worker(node_port = ...) (catboost-8z4.102) and catboost.select_features(node_port = ..., node_type = \"Master\", file_with_hosts = ...) (catboost-8z4.103) both exercise --node-port for real against a live catboost-v1.2.10 run-worker process. The fit family member remains unproven: catboost.train()'s distributed path is unconditionally blocked by a vendored guard (train_model.cpp:1632, \"CatBoost Python module does not support distributed training\") that R's CatBoostFit_R calls the same guarded TrainModel() overload as Python's binding -- not fixable in a test-only ticket. Tracked in catboost-8z4.105 (unblock catboost.train's distributed path); this row stays red until that closes.",
+    "state": "green",
+    "tolerance_justification": "All three family members proven against a live catboost-v1.2.10 run-worker process: catboost.run_worker(node_port = ...) (catboost-8z4.102), catboost.select_features(node_type = \"Master\", file_with_hosts = ...) (catboost-8z4.103), and now catboost.train(params = list(node_type = \"Master\", file_with_hosts = ...)) (catboost-8z4.105, which routes the fit past the vendored guard at train_model.cpp:1632 to TCPUModelTrainer::TrainModel). The worker's --node-port is exercised end-to-end by both master-side calls via the host:port line in file_with_hosts; the master's own node_port is deliberately left at its GetUnusedNodePort() == 0 default (\"bind an OS-assigned free port\", par_network.cpp:72), because an explicit master port collision aborts the par library inside a C++ assert rather than raising a catchable R condition.",
     "needs_disposition": false,
     "members": [
       {
@@ -9651,8 +9651,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": "tests/testthat/test_distributed_training.R",
-    "state": "red",
-    "tolerance_justification": "BLOCKED, not green. select-features family member proven green: catboost.select_features(node_type = \"Master\", file_with_hosts = <path>, ...) against a live catboost-v1.2.10 run-worker process completes for real (catboost-8z4.103). The fit family member remains unproven: catboost.train()'s distributed path is unconditionally blocked by a vendored guard (train_model.cpp:1632, \"CatBoost Python module does not support distributed training\") that R's CatBoostFit_R calls the same guarded TrainModel() overload as Python's binding -- not fixable in a test-only ticket. Tracked in catboost-8z4.105 (unblock catboost.train's distributed path); this row stays red until that closes.",
+    "state": "green",
+    "tolerance_justification": "Both family members proven against a live catboost-v1.2.10 run-worker process: catboost.select_features(node_type = \"Master\", file_with_hosts = <path>, ...) completes for real (catboost-8z4.103), and catboost.train(params = list(node_type = \"Master\", file_with_hosts = <path>, ...)) now trains for real too (catboost-8z4.105 routes it past the vendored guard at train_model.cpp:1632 to TCPUModelTrainer::TrainModel, the same engine method the CLI's --node-type Master fit uses). Distributed fit is compared statistically, not bit-for-bit, against a single-host fit on the same data (per-shard histogram summation order legitimately changes splits/leaf values): same tree_count, prediction correlation > 0.99, max prediction difference < 0.7 * sd(label), train RMSE within 1.25x single-host -- margins ~3x the observed run's values, per Section III's CLI-only-residual tolerance convention.",
     "needs_disposition": false,
     "members": [
       {

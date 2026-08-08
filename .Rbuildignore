@@ -14,8 +14,6 @@
 ^\.superpowers/
 ^catboost_info$
 ^catboost_info/
-^tests/fixtures$
-^tests/fixtures/
 ^AGENTS\.md$
 ^CLAUDE\.md$
 ^vendor$

@@ -70,6 +70,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"CatBoostRCallbackBridgeSelfTest_R",     (DL_FUNC) &CatBoostRCallbackBridgeSelfTest_R,      4},
     {"CatBoostRandomizedSearch_R",            (DL_FUNC) &CatBoostRandomizedSearch_R,            14},
     {"CatBoostReadModel_R",                   (DL_FUNC) &CatBoostReadModel_R,                    2},
+    {"CatBoostRunWorker_R",                   (DL_FUNC) &CatBoostRunWorker_R,                    2},
     {"CatBoostSelectFeatures_R",              (DL_FUNC) &CatBoostSelectFeatures_R,               5},
     {"CatBoostSerializeModel_R",              (DL_FUNC) &CatBoostSerializeModel_R,               1},
     {"CatBoostSetModelInfo_R",                (DL_FUNC) &CatBoostSetModelInfo_R,                 3},

@@ -18,6 +18,10 @@
 #include <catboost/libs/train_lib/train_model.h>
 #include <catboost/libs/train_lib/cross_validation.h>
 #include <catboost/libs/train_lib/eval_feature.h>
+// P8.1 (catboost-8z4.102): catboost.run_worker's native entry point -- the
+// same RunWorker(numThreads, nodePort) the CLI's `run-worker` mode calls
+// (catboost/app/mode_run_worker.cpp).
+#include <catboost/private/libs/distributed/worker.h>
 // P5.2 (catboost-8z4.59): catboost.grid_search/catboost.randomized_search call
 // the same native NCB::GridSearch/NCB::RandomizedSearch entry points Python's
 // CatBoost._tune_hyperparams uses (_catboost.pyx:4403, calling
@@ -3544,5 +3548,21 @@ EXPORT_FUNCTION CatBoostTextDictionaryLoad_R(SEXP frequencyDictPathParam, SEXP b
     R_API_END();
     UNPROTECT(1);
     return result;
+}
+
+// P8.1 (catboost-8z4.102): R equivalent of the CLI's `run-worker` mode.
+// RunWorker's own signature is (ui32 numThreads, ui32 nodePort) -- threads
+// first, port second -- despite this entry point's R-level argument order
+// (node_port, thread_count), which matches the CLI's --node-port/-T flag
+// naming. Blocks until the master sends a stop command or the process is
+// killed; never returns control to R during normal distributed-training
+// operation, same as the CLI mode it mirrors.
+EXPORT_FUNCTION CatBoostRunWorker_R(SEXP nodePortParam, SEXP threadCountParam) {
+    R_API_BEGIN();
+    ui32 nodePort = static_cast<ui32>(asInteger(nodePortParam));
+    ui32 threadCount = static_cast<ui32>(asInteger(threadCountParam));
+    RunWorker(threadCount, nodePort);
+    R_API_END();
+    return R_NilValue;
 }
 }

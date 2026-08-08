@@ -104,6 +104,10 @@ target_link_libraries(catboostr PUBLIC
   # catboost/python-package/catboost/_catboost.pyx _get_binarized_statistics
   # links against.
   private-libs-quantized_pool_analysis
+  # P8.1: catboost.run_worker's native entry point (RunWorker, catboost/
+  # private/libs/distributed/worker.h) -- the same one the CLI's
+  # `run-worker` mode calls (catboost/app/mode_run_worker.cpp).
+  private-libs-distributed
 )
 
 target_allocator(catboostr

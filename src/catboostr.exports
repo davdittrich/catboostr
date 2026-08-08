@@ -63,6 +63,7 @@ C CatBoostPrepareEval_R
 C CatBoostRCallbackBridgeSelfTest_R
 C CatBoostRandomizedSearch_R
 C CatBoostReadModel_R
+C CatBoostRunWorker_R
 C CatBoostSelectFeatures_R
 C CatBoostSerializeModel_R
 C CatBoostSetModelInfo_R

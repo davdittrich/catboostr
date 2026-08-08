@@ -3295,6 +3295,30 @@ catboost.cv <- function(pool,
     return(data.frame(result))
 }
 
+#' @name catboost.run_worker
+#' @title Run a distributed-training worker.
+#' @description R equivalent of the CatBoost CLI's \code{run-worker} mode
+#' (catboost-8z4.102): blocks the calling process, acting as a
+#' distributed-training worker awaiting commands from a master node over the
+#' network, until stopped. There is no R-level stop mechanism beyond what the
+#' CLI mode itself provides -- killing the process, or the master sending a
+#' stop-slave command through the par protocol.
+#' @param node_port TCP port for this worker.
+#' @param thread_count The number of threads used by this worker.
+#'
+#' Default value: number of CPU cores (\code{parallel::detectCores()}),
+#' falling back to \code{1} when that cannot be determined (returns \code{NA}
+#' on some platforms).
+#' @return No value is returned; this call blocks until the worker stops.
+#' @export
+#' @seealso \url{https://catboost.ai/docs/features/distributed-training.html}
+catboost.run_worker <- function(node_port, thread_count = parallel::detectCores()) {
+    if (is.na(thread_count)) {
+        thread_count <- 1L
+    }
+    invisible(.Call("CatBoostRunWorker_R", node_port, thread_count))
+}
+
 # P5.2 (catboost-8z4.59): param_grid accepts either a single named list
 # (param name -> vector of values to try) or an unnamed list of such named
 # lists (multiple grids, spans explored independently), matching Python's

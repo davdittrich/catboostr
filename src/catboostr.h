@@ -292,6 +292,12 @@ EXPORT_FUNCTION CatBoostEvalMetrics_R(
 
 EXPORT_FUNCTION CatBoostVersion_R(void);
 
+// P8.1 (catboost-8z4.102): R equivalent of the CLI's `run-worker` mode
+// (catboost/app/mode_run_worker.cpp) -- blocks the calling thread running as
+// a distributed-training slave (NPar::RunSlave) until stopped by the master
+// or the process is killed. No R callback of any kind.
+EXPORT_FUNCTION CatBoostRunWorker_R(SEXP nodePortParam, SEXP threadCountParam);
+
 // P3.1: Pool metadata accessors/mutators (R equivalents of Python Pool's
 // get_label/get_weight/set_weight/get_baseline/set_baseline/has_label/
 // get_group_id_hash/set_group_id/set_group_weight/set_subgroup_id/

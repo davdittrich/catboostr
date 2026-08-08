@@ -77,6 +77,18 @@ test_that("catboost.train: the escape hatch is off by default (second unknown-ke
   )
 })
 
+test_that("catboost.train: a duplicate params key (e.g. from c(list(...), list(...))) is rejected before JSON export (catboost-8z4.98)", {
+  # jsonlite::toJSON(list(a=1,b=2,a=1)) silently synthesizes a key.1 name
+  # (e.g. {"a":1,"b":2,"a.1":1}) instead of erroring, which native CatBoost's
+  # C++ options parser then rejects (or, worse, silently ignores) -- catch it
+  # at the R level, naming the offending key, before that JSON export happens.
+  dup_params <- c(list(logging_level = "Silent"), tiny_params(list(logging_level = "Verbose")))
+  expect_error(
+    catboost.train(pool, params = dup_params),
+    "Duplicate 'params' key.*logging_level"
+  )
+})
+
 # --- Blocked-capability closures (review-round fix) ---------------------
 # These params keys are accepted by R's *own* unknown-key gate (they are in
 # .catboostr_known_params) but the underlying capability does not actually

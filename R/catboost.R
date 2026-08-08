@@ -3109,6 +3109,13 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list(), init_m
 # pre-resolution both accept them, but post-resolution also means the
 # canonical spelling is what actually gets validated and serialized.
 validate_params_keys <- function(params) {
+    dup <- unique(names(params)[duplicated(names(params))])
+    if (length(dup) > 0) {
+        stop("Duplicate 'params' key(s): ", paste(dup, collapse = ", "),
+             ". jsonlite::toJSON() silently renames repeated keys (e.g. 'a.1'), ",
+             "which native CatBoost then rejects or misapplies. Use modifyList() ",
+             "or list assignment to override a key instead of concatenating lists with c().")
+    }
     if (isTRUE(getOption("catboostr.allow_unknown_params", FALSE))) {
         return(invisible(NULL))
     }

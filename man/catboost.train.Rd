@@ -1214,6 +1214,21 @@ run therefore surfaces as an ordinary R error, not an R interrupt
 condition: \code{tryCatch(..., interrupt = )} will not fire on it.
 Restoring true interrupt semantics is tracked as a follow-up, not pursued
 here due to CRAN \code{R CMD check} NOTE risk in the required mechanism.
+
+\strong{Distributed training.} \code{params} accepts the native
+\code{node_type}, \code{node_port} and \code{file_with_hosts} keys used to
+run multi-machine training: start a worker process on each remote machine
+with \code{\link{catboost.run_worker}}, then set \code{node_type =
+"Master"}, \code{file_with_hosts = <path to a "host:port"-per-line file>}
+and \code{node_port = <this machine's own par-framework port>} in the
+master-side \code{params} list. \strong{This currently does not work via
+\code{catboost.train}}: its native entry point unconditionally rejects any
+\code{node_type} other than \code{"SingleHost"} with \code{"CatBoost
+Python module does not support distributed training"}, regardless of the
+other params -- the same restriction Python's in-memory \code{.train()}
+has. \code{\link{catboost.select_features}} calls a different native
+entry point that does not have this restriction, so it is, for now, the
+only master-side function that can drive real distributed training.
 }
 \section{Full Parameter Reference (generated)}{
 

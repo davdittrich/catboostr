@@ -2804,6 +2804,21 @@ apply_custom_eval_metric_params <- function(params, custom_eval_metric_object) {
 #' Restoring true interrupt semantics is tracked as a follow-up, not pursued
 #' here due to CRAN \code{R CMD check} NOTE risk in the required mechanism.
 #'
+#' \strong{Distributed training.} \code{params} accepts the native
+#' \code{node_type}, \code{node_port} and \code{file_with_hosts} keys used to
+#' run multi-machine training: start a worker process on each remote machine
+#' with \code{\link{catboost.run_worker}}, then set \code{node_type =
+#' "Master"}, \code{file_with_hosts = <path to a "host:port"-per-line file>}
+#' and \code{node_port = <this machine's own par-framework port>} in the
+#' master-side \code{params} list. \strong{This currently does not work via
+#' \code{catboost.train}}: its native entry point unconditionally rejects any
+#' \code{node_type} other than \code{"SingleHost"} with \code{"CatBoost
+#' Python module does not support distributed training"}, regardless of the
+#' other params -- the same restriction Python's in-memory \code{.train()}
+#' has. \code{\link{catboost.select_features}} calls a different native
+#' entry point that does not have this restriction, so it is, for now, the
+#' only master-side function that can drive real distributed training.
+#'
 #' @param learn_pool The dataset used for training the model.
 #'
 #' Default value: Required argument
@@ -3297,19 +3312,37 @@ catboost.cv <- function(pool,
 
 #' @name catboost.run_worker
 #' @title Run a distributed-training worker.
-#' @description R equivalent of the CatBoost CLI's \code{run-worker} mode
-#' (catboost-8z4.102): blocks the calling process, acting as a
-#' distributed-training worker awaiting commands from a master node over the
-#' network, until stopped. There is no R-level stop mechanism beyond what the
-#' CLI mode itself provides -- killing the process, or the master sending a
-#' stop-slave command through the par protocol.
-#' @param node_port TCP port for this worker.
+#' @description R equivalent of the CatBoost CLI's \code{run-worker} mode:
+#' blocks the calling process, acting as a distributed-training worker
+#' awaiting commands from a master node over the network, until stopped.
+#' There is no R-level stop mechanism beyond what the CLI mode itself
+#' provides -- killing the process, or the master sending a stop-slave
+#' command through the par protocol.
+#'
+#' Call this from a separate R process (or session) on each worker machine,
+#' \emph{before} starting the master-side training call. On the master side,
+#' pass \code{params = list(node_type = "Master", file_with_hosts = <path>,
+#' node_port = <port>)} to \code{\link{catboost.select_features}} -- the only
+#' master-side entry point that currently drives real distributed training;
+#' see \code{\link{catboost.train}}'s \strong{Distributed training} section
+#' for that function's current limitation. \code{file_with_hosts} is a plain
+#' text file with one \code{host:port} line per worker, where each
+#' \code{port} matches that worker's own \code{node_port} below.
+#' @param node_port TCP port for this worker. Must match this worker's line
+#' in the master's \code{file_with_hosts} file.
+#'
+#' Default value: Required argument
 #' @param thread_count The number of threads used by this worker.
 #'
 #' Default value: number of CPU cores (\code{parallel::detectCores()}),
 #' falling back to \code{1} when that cannot be determined (returns \code{NA}
 #' on some platforms).
 #' @return No value is returned; this call blocks until the worker stops.
+#' @examples
+#' \dontrun{
+#' # Run on each worker machine; blocks until killed or stopped by the master.
+#' catboost.run_worker(node_port = 12345)
+#' }
 #' @export
 #' @seealso \url{https://catboost.ai/docs/features/distributed-training.html}
 catboost.run_worker <- function(node_port, thread_count = parallel::detectCores()) {

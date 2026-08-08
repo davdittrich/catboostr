@@ -120,7 +120,7 @@ py_pool <- catboost.load_pool(
 py_model <- catboost.train(py_pool, params = list(
   iterations = 10, depth = 2, loss_function = "Logloss",
   random_seed = 42, thread_count = 1, logging_level = "Silent",
-  train_dir = "/home/dd/Gemini/catboost/tools/oracle/.catboost_train_metadata"
+  train_dir = tempfile("catboost_train_metadata_")
 ))
 
 test_that("get_metadata: key set matches the Python oracle", {

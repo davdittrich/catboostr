@@ -2796,6 +2796,15 @@ apply_custom_eval_metric_params <- function(params, custom_eval_metric_object) {
 #' whole computation. \code{params$thread_count} is therefore never forced
 #' to 1 for a custom objective/metric run.
 #'
+#' \strong{Ctrl-C during a bridged run (catboost-upw).} Detecting the
+#' interrupt on the drain loop's polling thread consumes it -- R clears its
+#' pending-interrupt flag before the drain loop observes it, so nothing is
+#' left for R to deliver afterwards. Ctrl-C during a custom-objective/metric
+#' run therefore surfaces as an ordinary R error, not an R interrupt
+#' condition: \code{tryCatch(..., interrupt = )} will not fire on it.
+#' Restoring true interrupt semantics is tracked as a follow-up, not pursued
+#' here due to CRAN \code{R CMD check} NOTE risk in the required mechanism.
+#'
 #' @param learn_pool The dataset used for training the model.
 #'
 #' Default value: Required argument

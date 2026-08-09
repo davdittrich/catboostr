@@ -3065,16 +3065,19 @@ EXPORT_FUNCTION CatBoostGetTreeLeafCounts_R(SEXP modelParam) {
 // Mutates the live model handle's leaf values in place, matching Python's
 // set_leaf_values() calling convention (in-memory only; call
 // catboost.save_model() to persist, same note as CatBoostSetScaleAndBias_R
-// above). new_leaf_values must have exactly one entry per existing leaf
-// (sum(get_tree_leaf_counts())), same length check _catboost.pyx:6127
-// performs.
+// above). new_leaf_values must have exactly one entry per existing flat
+// leaf-value slot -- GetLeafValues().size(), i.e. sum(get_tree_leaf_counts())
+// times ApproxDimension, NOT just the leaf count (a leaf has
+// ApproxDimension consecutive values for multiclass/multi-dimensional
+// losses) -- same length check _catboost.pyx:6127 performs.
 EXPORT_FUNCTION CatBoostSetLeafValues_R(SEXP modelParam, SEXP valuesParam) {
     R_API_BEGIN();
     TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
     size_t expected = model->ModelTrees.Get()->GetModelTreeData()->GetLeafValues().size();
     size_t n = static_cast<size_t>(Rf_length(valuesParam));
     CB_ENSURE(n == expected,
-        "set_leaf_values: expected " << expected << " leaf values (sum of get_tree_leaf_counts()), got " << n);
+        "set_leaf_values: expected " << expected << " leaf values (length of get_leaf_values(), i.e. "
+        "sum of get_tree_leaf_counts() times ApproxDimension), got " << n);
     TVector<double> values(n);
     for (size_t i = 0; i < n; ++i) {
         values[i] = REAL(valuesParam)[i];

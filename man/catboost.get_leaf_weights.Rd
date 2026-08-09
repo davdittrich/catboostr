@@ -10,8 +10,11 @@ catboost.get_leaf_weights(model)
 \item{model}{The model obtained as the result of training.}
 }
 \value{
-A numeric vector of leaf weights for all trees, indexed the same
-way as \code{\link{catboost.get_leaf_values}}.
+A numeric vector of leaf weights for all trees, of length
+\code{sum(catboost.get_tree_leaf_counts(model))} -- one weight per leaf
+(unlike \code{\link{catboost.get_leaf_values}}, this is never multiplied
+by \code{ApproxDimension}: a leaf has one weight regardless of how many
+value dimensions it stores).
 }
 \description{
 R equivalent of Python's \code{model.get_leaf_weights()}

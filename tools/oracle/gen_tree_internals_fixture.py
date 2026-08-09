@@ -9,10 +9,13 @@ All 8 methods are defined exactly once -- get_leaf_values/get_leaf_weights/
 get_tree_leaf_counts/set_leaf_values on _CatBoostBase (core.py:2112-2152);
 get_borders/save_borders/calc_leaf_indexes/iterate_leaf_indexes on the
 CatBoost class itself (core.py:3132-3195, 3809-3827) -- and none of them is
-overridden by CatBoostClassifier/CatBoostRegressor/CatBoostRanker, so a
-single fixture model exercises all 32 matrix rows (8 families x 4 classes),
-same precedent as gen_scale_and_bias_fixture.py/
-gen_training_history_classes_fixture.py.
+overridden by CatBoostClassifier/CatBoostRegressor/CatBoostRanker, so the
+primary (RMSE regressor) fixture model exercises all 32 matrix rows (8
+families x 4 classes), same precedent as gen_scale_and_bias_fixture.py/
+gen_training_history_classes_fixture.py. A second, MultiClass fixture model
+additionally covers ApproxDimension > 1 for get_leaf_values/
+get_leaf_weights/set_leaf_values -- the one place this API family's flat
+array layout depends on ApproxDimension, not just leaf count.
 
 Run via: uv run --frozen --project tools/oracle python3 tools/oracle/gen_tree_internals_fixture.py
 """
@@ -20,7 +23,7 @@ import json
 import os
 
 import numpy as np
-from catboost import CatBoostRegressor, Pool
+from catboost import CatBoostClassifier, CatBoostRegressor, Pool
 from catboost.core import _NumpyAwareEncoder
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -89,12 +92,54 @@ reloaded_model.load_model(reload_path)
 os.remove(reload_path)
 predictions_after_set = reloaded_model.predict(pool)
 
+# Multiclass coverage (ApproxDimension == 3, not 1): get_leaf_values()'s flat
+# array is leaf_count * ApproxDimension long (NOT just leaf_count -- the one
+# non-obvious part of this API family, per the R doc/message fix this
+# fixture addition backs), while get_tree_leaf_counts() stays one-per-leaf
+# regardless of ApproxDimension. Exercises get_leaf_values/set_leaf_values
+# (calc_leaf_indexes/get_borders/save_borders don't depend on
+# ApproxDimension, already covered above; get_leaf_weights is skipped, see
+# below).
+MULTICLASS_LABEL = [i % 3 for i in range(N_ROWS)]
+multiclass_pool = Pool(X, MULTICLASS_LABEL, feature_names=FEATURE_NAMES)
+multiclass_model = CatBoostClassifier(
+    iterations=10, depth=2, loss_function="MultiClass",
+    random_seed=42, thread_count=1, logging_level="Silent",
+    train_dir=os.path.join(SCRIPT_DIR, ".catboost_train_tree_internals_multiclass"),
+)
+multiclass_model.fit(multiclass_pool)
+
+mc_leaf_values = multiclass_model.get_leaf_values()
+mc_tree_leaf_counts = multiclass_model.get_tree_leaf_counts()
+# get_leaf_weights() is NOT exercised here: upstream's own binding
+# (_catboost.pyx:6108-6115, _get_leaf_weights()) allocates its result sized
+# to GetLeafValues().size() (leaf_count * ApproxDimension) but fills it from
+# GetLeafWeights() (leaf_count long) and then asserts the two sizes are
+# equal -- an upstream bug that raises AssertionError("wrong number of leaf
+# weights") for every ApproxDimension > 1 model, confirmed empirically
+# against this exact MultiClass model. There is no correct Python oracle
+# value to pin for this case; R's catboost.get_leaf_weights() is unaffected
+# (it returns the native GetLeafWeights() array directly, size leaf_count,
+# with no such reshape) and is already covered by the RMSE fixture above.
+
+mc_new_leaf_values = np.array([v + 0.5 for v in mc_leaf_values], dtype=np.float64)
+multiclass_model.set_leaf_values(mc_new_leaf_values)
+mc_leaf_values_after_set = multiclass_model.get_leaf_values()
+
+mc_reload_path = os.path.join(SCRIPT_DIR, ".tree_internals_model_multiclass.tmp.cbm")
+multiclass_model.save_model(mc_reload_path)
+mc_reloaded_model = CatBoostClassifier()
+mc_reloaded_model.load_model(mc_reload_path)
+os.remove(mc_reload_path)
+mc_predictions_after_set = mc_reloaded_model.predict(multiclass_pool, prediction_type="RawFormulaVal")
+
 fixture = {
     "inputs": {
         "num1": NUM1,
         "num2": NUM2,
         "label": LABEL,
         "feature_names": FEATURE_NAMES,
+        "multiclass_label": MULTICLASS_LABEL,
     },
     "expected": {
         "borders": {str(k): list(v) for k, v in borders.items()},
@@ -108,6 +153,11 @@ fixture = {
         "new_leaf_values": new_leaf_values,
         "leaf_values_after_set": leaf_values_after_set,
         "predictions_after_set": predictions_after_set,
+        "multiclass_leaf_values": mc_leaf_values,
+        "multiclass_tree_leaf_counts": mc_tree_leaf_counts,
+        "multiclass_new_leaf_values": mc_new_leaf_values,
+        "multiclass_leaf_values_after_set": mc_leaf_values_after_set,
+        "multiclass_predictions_after_set": mc_predictions_after_set,
     },
 }
 

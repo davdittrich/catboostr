@@ -10,7 +10,9 @@ catboost.set_leaf_values(model, new_leaf_values)
 \item{model}{The model obtained as the result of training.}
 
 \item{new_leaf_values}{A numeric vector with new leaf values for all
-trees. Its length must equal \code{sum(catboost.get_tree_leaf_counts(model))},
+trees. Its length must equal \code{length(catboost.get_leaf_values(model))}
+(i.e. \code{sum(catboost.get_tree_leaf_counts(model)) * ApproxDimension},
+not just the leaf count -- see \code{\link{catboost.get_leaf_values}}),
 indexed the same way as \code{\link{catboost.get_leaf_values}}.}
 }
 \value{

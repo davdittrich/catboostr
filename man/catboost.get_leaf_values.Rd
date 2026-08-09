@@ -10,10 +10,14 @@ catboost.get_leaf_values(model)
 \item{model}{The model obtained as the result of training.}
 }
 \value{
-A numeric vector of leaf values for all trees. The value for the
+A numeric vector of leaf values for all trees, of length
+\code{sum(catboost.get_tree_leaf_counts(model)) * ApproxDimension}
+(\code{ApproxDimension} is 1 except for multiclass/multi-dimensional
+losses, e.g. \code{MultiClass}). Each leaf occupies \code{ApproxDimension}
+consecutive entries: the value for dimension \code{k} (0-based) of the
 j-th leaf (0-based) of the i-th tree (0-based) is at position
-\code{sum(catboost.get_tree_leaf_counts(model)[seq_len(i)]) + j + 1}
-(1-based R indexing).
+\code{(sum(catboost.get_tree_leaf_counts(model)[seq_len(i)]) + j) *
+ApproxDimension + k + 1} (1-based R indexing).
 }
 \description{
 R equivalent of Python's \code{model.get_leaf_values()}

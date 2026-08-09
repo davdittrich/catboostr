@@ -5391,10 +5391,14 @@ catboost.save_borders <- function(model, output_file) {
 #'
 #' @param model The model obtained as the result of training.
 #'
-#' @return A numeric vector of leaf values for all trees. The value for the
+#' @return A numeric vector of leaf values for all trees, of length
+#' \code{sum(catboost.get_tree_leaf_counts(model)) * ApproxDimension}
+#' (\code{ApproxDimension} is 1 except for multiclass/multi-dimensional
+#' losses, e.g. \code{MultiClass}). Each leaf occupies \code{ApproxDimension}
+#' consecutive entries: the value for dimension \code{k} (0-based) of the
 #' j-th leaf (0-based) of the i-th tree (0-based) is at position
-#' \code{sum(catboost.get_tree_leaf_counts(model)[seq_len(i)]) + j + 1}
-#' (1-based R indexing).
+#' \code{(sum(catboost.get_tree_leaf_counts(model)[seq_len(i)]) + j) *
+#' ApproxDimension + k + 1} (1-based R indexing).
 #' @export
 catboost.get_leaf_values <- function(model) {
     if (!inherits(model, "catboost.Model"))
@@ -5413,8 +5417,11 @@ catboost.get_leaf_values <- function(model) {
 #'
 #' @param model The model obtained as the result of training.
 #'
-#' @return A numeric vector of leaf weights for all trees, indexed the same
-#' way as \code{\link{catboost.get_leaf_values}}.
+#' @return A numeric vector of leaf weights for all trees, of length
+#' \code{sum(catboost.get_tree_leaf_counts(model))} -- one weight per leaf
+#' (unlike \code{\link{catboost.get_leaf_values}}, this is never multiplied
+#' by \code{ApproxDimension}: a leaf has one weight regardless of how many
+#' value dimensions it stores).
 #' @export
 catboost.get_leaf_weights <- function(model) {
     if (!inherits(model, "catboost.Model"))
@@ -5456,7 +5463,9 @@ catboost.get_tree_leaf_counts <- function(model) {
 #'
 #' @param model The model obtained as the result of training.
 #' @param new_leaf_values A numeric vector with new leaf values for all
-#' trees. Its length must equal \code{sum(catboost.get_tree_leaf_counts(model))},
+#' trees. Its length must equal \code{length(catboost.get_leaf_values(model))}
+#' (i.e. \code{sum(catboost.get_tree_leaf_counts(model)) * ApproxDimension},
+#' not just the leaf count -- see \code{\link{catboost.get_leaf_values}}),
 #' indexed the same way as \code{\link{catboost.get_leaf_values}}.
 #'
 #' @return No return value, called for side effects.

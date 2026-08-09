@@ -12,7 +12,16 @@ context("test_tree_internals.R")
 # _CatBoostBase, 4 on CatBoost itself) and never overridden by
 # CatBoostClassifier/CatBoostRegressor/CatBoostRanker, so one fixture model
 # (a CatBoostRegressor) is the parity target for all 32 matrix rows (8
-# families x 4 sklearn classes).
+# families x 4 sklearn classes). A second, MultiClass fixture model
+# (ApproxDimension == 3) additionally covers get_leaf_values()/
+# set_leaf_values()'s flat array being leaf_count * ApproxDimension long,
+# not just leaf_count -- the one non-obvious part of this API family.
+# get_leaf_weights() is not exercised for MultiClass: upstream's own
+# _catboost.pyx:6108-6115 has a size-mismatch assert that raises
+# AssertionError for every ApproxDimension > 1 model, so there is no correct
+# Python oracle value to pin (see gen_tree_internals_fixture.py). R's
+# catboost.get_leaf_weights() is unaffected (always leaf_count long) and is
+# already covered by the RMSE case above.
 #
 # set_leaf_values()'s mutation is verified against Python's own observable
 # behavior (confirmed empirically against the pinned oracle, not assumed):
@@ -131,4 +140,40 @@ test_that("set_leaf_values matches Python oracle (leaf values immediately; predi
 test_that("set_leaf_values rejects a wrong-length vector", {
   built <- build_pool_and_model(fixture)
   expect_error(catboost.set_leaf_values(built$model, c(1.0, 2.0)))
+})
+
+build_multiclass_pool_and_model <- function(fixture) {
+  inputs <- fixture$inputs
+  data <- data.frame(num1 = inputs$num1, num2 = inputs$num2)
+  pool <- catboost.load_pool(data, label = as.double(inputs$multiclass_label))
+  catboost.pool.set_feature_names(pool, inputs$feature_names)
+  model <- catboost.train(pool, params = list(
+    loss_function = "MultiClass", iterations = 10, depth = 2, random_seed = 42,
+    thread_count = 1, logging_level = "Silent"
+  ))
+  list(pool = pool, model = model)
+}
+
+test_that("get_leaf_values / set_leaf_values match Python oracle for a MultiClass model (ApproxDimension > 1)", {
+  built <- build_multiclass_pool_and_model(fixture)
+  expected <- fixture$expected
+
+  leaf_values <- catboost.get_leaf_values(built$model)
+  # ApproxDimension == 3 -> flat array is leaf_count * 3 long, not leaf_count.
+  expect_equal(length(leaf_values), 3L * sum(catboost.get_tree_leaf_counts(built$model)))
+  expect_equal(leaf_values, expected$multiclass_leaf_values, tolerance = 1e-6)
+  expect_equal(catboost.get_tree_leaf_counts(built$model), as.integer(expected$multiclass_tree_leaf_counts))
+
+  catboost.set_leaf_values(built$model, expected$multiclass_new_leaf_values)
+  expect_equal(catboost.get_leaf_values(built$model), expected$multiclass_leaf_values_after_set, tolerance = 1e-6)
+
+  out <- tempfile(fileext = ".cbm")
+  on.exit(unlink(out))
+  catboost.save_model(built$model, out)
+  reloaded <- catboost.load_model(out)
+  predictions <- catboost.predict(reloaded, built$pool, prediction_type = "RawFormulaVal")
+  # jsonlite::fromJSON(simplifyVector = TRUE) already simplifies this into an
+  # R matrix -- use it as-is (see the calc_leaf_indexes tests above for why
+  # unlist()+matrix() on an already-simplified field is wrong).
+  expect_equal(unname(as.matrix(predictions)), unname(expected$multiclass_predictions_after_set), tolerance = 1e-6)
 })

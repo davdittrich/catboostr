@@ -7,14 +7,14 @@ Machine-derived summary of the CatBoost R/Python/CLI capability parity matrix (`
 
 | State | Count |
 | --- | --- |
-| green | 224 |
-| red | 435 |
+| green | 359 |
+| red | 300 |
 | other | 111 |
 | **Total** | 770 |
 
 ## Red rows (not yet available)
 
-435 rows. Each entry is the capability's `inventory_row_id` and its recorded reason, verbatim from the matrix (`final_method_note`, falling back to `tolerance_justification`, falling back to "no note recorded" if neither is recorded).
+300 rows. Each entry is the capability's `inventory_row_id` and its recorded reason, verbatim from the matrix (`final_method_note`, falling back to `tolerance_justification`, falling back to "no note recorded" if neither is recorded).
 
 ### enum_member_attachment (14)
 
@@ -33,7 +33,7 @@ Machine-derived summary of the CatBoost R/Python/CLI capability parity matrix (`
 - `catboost.EShapCalcType.Exact` -- no note recorded
 - `catboost.EShapCalcType.Regular` -- no note recorded
 
-### method_mode_shaped (210)
+### method_mode_shaped (203)
 
 - `CatBoost.best_iteration_` -- no note recorded
 - `CatBoost.best_score_` -- no note recorded
@@ -237,219 +237,84 @@ Machine-derived summary of the CatBoost R/Python/CLI capability parity matrix (`
 - `catboost.utils.quantize` -- produces a quantized Pool artifact
 - `catboost.utils.read_cd` -- reads a column-description file artifact
 - `catboost.utils.select_threshold` -- no note recorded
-- `mode:calc` -- primary output is a numeric prediction column
-- `mode:dataset-statistics` -- no note recorded
 - `mode:dump-options` -- dumps resolved options as JSON to console
-- `mode:fit` -- primary output is a trained model file artifact
-- `mode:fstr` -- feature-importance numeric output
-- `mode:model-sum` -- produces a summed model file artifact
-- `mode:ostr` -- object-importance numeric output
-- `mode:select-features` -- numeric summary + selected/eliminated feature lists
 
-### parameter_flag_family (211)
+### parameter_flag_family (83)
 
 - `flag:--add-ridge-penalty-for-loss-function` -- no note recorded
-- `flag:--allow-const-label` -- no note recorded
-- `flag:--allow-writing-files` -- no note recorded
-- `flag:--approx-on-full-history` -- no note recorded
-- `flag:--auto-class-weights` -- no note recorded
-- `flag:--bagging-temperature/--tmp` -- no note recorded
 - `flag:--baseline-model-snapshot` -- no note recorded
-- `flag:--bayesian-matrix-reg` -- no note recorded
-- `flag:--best-model-min-trees` -- no note recorded
 - `flag:--binary-classification-threshold` -- no note recorded
 - `flag:--blending-expression` -- no note recorded
 - `flag:--block-size` -- no note recorded
-- `flag:--boost-from-average` -- no note recorded
-- `flag:--boosting-type` -- no note recorded
-- `flag:--bootstrap-type` -- no note recorded
-- `flag:--border-count/-x` -- no note recorded
-- `flag:--border-counts` -- no note recorded
 - `flag:--calc-on-parts` -- no note recorded
-- `flag:--cd/--column-description` -- no note recorded
-- `flag:--class-names` -- no note recorded
-- `flag:--class-weights` -- no note recorded
-- `flag:--classes-count` -- no note recorded
-- `flag:--combinations-ctr` -- no note recorded
-- `flag:--counter-calc-method` -- no note recorded
 - `flag:--ctr` -- no note recorded
-- `flag:--ctr-history-unit` -- no note recorded
-- `flag:--ctr-leaf-count-limit` -- no note recorded
-- `flag:--ctr-merge-policy` -- no note recorded
-- `flag:--ctr-target-border-count` -- no note recorded
 - `flag:--custom-feature-limits` -- no note recorded
-- `flag:--custom-loss/--custom-metric` -- no note recorded
 - `flag:--cv` -- BLOCKED, not green. Verified directly: ran the pinned CLI oracle (tools/oracle/cli/bin/catboost-v1.2.10, v1.2.10) `fit --cv Classical:{0,1,2};3 --cv-no-shuffle` against R's `catboost.cv(fold_count = 3, type = "Classical", shuffle = FALSE)`, same params (iterations=10, depth=2, learning_rate=0.3, random_seed=42, loss_function=Logloss, boosting_type=Plain, thread_count=1, use_best_model=FALSE) and the same shared numeric-only dataset (tests/fixtures/oracle-cli/smoke_data.csv). The two produce entirely different per-iteration test-metric curves for every fold (not a reordering) because they run different native code paths: the CLI's fit/eval-feature/model-based-eval/select-features `--cv` flag is parsed into TCvDataPartitionParams (catboost/private/libs/options/cross_validation_params.h) at data-load time to pick a single train/test split (fold n of k) -- used by catboost/libs/train_lib/eval_feature.cpp's single-split path -- while R's catboost.cv binds directly to CrossValidate() (catboost/libs/train_lib/cross_validation.cpp), which builds and averages ALL k folds via the separate TCrossValidationParams struct. The matrix's matched_r_symbol=catboost.cv is a name-based match, not a verified mechanism match; per spec 4.4 this is left red rather than fabricated green. catboost.cv itself is real, extensively tested surface (test_model.R, test_params_validation.R) -- the gap is specifically the CLI --cv flag's own data-partition code path, which the R package has no binding for.
 - `flag:--cv-no-shuffle` -- no note recorded
 - `flag:--cv-rand` -- no note recorded
 - `flag:--data-partition` -- no note recorded
-- `flag:--delimiter` -- no note recorded
-- `flag:--depth/-n` -- no note recorded
-- `flag:--detailed-profile` -- no note recorded
-- `flag:--dictionaries` -- no note recorded
-- `flag:--diffusion-temperature` -- no note recorded
-- `flag:--dump-format` -- no note recorded
 - `flag:--embedding-calcers` -- no note recorded
-- `flag:--embedding-processing` -- no note recorded
 - `flag:--eval-file` -- no note recorded
-- `flag:--eval-file/-i` -- no note recorded
-- `flag:--eval-metric` -- no note recorded
-- `flag:--eval-period` -- no note recorded
 - `flag:--experiment-count` -- no note recorded
 - `flag:--experiment-size` -- no note recorded
-- `flag:--feature-border-type/--grid/-g` -- no note recorded
-- `flag:--feature-calcers` -- no note recorded
-- `flag:--feature-ctr/--per-feature-ctr` -- no note recorded
-- `flag:--feature-eval-mode` -- no note recorded
 - `flag:--feature-eval-output-file` -- no note recorded
 - `flag:--feature-names-path` -- no note recorded
-- `flag:--feature-weights` -- no note recorded
-- `flag:--features-for-select` -- no note recorded
-- `flag:--features-selection-algorithm` -- no note recorded
 - `flag:--features-selection-grouping` -- no note recorded
 - `flag:--features-selection-result-path` -- no note recorded
-- `flag:--features-selection-steps` -- no note recorded
 - `flag:--features-tags-for-select` -- no note recorded
-- `flag:--features-to-evaluate` -- no note recorded
-- `flag:--final-ctr-computation-mode` -- no note recorded
-- `flag:--first-feature-use-penalties` -- no note recorded
-- `flag:--fold-count` -- no note recorded
-- `flag:--fold-len-multiplier` -- no note recorded
-- `flag:--fold-permutation-block` -- no note recorded
-- `flag:--fold-size` -- no note recorded
 - `flag:--fold-size-loss-normalization` -- no note recorded
-- `flag:--fold-size-unit` -- no note recorded
-- `flag:--force-unit-auto-pair-weights` -- no note recorded
 - `flag:--fstr-file` -- no note recorded
 - `flag:--fstr-internal-file` -- no note recorded
 - `flag:--fstr-type` -- no note recorded
-- `flag:--grow-policy` -- no note recorded
-- `flag:--has-header` -- no note recorded
-- `flag:--has-time` -- no note recorded
-- `flag:--histograms-path` -- no note recorded
 - `flag:--hosts-already-contain-loaded-data` -- no note recorded
 - `flag:--ignore-csv-quoting` -- no note recorded
-- `flag:--ignore-features/-I` -- no note recorded
 - `flag:--input` -- no note recorded
 - `flag:--input-borders-file` -- no note recorded
 - `flag:--input-graph` -- no note recorded
 - `flag:--input-pairs` -- no note recorded
-- `flag:--input-path` -- no note recorded
-- `flag:--iterations/-i` -- no note recorded
-- `flag:--json-log` -- no note recorded
-- `flag:--key` -- no note recorded
-- `flag:--l2-leaf-reg` -- no note recorded
 - `flag:--label-border/-b` -- no note recorded
-- `flag:--langevin` -- no note recorded
-- `flag:--leaf-estimation-backtracking` -- no note recorded
-- `flag:--leaf-estimation-iterations` -- no note recorded
-- `flag:--leaf-estimation-method` -- no note recorded
 - `flag:--learn-baseline` -- no note recorded
-- `flag:--learn-err-log` -- no note recorded
 - `flag:--learn-graph` -- no note recorded
 - `flag:--learn-group-weights` -- no note recorded
 - `flag:--learn-pairs` -- no note recorded
 - `flag:--learn-set/-f` -- no note recorded
 - `flag:--learn-timestamps` -- no note recorded
-- `flag:--learning-rate/-w` -- no note recorded
-- `flag:--logging-level` -- no note recorded
-- `flag:--loss-function` -- no note recorded
-- `flag:--max-ctr-complexity` -- no note recorded
-- `flag:--max-leaves` -- no note recorded
 - `flag:--meta-l2-leaf-exponent` -- no note recorded
 - `flag:--meta-l2-leaf-frequency` -- no note recorded
-- `flag:--metric-period` -- no note recorded
-- `flag:--metrics` -- no note recorded
-- `flag:--min-data-in-leaf` -- no note recorded
 - `flag:--min-fold-size` -- no note recorded
-- `flag:--model-file/--model-path/-m` -- no note recorded
-- `flag:--model-file/-m` -- no note recorded
 - `flag:--model-format` -- no note recorded
-- `flag:--model-shrink-mode` -- no note recorded
-- `flag:--model-shrink-rate` -- no note recorded
-- `flag:--model-size-reg` -- no note recorded
-- `flag:--model-with-weight` -- no note recorded
-- `flag:--model-with-weight-and-prefix` -- no note recorded
-- `flag:--model/-m` -- no note recorded
-- `flag:--monotone-constraints` -- no note recorded
-- `flag:--mvs-reg` -- no note recorded
-- `flag:--name` -- no note recorded
-- `flag:--nan-mode` -- no note recorded
 - `flag:--not-convert-string-targets` -- no note recorded
-- `flag:--ntree-end` -- no note recorded
-- `flag:--ntree-start` -- no note recorded
 - `flag:--num-features-tags-to-select` -- no note recorded
-- `flag:--num-features-to-select` -- no note recorded
 - `flag:--observations-to-bootstrap` -- no note recorded
-- `flag:--od-pval` -- no note recorded
-- `flag:--od-type` -- no note recorded
-- `flag:--od-wait` -- no note recorded
-- `flag:--offset` -- no note recorded
-- `flag:--one-hot-max-size` -- no note recorded
 - `flag:--only-group-statistics` -- no note recorded
-- `flag:--only-light-statistics` -- no note recorded
 - `flag:--output` -- no note recorded
-- `flag:--output-borders-file` -- no note recorded
 - `flag:--output-columns` -- no note recorded
 - `flag:--output-model-format` -- no note recorded
-- `flag:--output-model-path/-o` -- no note recorded
 - `flag:--output-path/-o` -- no note recorded
 - `flag:--params-file` -- no note recorded
-- `flag:--penalties-coefficient` -- no note recorded
-- `flag:--per-float-feature-binarization/--per-float-feature-quantization` -- no note recorded
-- `flag:--per-object-feature-penalties` -- no note recorded
 - `flag:--permutations/-p` -- no note recorded
 - `flag:--pool-metainfo-path` -- no note recorded
-- `flag:--posterior-sampling` -- no note recorded
 - `flag:--precomputed-data-meta` -- no note recorded
 - `flag:--prediction-type` -- no note recorded
 - `flag:--processors-usage-output-file` -- no note recorded
-- `flag:--profile-log` -- no note recorded
-- `flag:--random-seed/--seed/-r` -- no note recorded
-- `flag:--random-strength` -- no note recorded
-- `flag:--relative-fold-size` -- no note recorded
 - `flag:--result-dir` -- no note recorded
-- `flag:--rsm` -- no note recorded
-- `flag:--sampling-frequency` -- no note recorded
-- `flag:--sampling-unit` -- no note recorded
 - `flag:--save-stats` -- no note recorded
-- `flag:--score-function` -- no note recorded
 - `flag:--set-metadata-from-freeargs` -- no note recorded
 - `flag:--shap-calc-type` -- no note recorded
-- `flag:--simple-ctr` -- no note recorded
-- `flag:--snapshot-file` -- no note recorded
-- `flag:--snapshot-interval` -- no note recorded
-- `flag:--sparse-features-conflict-fraction` -- no note recorded
 - `flag:--spot-count` -- no note recorded
 - `flag:--spot-size` -- no note recorded
-- `flag:--store-all-simple-ctr` -- no note recorded
-- `flag:--subsample` -- no note recorded
-- `flag:--target-border` -- no note recorded
-- `flag:--task-type` -- no note recorded
 - `flag:--test-baseline` -- no note recorded
-- `flag:--test-err-log` -- no note recorded
 - `flag:--test-graph` -- no note recorded
 - `flag:--test-group-weights` -- no note recorded
 - `flag:--test-pairs` -- no note recorded
 - `flag:--test-set/-t` -- no note recorded
 - `flag:--test-timestamps` -- no note recorded
-- `flag:--text-processing` -- no note recorded
-- `flag:--thread-count/-T` -- no note recorded
 - `flag:--timesplit-quantile` -- no note recorded
 - `flag:--tmp-dir` -- no note recorded
-- `flag:--tokenizers` -- no note recorded
 - `flag:--trace-log` -- no note recorded
-- `flag:--train-dir` -- no note recorded
-- `flag:--train-final-model` -- no note recorded
-- `flag:--training-options-file` -- no note recorded
 - `flag:--tree-count-limit` -- no note recorded
-- `flag:--update-method` -- no note recorded
-- `flag:--use-best-model` -- no note recorded
 - `flag:--use-evaluated-features-in-baseline-model` -- no note recorded
-- `flag:--used-ram-limit` -- no note recorded
-- `flag:--value` -- no note recorded
 - `flag:--verbose` -- no note recorded
-- `flag:--virtual-ensembles-count` -- no note recorded
 - `flag:--yt-annotations` -- no note recorded
 - `param:callback` -- BLOCKED, not green. Python-only convenience args with no catboostr equivalent (no callback/live-plot/stream-redirect mechanism in R). Verified directly: native rejects each with 'Unknown option {name}' (plain_options_helper.cpp:512). See test_params_validation.R.
 - `param:callbacks` -- BLOCKED, not green. Unlike the other Python-only keys, native's plain_options_helper.cpp explicitly records 'callbacks' as a seen/valid key without validating or consuming its value (plain_options_helper.cpp:269-270), so passing it does not error -- but catboostr's C glue (src/catboostr.cpp) has no mechanism to marshal an R closure into a per-iteration native callback, so the capability itself does not exist in R. Verified directly (real assertion, not the circular gate helper): training completes silently, no callback is ever invoked. See test_params_validation.R.
@@ -579,10 +444,10 @@ Machine-derived summary of the CatBoost R/Python/CLI capability parity matrix (`
 - `param:plot` -- BLOCKED, not green. Python-only convenience args with no catboostr equivalent (no callback/live-plot/stream-redirect mechanism in R). Verified directly: native rejects each with 'Unknown option {name}' (plain_options_helper.cpp:512). See test_params_validation.R.
 - `param:plot_file` -- BLOCKED, not green. Python-only convenience args with no catboostr equivalent (no callback/live-plot/stream-redirect mechanism in R). Verified directly: native rejects each with 'Unknown option {name}' (plain_options_helper.cpp:512). See test_params_validation.R.
 
-## Green rows (224)
+## Green rows (359)
 
 Covered by a passing differential test. Listed compactly by `inventory_row_id` -- see the red rows above for what's NOT yet covered, which is the more interesting information for a reader.
 
 - **enum_member_attachment** (2): `catboost.EFstrType.PredictionDiff`, `catboost.EFstrType.ShapInteractionValues`
-- **method_mode_shaped** (94): `CatBoost.calc_feature_statistics`, `CatBoost.compare`, `CatBoost.drop_unused_features`, `CatBoost.eval_metrics`, `CatBoost.feature_names_`, `CatBoost.get_feature_importance`, `CatBoost.get_metadata`, `CatBoost.get_object_importance`, `CatBoost.get_scale_and_bias`, `CatBoost.grid_search`, `CatBoost.load_model`, `CatBoost.plot_tree`, `CatBoost.predict`, `CatBoost.randomized_search`, `CatBoost.save_model`, `CatBoost.select_features`, `CatBoost.set_scale_and_bias`, `CatBoost.shrink`, `CatBoost.staged_predict`, `CatBoost.virtual_ensembles_predict`, `CatBoostClassifier.calc_feature_statistics`, `CatBoostClassifier.compare`, `CatBoostClassifier.drop_unused_features`, `CatBoostClassifier.eval_metrics`, `CatBoostClassifier.feature_names_`, `CatBoostClassifier.get_feature_importance`, `CatBoostClassifier.get_metadata`, `CatBoostClassifier.get_object_importance`, `CatBoostClassifier.get_scale_and_bias`, `CatBoostClassifier.grid_search`, `CatBoostClassifier.load_model`, `CatBoostClassifier.plot_tree`, `CatBoostClassifier.predict`, `CatBoostClassifier.randomized_search`, `CatBoostClassifier.save_model`, `CatBoostClassifier.select_features`, `CatBoostClassifier.set_scale_and_bias`, `CatBoostClassifier.shrink`, `CatBoostClassifier.staged_predict`, `CatBoostClassifier.virtual_ensembles_predict`, `CatBoostRanker.calc_feature_statistics`, `CatBoostRanker.compare`, `CatBoostRanker.drop_unused_features`, `CatBoostRanker.eval_metrics`, `CatBoostRanker.feature_names_`, `CatBoostRanker.get_feature_importance`, `CatBoostRanker.get_metadata`, `CatBoostRanker.get_object_importance`, `CatBoostRanker.get_scale_and_bias`, `CatBoostRanker.grid_search`, `CatBoostRanker.load_model`, `CatBoostRanker.plot_tree`, `CatBoostRanker.predict`, `CatBoostRanker.randomized_search`, `CatBoostRanker.save_model`, `CatBoostRanker.select_features`, `CatBoostRanker.set_scale_and_bias`, `CatBoostRanker.shrink`, `CatBoostRanker.staged_predict`, `CatBoostRanker.virtual_ensembles_predict`, `CatBoostRegressor.calc_feature_statistics`, `CatBoostRegressor.compare`, `CatBoostRegressor.drop_unused_features`, `CatBoostRegressor.eval_metrics`, `CatBoostRegressor.feature_names_`, `CatBoostRegressor.get_feature_importance`, `CatBoostRegressor.get_metadata`, `CatBoostRegressor.get_object_importance`, `CatBoostRegressor.get_scale_and_bias`, `CatBoostRegressor.grid_search`, `CatBoostRegressor.load_model`, `CatBoostRegressor.plot_tree`, `CatBoostRegressor.predict`, `CatBoostRegressor.randomized_search`, `CatBoostRegressor.save_model`, `CatBoostRegressor.select_features`, `CatBoostRegressor.set_scale_and_bias`, `CatBoostRegressor.shrink`, `CatBoostRegressor.staged_predict`, `CatBoostRegressor.virtual_ensembles_predict`, `catboost.cv`, `catboost.sum_models`, `catboost.train`, `catboost.utils.get_roc_curve`, `mode:eval-feature`, `mode:eval-metrics`, `mode:metadata`, `mode:metadata dump`, `mode:metadata dump-feature-names`, `mode:metadata get`, `mode:metadata set`, `mode:normalize-model`, `mode:roc`, `mode:run-worker`
-- **parameter_flag_family** (128): `flag:--file-with-hosts`, `flag:--input-path/-i`, `flag:--node-port`, `flag:--node-type`, `flag:--output-model`, `flag:--print-scale-and-bias`, `flag:--set-bias`, `flag:--set-scale`, `param:X`, `param:allow_const_label`, `param:allow_writing_files`, `param:approx_on_full_history`, `param:auto_class_weights`, `param:bagging_temperature`, `param:baseline`, `param:best_model_min_trees`, `param:boost_from_average`, `param:boosting_type`, `param:bootstrap_type`, `param:border_count`, `param:cat_features`, `param:class_weights`, `param:colsample_bylevel`, `param:column_description`, `param:combinations_ctr`, `param:counter_calc_method`, `param:ctr_description`, `param:ctr_history_unit`, `param:ctr_leaf_count_limit`, `param:ctr_target_border_count`, `param:custom_loss`, `param:custom_metric`, `param:data_partition`, `param:depth`, `param:dev_efb_max_buckets`, `param:dev_score_calc_obj_block_size`, `param:dictionaries`, `param:diffusion_temperature`, `param:early_stopping_rounds`, `param:embedding_features`, `param:eta`, `param:eval_fraction`, `param:eval_metric`, `param:eval_set`, `param:feature_border_type`, `param:feature_calcers`, `param:feature_weights`, `param:final_ctr_computation_mode`, `param:first_feature_use_penalties`, `param:fold_len_multiplier`, `param:fold_permutation_block`, `param:group_id`, `param:group_weight`, `param:grow_policy`, `param:has_time`, `param:ignored_features`, `param:init_model`, `param:iterations`, `param:l2_leaf_reg`, `param:langevin`, `param:leaf_estimation_backtracking`, `param:leaf_estimation_iterations`, `param:leaf_estimation_method`, `param:learning_rate`, `param:logging_level`, `param:loss_function`, `param:max_bin`, `param:max_ctr_complexity`, `param:max_depth`, `param:max_leaves`, `param:metadata`, `param:metric_period`, `param:min_child_samples`, `param:min_data_in_leaf`, `param:model_shrink_mode`, `param:model_shrink_rate`, `param:model_size_reg`, `param:monotone_constraints`, `param:mvs_reg`, `param:n_estimators`, `param:name`, `param:nan_mode`, `param:num_boost_round`, `param:num_leaves`, `param:num_trees`, `param:objective`, `param:od_pval`, `param:od_type`, `param:od_wait`, `param:one_hot_max_size`, `param:output_borders`, `param:pairs`, `param:pairs_weight`, `param:params`, `param:penalties_coefficient`, `param:per_feature_ctr`, `param:per_float_feature_quantization`, `param:per_object_feature_penalties`, `param:posterior_sampling`, `param:random_seed`, `param:random_state`, `param:random_strength`, `param:reg_lambda`, `param:rsm`, `param:sample_weight`, `param:sampling_frequency`, `param:sampling_unit`, `param:save_snapshot`, `param:score_function`, `param:simple_ctr`, `param:snapshot_file`, `param:snapshot_interval`, `param:sparse_features_conflict_fraction`, `param:store_all_simple_ctr`, `param:subgroup_id`, `param:subsample`, `param:target_border`, `param:task_type`, `param:text_features`, `param:text_processing`, `param:thread_count`, `param:tokenizers`, `param:train_dir`, `param:use_best_model`, `param:used_ram_limit`, `param:verbose`, `param:verbose_eval`, `param:y`
+- **method_mode_shaped** (101): `CatBoost.calc_feature_statistics`, `CatBoost.compare`, `CatBoost.drop_unused_features`, `CatBoost.eval_metrics`, `CatBoost.feature_names_`, `CatBoost.get_feature_importance`, `CatBoost.get_metadata`, `CatBoost.get_object_importance`, `CatBoost.get_scale_and_bias`, `CatBoost.grid_search`, `CatBoost.load_model`, `CatBoost.plot_tree`, `CatBoost.predict`, `CatBoost.randomized_search`, `CatBoost.save_model`, `CatBoost.select_features`, `CatBoost.set_scale_and_bias`, `CatBoost.shrink`, `CatBoost.staged_predict`, `CatBoost.virtual_ensembles_predict`, `CatBoostClassifier.calc_feature_statistics`, `CatBoostClassifier.compare`, `CatBoostClassifier.drop_unused_features`, `CatBoostClassifier.eval_metrics`, `CatBoostClassifier.feature_names_`, `CatBoostClassifier.get_feature_importance`, `CatBoostClassifier.get_metadata`, `CatBoostClassifier.get_object_importance`, `CatBoostClassifier.get_scale_and_bias`, `CatBoostClassifier.grid_search`, `CatBoostClassifier.load_model`, `CatBoostClassifier.plot_tree`, `CatBoostClassifier.predict`, `CatBoostClassifier.randomized_search`, `CatBoostClassifier.save_model`, `CatBoostClassifier.select_features`, `CatBoostClassifier.set_scale_and_bias`, `CatBoostClassifier.shrink`, `CatBoostClassifier.staged_predict`, `CatBoostClassifier.virtual_ensembles_predict`, `CatBoostRanker.calc_feature_statistics`, `CatBoostRanker.compare`, `CatBoostRanker.drop_unused_features`, `CatBoostRanker.eval_metrics`, `CatBoostRanker.feature_names_`, `CatBoostRanker.get_feature_importance`, `CatBoostRanker.get_metadata`, `CatBoostRanker.get_object_importance`, `CatBoostRanker.get_scale_and_bias`, `CatBoostRanker.grid_search`, `CatBoostRanker.load_model`, `CatBoostRanker.plot_tree`, `CatBoostRanker.predict`, `CatBoostRanker.randomized_search`, `CatBoostRanker.save_model`, `CatBoostRanker.select_features`, `CatBoostRanker.set_scale_and_bias`, `CatBoostRanker.shrink`, `CatBoostRanker.staged_predict`, `CatBoostRanker.virtual_ensembles_predict`, `CatBoostRegressor.calc_feature_statistics`, `CatBoostRegressor.compare`, `CatBoostRegressor.drop_unused_features`, `CatBoostRegressor.eval_metrics`, `CatBoostRegressor.feature_names_`, `CatBoostRegressor.get_feature_importance`, `CatBoostRegressor.get_metadata`, `CatBoostRegressor.get_object_importance`, `CatBoostRegressor.get_scale_and_bias`, `CatBoostRegressor.grid_search`, `CatBoostRegressor.load_model`, `CatBoostRegressor.plot_tree`, `CatBoostRegressor.predict`, `CatBoostRegressor.randomized_search`, `CatBoostRegressor.save_model`, `CatBoostRegressor.select_features`, `CatBoostRegressor.set_scale_and_bias`, `CatBoostRegressor.shrink`, `CatBoostRegressor.staged_predict`, `CatBoostRegressor.virtual_ensembles_predict`, `catboost.cv`, `catboost.sum_models`, `catboost.train`, `catboost.utils.get_roc_curve`, `mode:calc`, `mode:dataset-statistics`, `mode:eval-feature`, `mode:eval-metrics`, `mode:fit`, `mode:fstr`, `mode:metadata`, `mode:metadata dump`, `mode:metadata dump-feature-names`, `mode:metadata get`, `mode:metadata set`, `mode:model-sum`, `mode:normalize-model`, `mode:ostr`, `mode:roc`, `mode:run-worker`, `mode:select-features`
+- **parameter_flag_family** (256): `flag:--allow-const-label`, `flag:--allow-writing-files`, `flag:--approx-on-full-history`, `flag:--auto-class-weights`, `flag:--bagging-temperature/--tmp`, `flag:--bayesian-matrix-reg`, `flag:--best-model-min-trees`, `flag:--boost-from-average`, `flag:--boosting-type`, `flag:--bootstrap-type`, `flag:--border-count/-x`, `flag:--border-counts`, `flag:--cd/--column-description`, `flag:--class-names`, `flag:--class-weights`, `flag:--classes-count`, `flag:--combinations-ctr`, `flag:--counter-calc-method`, `flag:--ctr-history-unit`, `flag:--ctr-leaf-count-limit`, `flag:--ctr-merge-policy`, `flag:--ctr-target-border-count`, `flag:--custom-loss/--custom-metric`, `flag:--delimiter`, `flag:--depth/-n`, `flag:--detailed-profile`, `flag:--dictionaries`, `flag:--diffusion-temperature`, `flag:--dump-format`, `flag:--embedding-processing`, `flag:--eval-file/-i`, `flag:--eval-metric`, `flag:--eval-period`, `flag:--feature-border-type/--grid/-g`, `flag:--feature-calcers`, `flag:--feature-ctr/--per-feature-ctr`, `flag:--feature-eval-mode`, `flag:--feature-weights`, `flag:--features-for-select`, `flag:--features-selection-algorithm`, `flag:--features-selection-steps`, `flag:--features-to-evaluate`, `flag:--file-with-hosts`, `flag:--final-ctr-computation-mode`, `flag:--first-feature-use-penalties`, `flag:--fold-count`, `flag:--fold-len-multiplier`, `flag:--fold-permutation-block`, `flag:--fold-size`, `flag:--fold-size-unit`, `flag:--force-unit-auto-pair-weights`, `flag:--grow-policy`, `flag:--has-header`, `flag:--has-time`, `flag:--histograms-path`, `flag:--ignore-features/-I`, `flag:--input-path`, `flag:--input-path/-i`, `flag:--iterations/-i`, `flag:--json-log`, `flag:--key`, `flag:--l2-leaf-reg`, `flag:--langevin`, `flag:--leaf-estimation-backtracking`, `flag:--leaf-estimation-iterations`, `flag:--leaf-estimation-method`, `flag:--learn-err-log`, `flag:--learning-rate/-w`, `flag:--logging-level`, `flag:--loss-function`, `flag:--max-ctr-complexity`, `flag:--max-leaves`, `flag:--metric-period`, `flag:--metrics`, `flag:--min-data-in-leaf`, `flag:--model-file/--model-path/-m`, `flag:--model-file/-m`, `flag:--model-shrink-mode`, `flag:--model-shrink-rate`, `flag:--model-size-reg`, `flag:--model-with-weight`, `flag:--model-with-weight-and-prefix`, `flag:--model/-m`, `flag:--monotone-constraints`, `flag:--mvs-reg`, `flag:--name`, `flag:--nan-mode`, `flag:--node-port`, `flag:--node-type`, `flag:--ntree-end`, `flag:--ntree-start`, `flag:--num-features-to-select`, `flag:--od-pval`, `flag:--od-type`, `flag:--od-wait`, `flag:--offset`, `flag:--one-hot-max-size`, `flag:--only-light-statistics`, `flag:--output-borders-file`, `flag:--output-model`, `flag:--output-model-path/-o`, `flag:--penalties-coefficient`, `flag:--per-float-feature-binarization/--per-float-feature-quantization`, `flag:--per-object-feature-penalties`, `flag:--posterior-sampling`, `flag:--print-scale-and-bias`, `flag:--profile-log`, `flag:--random-seed/--seed/-r`, `flag:--random-strength`, `flag:--relative-fold-size`, `flag:--rsm`, `flag:--sampling-frequency`, `flag:--sampling-unit`, `flag:--score-function`, `flag:--set-bias`, `flag:--set-scale`, `flag:--simple-ctr`, `flag:--snapshot-file`, `flag:--snapshot-interval`, `flag:--sparse-features-conflict-fraction`, `flag:--store-all-simple-ctr`, `flag:--subsample`, `flag:--target-border`, `flag:--task-type`, `flag:--test-err-log`, `flag:--text-processing`, `flag:--thread-count/-T`, `flag:--tokenizers`, `flag:--train-dir`, `flag:--train-final-model`, `flag:--training-options-file`, `flag:--update-method`, `flag:--use-best-model`, `flag:--used-ram-limit`, `flag:--value`, `flag:--virtual-ensembles-count`, `param:X`, `param:allow_const_label`, `param:allow_writing_files`, `param:approx_on_full_history`, `param:auto_class_weights`, `param:bagging_temperature`, `param:baseline`, `param:best_model_min_trees`, `param:boost_from_average`, `param:boosting_type`, `param:bootstrap_type`, `param:border_count`, `param:cat_features`, `param:class_weights`, `param:colsample_bylevel`, `param:column_description`, `param:combinations_ctr`, `param:counter_calc_method`, `param:ctr_description`, `param:ctr_history_unit`, `param:ctr_leaf_count_limit`, `param:ctr_target_border_count`, `param:custom_loss`, `param:custom_metric`, `param:data_partition`, `param:depth`, `param:dev_efb_max_buckets`, `param:dev_score_calc_obj_block_size`, `param:dictionaries`, `param:diffusion_temperature`, `param:early_stopping_rounds`, `param:embedding_features`, `param:eta`, `param:eval_fraction`, `param:eval_metric`, `param:eval_set`, `param:feature_border_type`, `param:feature_calcers`, `param:feature_weights`, `param:final_ctr_computation_mode`, `param:first_feature_use_penalties`, `param:fold_len_multiplier`, `param:fold_permutation_block`, `param:group_id`, `param:group_weight`, `param:grow_policy`, `param:has_time`, `param:ignored_features`, `param:init_model`, `param:iterations`, `param:l2_leaf_reg`, `param:langevin`, `param:leaf_estimation_backtracking`, `param:leaf_estimation_iterations`, `param:leaf_estimation_method`, `param:learning_rate`, `param:logging_level`, `param:loss_function`, `param:max_bin`, `param:max_ctr_complexity`, `param:max_depth`, `param:max_leaves`, `param:metadata`, `param:metric_period`, `param:min_child_samples`, `param:min_data_in_leaf`, `param:model_shrink_mode`, `param:model_shrink_rate`, `param:model_size_reg`, `param:monotone_constraints`, `param:mvs_reg`, `param:n_estimators`, `param:name`, `param:nan_mode`, `param:num_boost_round`, `param:num_leaves`, `param:num_trees`, `param:objective`, `param:od_pval`, `param:od_type`, `param:od_wait`, `param:one_hot_max_size`, `param:output_borders`, `param:pairs`, `param:pairs_weight`, `param:params`, `param:penalties_coefficient`, `param:per_feature_ctr`, `param:per_float_feature_quantization`, `param:per_object_feature_penalties`, `param:posterior_sampling`, `param:random_seed`, `param:random_state`, `param:random_strength`, `param:reg_lambda`, `param:rsm`, `param:sample_weight`, `param:sampling_frequency`, `param:sampling_unit`, `param:save_snapshot`, `param:score_function`, `param:simple_ctr`, `param:snapshot_file`, `param:snapshot_interval`, `param:sparse_features_conflict_fraction`, `param:store_all_simple_ctr`, `param:subgroup_id`, `param:subsample`, `param:target_border`, `param:task_type`, `param:text_features`, `param:text_processing`, `param:thread_count`, `param:tokenizers`, `param:train_dir`, `param:use_best_model`, `param:used_ram_limit`, `param:verbose`, `param:verbose_eval`, `param:y`

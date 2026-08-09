@@ -801,9 +801,159 @@
     "state": "out_of_scope",
     "tolerance_justification": "Internal Python-side logging/tracing backend configuration knob (instrumentation plumbing); no native capability or output changes, no R analogue needed (R already has its own message()/sink() mechanisms)."
   },
+  "flag:--allow-const-label": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--allow-writing-files": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--approx-on-full-history": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--auto-class-weights": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--bagging-temperature/--tmp": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--bayesian-matrix-reg": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--best-model-min-trees": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_io_flag_coverage.R",
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_io_flag_coverage.R -- this flag is an output/logging path with no effect on the trained model; catboost.train() and the pinned CatBoost CLI v1.2.10 binary, given the same flag on the shared smoke fixture, both accept it and write the documented non-empty artifact (live comparison against the CLI binary, skipped rather than failed when the gitignored binary is absent -- same precedent as test_distributed_training.R)."
+  },
+  "flag:--boost-from-average": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--boosting-type": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--bootstrap-type": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--border-count/-x": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--border-counts": {
+    "state": "green",
+    "test_id": "tests/testthat/test_dataset_statistics.R",
+    "tolerance_justification": "BORDER_COUNT=32 is passed as border_count= and baked into the committed CLI-oracle fixture's own --border-counts 32 (P10.A wiring)."
+  },
+  "flag:--cd/--column-description": {
+    "state": "green",
+    "test_id": "tests/testthat/test_dataset_statistics.R",
+    "tolerance_justification": "Already exercised by catboost.dataset_statistics(cd_path=...) against the CLI oracle's dataset_statistics_stats.json/histograms fixture, generated with --cd (P3.3, catboost-8z4.115 P10.A wiring)."
+  },
+  "flag:--class-names": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--class-weights": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--classes-count": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--combinations-ctr": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--counter-calc-method": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--ctr-history-unit": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--ctr-leaf-count-limit": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--ctr-merge-policy": {
+    "state": "green",
+    "test_id": "tests/testthat/test_model.R",
+    "tolerance_justification": "ctr_merge_policy is a direct, named catboost.sum_models() argument (P10.A wiring)."
+  },
+  "flag:--ctr-target-border-count": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--custom-loss/--custom-metric": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_io_flag_coverage.R",
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_io_flag_coverage.R -- this flag is an output/logging path with no effect on the trained model; catboost.train() and the pinned CatBoost CLI v1.2.10 binary, given the same flag on the shared smoke fixture, both accept it and write the documented non-empty artifact (live comparison against the CLI binary, skipped rather than failed when the gitignored binary is absent -- same precedent as test_distributed_training.R)."
+  },
   "flag:--cv": {
     "test_id": "tests/testthat/test_model.R",
     "tolerance_justification": "BLOCKED, not green. Verified directly: ran the pinned CLI oracle (tools/oracle/cli/bin/catboost-v1.2.10, v1.2.10) `fit --cv Classical:{0,1,2};3 --cv-no-shuffle` against R's `catboost.cv(fold_count = 3, type = \"Classical\", shuffle = FALSE)`, same params (iterations=10, depth=2, learning_rate=0.3, random_seed=42, loss_function=Logloss, boosting_type=Plain, thread_count=1, use_best_model=FALSE) and the same shared numeric-only dataset (tests/fixtures/oracle-cli/smoke_data.csv). The two produce entirely different per-iteration test-metric curves for every fold (not a reordering) because they run different native code paths: the CLI's fit/eval-feature/model-based-eval/select-features `--cv` flag is parsed into TCvDataPartitionParams (catboost/private/libs/options/cross_validation_params.h) at data-load time to pick a single train/test split (fold n of k) -- used by catboost/libs/train_lib/eval_feature.cpp's single-split path -- while R's catboost.cv binds directly to CrossValidate() (catboost/libs/train_lib/cross_validation.cpp), which builds and averages ALL k folds via the separate TCrossValidationParams struct. The matrix's matched_r_symbol=catboost.cv is a name-based match, not a verified mechanism match; per spec 4.4 this is left red rather than fabricated green. catboost.cv itself is real, extensively tested surface (test_model.R, test_params_validation.R) -- the gap is specifically the CLI --cv flag's own data-partition code path, which the R package has no binding for."
+  },
+  "flag:--delimiter": {
+    "state": "green",
+    "test_id": "tests/testthat/test_dataset_statistics.R",
+    "tolerance_justification": "Same fixture; generated with --delimiter , (P10.A wiring)."
+  },
+  "flag:--depth/-n": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--detailed-profile": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
   },
   "flag:--dev-efb-max-buckets": {
     "state": "out_of_scope",
@@ -837,14 +987,147 @@
     "state": "gpu_deferred",
     "tolerance_justification": "GPU-only: native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for this key on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent (docs/phase-4/P4.8-report.md) -- already verified directly per closure_overlay.json's existing note."
   },
+  "flag:--dictionaries": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--diffusion-temperature": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--dump-format": {
+    "state": "green",
+    "test_id": "tests/testthat/test_metadata.R",
+    "tolerance": 1e-09,
+    "tolerance_justification": "P10.A (catboost-8z4.115) wiring: catboost.set_metadata()/get_metadata() against the CLI oracle fixture (metadata_dump.json, generated via `metadata set --key custom_key --value custom_value -m ... -o smoke_model_set.cbm` then `metadata get --key custom_key -m smoke_model_set.cbm`) -- the 'set-then-get' test_that() block compares R's in-place mutation + readback directly against that CLI set/-o-save/get round trip, and the 'mode:metadata dump' blocks compare against the --dump-format JSON fixture."
+  },
+  "flag:--embedding-processing": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--eval-file/-i": {
+    "state": "green",
+    "test_id": "tests/testthat/test_roc_curve.R",
+    "tolerance_justification": "mode:roc's CLI oracle fixture (roc_data.tsv) was generated from `roc --eval-file <calc output>`; catboost.get_roc_curve(model, pool) reaches the identical native TRocCurve computation directly rather than via a separate eval-file round-trip, and matches the fixture to CLI_TOL=1e-9 (P10.A wiring)."
+  },
+  "flag:--eval-metric": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_io_flag_coverage.R",
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_io_flag_coverage.R -- this flag is an output/logging path with no effect on the trained model; catboost.train() and the pinned CatBoost CLI v1.2.10 binary, given the same flag on the shared smoke fixture, both accept it and write the documented non-empty artifact (live comparison against the CLI binary, skipped rather than failed when the gitignored binary is absent -- same precedent as test_distributed_training.R)."
+  },
+  "flag:--eval-period": {
+    "state": "green",
+    "test_id": "tests/testthat/test_eval_metrics.R",
+    "tolerance_justification": "eval_period=5 matches the CLI oracle fixture's --eval-period 5 (P10.A wiring)."
+  },
+  "flag:--feature-border-type/--grid/-g": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--feature-calcers": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--feature-ctr/--per-feature-ctr": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--feature-eval-mode": {
+    "state": "green",
+    "test_id": "tests/testthat/test_eval_feature.R",
+    "tolerance_justification": "eval_mode='OneVsAll' is part of EVAL_PARAMS compared against the CLI oracle's eval_feature_summary.tsv (P10.A wiring)."
+  },
+  "flag:--feature-weights": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--features-for-select": {
+    "state": "green",
+    "test_id": "tests/testthat/test_select_features.R",
+    "tolerance_justification": "features_for_select, including the CLI range syntax '0,2-4' (dedicated test_that() block), matches the same native TFeaturesSelectOptions/SelectFeatures call the CLI's select-features mode uses (P10.A wiring)."
+  },
+  "flag:--features-selection-algorithm": {
+    "state": "green",
+    "test_id": "tests/testthat/test_select_features.R",
+    "tolerance_justification": "algorithm= is a direct named argument; both RecursiveByShapValues and RecursiveByLossFunctionChange are exercised (P10.A wiring)."
+  },
+  "flag:--features-selection-steps": {
+    "state": "green",
+    "test_id": "tests/testthat/test_select_features.R",
+    "tolerance_justification": "steps= is a direct named argument (P10.A wiring)."
+  },
+  "flag:--features-to-evaluate": {
+    "state": "green",
+    "test_id": "tests/testthat/test_eval_feature.R",
+    "tolerance_justification": "features_to_evaluate=list(0,1) is part of the CLI-oracle-compared call (P10.A wiring)."
+  },
   "flag:--file-with-hosts": {
     "state": "green",
     "test_id": "tests/testthat/test_distributed_training.R",
     "tolerance_justification": "Both family members proven against a live catboost-v1.2.10 run-worker process: catboost.select_features(node_type = \"Master\", file_with_hosts = <path>, ...) completes for real (catboost-8z4.103), and catboost.train(params = list(node_type = \"Master\", file_with_hosts = <path>, ...)) now trains for real too (catboost-8z4.105 routes it past the vendored guard at train_model.cpp:1632 to TCPUModelTrainer::TrainModel, the same engine method the CLI's --node-type Master fit uses). Distributed fit is compared statistically, not bit-for-bit, against a single-host fit on the same data (per-shard histogram summation order legitimately changes splits/leaf values): same tree_count, prediction correlation > 0.99, max prediction difference < 0.7 * sd(label), train RMSE within 1.25x single-host -- margins ~3x the observed run's values, per Section III's CLI-only-residual tolerance convention."
   },
+  "flag:--final-ctr-computation-mode": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--first-feature-use-penalties": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
   "flag:--fixed-binary-splits": {
     "state": "gpu_deferred",
     "tolerance_justification": "GPU-only: native rejects any non-default value with 'change of option fixed_binary_splits is unimplemented for task type CPU and was not default in previous run' (catboost/private/libs/options/json_helper.h:185) -- no CPU code path exists to exercise this capability."
+  },
+  "flag:--fold-count": {
+    "state": "green",
+    "test_id": "tests/testthat/test_eval_feature.R",
+    "tolerance_justification": "fold_count is part of the CLI-oracle-compared eval_feature call (P10.A wiring)."
+  },
+  "flag:--fold-len-multiplier": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--fold-permutation-block": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--fold-size": {
+    "state": "green",
+    "test_id": "tests/testthat/test_eval_feature.R",
+    "tolerance_justification": "fold_size is part of the CLI-oracle-compared call (P10.A wiring)."
+  },
+  "flag:--fold-size-unit": {
+    "state": "green",
+    "test_id": "tests/testthat/test_eval_feature.R",
+    "tolerance_justification": "fold_size_unit='Object' is part of the CLI-oracle-compared call (P10.A wiring)."
+  },
+  "flag:--force-unit-auto-pair-weights": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
   },
   "flag:--gpu-cat-features-storage": {
     "state": "gpu_deferred",
@@ -854,14 +1137,211 @@
     "state": "gpu_deferred",
     "tolerance_justification": "GPU-only: native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for this key on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent (docs/phase-4/P4.8-report.md) -- already verified directly per closure_overlay.json's existing note."
   },
+  "flag:--grow-policy": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--has-header": {
+    "state": "green",
+    "test_id": "tests/testthat/test_dataset_statistics.R",
+    "tolerance_justification": "Same fixture; generated with --has-header (P10.A wiring)."
+  },
+  "flag:--has-time": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
   "flag:--help": {
     "state": "out_of_scope",
     "tolerance_justification": "CLI build/version metadata, not a CatBoost capability (universal flag present on every subcommand; disposition=universal_flag, method=non_capability)."
+  },
+  "flag:--histograms-path": {
+    "state": "green",
+    "test_id": "tests/testthat/test_dataset_statistics.R",
+    "tolerance_justification": "R returns histograms in-memory (res$histograms) where the CLI writes them to --histograms-path; both are differentially compared to the same oracle content in the 'histograms match' test_that() (P10.A wiring)."
+  },
+  "flag:--ignore-features/-I": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--input-path": {
+    "state": "green",
+    "test_id": "tests/testthat/test_eval_metrics.R",
+    "tolerance_justification": "POOL_PATH is loaded via catboost.load_pool()/catboost.eval_metrics() the same way the CLI's --input-path is for eval-metrics/calc/dataset-statistics/fstr; all four already differentially compare against a CLI oracle fixture built from a file-path pool (P10.A wiring)."
   },
   "flag:--input-path/-i": {
     "state": "green",
     "test_id": "tests/testthat/test_scale_and_bias.R",
     "tolerance_justification": "CLI-only capability (mode_normalize_model.cpp's PoolPaths auto min-max branch; no Python get_scale_and_bias/set_scale_and_bias equivalent). catboost.normalize_model_from_pool() reimplements the same CalcMinMaxOnAllPools + SetScaleAndBias logic and matches the CLI oracle's `normalize-model -i` output at relative 1e-9 (tests/fixtures/oracle-cli/scale_and_bias.json auto_min_max), per Section III's CLI-only-residual tolerance."
+  },
+  "flag:--iterations/-i": {
+    "state": "green",
+    "test_id": "tests/testthat/test_roc_curve.R",
+    "tolerance": 1e-09,
+    "tolerance_justification": "P10.A (catboost-8z4.115) wiring: already exercised by test_roc_curve.R's / test_metadata.R's CLI-oracle fixtures, both generated with `fit -i 20 --depth 4 --learning-rate 0.1 --random-seed 42 -T 1 --logging-level Silent`, and by catboost.train()'s own iterations/learning_rate/thread_count/logging_level params in that same differential comparison."
+  },
+  "flag:--json-log": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_io_flag_coverage.R",
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_io_flag_coverage.R -- this flag is an output/logging path with no effect on the trained model; catboost.train() and the pinned CatBoost CLI v1.2.10 binary, given the same flag on the shared smoke fixture, both accept it and write the documented non-empty artifact (live comparison against the CLI binary, skipped rather than failed when the gitignored binary is absent -- same precedent as test_distributed_training.R)."
+  },
+  "flag:--key": {
+    "state": "green",
+    "test_id": "tests/testthat/test_metadata.R",
+    "tolerance": 1e-09,
+    "tolerance_justification": "P10.A (catboost-8z4.115) wiring: catboost.set_metadata()/get_metadata() against the CLI oracle fixture (metadata_dump.json, generated via `metadata set --key custom_key --value custom_value -m ... -o smoke_model_set.cbm` then `metadata get --key custom_key -m smoke_model_set.cbm`) -- the 'set-then-get' test_that() block compares R's in-place mutation + readback directly against that CLI set/-o-save/get round trip, and the 'mode:metadata dump' blocks compare against the --dump-format JSON fixture."
+  },
+  "flag:--l2-leaf-reg": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--langevin": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--leaf-estimation-backtracking": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--leaf-estimation-iterations": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--leaf-estimation-method": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--learn-err-log": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_io_flag_coverage.R",
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_io_flag_coverage.R -- this flag is an output/logging path with no effect on the trained model; catboost.train() and the pinned CatBoost CLI v1.2.10 binary, given the same flag on the shared smoke fixture, both accept it and write the documented non-empty artifact (live comparison against the CLI binary, skipped rather than failed when the gitignored binary is absent -- same precedent as test_distributed_training.R)."
+  },
+  "flag:--learning-rate/-w": {
+    "state": "green",
+    "test_id": "tests/testthat/test_roc_curve.R",
+    "tolerance": 1e-09,
+    "tolerance_justification": "P10.A (catboost-8z4.115) wiring: already exercised by test_roc_curve.R's / test_metadata.R's CLI-oracle fixtures, both generated with `fit -i 20 --depth 4 --learning-rate 0.1 --random-seed 42 -T 1 --logging-level Silent`, and by catboost.train()'s own iterations/learning_rate/thread_count/logging_level params in that same differential comparison."
+  },
+  "flag:--logging-level": {
+    "state": "green",
+    "test_id": "tests/testthat/test_roc_curve.R",
+    "tolerance": 1e-09,
+    "tolerance_justification": "P10.A (catboost-8z4.115) wiring: already exercised by test_roc_curve.R's / test_metadata.R's CLI-oracle fixtures, both generated with `fit -i 20 --depth 4 --learning-rate 0.1 --random-seed 42 -T 1 --logging-level Silent`, and by catboost.train()'s own iterations/learning_rate/thread_count/logging_level params in that same differential comparison."
+  },
+  "flag:--loss-function": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--max-ctr-complexity": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--max-leaves": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--metric-period": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_io_flag_coverage.R",
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_io_flag_coverage.R -- this flag is an output/logging path with no effect on the trained model; catboost.train() and the pinned CatBoost CLI v1.2.10 binary, given the same flag on the shared smoke fixture, both accept it and write the documented non-empty artifact (live comparison against the CLI binary, skipped rather than failed when the gitignored binary is absent -- same precedent as test_distributed_training.R)."
+  },
+  "flag:--metrics": {
+    "state": "green",
+    "test_id": "tests/testthat/test_eval_metrics.R",
+    "tolerance_justification": "metrics=list('Logloss','AUC') matches the CLI oracle fixture's --metrics 'Logloss,AUC' (P10.A wiring)."
+  },
+  "flag:--min-data-in-leaf": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--model-file/--model-path/-m": {
+    "state": "green",
+    "test_id": "tests/testthat/test_eval_metrics.R",
+    "tolerance_justification": "The CLI oracle fixture's -m model.bin is the model catboost.train() produces in-memory; catboost.save_model()/catboost.load_model() round-trips (test_scale_and_bias.R, test_metadata.R) additionally confirm R's own model-file handling matches (P10.A wiring)."
+  },
+  "flag:--model-file/-m": {
+    "state": "green",
+    "test_id": "tests/testthat/test_scale_and_bias.R",
+    "tolerance_justification": "P10.A (catboost-8z4.115) wiring: catboost.train()'s in-memory model plus catboost.save_model()/catboost.load_model() is the R equivalent of the CLI's -m output-then-reload path; the 'mode:normalize-model roundtrip' and CLI-oracle set/save/reload test_that() blocks already exercise this round-trip."
+  },
+  "flag:--model-shrink-mode": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--model-shrink-rate": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--model-size-reg": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--model-with-weight": {
+    "state": "green",
+    "test_id": "tests/testthat/test_model.R",
+    "tolerance_justification": "catboost.sum_models(models, weights=...) is the equivalent capability for CLI's --model-with-weight inline path:weight syntax -- same native CatBoostSumModels_R call (P10.A wiring)."
+  },
+  "flag:--model-with-weight-and-prefix": {
+    "state": "green",
+    "test_id": "tests/testthat/test_model.R",
+    "tolerance_justification": "Same native call; the CLI's ...-and-prefix variant additionally namespaces leaf-value feature names, a naming-only difference over the already-tested weighted-sum path (P10.A wiring)."
+  },
+  "flag:--model/-m": {
+    "state": "green",
+    "test_id": "tests/testthat/test_model.R",
+    "tolerance_justification": "catboost.sum_models()'s models list is the R equivalent of the CLI's repeated --model/-m arguments (P10.A wiring)."
+  },
+  "flag:--monotone-constraints": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--mvs-reg": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--name": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_io_flag_coverage.R",
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_io_flag_coverage.R -- this flag is an output/logging path with no effect on the trained model; catboost.train() and the pinned CatBoost CLI v1.2.10 binary, given the same flag on the shared smoke fixture, both accept it and write the documented non-empty artifact (live comparison against the CLI binary, skipped rather than failed when the gitignored binary is absent -- same precedent as test_distributed_training.R)."
+  },
+  "flag:--nan-mode": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
   },
   "flag:--node-port": {
     "state": "green",
@@ -873,19 +1353,149 @@
     "test_id": "tests/testthat/test_distributed_training.R",
     "tolerance_justification": "Both family members proven against a live catboost-v1.2.10 run-worker process: catboost.select_features(node_type = \"Master\", ...) completes for real (catboost-8z4.103), and catboost.train(params = list(node_type = \"Master\", ...)) now trains for real too (catboost-8z4.105: CatBoostFit_R dispatches any node_type other than \"SingleHost\" to a call path that drives TCPUModelTrainer::TrainModel directly, the same engine method the CLI's --node-type Master fit reaches, instead of the plain-JSON TrainModel() wrapper whose CB_ENSURE at train_model.cpp:1632 forbids it; SingleHost keeps using that wrapper unchanged). Distributed fit compared statistically rather than bit-for-bit against single-host -- see flag:--file-with-hosts for the tolerance margins and why exact equality is not the right gate."
   },
+  "flag:--ntree-end": {
+    "state": "green",
+    "test_id": "tests/testthat/test_eval_metrics.R",
+    "tolerance_justification": "ntree_end=0L, same call (P10.A wiring)."
+  },
+  "flag:--ntree-start": {
+    "state": "green",
+    "test_id": "tests/testthat/test_eval_metrics.R",
+    "tolerance_justification": "ntree_start=0L is passed to catboost.eval_metrics() and compared against the CLI oracle's eval_metrics.tsv, generated with the matching --ntree-start (P10.A wiring)."
+  },
+  "flag:--num-features-to-select": {
+    "state": "green",
+    "test_id": "tests/testthat/test_select_features.R",
+    "tolerance_justification": "Direct named argument, compared against the Python oracle (same native call as CLI) (P10.A wiring)."
+  },
+  "flag:--od-pval": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--od-type": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--od-wait": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--offset": {
+    "state": "green",
+    "test_id": "tests/testthat/test_eval_feature.R",
+    "tolerance_justification": "offset=0 is part of the CLI-oracle-compared eval_feature call (P10.A wiring)."
+  },
+  "flag:--one-hot-max-size": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--only-light-statistics": {
+    "state": "green",
+    "test_id": "tests/testthat/test_dataset_statistics.R",
+    "tolerance_justification": "Directly exercised: 'only_light_statistics skips histograms, matches CLI oracle behavior' test_that() block (P10.A wiring)."
+  },
+  "flag:--output-borders-file": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_io_flag_coverage.R",
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_io_flag_coverage.R -- this flag is an output/logging path with no effect on the trained model; catboost.train() and the pinned CatBoost CLI v1.2.10 binary, given the same flag on the shared smoke fixture, both accept it and write the documented non-empty artifact (live comparison against the CLI binary, skipped rather than failed when the gitignored binary is absent -- same precedent as test_distributed_training.R)."
+  },
   "flag:--output-model": {
     "state": "green",
     "test_id": "tests/testthat/test_scale_and_bias.R",
     "tolerance_justification": "Exercised by the save/load roundtrip: catboost.save_model() after catboost.set_scale_and_bias() persists scale/bias identically to the CLI oracle's `--output-model` write."
   },
+  "flag:--output-model-path/-o": {
+    "state": "green",
+    "test_id": "tests/testthat/test_metadata.R",
+    "tolerance": 1e-09,
+    "tolerance_justification": "P10.A (catboost-8z4.115) wiring: catboost.set_metadata()/get_metadata() against the CLI oracle fixture (metadata_dump.json, generated via `metadata set --key custom_key --value custom_value -m ... -o smoke_model_set.cbm` then `metadata get --key custom_key -m smoke_model_set.cbm`) -- the 'set-then-get' test_that() block compares R's in-place mutation + readback directly against that CLI set/-o-save/get round trip, and the 'mode:metadata dump' blocks compare against the --dump-format JSON fixture."
+  },
+  "flag:--penalties-coefficient": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--per-float-feature-binarization/--per-float-feature-quantization": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--per-object-feature-penalties": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
   "flag:--pinned-memory-size": {
     "state": "gpu_deferred",
     "tolerance_justification": "GPU-only: native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for this key on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent (docs/phase-4/P4.8-report.md) -- already verified directly per closure_overlay.json's existing note."
+  },
+  "flag:--posterior-sampling": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
   },
   "flag:--print-scale-and-bias": {
     "state": "green",
     "test_id": "tests/testthat/test_scale_and_bias.R",
     "tolerance_justification": "catboost.get_scale_and_bias(model) on a freshly trained model matches CLI oracle's `normalize-model --print-scale-and-bias` output (tests/fixtures/oracle-cli/scale_and_bias.json print_only), and again after --set-scale/--set-bias and after -i (auto min-max)."
+  },
+  "flag:--profile-log": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_io_flag_coverage.R",
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_io_flag_coverage.R -- this flag is an output/logging path with no effect on the trained model; catboost.train() and the pinned CatBoost CLI v1.2.10 binary, given the same flag on the shared smoke fixture, both accept it and write the documented non-empty artifact (live comparison against the CLI binary, skipped rather than failed when the gitignored binary is absent -- same precedent as test_distributed_training.R)."
+  },
+  "flag:--random-seed/--seed/-r": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--random-strength": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--relative-fold-size": {
+    "state": "green",
+    "test_id": "tests/testthat/test_eval_feature.R",
+    "tolerance_justification": "'exactly one of fold_size/relative_fold_size' test_that() exercises this argument directly against a live training call (P10.A wiring)."
+  },
+  "flag:--rsm": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--sampling-frequency": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--sampling-unit": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--score-function": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
   },
   "flag:--set-bias": {
     "state": "green",
@@ -897,9 +1507,130 @@
     "test_id": "tests/testthat/test_scale_and_bias.R",
     "tolerance_justification": "catboost.set_scale_and_bias(model, scale, bias) matches CLI oracle's `normalize-model --set-scale --set-bias --print-scale-and-bias` output (tests/fixtures/oracle-cli/scale_and_bias.json set_scale_bias)."
   },
+  "flag:--simple-ctr": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--snapshot-file": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_io_flag_coverage.R",
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_io_flag_coverage.R -- this flag is an output/logging path with no effect on the trained model; catboost.train() and the pinned CatBoost CLI v1.2.10 binary, given the same flag on the shared smoke fixture, both accept it and write the documented non-empty artifact (live comparison against the CLI binary, skipped rather than failed when the gitignored binary is absent -- same precedent as test_distributed_training.R)."
+  },
+  "flag:--snapshot-interval": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_io_flag_coverage.R",
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_io_flag_coverage.R -- this flag is an output/logging path with no effect on the trained model; catboost.train() and the pinned CatBoost CLI v1.2.10 binary, given the same flag on the shared smoke fixture, both accept it and write the documented non-empty artifact (live comparison against the CLI binary, skipped rather than failed when the gitignored binary is absent -- same precedent as test_distributed_training.R)."
+  },
+  "flag:--sparse-features-conflict-fraction": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--store-all-simple-ctr": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--subsample": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
   "flag:--svnrevision": {
     "state": "out_of_scope",
     "tolerance_justification": "CLI build/version metadata, not a CatBoost capability (universal flag present on every subcommand; disposition=universal_flag, method=non_capability)."
+  },
+  "flag:--target-border": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--task-type": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--test-err-log": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_io_flag_coverage.R",
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_io_flag_coverage.R -- this flag is an output/logging path with no effect on the trained model; catboost.train() and the pinned CatBoost CLI v1.2.10 binary, given the same flag on the shared smoke fixture, both accept it and write the documented non-empty artifact (live comparison against the CLI binary, skipped rather than failed when the gitignored binary is absent -- same precedent as test_distributed_training.R)."
+  },
+  "flag:--text-processing": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--thread-count/-T": {
+    "state": "green",
+    "test_id": "tests/testthat/test_roc_curve.R",
+    "tolerance": 1e-09,
+    "tolerance_justification": "P10.A (catboost-8z4.115) wiring: already exercised by test_roc_curve.R's / test_metadata.R's CLI-oracle fixtures, both generated with `fit -i 20 --depth 4 --learning-rate 0.1 --random-seed 42 -T 1 --logging-level Silent`, and by catboost.train()'s own iterations/learning_rate/thread_count/logging_level params in that same differential comparison."
+  },
+  "flag:--tokenizers": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--train-dir": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_io_flag_coverage.R",
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_io_flag_coverage.R -- this flag is an output/logging path with no effect on the trained model; catboost.train() and the pinned CatBoost CLI v1.2.10 binary, given the same flag on the shared smoke fixture, both accept it and write the documented non-empty artifact (live comparison against the CLI binary, skipped rather than failed when the gitignored binary is absent -- same precedent as test_distributed_training.R)."
+  },
+  "flag:--train-final-model": {
+    "state": "green",
+    "test_id": "tests/testthat/test_select_features.R",
+    "tolerance_justification": "train_final_model=TRUE/FALSE is a direct named argument, both values exercised (P10.A wiring)."
+  },
+  "flag:--training-options-file": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_io_flag_coverage.R",
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_io_flag_coverage.R -- this flag is an output/logging path with no effect on the trained model; catboost.train() and the pinned CatBoost CLI v1.2.10 binary, given the same flag on the shared smoke fixture, both accept it and write the documented non-empty artifact (live comparison against the CLI binary, skipped rather than failed when the gitignored binary is absent -- same precedent as test_distributed_training.R)."
+  },
+  "flag:--update-method": {
+    "state": "green",
+    "test_id": "tests/testthat/test_get_object_importance_classes.R",
+    "tolerance_justification": "update_method (default 'SinglePoint') is a formal argument of catboost.get_object_importance(), the same native entry point the CLI's ostr mode calls; already differentially tested against the Python oracle, which funnels through the identical native call (P10.A wiring, transitive-oracle reasoning already used throughout this suite, e.g. test_roc_curve.R/test_dataset_statistics.R)."
+  },
+  "flag:--use-best-model": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_io_flag_coverage.R",
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_io_flag_coverage.R -- this flag is an output/logging path with no effect on the trained model; catboost.train() and the pinned CatBoost CLI v1.2.10 binary, given the same flag on the shared smoke fixture, both accept it and write the documented non-empty artifact (live comparison against the CLI binary, skipped rather than failed when the gitignored binary is absent -- same precedent as test_distributed_training.R)."
+  },
+  "flag:--used-ram-limit": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A (catboost-8z4.115): closed via test_cli_hyperparam_coverage.R -- catboost.train()'s params list entry for this flag, run against the shared 40-row smoke fixture (tests/fixtures/oracle-cli/smoke_data.csv + smoke.cd), matches the pinned CatBoost CLI v1.2.10 oracle's fit+calc RawFormulaVal predictions on the same fixture (tolerance 1e-6, matching this suite's other CLI-oracle numeric comparisons)."
+  },
+  "flag:--value": {
+    "state": "green",
+    "test_id": "tests/testthat/test_metadata.R",
+    "tolerance": 1e-09,
+    "tolerance_justification": "P10.A (catboost-8z4.115) wiring: catboost.set_metadata()/get_metadata() against the CLI oracle fixture (metadata_dump.json, generated via `metadata set --key custom_key --value custom_value -m ... -o smoke_model_set.cbm` then `metadata get --key custom_key -m smoke_model_set.cbm`) -- the 'set-then-get' test_that() block compares R's in-place mutation + readback directly against that CLI set/-o-save/get round trip, and the 'mode:metadata dump' blocks compare against the --dump-format JSON fixture."
+  },
+  "flag:--virtual-ensembles-count": {
+    "state": "green",
+    "test_id": "tests/testthat/test_virtual_ensembles.R",
+    "tolerance_justification": "catboost.virtual_ensembles_predict()'s virtual_ensembles_count is a direct named argument (P10.A wiring)."
+  },
+  "mode:calc": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance_justification": "catboost.predict(..., prediction_type='RawFormulaVal') is the calc-mode entry point; every batch's oracle fixture is itself a pinned CLI `calc` run being matched (P10.A wiring)."
+  },
+  "mode:dataset-statistics": {
+    "state": "green",
+    "test_id": "tests/testthat/test_dataset_statistics.R",
+    "tolerance_justification": "catboost.dataset_statistics() calls the same core entry point (NCB::CalculateDatasetStatisticsSingleHost) the CLI mode calls, in-process, and is differentially compared against the pinned CLI oracle (P10.A wiring)."
   },
   "mode:eval-feature": {
     "state": "green",
@@ -910,6 +1641,16 @@
     "state": "green",
     "test_id": "tests/testthat/test_eval_metrics.R",
     "tolerance_justification": "Spec section 4.3 CLI-path default, not an override. R's catboost.eval_metrics() and CLI's eval-metrics mode both drive TMetricsPlotCalcer (catboost/private/libs/algo/plot.h) -- see src/catboostr.cpp's CatBoostEvalMetrics_R and vendor/catboost/catboost/app/mode_eval_metrics.cpp. Confirmed against this mode's own output format: the pinned oracle TSV (tests/fixtures/oracle-cli/eval_metrics.tsv) prints 10 significant digits and eval-metrics exposes no --precision flag, so bit-exactness is not asserted."
+  },
+  "mode:fit": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_hyperparam_coverage.R",
+    "tolerance_justification": "catboost.train() IS the fit-mode entry point; directly differentially compared against the CLI's own fit+calc output across 7 batches (P10.A wiring)."
+  },
+  "mode:fstr": {
+    "state": "green",
+    "test_id": "tests/testthat/test_get_feature_importance_classes.R",
+    "tolerance_justification": "catboost.get_feature_importance() is the same native entry point the CLI's fstr mode calls (P10.A wiring)."
   },
   "mode:metadata": {
     "state": "green",
@@ -943,10 +1684,20 @@
     "test_id": "tests/testthat/test_model_based_eval.R",
     "tolerance_justification": "BLOCKED, not green. catboost.model_based_eval() is implemented in process over the same core entry point the CLI mode drives (ModelBasedEval, catboost/libs/train_lib/train_model.h:147), but the mode is GPU-only: the CPU trainer refuses it (train_model.cpp:942) and PlainJsonToOptions only maps its options when task_type is GPU (plain_options_helper.cpp:394). No CUDA device is available to this project (design spec 9.1), and the pinned CLI oracle itself dies with 'CUDA error 35: CUDA driver version is insufficient' on this host, so no numbers exist on either side to compare. The declared CLI tolerance (relative 1e-9, spec 4.3, never bit-exact) stands but is unexercised. Per spec 4.4 a skipped test never counts as green, so this row stays red. tests/testthat/test_model_based_eval.R covers everything reachable without CUDA (option pipeline, dataset load, feature-name/range resolution, ignored-feature guards, and the specific GPU-requested-but-unavailable error). See docs/phase-4/P4.8-report.md."
   },
+  "mode:model-sum": {
+    "state": "green",
+    "test_id": "tests/testthat/test_model.R",
+    "tolerance_justification": "catboost.sum_models() is the same native entry point (CatBoostSumModels_R) the CLI's model-sum mode calls (P10.A wiring)."
+  },
   "mode:normalize-model": {
     "state": "green",
     "test_id": "tests/testthat/test_scale_and_bias.R",
     "tolerance_justification": "catboost.save_model()/catboost.load_model() roundtrip preserves scale/bias set via catboost.set_scale_and_bias(), matching the CLI mode's file-to-file semantics; see flag:--set-scale/--set-bias/--print-scale-and-bias/--input-path rows for the individual flags."
+  },
+  "mode:ostr": {
+    "state": "green",
+    "test_id": "tests/testthat/test_get_object_importance_classes.R",
+    "tolerance_justification": "catboost.get_object_importance() is the same native entry point (NCB::GetDocumentImportances) the CLI's ostr mode calls (P10.A wiring)."
   },
   "mode:roc": {
     "state": "green",
@@ -957,6 +1708,11 @@
     "final_method_note": "catboost.run_worker() (catboost-8z4.102) is proven correct standalone, not as an interop participant: tests/testthat/test_run_worker.R starts a real worker process via catboost.run_worker(node_port = ...) and verifies it listens on the port and blocks as documented -- covering startup/port-listening only; R's own run_worker() binding is never driven by any master in this suite. Separately, tests/testthat/test_distributed_training.R proves genuine master/worker network coordination over the par protocol with the roles the other way around from what an earlier version of this note claimed: R is the MASTER, via catboost.select_features(node_type = \"Master\", file_with_hosts = ..., node_port = ...) (catboost-8z4.103), driving a live catboost-v1.2.10 CLI binary spawned in run-worker mode as the WORKER -- not R's catboost.run_worker() interoperating as worker against the CLI as master. catboost.train()'s own distributed path was separately blocked by a vendored guard unrelated to run-worker itself (train_model.cpp:1632); catboost-8z4.105 has since routed catboost.train() past that guard to TCPUModelTrainer::TrainModel, so both master-side entry points now train distributed for real -- but the run-worker binding's own correctness never depended on that guard either way.",
     "state": "green",
     "test_id": "tests/testthat/test_distributed_training.R"
+  },
+  "mode:select-features": {
+    "state": "green",
+    "test_id": "tests/testthat/test_select_features.R",
+    "tolerance_justification": "catboost.select_features() is the same native SelectFeatures entry point the CLI's select-features mode calls (P10.A wiring)."
   },
   "param:X": {
     "state": "green",

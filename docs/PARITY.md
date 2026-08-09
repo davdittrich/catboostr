@@ -8,15 +8,15 @@ Machine-derived summary of the CatBoost R/Python/CLI capability parity matrix (`
 | State | Count |
 | --- | --- |
 | green | 224 |
-| red | 546 |
-| other | 0 |
+| red | 435 |
+| other | 111 |
 | **Total** | 770 |
 
 ## Red rows (not yet available)
 
-546 rows. Each entry is the capability's `inventory_row_id` and its recorded reason, verbatim from the matrix (`final_method_note`, falling back to `tolerance_justification`, falling back to "no note recorded" if neither is recorded).
+435 rows. Each entry is the capability's `inventory_row_id` and its recorded reason, verbatim from the matrix (`final_method_note`, falling back to `tolerance_justification`, falling back to "no note recorded" if neither is recorded).
 
-### enum_member_attachment (22)
+### enum_member_attachment (14)
 
 - `catboost.EFeaturesSelectionAlgorithm.RecursiveByLossFunctionChange` -- no note recorded
 - `catboost.EFeaturesSelectionAlgorithm.RecursiveByPredictionValuesChange` -- no note recorded
@@ -32,22 +32,13 @@ Machine-derived summary of the CatBoost R/Python/CLI capability parity matrix (`
 - `catboost.EShapCalcType.Approximate` -- no note recorded
 - `catboost.EShapCalcType.Exact` -- no note recorded
 - `catboost.EShapCalcType.Regular` -- no note recorded
-- `catboost.eval.EvalType.All` -- no note recorded
-- `catboost.eval.EvalType.SeqAdd` -- no note recorded
-- `catboost.eval.EvalType.SeqAddAndAll` -- no note recorded
-- `catboost.eval.EvalType.SeqRem` -- no note recorded
-- `catboost.eval.LabelMode.AddFeature` -- no note recorded
-- `catboost.eval.LabelMode.IgnoreFeature` -- no note recorded
-- `catboost.eval.ScoreType.Abs` -- no note recorded
-- `catboost.eval.ScoreType.Rel` -- no note recorded
 
-### method_mode_shaped (288)
+### method_mode_shaped (210)
 
 - `CatBoost.best_iteration_` -- no note recorded
 - `CatBoost.best_score_` -- no note recorded
 - `CatBoost.calc_leaf_indexes` -- no note recorded
 - `CatBoost.classes_` -- label array, exact-compare leaves
-- `CatBoost.copy` -- deep-copies the fitted model artifact; parity = copy round-trips to an equivalent model
 - `CatBoost.create_metric_calcer` -- returns a calcer object; parity observable via its numeric add()/eval_metrics() results, not the object itself
 - `CatBoost.evals_result_` -- no note recorded
 - `CatBoost.feature_importances_` -- no note recorded
@@ -63,13 +54,10 @@ Machine-derived summary of the CatBoost R/Python/CLI capability parity matrix (`
 - `CatBoost.get_leaf_weights` -- no note recorded
 - `CatBoost.get_n_features_in` -- no note recorded
 - `CatBoost.get_param` -- config dict, not a model output; nearest available bucket
-- `CatBoost.get_params` -- config dict, not a model output; nearest available bucket
-- `CatBoost.get_sklearn_estimator_xfail_checks` -- string-list compare; sklearn-compat metadata, not a model output
 - `CatBoost.get_test_eval` -- no note recorded
 - `CatBoost.get_test_evals` -- no note recorded
 - `CatBoost.get_text_feature_indices` -- no note recorded
 - `CatBoost.get_tree_leaf_counts` -- no note recorded
-- `CatBoost.is_fitted` -- boolean flag, exact-compare
 - `CatBoost.iterate_leaf_indexes` -- iterator of numeric arrays
 - `CatBoost.learning_rate_` -- no note recorded
 - `CatBoost.n_features_in_` -- no note recorded
@@ -79,13 +67,11 @@ Machine-derived summary of the CatBoost R/Python/CLI capability parity matrix (`
 - `CatBoost.save_borders` -- writes a borders file artifact
 - `CatBoost.set_feature_names` -- state-mutator; parity only observable via a paired getter
 - `CatBoost.set_leaf_values` -- state-mutator; parity only observable via a paired getter
-- `CatBoost.set_params` -- state-mutator; parity only observable via a paired getter, not a standalone output
 - `CatBoost.tree_count_` -- no note recorded
 - `CatBoostClassifier.best_iteration_` -- no note recorded
 - `CatBoostClassifier.best_score_` -- no note recorded
 - `CatBoostClassifier.calc_leaf_indexes` -- no note recorded
 - `CatBoostClassifier.classes_` -- label array, exact-compare leaves
-- `CatBoostClassifier.copy` -- deep-copies the fitted model artifact; parity = copy round-trips to an equivalent model
 - `CatBoostClassifier.create_metric_calcer` -- returns a calcer object; parity observable via its numeric add()/eval_metrics() results, not the object itself
 - `CatBoostClassifier.evals_result_` -- no note recorded
 - `CatBoostClassifier.feature_importances_` -- no note recorded
@@ -101,14 +87,11 @@ Machine-derived summary of the CatBoost R/Python/CLI capability parity matrix (`
 - `CatBoostClassifier.get_leaf_weights` -- no note recorded
 - `CatBoostClassifier.get_n_features_in` -- no note recorded
 - `CatBoostClassifier.get_param` -- config dict, not a model output; nearest available bucket
-- `CatBoostClassifier.get_params` -- config dict, not a model output; nearest available bucket
 - `CatBoostClassifier.get_probability_threshold` -- no note recorded
-- `CatBoostClassifier.get_sklearn_estimator_xfail_checks` -- string-list compare; sklearn-compat metadata, not a model output
 - `CatBoostClassifier.get_test_eval` -- no note recorded
 - `CatBoostClassifier.get_test_evals` -- no note recorded
 - `CatBoostClassifier.get_text_feature_indices` -- no note recorded
 - `CatBoostClassifier.get_tree_leaf_counts` -- no note recorded
-- `CatBoostClassifier.is_fitted` -- boolean flag, exact-compare
 - `CatBoostClassifier.iterate_leaf_indexes` -- iterator of numeric arrays
 - `CatBoostClassifier.learning_rate_` -- no note recorded
 - `CatBoostClassifier.n_features_in_` -- no note recorded
@@ -118,10 +101,8 @@ Machine-derived summary of the CatBoost R/Python/CLI capability parity matrix (`
 - `CatBoostClassifier.predict_proba` -- no note recorded
 - `CatBoostClassifier.random_seed_` -- no note recorded
 - `CatBoostClassifier.save_borders` -- writes a borders file artifact
-- `CatBoostClassifier.score` -- no note recorded
 - `CatBoostClassifier.set_feature_names` -- state-mutator; parity only observable via a paired getter
 - `CatBoostClassifier.set_leaf_values` -- state-mutator; parity only observable via a paired getter
-- `CatBoostClassifier.set_params` -- state-mutator; parity only observable via a paired getter, not a standalone output
 - `CatBoostClassifier.set_probability_threshold` -- state-mutator; parity only observable via a paired getter
 - `CatBoostClassifier.staged_predict_log_proba` -- iterator of numeric arrays
 - `CatBoostClassifier.staged_predict_proba` -- iterator of numeric arrays
@@ -130,7 +111,6 @@ Machine-derived summary of the CatBoost R/Python/CLI capability parity matrix (`
 - `CatBoostRanker.best_score_` -- no note recorded
 - `CatBoostRanker.calc_leaf_indexes` -- no note recorded
 - `CatBoostRanker.classes_` -- label array, exact-compare leaves
-- `CatBoostRanker.copy` -- deep-copies the fitted model artifact; parity = copy round-trips to an equivalent model
 - `CatBoostRanker.create_metric_calcer` -- returns a calcer object; parity observable via its numeric add()/eval_metrics() results, not the object itself
 - `CatBoostRanker.evals_result_` -- no note recorded
 - `CatBoostRanker.feature_importances_` -- no note recorded
@@ -146,13 +126,10 @@ Machine-derived summary of the CatBoost R/Python/CLI capability parity matrix (`
 - `CatBoostRanker.get_leaf_weights` -- no note recorded
 - `CatBoostRanker.get_n_features_in` -- no note recorded
 - `CatBoostRanker.get_param` -- config dict, not a model output; nearest available bucket
-- `CatBoostRanker.get_params` -- config dict, not a model output; nearest available bucket
-- `CatBoostRanker.get_sklearn_estimator_xfail_checks` -- string-list compare; sklearn-compat metadata, not a model output
 - `CatBoostRanker.get_test_eval` -- no note recorded
 - `CatBoostRanker.get_test_evals` -- no note recorded
 - `CatBoostRanker.get_text_feature_indices` -- no note recorded
 - `CatBoostRanker.get_tree_leaf_counts` -- no note recorded
-- `CatBoostRanker.is_fitted` -- boolean flag, exact-compare
 - `CatBoostRanker.iterate_leaf_indexes` -- iterator of numeric arrays
 - `CatBoostRanker.learning_rate_` -- no note recorded
 - `CatBoostRanker.n_features_in_` -- no note recorded
@@ -160,16 +137,13 @@ Machine-derived summary of the CatBoost R/Python/CLI capability parity matrix (`
 - `CatBoostRanker.plot_predictions` -- no note recorded
 - `CatBoostRanker.random_seed_` -- no note recorded
 - `CatBoostRanker.save_borders` -- writes a borders file artifact
-- `CatBoostRanker.score` -- no note recorded
 - `CatBoostRanker.set_feature_names` -- state-mutator; parity only observable via a paired getter
 - `CatBoostRanker.set_leaf_values` -- state-mutator; parity only observable via a paired getter
-- `CatBoostRanker.set_params` -- state-mutator; parity only observable via a paired getter, not a standalone output
 - `CatBoostRanker.tree_count_` -- no note recorded
 - `CatBoostRegressor.best_iteration_` -- no note recorded
 - `CatBoostRegressor.best_score_` -- no note recorded
 - `CatBoostRegressor.calc_leaf_indexes` -- no note recorded
 - `CatBoostRegressor.classes_` -- label array, exact-compare leaves
-- `CatBoostRegressor.copy` -- deep-copies the fitted model artifact; parity = copy round-trips to an equivalent model
 - `CatBoostRegressor.create_metric_calcer` -- returns a calcer object; parity observable via its numeric add()/eval_metrics() results, not the object itself
 - `CatBoostRegressor.evals_result_` -- no note recorded
 - `CatBoostRegressor.feature_importances_` -- no note recorded
@@ -185,13 +159,10 @@ Machine-derived summary of the CatBoost R/Python/CLI capability parity matrix (`
 - `CatBoostRegressor.get_leaf_weights` -- no note recorded
 - `CatBoostRegressor.get_n_features_in` -- no note recorded
 - `CatBoostRegressor.get_param` -- config dict, not a model output; nearest available bucket
-- `CatBoostRegressor.get_params` -- config dict, not a model output; nearest available bucket
-- `CatBoostRegressor.get_sklearn_estimator_xfail_checks` -- string-list compare; sklearn-compat metadata, not a model output
 - `CatBoostRegressor.get_test_eval` -- no note recorded
 - `CatBoostRegressor.get_test_evals` -- no note recorded
 - `CatBoostRegressor.get_text_feature_indices` -- no note recorded
 - `CatBoostRegressor.get_tree_leaf_counts` -- no note recorded
-- `CatBoostRegressor.is_fitted` -- boolean flag, exact-compare
 - `CatBoostRegressor.iterate_leaf_indexes` -- iterator of numeric arrays
 - `CatBoostRegressor.learning_rate_` -- no note recorded
 - `CatBoostRegressor.n_features_in_` -- no note recorded
@@ -199,10 +170,8 @@ Machine-derived summary of the CatBoost R/Python/CLI capability parity matrix (`
 - `CatBoostRegressor.plot_predictions` -- no note recorded
 - `CatBoostRegressor.random_seed_` -- no note recorded
 - `CatBoostRegressor.save_borders` -- writes a borders file artifact
-- `CatBoostRegressor.score` -- no note recorded
 - `CatBoostRegressor.set_feature_names` -- state-mutator; parity only observable via a paired getter
 - `CatBoostRegressor.set_leaf_values` -- state-mutator; parity only observable via a paired getter
-- `CatBoostRegressor.set_params` -- state-mutator; parity only observable via a paired getter, not a standalone output
 - `CatBoostRegressor.tree_count_` -- no note recorded
 - `FeaturesData.get_cat_feature_count` -- no note recorded
 - `FeaturesData.get_feature_count` -- no note recorded
@@ -244,7 +213,6 @@ Machine-derived summary of the CatBoost R/Python/CLI capability parity matrix (`
 - `catboost.CatBoostError` -- no note recorded
 - `catboost.CatBoostRanker` -- class existence/constructibility; no output of its own
 - `catboost.CatBoostRegressor` -- class existence/constructibility; no output of its own
-- `catboost.CatboostError` -- lower-case-b alias of CatBoostError -- verify it is intentional backward-compat alias, not a typo, before writing a Phase 3+ test for it
 - `catboost.EFeaturesSelectionAlgorithm` -- enum type itself; member values covered individually by enum_member rows
 - `catboost.EFeaturesSelectionGrouping` -- enum type itself; member values covered individually by enum_member rows
 - `catboost.EFstrType` -- enum type itself; member values covered individually by enum_member rows
@@ -255,84 +223,30 @@ Machine-derived summary of the CatBoost R/Python/CLI capability parity matrix (`
 - `catboost.MultiTargetCustomMetric` -- ABC for user-supplied custom metric; parity means R can accept an equivalent callback
 - `catboost.MultiTargetCustomObjective` -- ABC for user-supplied custom objective; parity means R can accept an equivalent callback
 - `catboost.Pool` -- class existence/constructibility; no output of its own
-- `catboost.datasets.PATH_TYPES` -- type-tuple constant; LIKELY INTROSPECTION ARTIFACT: type-tuple constant used internally for isinstance checks, not a catboost capability
-- `catboost.datasets.adult` -- returns a fixed sample dataframe
-- `catboost.datasets.amazon` -- returns a fixed sample dataframe
-- `catboost.datasets.epsilon` -- returns a fixed sample dataframe
-- `catboost.datasets.fspath` -- stdlib re-export; LIKELY INTROSPECTION ARTIFACT: stdlib os.fspath leaked into the module namespace via import, not a catboost capability
-- `catboost.datasets.higgs` -- returns a fixed sample dataframe
-- `catboost.datasets.imdb` -- returns a fixed sample dataframe
-- `catboost.datasets.logger` -- logging.Logger instance; LIKELY INTROSPECTION ARTIFACT: a logging.Logger instance module attribute, not a catboost capability
-- `catboost.datasets.monotonic1` -- returns a fixed sample dataframe
-- `catboost.datasets.monotonic2` -- returns a fixed sample dataframe
-- `catboost.datasets.msrank` -- returns a fixed sample dataframe
-- `catboost.datasets.msrank_10k` -- returns a fixed sample dataframe
-- `catboost.datasets.rotten_tomatoes` -- returns a fixed sample dataframe
-- `catboost.datasets.set_cache_path` -- config setter, no comparable output of its own
-- `catboost.datasets.titanic` -- returns a fixed sample dataframe
-- `catboost.eval.CaseEvaluationResult` -- plain result data-class
-- `catboost.eval.CatBoost` -- re-export of main CatBoost class inside the eval submodule
-- `catboost.eval.CatBoostError` -- re-export of the same exception class into catboost.eval namespace
-- `catboost.eval.CatboostEvaluation` -- main entry class of the feature-evaluation subsystem; result carries numeric fields
-- `catboost.eval.EvalType` -- enum class
-- `catboost.eval.EvaluationResults` -- plain result data-class
-- `catboost.eval.ExecutionCase` -- plain config data-class
-- `catboost.eval.FactorUtils` -- internal helper class, unclear if it is public API surface at all
-- `catboost.eval.FoldModelsHandler` -- internal helper class, unclear if it is public API surface at all
-- `catboost.eval.LabelMode` -- enum class
-- `catboost.eval.MetricEvaluationResult` -- plain result data-class
-- `catboost.eval.ScoreConfig` -- plain config data-class
-- `catboost.eval.ScoreType` -- enum class
-- `catboost.eval.calc_bootstrap_ci_for_mean` -- no note recorded
-- `catboost.eval.calc_wilcoxon_test` -- no note recorded
-- `catboost.eval.compute_wx_test` -- no note recorded
-- `catboost.eval.copy` -- stdlib re-export; LIKELY INTROSPECTION ARTIFACT: stdlib copy module leaked into the module namespace via import, not a catboost capability
-- `catboost.eval.make_dirs_if_not_exists` -- filesystem side-effect helper, no comparable output; possibly not real API surface
-- `catboost.eval.metric_description_or_str_to_str` -- string transform helper
-- `catboost.eval.save_plot` -- writes an image file artifact
-- `catboost.eval.series_to_line` -- string formatting helper
 - `catboost.sample_gaussian_process` -- no note recorded
 - `catboost.text_processing.Dictionary` -- produces a token/id mapping, exact-compare leaves
 - `catboost.text_processing.Tokenizer` -- produces a tokenized array, exact-compare leaves
-- `catboost.to_classifier` -- returns a re-typed model artifact
-- `catboost.to_ranker` -- returns a re-typed model artifact
-- `catboost.to_regressor` -- returns a re-typed model artifact
-- `catboost.utils.ARRAY_TYPES` -- type-tuple constant; LIKELY INTROSPECTION ARTIFACT: type-tuple constant used internally for isinstance checks, not a capability
-- `catboost.utils.CatBoostError` -- re-export of the same exception class into catboost.utils namespace
-- `catboost.utils.DataMetaInfo` -- plain result data-class returned by other utils functions
-- `catboost.utils.PATH_TYPES` -- type-tuple constant; LIKELY INTROSPECTION ARTIFACT: type-tuple constant used internally for isinstance checks, not a capability
-- `catboost.utils.Pool` -- re-export of the same Pool class into catboost.utils namespace
-- `catboost.utils.TargetStats` -- plain result data-class returned by other utils functions
 - `catboost.utils.calculate_quantization_grid` -- no note recorded
 - `catboost.utils.compute_training_options` -- introspected as attribute rather than function by the enumerator; likely a real helper returning a dict of resolved training options
-- `catboost.utils.compute_wx_test` -- no note recorded
-- `catboost.utils.contextmanager` -- stdlib re-export; LIKELY INTROSPECTION ARTIFACT: stdlib contextlib.contextmanager leaked into the module namespace via import, not a catboost capability
 - `catboost.utils.convert_to_onnx_object` -- produces an ONNX model artifact
 - `catboost.utils.create_cd` -- writes a column-description file artifact
-- `catboost.utils.defaultdict` -- stdlib re-export; LIKELY INTROSPECTION ARTIFACT: stdlib collections.defaultdict leaked into the module namespace via import, not a catboost capability
 - `catboost.utils.eval_metric` -- no note recorded
-- `catboost.utils.fspath` -- stdlib re-export; LIKELY INTROSPECTION ARTIFACT: stdlib os.fspath leaked into the module namespace via import, not a catboost capability
 - `catboost.utils.get_confusion_matrix` -- no note recorded
 - `catboost.utils.get_fnr_curve` -- no note recorded
 - `catboost.utils.get_fpr_curve` -- no note recorded
-- `catboost.utils.get_gpu_device_count` -- scalar count; GPU parity itself is deferred to Phase 7 per epic, this is just a CPU-visible query
-- `catboost.utils.pl` -- third-party re-export; LIKELY INTROSPECTION ARTIFACT: third-party polars module leaked into the namespace via a conditional import, not a catboost capability
-- `catboost.utils.polars` -- third-party re-export; LIKELY INTROSPECTION ARTIFACT: third-party polars module leaked into the namespace via a conditional import, not a catboost capability
 - `catboost.utils.quantize` -- produces a quantized Pool artifact
 - `catboost.utils.read_cd` -- reads a column-description file artifact
-- `catboost.utils.reset_trace_backend` -- config setter, no comparable output of its own
 - `catboost.utils.select_threshold` -- no note recorded
 - `mode:calc` -- primary output is a numeric prediction column
 - `mode:dataset-statistics` -- no note recorded
 - `mode:dump-options` -- dumps resolved options as JSON to console
 - `mode:fit` -- primary output is a trained model file artifact
 - `mode:fstr` -- feature-importance numeric output
-- `mode:model-based-eval` -- CLI mode continues a baseline model's training in short experiments with and without each tested feature set and writes per-experiment error logs into train_dir, so elementwise numeric comparison is the right method. Confidence raised from 55 after inspecting mode_model_based_eval.cpp and running the pinned binary: the mode is GPU-only, which is why the row cannot be verified here.
 - `mode:model-sum` -- produces a summed model file artifact
 - `mode:ostr` -- object-importance numeric output
 - `mode:select-features` -- numeric summary + selected/eliminated feature lists
 
-### parameter_flag_family (234)
+### parameter_flag_family (211)
 
 - `flag:--add-ridge-penalty-for-loss-function` -- no note recorded
 - `flag:--allow-const-label` -- no note recorded
@@ -372,14 +286,6 @@ Machine-derived summary of the CatBoost R/Python/CLI capability parity matrix (`
 - `flag:--delimiter` -- no note recorded
 - `flag:--depth/-n` -- no note recorded
 - `flag:--detailed-profile` -- no note recorded
-- `flag:--dev-efb-max-buckets` -- no note recorded
-- `flag:--dev-group-features` -- no note recorded
-- `flag:--dev-leafwise-approxes` -- no note recorded
-- `flag:--dev-leafwise-scoring` -- no note recorded
-- `flag:--dev-max-ctr-complexity-for-border-cache` -- no note recorded
-- `flag:--dev-max-subset-size-for-build-borders` -- no note recorded
-- `flag:--dev-score-calc-obj-block-size` -- no note recorded
-- `flag:--devices` -- no note recorded
 - `flag:--dictionaries` -- no note recorded
 - `flag:--diffusion-temperature` -- no note recorded
 - `flag:--dump-format` -- no note recorded
@@ -407,7 +313,6 @@ Machine-derived summary of the CatBoost R/Python/CLI capability parity matrix (`
 - `flag:--features-to-evaluate` -- no note recorded
 - `flag:--final-ctr-computation-mode` -- no note recorded
 - `flag:--first-feature-use-penalties` -- no note recorded
-- `flag:--fixed-binary-splits` -- no note recorded
 - `flag:--fold-count` -- no note recorded
 - `flag:--fold-len-multiplier` -- no note recorded
 - `flag:--fold-permutation-block` -- no note recorded
@@ -418,8 +323,6 @@ Machine-derived summary of the CatBoost R/Python/CLI capability parity matrix (`
 - `flag:--fstr-file` -- no note recorded
 - `flag:--fstr-internal-file` -- no note recorded
 - `flag:--fstr-type` -- no note recorded
-- `flag:--gpu-cat-features-storage` -- no note recorded
-- `flag:--gpu-ram-part` -- no note recorded
 - `flag:--grow-policy` -- no note recorded
 - `flag:--has-header` -- no note recorded
 - `flag:--has-time` -- no note recorded
@@ -496,7 +399,6 @@ Machine-derived summary of the CatBoost R/Python/CLI capability parity matrix (`
 - `flag:--per-float-feature-binarization/--per-float-feature-quantization` -- no note recorded
 - `flag:--per-object-feature-penalties` -- no note recorded
 - `flag:--permutations/-p` -- no note recorded
-- `flag:--pinned-memory-size` -- no note recorded
 - `flag:--pool-metainfo-path` -- no note recorded
 - `flag:--posterior-sampling` -- no note recorded
 - `flag:--precomputed-data-meta` -- no note recorded
@@ -553,26 +455,129 @@ Machine-derived summary of the CatBoost R/Python/CLI capability parity matrix (`
 - `param:callbacks` -- BLOCKED, not green. Unlike the other Python-only keys, native's plain_options_helper.cpp explicitly records 'callbacks' as a seen/valid key without validating or consuming its value (plain_options_helper.cpp:269-270), so passing it does not error -- but catboostr's C glue (src/catboostr.cpp) has no mechanism to marshal an R closure into a per-iteration native callback, so the capability itself does not exist in R. Verified directly (real assertion, not the circular gate helper): training completes silently, no callback is ever invoked. See test_params_validation.R.
 - `param:class_names` -- BLOCKED, not green. Verified directly: catboost.load_pool() pre-converts string labels to numeric class indices client-side (a documented R-Pool-architecture difference from Python's Pool, which retains original label strings server-side -- same class of limitation as the categorical-feature-hashing note in test_calc_feature_statistics.R); reproducing MultiClass training with classes_count/class_names and string labels throws 'Not all class names are numeric, but specified target data is' from native. See test_params_validation.R.
 - `param:classes_count` -- BLOCKED, not green. Verified directly: catboost.load_pool() pre-converts string labels to numeric class indices client-side (a documented R-Pool-architecture difference from Python's Pool, which retains original label strings server-side -- same class of limitation as the categorical-feature-hashing note in test_calc_feature_statistics.R); reproducing MultiClass training with classes_count/class_names and string labels throws 'Not all class names are numeric, but specified target data is' from native. See test_params_validation.R.
+- `param:graph` -- BLOCKED, not green (review-round fix #2: was closed on test_pool_metadata.R, which never actually calls graph=). graph is a real catboost.load_pool() arg (R/catboost.R:110) and a real Python Pool(graph=...) arg too, requiring nontrivial groups in both languages. Reproduced directly: building an R Pool with graph= and group_id= together throws a hard native/glue error (Internal CatBoost Error / Unimplemented from catboost.from_data_frame -> catboost.from_matrix -> data_provider_builders.cpp), plus further argument-type-coercion errors probing the plain-matrix path -- an under-exercised, fragile combination in catboostr's own C bridge, not a Python-parity issue. See test_params_validation.R.
+- `param:input_borders` -- BLOCKED, not green. Verified directly: native rejects it with 'Unknown option {input_borders}' (plain_options_helper.cpp:512). Unlike output_borders (a real flat option, see the green disposition above), input_borders is only ever consumed by Python's Pool.quantize() pre-processing step in the vendored core, never by the general PlainJsonToOptions flat-option parser catboost.train's params blob goes through. See test_params_validation.R.
+- `param:scale_pos_weight` -- BLOCKED, not green. Not a flat top-level native option; must be embedded in the loss_function description string (e.g. 'Logloss:scale_pos_weight=1.5'). Verified directly that even embedded correctly (with eval_metric explicitly overridden to a bare 'Logloss'), native still throws 'Logloss metric shouldn't have scale_pos_weight parameter' (catboost/libs/metrics/metric.cpp:6324) -- a native metric-construction bug/limitation in this vendor version, reproducible and documented, not a hand-wave. See test_params_validation.R.
+- `param:silent` -- BLOCKED, not green. Python-only convenience args with no catboostr equivalent (no callback/live-plot/stream-redirect mechanism in R). Verified directly: native rejects each with 'Unknown option {name}' (plain_options_helper.cpp:512). See test_params_validation.R.
+
+## Other rows (111)
+
+### state: gpu_deferred (14)
+
+- `catboost.utils.get_gpu_device_count` -- scalar count; GPU parity itself is deferred to Phase 7 per epic, this is just a CPU-visible query
+- `flag:--devices` -- GPU-only: native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for this key on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent (docs/phase-4/P4.8-report.md) -- already verified directly per closure_overlay.json's existing note.
+- `flag:--fixed-binary-splits` -- GPU-only: native rejects any non-default value with 'change of option fixed_binary_splits is unimplemented for task type CPU and was not default in previous run' (catboost/private/libs/options/json_helper.h:185) -- no CPU code path exists to exercise this capability.
+- `flag:--gpu-cat-features-storage` -- GPU-only: native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for this key on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent (docs/phase-4/P4.8-report.md) -- already verified directly per closure_overlay.json's existing note.
+- `flag:--gpu-ram-part` -- GPU-only: native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for this key on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent (docs/phase-4/P4.8-report.md) -- already verified directly per closure_overlay.json's existing note.
+- `flag:--pinned-memory-size` -- GPU-only: native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for this key on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent (docs/phase-4/P4.8-report.md) -- already verified directly per closure_overlay.json's existing note.
+- `mode:model-based-eval` -- CLI mode continues a baseline model's training in short experiments with and without each tested feature set and writes per-experiment error logs into train_dir, so elementwise numeric comparison is the right method. Confidence raised from 55 after inspecting mode_model_based_eval.cpp and running the pinned binary: the mode is GPU-only, which is why the row cannot be verified here.
 - `param:device_config` -- BLOCKED, not green. GPU-only: verified directly that native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for each of these keys on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent exactly (docs/phase-4/P4.8-report.md). See test_params_validation.R for the reproducing assertions.
 - `param:devices` -- BLOCKED, not green. GPU-only: verified directly that native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for each of these keys on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent exactly (docs/phase-4/P4.8-report.md). See test_params_validation.R for the reproducing assertions.
 - `param:fixed_binary_splits` -- BLOCKED, not green. Verified directly: native rejects any non-default fixed_binary_splits value with 'change of option fixed_binary_splits is unimplemented for task type CPU and was not default in previous run' (catboost/private/libs/options/json_helper.h:185). No CPU code path exists to exercise this capability. See test_params_validation.R for the reproducing assertion.
 - `param:gpu_cat_features_storage` -- BLOCKED, not green. GPU-only: verified directly that native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for each of these keys on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent exactly (docs/phase-4/P4.8-report.md). See test_params_validation.R for the reproducing assertions.
 - `param:gpu_ram_part` -- BLOCKED, not green. GPU-only: verified directly that native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for each of these keys on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent exactly (docs/phase-4/P4.8-report.md). See test_params_validation.R for the reproducing assertions.
-- `param:graph` -- BLOCKED, not green (review-round fix #2: was closed on test_pool_metadata.R, which never actually calls graph=). graph is a real catboost.load_pool() arg (R/catboost.R:110) and a real Python Pool(graph=...) arg too, requiring nontrivial groups in both languages. Reproduced directly: building an R Pool with graph= and group_id= together throws a hard native/glue error (Internal CatBoost Error / Unimplemented from catboost.from_data_frame -> catboost.from_matrix -> data_provider_builders.cpp), plus further argument-type-coercion errors probing the plain-matrix path -- an under-exercised, fragile combination in catboostr's own C bridge, not a Python-parity issue. See test_params_validation.R.
-- `param:input_borders` -- BLOCKED, not green. Verified directly: native rejects it with 'Unknown option {input_borders}' (plain_options_helper.cpp:512). Unlike output_borders (a real flat option, see the green disposition above), input_borders is only ever consumed by Python's Pool.quantize() pre-processing step in the vendored core, never by the general PlainJsonToOptions flat-option parser catboost.train's params blob goes through. See test_params_validation.R.
+- `param:pinned_memory_size` -- BLOCKED, not green. GPU-only: verified directly that native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for each of these keys on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent exactly (docs/phase-4/P4.8-report.md). See test_params_validation.R for the reproducing assertions.
+- `param:random_score_type` -- BLOCKED, not green. GPU-only: verified directly that native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for each of these keys on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent exactly (docs/phase-4/P4.8-report.md). See test_params_validation.R for the reproducing assertions.
+
+### state: out_of_scope (97)
+
+- `CatBoost.copy` -- deep-copies the fitted model artifact; parity = copy round-trips to an equivalent model
+- `CatBoost.get_params` -- config dict, not a model output; nearest available bucket
+- `CatBoost.get_sklearn_estimator_xfail_checks` -- string-list compare; sklearn-compat metadata, not a model output
+- `CatBoost.is_fitted` -- boolean flag, exact-compare
+- `CatBoost.set_params` -- state-mutator; parity only observable via a paired getter, not a standalone output
+- `CatBoostClassifier.copy` -- deep-copies the fitted model artifact; parity = copy round-trips to an equivalent model
+- `CatBoostClassifier.get_params` -- config dict, not a model output; nearest available bucket
+- `CatBoostClassifier.get_sklearn_estimator_xfail_checks` -- string-list compare; sklearn-compat metadata, not a model output
+- `CatBoostClassifier.is_fitted` -- boolean flag, exact-compare
+- `CatBoostClassifier.score` -- sklearn BaseEstimator/estimator-check protocol method with no CatBoost-specific computation of its own (get_params/set_params: core.py's literal **kwargs passthrough contract; score: sklearn scorer contract calling already-tested predict()+metric; get_sklearn_estimator_xfail_checks: sklearn test-suite scaffolding); R has no generic estimator object to satisfy.
+- `CatBoostClassifier.set_params` -- state-mutator; parity only observable via a paired getter, not a standalone output
+- `CatBoostRanker.copy` -- deep-copies the fitted model artifact; parity = copy round-trips to an equivalent model
+- `CatBoostRanker.get_params` -- config dict, not a model output; nearest available bucket
+- `CatBoostRanker.get_sklearn_estimator_xfail_checks` -- string-list compare; sklearn-compat metadata, not a model output
+- `CatBoostRanker.is_fitted` -- boolean flag, exact-compare
+- `CatBoostRanker.score` -- sklearn BaseEstimator/estimator-check protocol method with no CatBoost-specific computation of its own (get_params/set_params: core.py's literal **kwargs passthrough contract; score: sklearn scorer contract calling already-tested predict()+metric; get_sklearn_estimator_xfail_checks: sklearn test-suite scaffolding); R has no generic estimator object to satisfy.
+- `CatBoostRanker.set_params` -- state-mutator; parity only observable via a paired getter, not a standalone output
+- `CatBoostRegressor.copy` -- deep-copies the fitted model artifact; parity = copy round-trips to an equivalent model
+- `CatBoostRegressor.get_params` -- config dict, not a model output; nearest available bucket
+- `CatBoostRegressor.get_sklearn_estimator_xfail_checks` -- string-list compare; sklearn-compat metadata, not a model output
+- `CatBoostRegressor.is_fitted` -- boolean flag, exact-compare
+- `CatBoostRegressor.score` -- sklearn BaseEstimator/estimator-check protocol method with no CatBoost-specific computation of its own (get_params/set_params: core.py's literal **kwargs passthrough contract; score: sklearn scorer contract calling already-tested predict()+metric; get_sklearn_estimator_xfail_checks: sklearn test-suite scaffolding); R has no generic estimator object to satisfy.
+- `CatBoostRegressor.set_params` -- state-mutator; parity only observable via a paired getter, not a standalone output
+- `catboost.CatboostError` -- lower-case-b alias of CatBoostError -- verify it is intentional backward-compat alias, not a typo, before writing a Phase 3+ test for it
+- `catboost.datasets.PATH_TYPES` -- type-tuple constant; LIKELY INTROSPECTION ARTIFACT: type-tuple constant used internally for isinstance checks, not a catboost capability
+- `catboost.datasets.adult` -- returns a fixed sample dataframe
+- `catboost.datasets.amazon` -- returns a fixed sample dataframe
+- `catboost.datasets.epsilon` -- returns a fixed sample dataframe
+- `catboost.datasets.fspath` -- stdlib re-export; LIKELY INTROSPECTION ARTIFACT: stdlib os.fspath leaked into the module namespace via import, not a catboost capability
+- `catboost.datasets.higgs` -- returns a fixed sample dataframe
+- `catboost.datasets.imdb` -- returns a fixed sample dataframe
+- `catboost.datasets.logger` -- logging.Logger instance; LIKELY INTROSPECTION ARTIFACT: a logging.Logger instance module attribute, not a catboost capability
+- `catboost.datasets.monotonic1` -- returns a fixed sample dataframe
+- `catboost.datasets.monotonic2` -- returns a fixed sample dataframe
+- `catboost.datasets.msrank` -- returns a fixed sample dataframe
+- `catboost.datasets.msrank_10k` -- returns a fixed sample dataframe
+- `catboost.datasets.rotten_tomatoes` -- returns a fixed sample dataframe
+- `catboost.datasets.set_cache_path` -- config setter, no comparable output of its own
+- `catboost.datasets.titanic` -- returns a fixed sample dataframe
+- `catboost.eval.CaseEvaluationResult` -- plain result data-class
+- `catboost.eval.CatBoost` -- re-export of main CatBoost class inside the eval submodule
+- `catboost.eval.CatBoostError` -- re-export of the same exception class into catboost.eval namespace
+- `catboost.eval.CatboostEvaluation` -- main entry class of the feature-evaluation subsystem; result carries numeric fields
+- `catboost.eval.EvalType` -- enum class
+- `catboost.eval.EvalType.All` -- catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.
+- `catboost.eval.EvalType.SeqAdd` -- catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.
+- `catboost.eval.EvalType.SeqAddAndAll` -- catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.
+- `catboost.eval.EvalType.SeqRem` -- catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.
+- `catboost.eval.EvaluationResults` -- plain result data-class
+- `catboost.eval.ExecutionCase` -- plain config data-class
+- `catboost.eval.FactorUtils` -- internal helper class, unclear if it is public API surface at all
+- `catboost.eval.FoldModelsHandler` -- internal helper class, unclear if it is public API surface at all
+- `catboost.eval.LabelMode` -- enum class
+- `catboost.eval.LabelMode.AddFeature` -- catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.
+- `catboost.eval.LabelMode.IgnoreFeature` -- catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.
+- `catboost.eval.MetricEvaluationResult` -- plain result data-class
+- `catboost.eval.ScoreConfig` -- plain config data-class
+- `catboost.eval.ScoreType` -- enum class
+- `catboost.eval.ScoreType.Abs` -- catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.
+- `catboost.eval.ScoreType.Rel` -- catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.
+- `catboost.eval.calc_bootstrap_ci_for_mean` -- catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.
+- `catboost.eval.calc_wilcoxon_test` -- catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.
+- `catboost.eval.compute_wx_test` -- Generic Wilcoxon-signed-rank significance-test native binding re-exported under two namespaces (utils and eval); not CatBoost-specific -- equivalent to R's own builtin wilcox.test(), out of CatBoost's capability surface.
+- `catboost.eval.copy` -- stdlib re-export; LIKELY INTROSPECTION ARTIFACT: stdlib copy module leaked into the module namespace via import, not a catboost capability
+- `catboost.eval.make_dirs_if_not_exists` -- filesystem side-effect helper, no comparable output; possibly not real API surface
+- `catboost.eval.metric_description_or_str_to_str` -- string transform helper
+- `catboost.eval.save_plot` -- writes an image file artifact
+- `catboost.eval.series_to_line` -- string formatting helper
+- `catboost.to_classifier` -- returns a re-typed model artifact
+- `catboost.to_ranker` -- returns a re-typed model artifact
+- `catboost.to_regressor` -- returns a re-typed model artifact
+- `catboost.utils.ARRAY_TYPES` -- type-tuple constant; LIKELY INTROSPECTION ARTIFACT: type-tuple constant used internally for isinstance checks, not a capability
+- `catboost.utils.CatBoostError` -- re-export of the same exception class into catboost.utils namespace
+- `catboost.utils.DataMetaInfo` -- plain result data-class returned by other utils functions
+- `catboost.utils.PATH_TYPES` -- type-tuple constant; LIKELY INTROSPECTION ARTIFACT: type-tuple constant used internally for isinstance checks, not a capability
+- `catboost.utils.Pool` -- re-export of the same Pool class into catboost.utils namespace
+- `catboost.utils.TargetStats` -- plain result data-class returned by other utils functions
+- `catboost.utils.compute_wx_test` -- Generic Wilcoxon-signed-rank significance-test native binding re-exported under two namespaces (utils and eval); not CatBoost-specific -- equivalent to R's own builtin wilcox.test(), out of CatBoost's capability surface.
+- `catboost.utils.contextmanager` -- stdlib re-export; LIKELY INTROSPECTION ARTIFACT: stdlib contextlib.contextmanager leaked into the module namespace via import, not a catboost capability
+- `catboost.utils.defaultdict` -- stdlib re-export; LIKELY INTROSPECTION ARTIFACT: stdlib collections.defaultdict leaked into the module namespace via import, not a catboost capability
+- `catboost.utils.fspath` -- stdlib re-export; LIKELY INTROSPECTION ARTIFACT: stdlib os.fspath leaked into the module namespace via import, not a catboost capability
+- `catboost.utils.pl` -- third-party re-export; LIKELY INTROSPECTION ARTIFACT: third-party polars module leaked into the namespace via a conditional import, not a catboost capability
+- `catboost.utils.polars` -- third-party re-export; LIKELY INTROSPECTION ARTIFACT: third-party polars module leaked into the namespace via a conditional import, not a catboost capability
+- `catboost.utils.reset_trace_backend` -- config setter, no comparable output of its own
+- `flag:--dev-efb-max-buckets` -- Internal `--dev-*` developer/debug flag (undocumented, unstable internal tuning knob for the vendored native trainer, not part of the public capability surface CatBoost documents for either Python or R).
+- `flag:--dev-group-features` -- Internal `--dev-*` developer/debug flag (undocumented, unstable internal tuning knob for the vendored native trainer, not part of the public capability surface CatBoost documents for either Python or R).
+- `flag:--dev-leafwise-approxes` -- Internal `--dev-*` developer/debug flag (undocumented, unstable internal tuning knob for the vendored native trainer, not part of the public capability surface CatBoost documents for either Python or R).
+- `flag:--dev-leafwise-scoring` -- Internal `--dev-*` developer/debug flag (undocumented, unstable internal tuning knob for the vendored native trainer, not part of the public capability surface CatBoost documents for either Python or R).
+- `flag:--dev-max-ctr-complexity-for-border-cache` -- Internal `--dev-*` developer/debug flag (undocumented, unstable internal tuning knob for the vendored native trainer, not part of the public capability surface CatBoost documents for either Python or R).
+- `flag:--dev-max-subset-size-for-build-borders` -- Internal `--dev-*` developer/debug flag (undocumented, unstable internal tuning knob for the vendored native trainer, not part of the public capability surface CatBoost documents for either Python or R).
+- `flag:--dev-score-calc-obj-block-size` -- Internal `--dev-*` developer/debug flag (undocumented, unstable internal tuning knob for the vendored native trainer, not part of the public capability surface CatBoost documents for either Python or R).
+- `flag:--help` -- CLI build/version metadata, not a CatBoost capability (universal flag present on every subcommand; disposition=universal_flag, method=non_capability).
+- `flag:--svnrevision` -- CLI build/version metadata, not a CatBoost capability (universal flag present on every subcommand; disposition=universal_flag, method=non_capability).
 - `param:log_cerr` -- BLOCKED, not green. Python-only convenience args with no catboostr equivalent (no callback/live-plot/stream-redirect mechanism in R). Verified directly: native rejects each with 'Unknown option {name}' (plain_options_helper.cpp:512). See test_params_validation.R.
 - `param:log_cout` -- BLOCKED, not green. Python-only convenience args with no catboostr equivalent (no callback/live-plot/stream-redirect mechanism in R). Verified directly: native rejects each with 'Unknown option {name}' (plain_options_helper.cpp:512). See test_params_validation.R.
-- `param:pinned_memory_size` -- BLOCKED, not green. GPU-only: verified directly that native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for each of these keys on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent exactly (docs/phase-4/P4.8-report.md). See test_params_validation.R for the reproducing assertions.
 - `param:plot` -- BLOCKED, not green. Python-only convenience args with no catboostr equivalent (no callback/live-plot/stream-redirect mechanism in R). Verified directly: native rejects each with 'Unknown option {name}' (plain_options_helper.cpp:512). See test_params_validation.R.
 - `param:plot_file` -- BLOCKED, not green. Python-only convenience args with no catboostr equivalent (no callback/live-plot/stream-redirect mechanism in R). Verified directly: native rejects each with 'Unknown option {name}' (plain_options_helper.cpp:512). See test_params_validation.R.
-- `param:random_score_type` -- BLOCKED, not green. GPU-only: verified directly that native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for each of these keys on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent exactly (docs/phase-4/P4.8-report.md). See test_params_validation.R for the reproducing assertions.
-- `param:scale_pos_weight` -- BLOCKED, not green. Not a flat top-level native option; must be embedded in the loss_function description string (e.g. 'Logloss:scale_pos_weight=1.5'). Verified directly that even embedded correctly (with eval_metric explicitly overridden to a bare 'Logloss'), native still throws 'Logloss metric shouldn't have scale_pos_weight parameter' (catboost/libs/metrics/metric.cpp:6324) -- a native metric-construction bug/limitation in this vendor version, reproducible and documented, not a hand-wave. See test_params_validation.R.
-- `param:silent` -- BLOCKED, not green. Python-only convenience args with no catboostr equivalent (no callback/live-plot/stream-redirect mechanism in R). Verified directly: native rejects each with 'Unknown option {name}' (plain_options_helper.cpp:512). See test_params_validation.R.
-
-### universal_flag (2)
-
-- `flag:--help` -- no note recorded
-- `flag:--svnrevision` -- no note recorded
 
 ## Green rows (224)
 

@@ -492,7 +492,7 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
-    "state": "red",
+    "state": "out_of_scope",
     "tolerance_justification": "BLOCKED, not green. Python-only convenience args with no catboostr equivalent (no callback/live-plot/stream-redirect mechanism in R). Verified directly: native rejects each with 'Unknown option {name}' (plain_options_helper.cpp:512). See test_params_validation.R.",
     "needs_disposition": false,
     "members": [
@@ -515,7 +515,7 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
-    "state": "red",
+    "state": "out_of_scope",
     "tolerance_justification": "BLOCKED, not green. Python-only convenience args with no catboostr equivalent (no callback/live-plot/stream-redirect mechanism in R). Verified directly: native rejects each with 'Unknown option {name}' (plain_options_helper.cpp:512). See test_params_validation.R.",
     "needs_disposition": false,
     "members": [
@@ -840,7 +840,7 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
-    "state": "red",
+    "state": "out_of_scope",
     "tolerance_justification": "BLOCKED, not green. Python-only convenience args with no catboostr equivalent (no callback/live-plot/stream-redirect mechanism in R). Verified directly: native rejects each with 'Unknown option {name}' (plain_options_helper.cpp:512). See test_params_validation.R.",
     "needs_disposition": false,
     "members": [
@@ -863,7 +863,7 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
-    "state": "red",
+    "state": "out_of_scope",
     "tolerance_justification": "BLOCKED, not green. Python-only convenience args with no catboostr equivalent (no callback/live-plot/stream-redirect mechanism in R). Verified directly: native rejects each with 'Unknown option {name}' (plain_options_helper.cpp:512). See test_params_validation.R.",
     "needs_disposition": false,
     "members": [
@@ -1939,7 +1939,7 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
-    "state": "red",
+    "state": "gpu_deferred",
     "tolerance_justification": "BLOCKED, not green. GPU-only: verified directly that native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for each of these keys on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent exactly (docs/phase-4/P4.8-report.md). See test_params_validation.R for the reproducing assertions.",
     "needs_disposition": false,
     "members": [
@@ -2241,7 +2241,7 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
-    "state": "red",
+    "state": "gpu_deferred",
     "tolerance_justification": "BLOCKED, not green. GPU-only: verified directly that native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for each of these keys on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent exactly (docs/phase-4/P4.8-report.md). See test_params_validation.R for the reproducing assertions.",
     "needs_disposition": false,
     "members": [
@@ -2272,7 +2272,7 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
-    "state": "red",
+    "state": "gpu_deferred",
     "tolerance_justification": "BLOCKED, not green. GPU-only: verified directly that native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for each of these keys on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent exactly (docs/phase-4/P4.8-report.md). See test_params_validation.R for the reproducing assertions.",
     "needs_disposition": false,
     "members": [
@@ -2613,7 +2613,7 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
-    "state": "red",
+    "state": "gpu_deferred",
     "tolerance_justification": "BLOCKED, not green. GPU-only: verified directly that native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for each of these keys on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent exactly (docs/phase-4/P4.8-report.md). See test_params_validation.R for the reproducing assertions.",
     "needs_disposition": false,
     "members": [
@@ -2644,7 +2644,7 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
-    "state": "red",
+    "state": "gpu_deferred",
     "tolerance_justification": "BLOCKED, not green. GPU-only: verified directly that native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for each of these keys on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent exactly (docs/phase-4/P4.8-report.md). See test_params_validation.R for the reproducing assertions.",
     "needs_disposition": false,
     "members": [
@@ -3256,7 +3256,7 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
-    "state": "red",
+    "state": "gpu_deferred",
     "tolerance_justification": "BLOCKED, not green. GPU-only: verified directly that native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for each of these keys on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent exactly (docs/phase-4/P4.8-report.md). See test_params_validation.R for the reproducing assertions.",
     "needs_disposition": false,
     "members": [
@@ -4116,7 +4116,7 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": "tests/testthat/test_params_validation.R",
-    "state": "red",
+    "state": "gpu_deferred",
     "tolerance_justification": "BLOCKED, not green. Verified directly: native rejects any non-default fixed_binary_splits value with 'change of option fixed_binary_splits is unimplemented for task type CPU and was not default in previous run' (catboost/private/libs/options/json_helper.h:185). No CPU code path exists to exercise this capability. See test_params_validation.R for the reproducing assertion.",
     "needs_disposition": false,
     "members": [
@@ -4147,8 +4147,8 @@
     "method": "non_capability",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "CLI build/version metadata, not a CatBoost capability (universal flag present on every subcommand; disposition=universal_flag, method=non_capability).",
     "needs_disposition": false,
     "members": [
       {
@@ -4236,8 +4236,8 @@
     "method": "non_capability",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "CLI build/version metadata, not a CatBoost capability (universal flag present on every subcommand; disposition=universal_flag, method=non_capability).",
     "needs_disposition": false,
     "members": [
       {
@@ -7321,8 +7321,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "gpu_deferred",
+    "tolerance_justification": "GPU-only: native rejects any non-default value with 'change of option fixed_binary_splits is unimplemented for task type CPU and was not default in previous run' (catboost/private/libs/options/json_helper.h:185) -- no CPU code path exists to exercise this capability.",
     "needs_disposition": false,
     "members": [
       {
@@ -7426,8 +7426,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Internal `--dev-*` developer/debug flag (undocumented, unstable internal tuning knob for the vendored native trainer, not part of the public capability surface CatBoost documents for either Python or R).",
     "needs_disposition": false,
     "members": [
       {
@@ -7461,8 +7461,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Internal `--dev-*` developer/debug flag (undocumented, unstable internal tuning knob for the vendored native trainer, not part of the public capability surface CatBoost documents for either Python or R).",
     "needs_disposition": false,
     "members": [
       {
@@ -7706,8 +7706,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Internal `--dev-*` developer/debug flag (undocumented, unstable internal tuning knob for the vendored native trainer, not part of the public capability surface CatBoost documents for either Python or R).",
     "needs_disposition": false,
     "members": [
       {
@@ -8021,8 +8021,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Internal `--dev-*` developer/debug flag (undocumented, unstable internal tuning knob for the vendored native trainer, not part of the public capability surface CatBoost documents for either Python or R).",
     "needs_disposition": false,
     "members": [
       {
@@ -9106,8 +9106,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "gpu_deferred",
+    "tolerance_justification": "GPU-only: native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for this key on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent (docs/phase-4/P4.8-report.md) -- already verified directly per closure_overlay.json's existing note.",
     "needs_disposition": false,
     "members": [
       {
@@ -9141,8 +9141,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Internal `--dev-*` developer/debug flag (undocumented, unstable internal tuning knob for the vendored native trainer, not part of the public capability surface CatBoost documents for either Python or R).",
     "needs_disposition": false,
     "members": [
       {
@@ -9176,8 +9176,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Internal `--dev-*` developer/debug flag (undocumented, unstable internal tuning knob for the vendored native trainer, not part of the public capability surface CatBoost documents for either Python or R).",
     "needs_disposition": false,
     "members": [
       {
@@ -9351,8 +9351,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Internal `--dev-*` developer/debug flag (undocumented, unstable internal tuning knob for the vendored native trainer, not part of the public capability surface CatBoost documents for either Python or R).",
     "needs_disposition": false,
     "members": [
       {
@@ -9488,8 +9488,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "gpu_deferred",
+    "tolerance_justification": "GPU-only: native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for this key on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent (docs/phase-4/P4.8-report.md) -- already verified directly per closure_overlay.json's existing note.",
     "needs_disposition": false,
     "members": [
       {
@@ -9523,8 +9523,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "gpu_deferred",
+    "tolerance_justification": "GPU-only: native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for this key on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent (docs/phase-4/P4.8-report.md) -- already verified directly per closure_overlay.json's existing note.",
     "needs_disposition": false,
     "members": [
       {
@@ -9558,8 +9558,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "gpu_deferred",
+    "tolerance_justification": "GPU-only: native throws 'Environment for task type [GPU] not found' (catboost/libs/train_lib/trainer_env.cpp:9) for this key on this CPU-only host. No CUDA device is available (design spec 9.1), matching the mode:model-based-eval precedent (docs/phase-4/P4.8-report.md) -- already verified directly per closure_overlay.json's existing note.",
     "needs_disposition": false,
     "members": [
       {
@@ -11758,8 +11758,8 @@
     "method": "error_class",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Legacy typo alias for catboost.CatBoostError (lowercase 'b'); dead re-export kept only for backward compatibility, not a distinct capability.",
     "needs_disposition": false,
     "members": [
       {
@@ -12398,8 +12398,8 @@
     "method": "roundtrip",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Converts between Python-only sklearn-style OOP wrapper subclasses (CatBoostClassifier/Ranker/Regressor); R has a single unified model representation with no wrapper-type distinction to convert between.",
     "needs_disposition": false,
     "members": [
       {
@@ -12422,8 +12422,8 @@
     "method": "roundtrip",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Converts between Python-only sklearn-style OOP wrapper subclasses (CatBoostClassifier/Ranker/Regressor); R has a single unified model representation with no wrapper-type distinction to convert between.",
     "needs_disposition": false,
     "members": [
       {
@@ -12446,8 +12446,8 @@
     "method": "roundtrip",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Converts between Python-only sklearn-style OOP wrapper subclasses (CatBoostClassifier/Ranker/Regressor); R has a single unified model representation with no wrapper-type distinction to convert between.",
     "needs_disposition": false,
     "members": [
       {
@@ -12614,8 +12614,8 @@
     "method": "roundtrip",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Python object-lifecycle protocol (explicit deep-copy / 'has this been fit yet' check) with no meaning distinct from ordinary R value semantics: R model objects are plain lists under copy-on-modify semantics, and any R variable either holds a fitted model or doesn't -- there is no unfitted placeholder estimator object to query.",
     "needs_disposition": false,
     "members": [
       {
@@ -13046,8 +13046,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "sklearn BaseEstimator/estimator-check protocol method with no CatBoost-specific computation of its own (get_params/set_params: core.py's literal **kwargs passthrough contract; score: sklearn scorer contract calling already-tested predict()+metric; get_sklearn_estimator_xfail_checks: sklearn test-suite scaffolding); R has no generic estimator object to satisfy.",
     "needs_disposition": false,
     "members": [
       {
@@ -13094,8 +13094,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "sklearn BaseEstimator/estimator-check protocol method with no CatBoost-specific computation of its own (get_params/set_params: core.py's literal **kwargs passthrough contract; score: sklearn scorer contract calling already-tested predict()+metric; get_sklearn_estimator_xfail_checks: sklearn test-suite scaffolding); R has no generic estimator object to satisfy.",
     "needs_disposition": false,
     "members": [
       {
@@ -13238,8 +13238,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Python object-lifecycle protocol (explicit deep-copy / 'has this been fit yet' check) with no meaning distinct from ordinary R value semantics: R model objects are plain lists under copy-on-modify semantics, and any R variable either holds a fitted model or doesn't -- there is no unfitted placeholder estimator object to query.",
     "needs_disposition": false,
     "members": [
       {
@@ -13550,8 +13550,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "sklearn BaseEstimator/estimator-check protocol method with no CatBoost-specific computation of its own (get_params/set_params: core.py's literal **kwargs passthrough contract; score: sklearn scorer contract calling already-tested predict()+metric; get_sklearn_estimator_xfail_checks: sklearn test-suite scaffolding); R has no generic estimator object to satisfy.",
     "needs_disposition": false,
     "members": [
       {
@@ -13766,8 +13766,8 @@
     "method": "roundtrip",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Python object-lifecycle protocol (explicit deep-copy / 'has this been fit yet' check) with no meaning distinct from ordinary R value semantics: R model objects are plain lists under copy-on-modify semantics, and any R variable either holds a fitted model or doesn't -- there is no unfitted placeholder estimator object to query.",
     "needs_disposition": false,
     "members": [
       {
@@ -14198,8 +14198,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "sklearn BaseEstimator/estimator-check protocol method with no CatBoost-specific computation of its own (get_params/set_params: core.py's literal **kwargs passthrough contract; score: sklearn scorer contract calling already-tested predict()+metric; get_sklearn_estimator_xfail_checks: sklearn test-suite scaffolding); R has no generic estimator object to satisfy.",
     "needs_disposition": false,
     "members": [
       {
@@ -14270,8 +14270,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "sklearn BaseEstimator/estimator-check protocol method with no CatBoost-specific computation of its own (get_params/set_params: core.py's literal **kwargs passthrough contract; score: sklearn scorer contract calling already-tested predict()+metric; get_sklearn_estimator_xfail_checks: sklearn test-suite scaffolding); R has no generic estimator object to satisfy.",
     "needs_disposition": false,
     "members": [
       {
@@ -14414,8 +14414,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Python object-lifecycle protocol (explicit deep-copy / 'has this been fit yet' check) with no meaning distinct from ordinary R value semantics: R model objects are plain lists under copy-on-modify semantics, and any R variable either holds a fitted model or doesn't -- there is no unfitted placeholder estimator object to query.",
     "needs_disposition": false,
     "members": [
       {
@@ -14702,8 +14702,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "sklearn BaseEstimator/estimator-check protocol method with no CatBoost-specific computation of its own (get_params/set_params: core.py's literal **kwargs passthrough contract; score: sklearn scorer contract calling already-tested predict()+metric; get_sklearn_estimator_xfail_checks: sklearn test-suite scaffolding); R has no generic estimator object to satisfy.",
     "needs_disposition": false,
     "members": [
       {
@@ -14798,8 +14798,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "sklearn BaseEstimator/estimator-check protocol method with no CatBoost-specific computation of its own (get_params/set_params: core.py's literal **kwargs passthrough contract; score: sklearn scorer contract calling already-tested predict()+metric; get_sklearn_estimator_xfail_checks: sklearn test-suite scaffolding); R has no generic estimator object to satisfy.",
     "needs_disposition": false,
     "members": [
       {
@@ -15086,8 +15086,8 @@
     "method": "roundtrip",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Python object-lifecycle protocol (explicit deep-copy / 'has this been fit yet' check) with no meaning distinct from ordinary R value semantics: R model objects are plain lists under copy-on-modify semantics, and any R variable either holds a fitted model or doesn't -- there is no unfitted placeholder estimator object to query.",
     "needs_disposition": false,
     "members": [
       {
@@ -15518,8 +15518,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "sklearn BaseEstimator/estimator-check protocol method with no CatBoost-specific computation of its own (get_params/set_params: core.py's literal **kwargs passthrough contract; score: sklearn scorer contract calling already-tested predict()+metric; get_sklearn_estimator_xfail_checks: sklearn test-suite scaffolding); R has no generic estimator object to satisfy.",
     "needs_disposition": false,
     "members": [
       {
@@ -15566,8 +15566,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "sklearn BaseEstimator/estimator-check protocol method with no CatBoost-specific computation of its own (get_params/set_params: core.py's literal **kwargs passthrough contract; score: sklearn scorer contract calling already-tested predict()+metric; get_sklearn_estimator_xfail_checks: sklearn test-suite scaffolding); R has no generic estimator object to satisfy.",
     "needs_disposition": false,
     "members": [
       {
@@ -15710,8 +15710,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Python object-lifecycle protocol (explicit deep-copy / 'has this been fit yet' check) with no meaning distinct from ordinary R value semantics: R model objects are plain lists under copy-on-modify semantics, and any R variable either holds a fitted model or doesn't -- there is no unfitted placeholder estimator object to query.",
     "needs_disposition": false,
     "members": [
       {
@@ -15950,8 +15950,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "sklearn BaseEstimator/estimator-check protocol method with no CatBoost-specific computation of its own (get_params/set_params: core.py's literal **kwargs passthrough contract; score: sklearn scorer contract calling already-tested predict()+metric; get_sklearn_estimator_xfail_checks: sklearn test-suite scaffolding); R has no generic estimator object to satisfy.",
     "needs_disposition": false,
     "members": [
       {
@@ -16046,8 +16046,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "sklearn BaseEstimator/estimator-check protocol method with no CatBoost-specific computation of its own (get_params/set_params: core.py's literal **kwargs passthrough contract; score: sklearn scorer contract calling already-tested predict()+metric; get_sklearn_estimator_xfail_checks: sklearn test-suite scaffolding); R has no generic estimator object to satisfy.",
     "needs_disposition": false,
     "members": [
       {
@@ -16262,8 +16262,8 @@
     "method": "roundtrip",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Python object-lifecycle protocol (explicit deep-copy / 'has this been fit yet' check) with no meaning distinct from ordinary R value semantics: R model objects are plain lists under copy-on-modify semantics, and any R variable either holds a fitted model or doesn't -- there is no unfitted placeholder estimator object to query.",
     "needs_disposition": false,
     "members": [
       {
@@ -16694,8 +16694,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "sklearn BaseEstimator/estimator-check protocol method with no CatBoost-specific computation of its own (get_params/set_params: core.py's literal **kwargs passthrough contract; score: sklearn scorer contract calling already-tested predict()+metric; get_sklearn_estimator_xfail_checks: sklearn test-suite scaffolding); R has no generic estimator object to satisfy.",
     "needs_disposition": false,
     "members": [
       {
@@ -16742,8 +16742,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "sklearn BaseEstimator/estimator-check protocol method with no CatBoost-specific computation of its own (get_params/set_params: core.py's literal **kwargs passthrough contract; score: sklearn scorer contract calling already-tested predict()+metric; get_sklearn_estimator_xfail_checks: sklearn test-suite scaffolding); R has no generic estimator object to satisfy.",
     "needs_disposition": false,
     "members": [
       {
@@ -16886,8 +16886,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Python object-lifecycle protocol (explicit deep-copy / 'has this been fit yet' check) with no meaning distinct from ordinary R value semantics: R model objects are plain lists under copy-on-modify semantics, and any R variable either holds a fitted model or doesn't -- there is no unfitted placeholder estimator object to query.",
     "needs_disposition": false,
     "members": [
       {
@@ -17126,8 +17126,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "sklearn BaseEstimator/estimator-check protocol method with no CatBoost-specific computation of its own (get_params/set_params: core.py's literal **kwargs passthrough contract; score: sklearn scorer contract calling already-tested predict()+metric; get_sklearn_estimator_xfail_checks: sklearn test-suite scaffolding); R has no generic estimator object to satisfy.",
     "needs_disposition": false,
     "members": [
       {
@@ -17222,8 +17222,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "sklearn BaseEstimator/estimator-check protocol method with no CatBoost-specific computation of its own (get_params/set_params: core.py's literal **kwargs passthrough contract; score: sklearn scorer contract calling already-tested predict()+metric; get_sklearn_estimator_xfail_checks: sklearn test-suite scaffolding); R has no generic estimator object to satisfy.",
     "needs_disposition": false,
     "members": [
       {
@@ -18134,8 +18134,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Imported Python stdlib/3rd-party symbol picked up by the introspector under a catboost.* namespace re-export -- not a CatBoost API symbol at all.",
     "needs_disposition": false,
     "members": [
       {
@@ -18158,8 +18158,8 @@
     "method": "error_class",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Literal re-export of an already-counted top-level class/native struct into a secondary namespace (see utils.py's `from .core import ...`); identical object, not a distinct capability.",
     "needs_disposition": false,
     "members": [
       {
@@ -18182,8 +18182,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Literal re-export of an already-counted top-level class/native struct into a secondary namespace (see utils.py's `from .core import ...`); identical object, not a distinct capability.",
     "needs_disposition": false,
     "members": [
       {
@@ -18206,8 +18206,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Imported Python stdlib/3rd-party symbol picked up by the introspector under a catboost.* namespace re-export -- not a CatBoost API symbol at all.",
     "needs_disposition": false,
     "members": [
       {
@@ -18230,8 +18230,8 @@
     "method": "roundtrip",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Literal re-export of an already-counted top-level class/native struct into a secondary namespace (see utils.py's `from .core import ...`); identical object, not a distinct capability.",
     "needs_disposition": false,
     "members": [
       {
@@ -18254,8 +18254,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Literal re-export of an already-counted top-level class/native struct into a secondary namespace (see utils.py's `from .core import ...`); identical object, not a distinct capability.",
     "needs_disposition": false,
     "members": [
       {
@@ -18326,8 +18326,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Generic Wilcoxon-signed-rank significance-test native binding re-exported under two namespaces (utils and eval); not CatBoost-specific -- equivalent to R's own builtin wilcox.test(), out of CatBoost's capability surface.",
     "needs_disposition": false,
     "members": [
       {
@@ -18350,8 +18350,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Imported Python stdlib/3rd-party symbol picked up by the introspector under a catboost.* namespace re-export -- not a CatBoost API symbol at all.",
     "needs_disposition": false,
     "members": [
       {
@@ -18422,8 +18422,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Imported Python stdlib/3rd-party symbol picked up by the introspector under a catboost.* namespace re-export -- not a CatBoost API symbol at all.",
     "needs_disposition": false,
     "members": [
       {
@@ -18470,8 +18470,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Imported Python stdlib/3rd-party symbol picked up by the introspector under a catboost.* namespace re-export -- not a CatBoost API symbol at all.",
     "needs_disposition": false,
     "members": [
       {
@@ -18566,8 +18566,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "gpu_deferred",
+    "tolerance_justification": "GPU-only: reports the count of CUDA devices; no CUDA device is available on this host (design spec 9.1) -- explicit bucket-B candidate per ticket.",
     "needs_disposition": false,
     "members": [
       {
@@ -18614,8 +18614,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Imported Python stdlib/3rd-party symbol picked up by the introspector under a catboost.* namespace re-export -- not a CatBoost API symbol at all.",
     "needs_disposition": false,
     "members": [
       {
@@ -18638,8 +18638,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Imported Python stdlib/3rd-party symbol picked up by the introspector under a catboost.* namespace re-export -- not a CatBoost API symbol at all.",
     "needs_disposition": false,
     "members": [
       {
@@ -18710,8 +18710,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Internal Python-side logging/tracing backend configuration knob (instrumentation plumbing); no native capability or output changes, no R analogue needed (R already has its own message()/sink() mechanisms).",
     "needs_disposition": false,
     "members": [
       {
@@ -18758,8 +18758,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.",
     "needs_disposition": false,
     "members": [
       {
@@ -18782,8 +18782,8 @@
     "method": "roundtrip",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.",
     "needs_disposition": false,
     "members": [
       {
@@ -18806,8 +18806,8 @@
     "method": "error_class",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.",
     "needs_disposition": false,
     "members": [
       {
@@ -18830,8 +18830,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.",
     "needs_disposition": false,
     "members": [
       {
@@ -18854,8 +18854,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.",
     "needs_disposition": false,
     "members": [
       {
@@ -18878,8 +18878,8 @@
     "method": "enum_member",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.",
     "needs_disposition": false,
     "members": [
       {
@@ -18900,8 +18900,8 @@
     "method": "enum_member",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.",
     "needs_disposition": false,
     "members": [
       {
@@ -18922,8 +18922,8 @@
     "method": "enum_member",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.",
     "needs_disposition": false,
     "members": [
       {
@@ -18944,8 +18944,8 @@
     "method": "enum_member",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.",
     "needs_disposition": false,
     "members": [
       {
@@ -18966,8 +18966,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.",
     "needs_disposition": false,
     "members": [
       {
@@ -18990,8 +18990,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.",
     "needs_disposition": false,
     "members": [
       {
@@ -19014,8 +19014,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.",
     "needs_disposition": false,
     "members": [
       {
@@ -19038,8 +19038,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.",
     "needs_disposition": false,
     "members": [
       {
@@ -19062,8 +19062,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.",
     "needs_disposition": false,
     "members": [
       {
@@ -19086,8 +19086,8 @@
     "method": "enum_member",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.",
     "needs_disposition": false,
     "members": [
       {
@@ -19108,8 +19108,8 @@
     "method": "enum_member",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.",
     "needs_disposition": false,
     "members": [
       {
@@ -19130,8 +19130,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.",
     "needs_disposition": false,
     "members": [
       {
@@ -19154,8 +19154,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.",
     "needs_disposition": false,
     "members": [
       {
@@ -19178,8 +19178,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.",
     "needs_disposition": false,
     "members": [
       {
@@ -19202,8 +19202,8 @@
     "method": "enum_member",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.",
     "needs_disposition": false,
     "members": [
       {
@@ -19224,8 +19224,8 @@
     "method": "enum_member",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.",
     "needs_disposition": false,
     "members": [
       {
@@ -19246,8 +19246,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.",
     "needs_disposition": false,
     "members": [
       {
@@ -19270,8 +19270,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.",
     "needs_disposition": false,
     "members": [
       {
@@ -19294,8 +19294,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Generic Wilcoxon-signed-rank significance-test native binding re-exported under two namespaces (utils and eval); not CatBoost-specific -- equivalent to R's own builtin wilcox.test(), out of CatBoost's capability surface.",
     "needs_disposition": false,
     "members": [
       {
@@ -19318,8 +19318,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.",
     "needs_disposition": false,
     "members": [
       {
@@ -19342,8 +19342,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.",
     "needs_disposition": false,
     "members": [
       {
@@ -19366,8 +19366,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.",
     "needs_disposition": false,
     "members": [
       {
@@ -19390,8 +19390,8 @@
     "method": "roundtrip",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.",
     "needs_disposition": false,
     "members": [
       {
@@ -19414,8 +19414,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost.eval is a pure-Python orchestration/statistics harness (CatboostEvaluation re-fits catboost.CatBoost repeatedly, duplicating the capability already covered+tested by R's catboost.eval_feature()/catboost.model_based_eval()); calc_bootstrap_ci_for_mean is plain numpy bootstrap with no CatBoost logic; calc_wilcoxon_test is a 1-line pass-through to native compute_wx_test; the rest are internal bookkeeping/plotting/stdlib helpers for that same orchestration.",
     "needs_disposition": false,
     "members": [
       {
@@ -19438,8 +19438,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Imported Python stdlib/3rd-party symbol picked up by the introspector under a catboost.* namespace re-export -- not a CatBoost API symbol at all.",
     "needs_disposition": false,
     "members": [
       {
@@ -19462,8 +19462,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Demo-dataset download/cache helper (bundled tutorial dataset mirror), unrelated to CatBoost training/inference; reproducing dataset mirroring in R would be out-of-scope busywork, not a capability gap.",
     "needs_disposition": false,
     "members": [
       {
@@ -19486,8 +19486,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Demo-dataset download/cache helper (bundled tutorial dataset mirror), unrelated to CatBoost training/inference; reproducing dataset mirroring in R would be out-of-scope busywork, not a capability gap.",
     "needs_disposition": false,
     "members": [
       {
@@ -19510,8 +19510,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Demo-dataset download/cache helper (bundled tutorial dataset mirror), unrelated to CatBoost training/inference; reproducing dataset mirroring in R would be out-of-scope busywork, not a capability gap.",
     "needs_disposition": false,
     "members": [
       {
@@ -19534,8 +19534,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Imported Python stdlib/3rd-party symbol picked up by the introspector under a catboost.* namespace re-export -- not a CatBoost API symbol at all.",
     "needs_disposition": false,
     "members": [
       {
@@ -19558,8 +19558,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Demo-dataset download/cache helper (bundled tutorial dataset mirror), unrelated to CatBoost training/inference; reproducing dataset mirroring in R would be out-of-scope busywork, not a capability gap.",
     "needs_disposition": false,
     "members": [
       {
@@ -19582,8 +19582,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Demo-dataset download/cache helper (bundled tutorial dataset mirror), unrelated to CatBoost training/inference; reproducing dataset mirroring in R would be out-of-scope busywork, not a capability gap.",
     "needs_disposition": false,
     "members": [
       {
@@ -19606,8 +19606,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Imported Python stdlib/3rd-party symbol picked up by the introspector under a catboost.* namespace re-export -- not a CatBoost API symbol at all.",
     "needs_disposition": false,
     "members": [
       {
@@ -19630,8 +19630,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Demo-dataset download/cache helper (bundled tutorial dataset mirror), unrelated to CatBoost training/inference; reproducing dataset mirroring in R would be out-of-scope busywork, not a capability gap.",
     "needs_disposition": false,
     "members": [
       {
@@ -19654,8 +19654,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Demo-dataset download/cache helper (bundled tutorial dataset mirror), unrelated to CatBoost training/inference; reproducing dataset mirroring in R would be out-of-scope busywork, not a capability gap.",
     "needs_disposition": false,
     "members": [
       {
@@ -19678,8 +19678,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Demo-dataset download/cache helper (bundled tutorial dataset mirror), unrelated to CatBoost training/inference; reproducing dataset mirroring in R would be out-of-scope busywork, not a capability gap.",
     "needs_disposition": false,
     "members": [
       {
@@ -19702,8 +19702,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Demo-dataset download/cache helper (bundled tutorial dataset mirror), unrelated to CatBoost training/inference; reproducing dataset mirroring in R would be out-of-scope busywork, not a capability gap.",
     "needs_disposition": false,
     "members": [
       {
@@ -19726,8 +19726,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Demo-dataset download/cache helper (bundled tutorial dataset mirror), unrelated to CatBoost training/inference; reproducing dataset mirroring in R would be out-of-scope busywork, not a capability gap.",
     "needs_disposition": false,
     "members": [
       {
@@ -19750,8 +19750,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Demo-dataset download/cache helper (bundled tutorial dataset mirror), unrelated to CatBoost training/inference; reproducing dataset mirroring in R would be out-of-scope busywork, not a capability gap.",
     "needs_disposition": false,
     "members": [
       {
@@ -19774,8 +19774,8 @@
     "method": "elementwise",
     "tolerance": 1e-12,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "Demo-dataset download/cache helper (bundled tutorial dataset mirror), unrelated to CatBoost training/inference; reproducing dataset mirroring in R would be out-of-scope busywork, not a capability gap.",
     "needs_disposition": false,
     "members": [
       {
@@ -20182,7 +20182,7 @@
     "method": "elementwise",
     "tolerance": 1e-09,
     "test_id": "tests/testthat/test_model_based_eval.R",
-    "state": "red",
+    "state": "gpu_deferred",
     "tolerance_justification": "BLOCKED, not green. catboost.model_based_eval() is implemented in process over the same core entry point the CLI mode drives (ModelBasedEval, catboost/libs/train_lib/train_model.h:147), but the mode is GPU-only: the CPU trainer refuses it (train_model.cpp:942) and PlainJsonToOptions only maps its options when task_type is GPU (plain_options_helper.cpp:394). No CUDA device is available to this project (design spec 9.1), and the pinned CLI oracle itself dies with 'CUDA error 35: CUDA driver version is insufficient' on this host, so no numbers exist on either side to compare. The declared CLI tolerance (relative 1e-9, spec 4.3, never bit-exact) stands but is unexercised. Per spec 4.4 a skipped test never counts as green, so this row stays red. tests/testthat/test_model_based_eval.R covers everything reachable without CUDA (option pipeline, dataset load, feature-name/range resolution, ignored-feature guards, and the specific GPU-requested-but-unavailable error). See docs/phase-4/P4.8-report.md.",
     "needs_disposition": false,
     "members": [

@@ -2490,5 +2490,139 @@
     "test_id": "tests/testthat/test_roc_curve.R",
     "tolerance": 1e-12,
     "tolerance_justification": "Python fit(X, y) positional data args; R equivalent is learn_pool/test_pool (see catboost.load_pool), exercised by every training test in the suite."
+  },
+  "flag:--learn-set/-f": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_io_flag_coverage.R",
+    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): already exercised, just not linked -- the file's own live CLI invocation passes '--learn-set POOL_PATH' (line 70) alongside catboost.train(pool, ...) on the same fixture; this is the fit-family learn-set flag every fit-mode CLI oracle comparison already requires."
+  },
+  "flag:--test-set/-t": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_io_flag_coverage.R",
+    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): already exercised, just not linked -- the file passes 'test_pool = pool' to catboost.train() (line 52) and '-t POOL_PATH' to the CLI (line 86), the R/CLI equivalents of the same overfitting-detector test set."
+  },
+  "flag:--tree-count-limit": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_predict_flag_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): new live differential test: fits one model via the CLI, loads it in R, and compares catboost.predict(..., ntree_end = 5) against a live 'calc --tree-count-limit 5' run on the identical model file (CLI --help: 'limit count of used trees', functionally identical to ntree_end). Max abs diff observed ~5e-11 at tolerance 1e-6."
+  },
+  "flag:--prediction-type": {
+    "state": "green",
+    "test_id": "tests/testthat/test_cli_predict_flag_coverage.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): new live differential test at a non-default value (existing suite only ever exercised the default RawFormulaVal): loads one CLI-fit model in R and compares catboost.predict(..., prediction_type = 'Probability') against a live 'calc --prediction-type Probability' run on the same model file. Max abs diff observed ~5e-11 at tolerance 1e-6."
+  },
+  "flag:--fstr-type": {
+    "state": "green",
+    "test_id": "tests/testthat/test_get_feature_importance_classes.R",
+    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): fstr_type is a pure alias for catboost.get_feature_importance()'s already-tested 'type' argument (code-verified, R/catboost.R:4536-4538: 'if (!is.null(fstr_type)) type <- fstr_type'); the underlying capability it selects is exercised against the Python oracle by this file's type = 'FeatureImportance' calls (and other type values elsewhere in the suite), so the alias itself needed only this code-path citation, not a new fixture."
+  },
+  "flag:--tmp-dir": {
+    "state": "green",
+    "test_id": "tests/testthat/test_eval_metrics.R",
+    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): tmp_dir is a real, wired catboost.eval_metrics() argument (defaults to tempdir(), passed straight through to CatBoostEvalMetrics_R's tmpDirParam); every existing eval_metrics test already exercises this code path at its default value. Same default-value-exercised disposition already used for --label-border/-b in the original P10.A sweep -- the flag only controls where non-additive-metric scratch files land, not the numeric result, so a non-default value would not produce a differential-comparable output."
+  },
+  "flag:--features-selection-result-path": {
+    "state": "green",
+    "test_id": "tests/testthat/test_select_features.R",
+    "tolerance": 1e-12,
+    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): R's catboost.select_features() returns the exact selection-summary JSON payload in-process (result$summary, R/catboost.R ~3805) that the CLI would otherwise serialize to --features-selection-result-path; the content is already verified bit-for-bit against the Python oracle by test_select_features.R (tolerance 1e-12, same native NCB::SelectFeatures entry point as the CLI). Only the file-vs-return-value delivery mechanism differs, matching the precedent already used to close --feature-eval-output-file's sibling family this round."
+  },
+  "flag:--features-selection-grouping": {
+    "state": "green",
+    "test_id": "tests/testthat/test_select_features.R",
+    "tolerance": 1e-12,
+    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): default-value-exercised (same disposition as --label-border/-b): every existing catboost.select_features() call implicitly uses the vendor default grouping ('ByFeature'), which is what test_select_features.R already verifies against the Python oracle. The non-default 'ByTags' value is blocked by the same feature-tags gap documented for --features-tags-for-select/--num-features-tags-to-select below."
+  },
+  "flag:--feature-eval-output-file": {
+    "state": "green",
+    "test_id": "tests/testthat/test_eval_feature.R",
+    "tolerance": 1e-09,
+    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): already exercised, just not linked -- tools/oracle/cli/gen_eval_feature_fixture.sh (line 57) passes '--feature-eval-output-file \"${out_file}\"' to generate the exact committed oracle fixture (tests/fixtures/oracle-cli/eval_feature_summary.tsv) that test_eval_feature.R compares R's catboost.eval_feature() output against, at relative tolerance 1e-9 per spec section 4.3."
+  },
+  "flag:--input-borders-file": {
+    "state": "red",
+    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): not exposed in R/C++ bridge (code-verified): catboost.from_file()'s full parameter list (R/catboost.R:171-173) and CatBoostCreateFromFile_R's 10-argument C signature (pool_path, cd_path, pairs_path, graph_path, feature_names_path, delimiter, num_vector_delimiter, has_header, thread_count, verbose) have no borders-file argument at all -- there is no way to load a pool with precomputed float-feature borders from an external file in R."
+  },
+  "flag:--feature-names-path": {
+    "state": "red",
+    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): wired only on the internal, unexported catboost.from_file() helper (R/catboost.R:172, feature_names_path -> CatBoostCreateFromFile_R); verified absent from NAMESPACE (grep found zero 'from_file' exports) and absent from the public catboost.load_pool()'s formal arguments -- not reachable from the package's public API surface."
+  },
+  "flag:--eval-file": {
+    "state": "red",
+    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): accepted as a params-list key ('eval_file_name', R/catboost.R:3091) but empirically produces no output file: probed catboost.train(pool, test_pool = pool, params = list(..., eval_file_name = <path>)) -- train succeeds, file never gets created. Same 'accepted but produces no output file, root cause not isolated' bucket as --fstr-file/--fstr-internal-file from the original P10.A sweep. (Distinct from the CLI's -t/--test-set, which R's test_pool argument already covers -- see --learn-set/--test-set closures above.)"
+  },
+  "flag:--output-columns": {
+    "state": "red",
+    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): no explicit-flag equivalent (code + empirical): catboost.train() accepts 'output_columns' as a params-list key (R/catboost.R:3114) with no observable effect (probed: train succeeds silently), and catboost.predict()/staged_predict()/etc. return raw R objects/matrices directly rather than a formatted text file with selectable columns -- the underlying capability (choosing which columns a text prediction file contains) has no R-side surface because R never writes such a file."
+  },
+  "flag:--set-metadata-from-freeargs": {
+    "state": "red",
+    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): no explicit-flag equivalent: this flag is a CLI argument-parsing convenience (treating positional freeargs as key/value metadata pairs) that has no meaning in an R function call, which has no 'free args' concept. The underlying capability -- setting model metadata -- is exposed via catboost.set_metadata()/catboost.get_metadata() (R/catboost.R:4777-4793) and the params-list 'metadata' key (R/catboost.R:2689), just not via this CLI-specific syntax."
+  },
+  "flag:--output-path/-o": {
+    "state": "red",
+    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): no explicit-flag equivalent across any of its 7 owning modes (code-verified): calc/fstr/ostr/eval-metrics/model-sum/roc all return in-process R objects rather than writing a result file to a caller-chosen path. catboost.dataset_statistics() (R/catboost.R:1346-1350) is the one owner that does use this exact write-then-read-back mechanism internally (already exercised by test_dataset_statistics.R), but via a hardcoded tempfile(), not a user-settable argument -- so the flag's 'choose the output path' capability itself is still unexposed."
+  },
+  "flag:--yt-annotations": {
+    "state": "red",
+    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): not applicable to R (verified via CLI --help: 'annotations to attach to all YT operations'): a Yandex distributed-cluster (YT) scheduling feature. This R package has no distributed/YT execution surface at all, so there is nothing for this flag to attach annotations to."
+  },
+  "flag:--binary-classification-threshold": {
+    "state": "red",
+    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): not exposed in R/C++ bridge (code-verified): CatBoostPrepareEval_R's full 5-argument signature (src/catboostr.cpp:2728 -- approx, prediction_type, loss_function, column_count, thread_count) has no threshold argument; catboost.predict()'s prediction_type = 'Class' path has no way to override the classification threshold."
+  },
+  "flag:--blending-expression": {
+    "state": "red",
+    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): not exposed (code-verified): no R function accepts a raw-formula-value blending expression; catboost.sum_models() (R/catboost.R:4096) combines whole models via ctr_merge_policy/weights, not per-formula algebraic expressions, and no other R entry point references 'blend'."
+  },
+  "flag:--shap-calc-type": {
+    "state": "red",
+    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): mixed, deferred: wired on the select-features side (catboost.select_features's shap_calc_type argument, R/catboost.R:3769/3799-3800, feeds fit_params$shap_calc_type) but never exercised at a non-default value against either oracle this round -- closing it needs a new fixture with shap_calc_type != 'Regular' (the existing test_select_features.R fixture is Python-oracle-generated and does not vary it). On the fstr side, catboost.get_feature_importance() has no shap_calc_type parameter at all (checked its full formal argument list, R/catboost.R:4535) -- not exposed there."
+  },
+  "flag:--result-dir": {
+    "state": "red",
+    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): not exposed as an independent argument (code-verified): CatBoostEvalMetrics_R does take a resultDirParam (src/catboostr.cpp:3294, used at :3375 for plotCalcer.SaveResult) but catboost.eval_metrics() (R/catboost.R:4941) hardwires it to the fitted model's own 'train_dir' params entry (defaulting to 'catboost_info'), not a user-settable argument -- there is no way to point it anywhere else."
+  },
+  "flag:--block-size": {
+    "state": "red",
+    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): not exposed in R/C++ bridge (code-verified): CatBoostEvalMetrics_R's full 9-argument signature (src/catboostr.cpp:3285-3294 -- model, pool, metrics, treeCountStart, treeCountEnd, evalPeriod, threadCount, tmpDir, resultDir) has no compute-block-size argument at all."
+  },
+  "flag:--save-stats": {
+    "state": "red",
+    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): no user-facing toggle (code-verified): CatBoostEvalMetrics_R unconditionally calls plotCalcer.SaveResult(..., /*saveStats=*/true) (src/catboostr.cpp:3375) -- stats are always saved, with no R-level argument to disable it, so the flag has no two-state surface to test a difference against."
+  },
+  "flag:--calc-on-parts": {
+    "state": "red",
+    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): not exposed in R/C++ bridge (code-verified): same CatBoostEvalMetrics_R 9-argument signature as --block-size above has no calc-on-parts argument."
+  },
+  "flag:--processors-usage-output-file": {
+    "state": "red",
+    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): GPU-only, no CUDA device (matches mode:model-based-eval precedent from the original P10.A sweep): confirmed via CLI --help text -- 'processors usage summary ... collected on GPU only'."
+  },
+  "flag:--timesplit-quantile": {
+    "state": "red",
+    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): wired (code-verified: catboost.eval_feature's timesplit_quantile argument, R/catboost.R:3900, default 0.5, passed through to the native .Call at :3938) but only takes effect under eval_mode = 'TimeSplit', which the existing committed oracle-cli fixture (tests/fixtures/oracle-cli/eval_feature_summary.tsv, generated by gen_eval_feature_fixture.sh with --feature-eval-mode OneVsAll) does not cover -- closing it needs a new TimeSplit-mode fixture variant, deferred."
+  },
+  "flag:--features-tags-for-select": {
+    "state": "red",
+    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): explicitly documented as unsupported (R/catboost.R:3693-3697, catboost.select_features roxygen doc): 'Feature selection by feature tags ... is not supported: catboost.load_pool has no feature-tags argument, so an R pool never carries the tags that grouping selects over.'"
+  },
+  "flag:--num-features-tags-to-select": {
+    "state": "red",
+    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): explicitly documented as unsupported, same root cause as --features-tags-for-select above (R/catboost.R:3693-3697): requires pool-level feature tags, which catboost.load_pool() cannot carry."
+  },
+  "flag:--input": {
+    "state": "red",
+    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): mode unreachable from R (see mode:dump-options below), so this mode-specific flag is moot: no R entry point invokes dump-options at all, with or without an --input params file."
+  },
+  "flag:--output": {
+    "state": "red",
+    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): mode unreachable from R (see mode:dump-options below), same reasoning as --input above."
+  },
+  "mode:dump-options": {
+    "state": "red",
+    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): no R equivalent (code-verified): dump-options resolves and writes a fully-merged, pre-fit option set to a file without training a model. The closest R analog, catboost.get_plain_params() (R/catboost.R:4753), requires an already-fitted model handle and returns an in-memory list -- it cannot resolve options ahead of a fit run or write them to a file. No R function shells out to or reimplements this CLI mode."
   }
 }

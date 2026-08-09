@@ -48,6 +48,33 @@ struct TRTrainCallbacksContext {
     // Protected for the descriptor's lifetime simply by being a live
     // argument of the enclosing CatBoostFit_R .Call() frame.
     SEXP CallbacksParam = R_NilValue;
+
+    // .catboost_run_train_callbacks, resolved ONCE by
+    // BuildTrainCallbacksDescriptor while still on R's real main thread --
+    // i.e. before TRCallbackBridge::Run() ever spawns the background
+    // training thread. Per-iteration dispatch (RTrainAfterIteration) then
+    // only ever calls this already-resolved function via R_tryEval, never
+    // repeating the R_FindNamespace/Rf_eval lookup itself. Doing that lookup
+    // per iteration would run it from inside TRCallbackBridge::Call()'s
+    // action, which DOES execute on the main thread but with no setjmp
+    // frame of its own around it (see r_train_callbacks.cpp) -- a raw
+    // Rf_eval() error there would longjmp straight out of
+    // TRCallbackBridge::DrainLoop(), skipping TRCallbackBridge::Run()'s
+    // `background.join()` and leaving the still-running background training
+    // thread orphaned instead of unwinding cleanly the way R_tryEval-guarded
+    // errors already do.
+    //
+    // R_NilValue until resolved; protected via R_PreserveObject for the
+    // context's lifetime (released by the destructor below), since a plain
+    // PROTECT()'s stack-discipline protection does not survive returning
+    // from BuildTrainCallbacksDescriptor.
+    SEXP Dispatcher = R_NilValue;
+
+    ~TRTrainCallbacksContext() {
+        if (Dispatcher != R_NilValue) {
+            R_ReleaseObject(Dispatcher);
+        }
+    }
 };
 
 // Returns Nothing() for R_NilValue (no callbacks supplied -- behaviour is

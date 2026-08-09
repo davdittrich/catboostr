@@ -30,22 +30,26 @@ SEXP FindPackageFunction(const char* name) {
 // model's "training" metadata (catboost_logger_helpers.cpp:16-33,
 // full_model_saver.cpp:575) -- reusing it here means this glue needs zero
 // bespoke C++ marshaling of the nested per-iteration/per-metric history.
-bool RunTrainCallbacksOnMainThread(SEXP callbacksParam, const TMetricsAndTimeLeftHistory& history) {
+//
+// `dispatcher` must already be resolved (see TRTrainCallbacksContext::
+// Dispatcher) -- this function only ever reaches R via R_tryEval, never via
+// a fresh namespace/symbol lookup, so any R-level error unwinds through the
+// normal R_tryEval-caught path instead of a raw longjmp.
+bool RunTrainCallbacksOnMainThread(SEXP dispatcher, SEXP callbacksParam, const TMetricsAndTimeLeftHistory& history) {
     const TString metricsJson = WriteTJsonValue(history.SaveMetrics());
 
     SEXP metricsJsonParam = PROTECT(Rf_ScalarString(Rf_mkChar(metricsJson.c_str())));
     SEXP iterationParam = PROTECT(Rf_ScalarInteger(static_cast<int>(history.LearnMetricsHistory.size())));
-    SEXP dispatcher = PROTECT(FindPackageFunction(".catboost_run_train_callbacks"));
     SEXP call = PROTECT(Rf_lang4(dispatcher, callbacksParam, iterationParam, metricsJsonParam));
 
     int errorOccurred = 0;
     SEXP result = PROTECT(R_tryEval(call, R_GlobalEnv, &errorOccurred));
     if (errorOccurred) {
-        UNPROTECT(5);
+        UNPROTECT(4);
         throw std::runtime_error("catboost: error in R 'callbacks'");
     }
     const bool shouldContinue = Rf_asLogical(result) == TRUE;
-    UNPROTECT(5);
+    UNPROTECT(4);
     return shouldContinue;
 }
 
@@ -55,7 +59,7 @@ bool RTrainAfterIteration(const TMetricsAndTimeLeftHistory& history, void* custo
     bool shouldContinue = true;
     TActiveWorkScope workScope(*context->Bridge);
     context->Bridge->Call([&] {
-        shouldContinue = RunTrainCallbacksOnMainThread(context->CallbacksParam, history);
+        shouldContinue = RunTrainCallbacksOnMainThread(context->Dispatcher, context->CallbacksParam, history);
     });
     return shouldContinue;
 }
@@ -73,6 +77,17 @@ TMaybe<TCustomCallbackDescriptor> BuildTrainCallbacksDescriptor(
 
     context->Bridge = bridge;
     context->CallbacksParam = callbacksParam;
+
+    // Resolved here, synchronously, while this is still R's one and only
+    // thread -- TRCallbackBridge::Run() (which spawns the background
+    // training thread that will later invoke RTrainAfterIteration) has not
+    // been called yet. A raw R error surfacing from this lookup therefore
+    // longjmps through the ordinary CatBoostFit_R .Call() frame, exactly
+    // like any other argument-parsing error, with no background thread to
+    // orphan.
+    SEXP dispatcher = FindPackageFunction(".catboost_run_train_callbacks");
+    R_PreserveObject(dispatcher);
+    context->Dispatcher = dispatcher;
 
     TCustomCallbackDescriptor descriptor;
     descriptor.CustomData = context;

@@ -65,9 +65,16 @@ check_metric_calcer <- function(actual, expected) {
 check_plot_predictions <- function(actual, expected) {
   expect_equal(length(actual), NROW(expected))
   for (i in seq_len(NROW(expected))) {
-    for (key in names(expected[i, ])) {
+    # `expected[i, , drop = FALSE]` keeps this a 1-row data.frame -- without
+    # drop = FALSE, a single-column `expected` collapses `expected[i, ]` to
+    # an unnamed length-1 vector, names() returns NULL, and the loop below
+    # silently iterates zero times (all comparisons vacuously skipped).
+    expected_row <- expected[i, , drop = FALSE]
+    keys <- names(expected_row)
+    expect_true(length(keys) > 0, info = paste("row", i, "has no keys to compare"))
+    for (key in keys) {
       a <- actual[[i]][[key]]
-      e <- expected[i, key][[1]]
+      e <- expected_row[[key]][[1]]
       expect_equal(as.numeric(unlist(a)), as.numeric(unlist(e)), tolerance = TOL)
     }
   }

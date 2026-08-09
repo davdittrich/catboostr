@@ -7,12 +7,14 @@ C CatBoostCV_R
 C CatBoostDatasetStatistics_R
 C CatBoostDeserializeModel_R
 C CatBoostDropUnusedFeaturesFromModel_R
+C CatBoostEraseModelInfo_R
 C CatBoostEvaluateFeatures_R
 C CatBoostEvaluateObjectImportances_R
 C CatBoostFit_R
 C CatBoostGetBinarizedStatistics_R
 C CatBoostGetCatFeatureValues_R
 C CatBoostGetFeatureTypeAndInternalIndex_R
+C CatBoostGetFloatFeatureBorders_R
 C CatBoostGetModelClassLabels_R
 C CatBoostGetModelInfo_R
 C CatBoostGetModelParams_R

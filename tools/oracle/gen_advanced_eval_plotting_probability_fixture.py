@@ -80,6 +80,31 @@ def metric_calcer_result(model, metrics, train_pool, n_chunks):
     return {key: result.get_result(key) for key in result._metric_descriptions}
 
 
+def plot_predictions_per_document(model, pool, features_to_change):
+    # model.plot_predictions() (core.py:3904) seeds its output list with
+    # `[{}] * data.num_row()` -- Python's list-repeat of a mutable dict
+    # aliases all N slots to the SAME dict object, so every document's entry
+    # ends up sharing state and the final call's writes silently clobber all
+    # earlier documents' predictions. Work around the upstream aliasing bug
+    # by calling plot_predictions() once per single-row Pool (no aliasing
+    # possible when num_row() == 1), so each document keeps its own real
+    # perturbation predictions instead of all rows converging on the last one.
+    # Build each row as its own ungrouped Pool rather than pool.slice([i]):
+    # CatBoostRanker's train_pool carries group_id, and slicing a single
+    # object out of a multi-object group violates Pool's "whole group or
+    # nothing" subset invariant. Grouping is irrelevant to plot_predictions()
+    # (it perturbs a single object and calls self.predict(doc) row-by-row),
+    # so a plain feature-only Pool is equivalent and side-steps the invariant.
+    features = pool.get_features()
+    rows = []
+    for i in range(pool.num_row()):
+        row_pool = Pool([features[i]], feature_names=pool.get_feature_names())
+        row_predictions, _ = model.plot_predictions(row_pool, features_to_change, plot=False)
+        doc = row_predictions[0]
+        rows.append({str(k): (v.tolist() if hasattr(v, "tolist") else v) for k, v in doc.items()})
+    return rows
+
+
 def class_block(name, model, train_pool, eval_pool, metrics, predict_kind,
                  predict_type, n_metric_chunks=2):
     block = {
@@ -92,11 +117,7 @@ def class_block(name, model, train_pool, eval_pool, metrics, predict_kind,
     # default, for every other class here to 'RawFormulaVal' (see the
     # per-input "predict_type" fixture field, threaded through to R's
     # explicit prediction_type argument -- R has no per-subclass default).
-    all_predictions, _ = model.plot_predictions(train_pool, [0], plot=False)
-    block["plot_predictions"] = [
-        {str(k): (v.tolist() if hasattr(v, "tolist") else v) for k, v in doc.items()}
-        for doc in all_predictions
-    ]
+    block["plot_predictions"] = plot_predictions_per_document(model, train_pool, [0])
     return block
 
 

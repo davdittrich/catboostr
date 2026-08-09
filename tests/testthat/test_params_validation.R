@@ -26,6 +26,35 @@ test_that("catboost.train: a canonical params key trains without error", {
   expect_silent(catboost.train(pool, params = tiny_params(list(depth = 3))))
 })
 
+test_that("params key 'silent' is translated to logging_level before export (catboost-8z4.122, matrix row goes green)", {
+  # 'silent' is Python-client-side sugar for logging_level (core.py's
+  # _process_verbose(), never a native flat option itself -- confirmed by
+  # the "Python-only params keys" test below still rejecting it if it ever
+  # reached native unmodified). prepare_train_export_parameters() now
+  # translates it before JSON export, so silent = TRUE/FALSE trains exactly
+  # as logging_level = "Silent"/"Verbose" would. Kept right after the
+  # canonical-training test above (not next to the deliberately-erroring
+  # red-row tests further down this file), because CatBoost's native global
+  # logger singleton (TCatboostLog::ResetBackend, logging.cpp) only suppresses
+  # its own "Custom logger is already specified" cross-talk warning while
+  # LogPriority is still at the *previous* successful call's level -- a
+  # training call that errors before that gets set leaves the singleton
+  # noisier for whatever call comes right after it, unrelated to this fix.
+  expect_silent(catboost.train(pool, params = tiny_params(list(logging_level = NULL, silent = TRUE))))
+  expect_output(
+    catboost.train(pool, params = tiny_params(list(logging_level = NULL, silent = FALSE))),
+    "learn:"
+  )
+  expect_error(
+    catboost.train(pool, params = tiny_params(list(silent = TRUE))),
+    "Only one of the parameters"
+  )
+  expect_error(
+    catboost.train(pool, params = tiny_params(list(logging_level = NULL, silent = "yes"))),
+    "'silent' must be a single TRUE/FALSE"
+  )
+})
+
 test_that("catboost.pool.quantize: also reaches validate_params_keys() via process_synonyms(), and its documented params all pass (review-round fix)", {
   # catboost.pool.quantize()'s own roxygen doc names exactly 5 accepted
   # params: border_count (already covered by test_pool_quantization.R),
@@ -196,7 +225,12 @@ test_that("GPU-only params keys fail without a CUDA device, matching the mode:mo
 })
 
 test_that("Python-only params keys with no catboostr equivalent are rejected by native (matrix rows stay red)", {
-  no_r_equivalent_keys <- c("callback", "plot", "plot_file", "log_cout", "log_cerr", "silent")
+  # 'callback' (singular) is not a real Python kwarg either (unlike
+  # 'callbacks', see the test below) nor a native flat option -- there is no
+  # capability of any kind behind this key in either language, verified by
+  # grepping catboost/python-package/catboost/core.py and
+  # plain_options_helper.cpp for it (catboost-8z4.122 re-verification).
+  no_r_equivalent_keys <- c("callback", "plot", "plot_file", "log_cout", "log_cerr")
   for (k in no_r_equivalent_keys) {
     extra <- setNames(list("x"), k)
     expect_error(
@@ -207,19 +241,48 @@ test_that("Python-only params keys with no catboostr equivalent are rejected by 
   }
 })
 
-test_that("params key 'callbacks' is syntactically accepted by native but has no functioning R-side callback mechanism (matrix row stays red)", {
-  # Unlike the other Python-only keys above, native's plain_options_helper.cpp
-  # explicitly *records* "callbacks" as a seen/valid key without validating or
-  # consuming its value (plain_options_helper.cpp:269-270) -- so this does
-  # NOT error, confirmed below. catboostr's C glue (src/catboostr.cpp) has no
-  # mechanism to marshal an R closure into a per-iteration native callback --
-  # inspected directly, not asserted here (this test only proves the
-  # non-error half: an arbitrary value under "callbacks" doesn't trip
-  # native's flat-option validation, unlike every other Python-only key
-  # above). The absence of any callback-invocation mechanism in catboostr's
-  # C glue is a code-inspection finding, not something a single training
-  # call can spy on from R.
-  expect_error(catboost.train(pool, params = tiny_params(list(callbacks = list(1)))), NA)
+test_that("params key 'callbacks' invokes a real per-iteration native callback (catboost-8z4.122, matrix row goes green)", {
+  # r_train_callbacks.h/.cpp wires params$callbacks into the same native
+  # ITrainingCallbacks/TCustomCallbackDescriptor::AfterIterationFunc hook
+  # Python's `callbacks` kwarg uses (train_model.h; _catboost.pyx's
+  # _BuildCustomCallbackDescritor) -- this is a real per-iteration training
+  # callback, not just syntactic acceptance.
+  seen_iterations <- integer(0)
+  record_iteration <- function(info) {
+    seen_iterations <<- c(seen_iterations, info$iteration)
+    TRUE
+  }
+  model <- catboost.train(pool, params = tiny_params(list(iterations = 5, callbacks = list(record_iteration))))
+  expect_equal(seen_iterations, 1:5)
+  expect_true(is.list(model))
+
+  # info$metrics has the same shape as catboost.get_evals_result()'s return
+  # value (both come from the identical TMetricsAndTimeLeftHistory::
+  # SaveMetrics() JSON, see r_train_callbacks.cpp) -- learn Logloss should be
+  # present and growing by one value per iteration seen so far.
+  seen_metric_lengths <- integer(0)
+  record_metric_length <- function(info) {
+    seen_metric_lengths <<- c(seen_metric_lengths, length(info$metrics$learn$Logloss))
+    TRUE
+  }
+  catboost.train(pool, params = tiny_params(list(iterations = 3, callbacks = list(record_metric_length))))
+  expect_equal(seen_metric_lengths, 1:3)
+
+  # A callback returning FALSE stops training early -- all()-of-callbacks
+  # semantics, matching Python's _TrainCallbacksWrapper.
+  stop_after_two <- function(info) info$iteration < 2
+  model_stopped_early <- catboost.train(
+    pool, params = tiny_params(list(iterations = 10, callbacks = list(stop_after_two)))
+  )
+  expect_equal(model_stopped_early$tree_count, 2)
+
+  # all()-of-callbacks: training stops as soon as ANY callback returns FALSE,
+  # even if an earlier one in the list would have said continue.
+  always_true <- function(info) TRUE
+  model_multi_callback <- catboost.train(
+    pool, params = tiny_params(list(iterations = 10, callbacks = list(always_true, stop_after_two)))
+  )
+  expect_equal(model_multi_callback$tree_count, 2)
 })
 
 test_that("params keys 'classes_count'/'class_names' can't be exercised for MultiClass string labels: catboost.load_pool pre-converts labels client-side (matrix rows stay red)", {

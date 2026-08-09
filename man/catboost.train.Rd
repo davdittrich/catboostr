@@ -1256,8 +1256,14 @@ this check.
   \item{boosting_type}{Native training parameter accepted in the \code{params} list.}
   \item{bootstrap_type}{Native training parameter accepted in the \code{params} list.}
   \item{border_count}{Native training parameter accepted in the \code{params} list.}
-  \item{callback}{Python-only; no catboostr equivalent.}
-  \item{callbacks}{Python-only; no catboostr equivalent.}
+  \item{callback}{Python-only (a native training-progress convenience
+  distinct from \code{callbacks}); no catboostr equivalent.}
+  \item{callbacks}{A list of functions, each taking a single \code{info}
+  argument (a list with \code{iteration} and \code{metrics} elements, the
+  latter shaped like \code{\link{catboost.get_evals_result}}'s return
+  value) and returning \code{TRUE} to continue training or \code{FALSE} to
+  stop it early. Training continues only while every callback returns
+  \code{TRUE}, matching Python's \code{callbacks} kwarg.}
   \item{cat_features}{Supplied via \code{catboost.load_pool} (Pool construction), not the \code{params} list.}
   \item{class_names}{Native training parameter accepted in the \code{params} list.}
   \item{class_weights}{Native training parameter accepted in the \code{params} list.}
@@ -1363,7 +1369,10 @@ this check.
   \item{save_snapshot}{Native training parameter accepted in the \code{params} list.}
   \item{scale_pos_weight}{Native training parameter accepted in the \code{params} list.}
   \item{score_function}{Native training parameter accepted in the \code{params} list.}
-  \item{silent}{Python-only; no catboostr equivalent.}
+  \item{silent}{Client-side convenience translated to \code{logging_level}
+  ("Silent" if \code{TRUE}, "Verbose" if \code{FALSE}) before export to
+  native, matching Python's \code{silent} kwarg. Mutually exclusive with
+  \code{logging_level}/\code{verbose}/\code{verbose_eval}.}
   \item{simple_ctr}{Native training parameter accepted in the \code{params} list.}
   \item{snapshot_file}{Native training parameter accepted in the \code{params} list.}
   \item{snapshot_interval}{Native training parameter accepted in the \code{params} list.}

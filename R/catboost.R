@@ -283,7 +283,16 @@ catboost.from_matrix <- function(float_and_cat_features_data, label = NULL, cat_
       label <- as.factor(label)
 
   if (is.factor(label)) {
-      class_labels <- labels(label)
+      # catboost-8z4.122: was `labels(label)`, which for an unnamed factor
+      # returns the per-row observation labels (as.character(seq_along(x)),
+      # i.e. row numbers, per ?labels.default) -- never the class levels.
+      # That silently fed metaInfo->ClassLabels (src/catboostr.cpp
+      # SetClassLabels) one bogus per-row "class" instead of one entry per
+      # distinct class, so the retained string class names never matched
+      # nlevels(label)/classes_count. levels() is the level set (e.g.
+      # c("neg","pos")), one per distinct class, matching what native's
+      # StringLabelToClass / classes_count/class_names expect.
+      class_labels <- levels(label)
       # R starts integer labels from 1, we generally prefer to start from 0
       label <- as.integer(label) - 1L
   } else {
@@ -1633,6 +1642,51 @@ apply_custom_eval_metric_params <- function(params, custom_eval_metric_object) {
     return(params)
 }
 
+# catboost-8z4.122: params$callbacks's per-iteration hook. Same shape as
+# apply_custom_objective_params/apply_custom_eval_metric_params above --
+# pulled out of the JSON-exported params (jsonlite has no asJSON method for
+# R closures, same reason custom_objective/custom_eval_metric_object travel
+# as their own .Call arguments) and returned separately for CatBoostFit_R.
+# Mirrors Python's `callbacks` kwarg (core.py:2622's
+# `params['callbacks'] = _TrainCallbacksWrapper(callbacks)`): a list of
+# callback objects, one 'after_iteration(info)' function each here (R has no
+# ambient method-dispatch convention to mirror Python's objects, so each list
+# element IS the after_iteration function directly, not an object wrapping
+# one) -- training continues only while every callback returns TRUE, exactly
+# _TrainCallbacksWrapper's all()-of-callbacks semantics.
+apply_train_callbacks_params <- function(params) {
+    if (is.null(params$callbacks)) {
+        return(list(params = params, callbacks = NULL))
+    }
+    callbacks <- params$callbacks
+    if (!is.list(callbacks) || length(callbacks) == 0 || !all(vapply(callbacks, is.function, logical(1))))
+        stop("'callbacks' params key must be a non-empty list of functions, each taking a single ",
+             "'info' argument (a list with 'iteration' and 'metrics' elements, the latter shaped ",
+             "like catboost.get_evals_result()'s return value) and returning TRUE to continue ",
+             "training or FALSE to stop it early.")
+    params$callbacks <- NULL
+    list(params = params, callbacks = callbacks)
+}
+
+# Invoked from src/catboostr.cpp's per-iteration TCustomCallbackDescriptor
+# (CatBoostFit_R's new callbacksParam) via R_tryEval -- the C++ side only
+# has to pass the running TMetricsAndTimeLeftHistory, already serialized via
+# its own SaveMetrics() (identical JSON shape .catboost_get_training_metrics
+# reads back post-hoc, see that function's comment) -- everything past that
+# (JSON parsing, the info$metrics shape, the all()-of-callbacks continue
+# semantics) reuses the exact same R-side machinery catboost.get_evals_result
+# already has, rather than a second, C++-side reimplementation of it.
+.catboost_run_train_callbacks <- function(callbacks, iteration, metrics_json) {
+    metrics <- jsonlite::fromJSON(metrics_json, simplifyVector = FALSE)
+    info <- list(iteration = as.integer(iteration), metrics = .catboost_evals_result_from_metrics(metrics))
+    for (callback in callbacks) {
+        if (!isTRUE(callback(info))) {
+            return(FALSE)
+        }
+    }
+    TRUE
+}
+
 
 #' @name catboost.train
 #' @title Train the model
@@ -2672,8 +2726,14 @@ apply_custom_eval_metric_params <- function(params, custom_eval_metric_object) {
 #'   \item{boosting_type}{Native training parameter accepted in the \code{params} list.}
 #'   \item{bootstrap_type}{Native training parameter accepted in the \code{params} list.}
 #'   \item{border_count}{Native training parameter accepted in the \code{params} list.}
-#'   \item{callback}{Python-only; no catboostr equivalent.}
-#'   \item{callbacks}{Python-only; no catboostr equivalent.}
+#'   \item{callback}{Python-only (a native training-progress convenience
+#'   distinct from \code{callbacks}); no catboostr equivalent.}
+#'   \item{callbacks}{A list of functions, each taking a single \code{info}
+#'   argument (a list with \code{iteration} and \code{metrics} elements, the
+#'   latter shaped like \code{\link{catboost.get_evals_result}}'s return
+#'   value) and returning \code{TRUE} to continue training or \code{FALSE} to
+#'   stop it early. Training continues only while every callback returns
+#'   \code{TRUE}, matching Python's \code{callbacks} kwarg.}
 #'   \item{cat_features}{Supplied via \code{catboost.load_pool} (Pool construction), not the \code{params} list.}
 #'   \item{class_names}{Native training parameter accepted in the \code{params} list.}
 #'   \item{class_weights}{Native training parameter accepted in the \code{params} list.}
@@ -2779,7 +2839,10 @@ apply_custom_eval_metric_params <- function(params, custom_eval_metric_object) {
 #'   \item{save_snapshot}{Native training parameter accepted in the \code{params} list.}
 #'   \item{scale_pos_weight}{Native training parameter accepted in the \code{params} list.}
 #'   \item{score_function}{Native training parameter accepted in the \code{params} list.}
-#'   \item{silent}{Python-only; no catboostr equivalent.}
+#'   \item{silent}{Client-side convenience translated to \code{logging_level}
+#'   ("Silent" if \code{TRUE}, "Verbose" if \code{FALSE}) before export to
+#'   native, matching Python's \code{silent} kwarg. Mutually exclusive with
+#'   \code{logging_level}/\code{verbose}/\code{verbose_eval}.}
 #'   \item{simple_ctr}{Native training parameter accepted in the \code{params} list.}
 #'   \item{snapshot_file}{Native training parameter accepted in the \code{params} list.}
 #'   \item{snapshot_interval}{Native training parameter accepted in the \code{params} list.}
@@ -3094,9 +3157,12 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list(), init_m
     params <- process_synonyms(params)
     params <- apply_custom_objective_params(params, custom_objective)
     params <- apply_custom_eval_metric_params(params, custom_eval_metric_object)
+    callbacks_split <- apply_train_callbacks_params(params)
+    params <- callbacks_split$params
+    train_callbacks <- callbacks_split$callbacks
 
     json_params <- prepare_train_export_parameters(params)
-    handle <- .Call("CatBoostFit_R", learn_pool, test_pool, json_params, init_model_handle, custom_objective, custom_eval_metric_object)
+    handle <- .Call("CatBoostFit_R", learn_pool, test_pool, json_params, init_model_handle, custom_objective, custom_eval_metric_object, train_callbacks)
     raw <- .Call("CatBoostSerializeModel_R", handle)
     model <- create.model.base(handle, raw)
 
@@ -3277,6 +3343,22 @@ prepare_train_export_parameters <- function(params) {
         params$od_pval <- NULL
         params$od_wait <- params$early_stopping_rounds
         params$early_stopping_rounds <- NULL
+    }
+
+    # catboost-8z4.122: 'silent' is Python-client-side sugar for
+    # logging_level (core.py's _process_verbose(), catboost/core.py:234-254)
+    # -- it is never a native flat option (rejected with "Unknown option
+    # {silent}" by plain_options_helper.cpp:512), so the translation has to
+    # happen here, same choke point early_stopping_rounds uses above.
+    # Mutually exclusive with logging_level/verbose/verbose_eval, matching
+    # Python's exclusive_params check in _process_verbose().
+    if (!is.null(params$silent)) {
+        if (!is.null(params$logging_level) || !is.null(params$verbose) || !is.null(params$verbose_eval))
+            stop("Only one of the parameters [ verbose, logging_level, verbose_eval, silent ] should be initialized.")
+        if (!is.logical(params$silent) || length(params$silent) != 1 || is.na(params$silent))
+            stop("'silent' must be a single TRUE/FALSE, got: ", params$silent)
+        params$logging_level <- if (isTRUE(params$silent)) "Silent" else "Verbose"
+        params$silent <- NULL
     }
 
     if (!is.null(params$per_float_feature_quantization)) {
@@ -5104,6 +5186,16 @@ catboost.get_best_score <- function(model) {
 catboost.get_evals_result <- function(model) {
     catboost.restore_handle(model)
     metrics <- .catboost_get_training_metrics(model)
+    .catboost_evals_result_from_metrics(metrics)
+}
+
+# Shared by catboost.get_evals_result (reads back a finished model's "training"
+# metadata) and the live per-iteration `callbacks` mechanism (catboost-8z4.122,
+# see .catboost_run_train_callbacks below), which gets the identical
+# learn_metrics_history/test_metrics_history shape from
+# TMetricsAndTimeLeftHistory::SaveMetrics() (catboost_logger_helpers.cpp:16-33)
+# while training is still in progress -- same JSON shape, same transpose.
+.catboost_evals_result_from_metrics <- function(metrics) {
     if (is.null(metrics))
         return(list())
     result <- list()

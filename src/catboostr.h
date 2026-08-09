@@ -88,7 +88,11 @@ EXPORT_FUNCTION CatBoostFit_R(
     // P6.4 (catboost-8z4.90): R_NilValue, or a named list with
     // evaluate/is_max_optimal (and optionally get_final_error/is_additive)
     // closures -- see r_custom_metric.h.
-    SEXP customEvalMetricParam
+    SEXP customEvalMetricParam,
+    // catboost-8z4.122: R_NilValue, or a list of after_iteration(info)
+    // closures (params$callbacks, stripped out before JSON export by
+    // apply_train_callbacks_params()) -- see r_train_callbacks.h.
+    SEXP callbacksParam
 );
 
 // catboost-8z4.91 test hook: MaxActiveWorkers() from the bridge's most

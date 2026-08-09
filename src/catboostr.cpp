@@ -121,6 +121,7 @@
 #include "r_custom_objective.h"
 // P6.4 (catboost-8z4.90): custom-R-eval-metric trampolines, same bridge.
 #include "r_custom_metric.h"
+#include "r_train_callbacks.h"
 
 
 using namespace NCB;
@@ -142,8 +143,22 @@ using namespace NCB;
     try {                                                                       \
 
 
+// catboost-8z4.122 fix: R's error() below never returns -- it longjmps
+// straight back to R's top-level context, which does not run C++ destructors
+// for objects still in scope in this frame (an RAII teardown guard placed
+// here would silently never fire on this path, same failure mode). That left
+// the process-global custom logger (TCatBoostLogSettings, vendor
+// catboost/libs/logging/logging.cpp:133-137's ResetBackend) installed forever
+// after any exception thrown between R_API_BEGIN() and R_API_END(): the next
+// entry point's SetCustomLoggingFunction() call would then warn "Custom
+// logger is already specified" through the still-installed stale backend and
+// leave raw native training output racing past whatever logging_level/silent
+// the next call actually requested. Restoring explicitly before error() is
+// called -- rather than only on the statement after the catch block, which
+// error()'s jump skips -- guarantees teardown runs on every exit path.
 #define R_API_END()                                                 \
     } catch (std::exception& e) {                                   \
+        RestoreOriginalLogger();                                    \
         error(e.what());                                            \
     }                                                               \
     RestoreOriginalLogger();                                        \
@@ -1806,7 +1821,7 @@ static void TrainModelDistributed(
         /*dstLearnProgress*/ nullptr);
 }
 
-EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitParamsAsJsonParam, SEXP initModelParam, SEXP customObjectiveParam, SEXP customEvalMetricParam) {
+EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitParamsAsJsonParam, SEXP initModelParam, SEXP customObjectiveParam, SEXP customEvalMetricParam, SEXP callbacksParam) {
     SEXP result = NULL;
     R_API_BEGIN();
     TPoolHandle learnPool = static_cast<TPoolHandle>(R_ExternalPtrAddr(learnPoolParam));
@@ -1853,6 +1868,18 @@ EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitP
     const bool isDistributed =
         fitParams.Has("node_type") && !(fitParams["node_type"] == "SingleHost");
 
+    // catboost-8z4.122: params$callbacks's per-iteration hook (see
+    // r_train_callbacks.h). TrainModelDistributed's TCPUModelTrainer path
+    // hardcodes Nothing() for its own customCallbacks and was not extended
+    // here (out of scope -- distributed callback marshaling would need a
+    // bridge reachable from every worker node, not just this process), so
+    // fail loudly instead of the callbacks silently never firing.
+    NCatboostR::TRTrainCallbacksContext trainCallbacksContext;
+    TMaybe<TCustomCallbackDescriptor> trainCallbackDescriptor =
+        NCatboostR::BuildTrainCallbacksDescriptor(callbacksParam, &callbackWiring.Bridge, &trainCallbacksContext);
+    CB_ENSURE(!(isDistributed && trainCallbackDescriptor.Defined()),
+              "'callbacks' is not supported with distributed training (params$node_type != 'SingleHost')");
+
     auto runTraining = [&] {
         // The test-pool and no-test-pool cases used to repeat the whole
         // TrainModel() call just to pass {&evalResult} vs {}; P8.4
@@ -1884,7 +1911,7 @@ EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitP
                 nullptr,
                 objectiveDescriptor,
                 evalMetricDescriptor,
-                Nothing(),
+                trainCallbackDescriptor,
                 pools,
                 initModel,
                 /*initLearnProgress*/ nullptr,
@@ -1896,11 +1923,17 @@ EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitP
     };
 
     // Only route through the background-thread bridge when a custom
-    // objective and/or custom eval metric is actually in play: every other
-    // entry point (and every built-in-loss/built-in-eval_metric
-    // catboost.train() call) keeps running TrainModel() directly on R's main
-    // thread, exactly as before this ticket.
-    if (callbackWiring.Defined()) {
+    // objective, a custom eval metric, and/or params$callbacks is actually in
+    // play: every other entry point (and every built-in-loss/built-in-
+    // eval_metric/no-callbacks catboost.train() call) keeps running
+    // TrainModel() directly on R's main thread, exactly as before this
+    // ticket. params$callbacks alone must still go through the bridge:
+    // AfterIterationFunc runs on whatever thread called TrainModel(), and
+    // without the bridge that would be a background std::thread only when
+    // combined with a custom objective/metric -- forcing the bridge here too
+    // keeps RTrainAfterIteration's R_tryEval() always on R's main thread,
+    // regardless of what else is (or isn't) also supplied.
+    if (callbackWiring.Defined() || trainCallbackDescriptor.Defined()) {
         callbackWiring.Bridge.Run(runTraining);
         // catboost-8z4.91/test instrumentation: CatBoostLastCustomObjectiveMaxActiveWorkers_R()
         // reads this back, so a differential test can assert real TBB

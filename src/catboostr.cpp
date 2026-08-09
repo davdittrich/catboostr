@@ -2929,6 +2929,49 @@ EXPORT_FUNCTION CatBoostSetModelInfo_R(SEXP modelParam, SEXP keyParam, SEXP valu
     return R_NilValue;
 }
 
+// P10.F (catboost-8z4.120): mirrors _catboost.pyx _MetadataHashProxy.__delitem__
+// (del model.get_metadata()[key]) -- catboost.set_probability_threshold(model, NULL)
+// is the caller. Erasing an absent key is a silent no-op, same as Python's
+// dict.pop(key, None) would be (Python's __delitem__ itself raises KeyError on a
+// missing key, but set_probability_threshold's own None-branch only calls it
+// when the key is already known present -- see core.py:5891-5906).
+EXPORT_FUNCTION CatBoostEraseModelInfo_R(SEXP modelParam, SEXP keyParam) {
+    R_API_BEGIN();
+    TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    TString key(CHAR(asChar(keyParam)));
+    model->ModelInfo.erase(key);
+    R_API_END();
+    return R_NilValue;
+}
+
+// P10.F (catboost-8z4.120): mirrors _catboost.pyx _get_borders(): dict
+// flat_feature_index -> TFloatFeature.Borders. Internal-only helper (see
+// catboostr.h) for catboost.plot_predictions()/catboost.plot_partial_dependence();
+// keys are the flat feature index formatted as a string, values are the
+// (possibly empty, for unused float features) numeric borders vector.
+EXPORT_FUNCTION CatBoostGetFloatFeatureBorders_R(SEXP modelParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    TConstArrayRef<TFloatFeature> floatFeatures = model->ModelTrees.Get()->GetFloatFeatures();
+    result = PROTECT(allocVector(VECSXP, floatFeatures.size()));
+    SEXP names = PROTECT(allocVector(STRSXP, floatFeatures.size()));
+    for (size_t i = 0; i < floatFeatures.size(); ++i) {
+        const TFloatFeature& feature = floatFeatures[i];
+        SEXP borders = PROTECT(allocVector(REALSXP, feature.Borders.size()));
+        for (size_t j = 0; j < feature.Borders.size(); ++j) {
+            REAL(borders)[j] = feature.Borders[j];
+        }
+        SET_VECTOR_ELT(result, i, borders);
+        UNPROTECT(1); // borders -- reachable through `result` from here on
+        SET_STRING_ELT(names, i, mkChar(ToString(feature.Position.FlatIndex).c_str()));
+    }
+    setAttrib(result, R_NamesSymbol, names);
+    R_API_END();
+    UNPROTECT(2);
+    return result;
+}
+
 // P5.7 (catboost-8z4.64): R equivalents of Python's
 // _CatBoostBase.get_scale_and_bias()/set_scale_and_bias() (core.py:2422-2429,
 // inherited unchanged by CatBoost/CatBoostClassifier/CatBoostRegressor/

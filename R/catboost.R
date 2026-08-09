@@ -4510,6 +4510,102 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_typ
     return(obj)
 }
 
+#' @name catboost.predict_log_proba
+#' @title Predict class log-probabilities
+#'
+#' @description Predict class log-probabilities, R equivalent of Python's
+#' \code{CatBoostClassifier.predict_log_proba()} (\code{core.py:5655-5697}).
+#' A thin wrapper over \code{\link{catboost.predict}} with
+#' \code{prediction_type = "Probability"} followed by \code{log()} -- exactly
+#' Python's own implementation (\code{self._predict(data, 'LogProbability',
+#' ...)} resolves, for a binary classifier, to \code{log()} of the same
+#' two-column \code{[P(class 0), P(class 1)]} representation
+#' \code{predict_proba()} returns), not a separately re-derived computation.
+#'
+#' R's \code{catboost.predict(..., prediction_type = "Probability")} collapses
+#' the binary case to a single \code{P(class 1)} column (see
+#' \code{\link{catboost.predict}}), so for a binary model this function
+#' reconstructs the two-column \code{[log(1 - p), log(p)]} matrix Python
+#' always returns; for a multiclass model \code{catboost.predict()} already
+#' returns the full probability matrix and \code{log()} is applied directly.
+#'
+#' @param model The model obtained as the result of training.
+#' @param pool The input dataset. Should be a \code{catboost.Pool} object.
+#' @param ntree_start Model is applied on the interval [ntree_start, ntree_end)
+#' (zero-based indexing).
+#'
+#' Default value: 0
+#' @param ntree_end Model is applied on the interval [ntree_start, ntree_end)
+#' (zero-based indexing). If value equals to 0 this parameter is ignored and
+#' ntree_end equal to tree_count.
+#'
+#' Default value: 0
+#' @param thread_count The number of threads to use when applying the model.
+#' If -1, then the number of threads is set to the number of CPU cores.
+#'
+#' Default value: -1
+#' @return Matrix of per-class log-probabilities (rows = objects, columns =
+#' classes).
+#' @export
+catboost.predict_log_proba <- function(model, pool, ntree_start = 0, ntree_end = 0, thread_count = -1) {
+    prob <- catboost.predict(model, pool, prediction_type = "Probability",
+                             ntree_start = ntree_start, ntree_end = ntree_end, thread_count = thread_count)
+    if (is.matrix(prob)) {
+        return(log(prob))
+    }
+    return(cbind(log(1 - prob), log(prob)))
+}
+
+#' @name catboost.staged_predict_log_proba
+#' @title Predict class log-probabilities at each stage
+#'
+#' @description Predict class log-probabilities at each iteration, R
+#' equivalent of Python's \code{CatBoostClassifier.staged_predict_log_proba()}
+#' (\code{core.py:5796-5835}). A thin wrapper over
+#' \code{\link{catboost.staged_predict}} with
+#' \code{prediction_type = "Probability"}: each iteration's result is
+#' \code{log()}-transformed the same way \code{\link{catboost.predict_log_proba}}
+#' transforms a single \code{catboost.predict()} call.
+#'
+#' @param model The model obtained as the result of training.
+#' @param pool The input dataset. Should be a \code{catboost.Pool} object.
+#' @param ntree_start Model is applied on the interval [ntree_start, ntree_end)
+#' with the step eval_period (zero-based indexing).
+#'
+#' Default value: 0
+#' @param ntree_end Model is applied on the interval [ntree_start, ntree_end)
+#' with the step eval_period (zero-based indexing). If value equals to 0 this
+#' parameter is ignored and ntree_end equal to tree_count.
+#'
+#' Default value: 0
+#' @param eval_period Model is applied on the interval [ntree_start, ntree_end)
+#' with the step eval_period (zero-based indexing).
+#'
+#' Default value: 1
+#' @param thread_count The number of threads to use when applying the model.
+#' If -1, then the number of threads is set to the number of CPU cores.
+#'
+#' Default value: -1
+#' @return Iterator object; each \code{nextElem()} call returns the matrix of
+#' per-class log-probabilities for the corresponding iteration.
+#' @export
+catboost.staged_predict_log_proba <- function(model, pool, ntree_start = 0L, ntree_end = 0L,
+                                              eval_period = 1, thread_count = -1) {
+    base_iter <- catboost.staged_predict(model, pool, prediction_type = "Probability",
+                                         ntree_start = ntree_start, ntree_end = ntree_end,
+                                         eval_period = eval_period, thread_count = thread_count)
+    preds <- function() {
+        prob <- base_iter$nextElem()
+        if (is.matrix(prob)) {
+            return(log(prob))
+        }
+        return(cbind(log(1 - prob), log(prob)))
+    }
+    obj <- list(nextElem = preds)
+    class(obj) <- c("catboost.staged_predict", "abstractiter", "iter")
+    return(obj)
+}
+
 #' @name catboost.virtual_ensembles_predict
 #' @title Apply the model with several virtual ensembles
 #'
@@ -5051,6 +5147,66 @@ catboost.set_metadata <- function(model, key, value) {
     invisible(.Call("CatBoostSetModelInfo_R", model$cpp_obj$handle, key, value))
 }
 
+#' @name catboost.get_probability_threshold
+#' @title Get the binary-classification probability threshold
+#'
+#' @description Get the threshold used for class separation in a binary
+#' classification model, R equivalent of Python's
+#' \code{CatBoostClassifier.get_probability_threshold()}
+#' (\code{core.py:5909-5914}). Backed by the same model metadata key
+#' (\code{binclass_probability_threshold}) \code{\link{catboost.get_metadata}}/
+#' \code{\link{catboost.set_metadata}} expose; defaults to 0.5
+#' (\code{DEFAULT_BINCLASS_PROBABILITY_THRESHOLD}, \code{model.h:74}) when the
+#' key has never been set.
+#'
+#' @param model The model obtained as the result of training.
+#'
+#' @return A single numeric value in [0, 1].
+#' @export
+catboost.get_probability_threshold <- function(model) {
+    catboost.restore_handle(model)
+    metadata <- catboost.get_metadata(model)
+    if ("binclass_probability_threshold" %in% names(metadata)) {
+        threshold <- suppressWarnings(as.numeric(metadata[["binclass_probability_threshold"]]))
+        if (!is.na(threshold))
+            return(threshold)
+    }
+    return(0.5)
+}
+
+#' @name catboost.set_probability_threshold
+#' @title Set the binary-classification probability threshold
+#'
+#' @description Set (or discard) the threshold used for class separation in a
+#' binary classification model, R equivalent of Python's
+#' \code{CatBoostClassifier.set_probability_threshold()}
+#' (\code{core.py:5891-5906}). Held in the same model metadata key
+#' (\code{binclass_probability_threshold}) \code{\link{catboost.get_metadata}}/
+#' \code{\link{catboost.set_metadata}} expose; the change is in-memory only,
+#' same calling convention as \code{\link{catboost.set_metadata}}.
+#'
+#' @param model The model obtained as the result of training.
+#' @param binclass_probability_threshold A single numeric value in [0, 1], or
+#' \code{NULL} to discard a previously-set threshold (falls back to the 0.5
+#' default).
+#'
+#' Default value: \code{NULL}
+#' @return No return value, called for side effects.
+#' @export
+catboost.set_probability_threshold <- function(model, binclass_probability_threshold = NULL) {
+    catboost.restore_handle(model)
+    if (is.null(binclass_probability_threshold)) {
+        invisible(.Call("CatBoostEraseModelInfo_R", model$cpp_obj$handle, "binclass_probability_threshold"))
+    } else {
+        if (!is.numeric(binclass_probability_threshold) || length(binclass_probability_threshold) != 1)
+            stop("binclass_probability_threshold must have numeric type")
+        if (binclass_probability_threshold < 0 || binclass_probability_threshold > 1)
+            stop("Please provide correct probability for binclass_probability_threshold argument in [0, 1] range")
+        catboost.set_metadata(model, "binclass_probability_threshold", as.character(binclass_probability_threshold))
+    }
+    invisible(NULL)
+}
+
 #' @name catboost.get_scale_and_bias
 #' @title Get model scale and bias
 #'
@@ -5225,6 +5381,373 @@ catboost.eval_metrics <- function(model, pool, metrics, ntree_start = 0L, ntree_
                   thread_count, tmp_dir, train_dir)
 
   return(result)
+}
+
+#' @name catboost.get_test_eval
+#' @title Get the model's raw predictions on its eval set
+#'
+#' @description R equivalent of Python's \code{CatBoost.get_test_eval()}
+#' (\code{core.py:1830-1840}): returns the trained model's raw
+#' (\code{RawFormulaVal}) predictions on an evaluation set. Python caches
+#' these values in-process at training time (\code{self._object.__test_evals},
+#' populated by \code{TrainModel()}'s \code{TEvalResult} output argument);
+#' R's \code{catboost.Model} object does not retain a reference to the
+#' \code{test_pool} a model was trained with, so this function takes the eval
+#' pool explicitly and recomputes the identical values via
+#' \code{\link{catboost.predict}(model, eval_pool, prediction_type =
+#' "RawFormulaVal")} -- mathematically the same quantity Python's cached
+#' \code{TEvalResult} holds, since both are the deterministic output of
+#' applying the same fully-trained trees to the same eval set.
+#'
+#' @param model The model obtained as the result of training.
+#' @param eval_pool The evaluation \code{catboost.Pool} the model was (or
+#' will be) scored against.
+#'
+#' @return A vector (single-dimension models) or matrix (multiclass models)
+#' of raw predictions, one row per object in \code{eval_pool}.
+#' @export
+catboost.get_test_eval <- function(model, eval_pool) {
+    catboost.restore_handle(model)
+    if (!inherits(eval_pool, "catboost.Pool"))
+        stop("Expected catboost.Pool, got: ", class(eval_pool))
+    if (is.null.handle(eval_pool))
+        stop("Pool object is invalid.")
+    catboost.predict(model, eval_pool, prediction_type = "RawFormulaVal")
+}
+
+#' @name catboost.get_test_evals
+#' @title Get the model's raw predictions on all its eval sets
+#'
+#' @description R equivalent of Python's \code{CatBoost.get_test_evals()}
+#' (\code{core.py:1842-1850}). Python supports fitting against a list of
+#' several eval sets, so \code{get_test_evals()} returns one entry per set;
+#' \code{\link{catboost.train}} only accepts a single \code{test_pool}, so
+#' this always returns a length-1 list wrapping
+#' \code{\link{catboost.get_test_eval}}'s result.
+#'
+#' @param model The model obtained as the result of training.
+#' @param eval_pool The evaluation \code{catboost.Pool} the model was (or
+#' will be) scored against.
+#'
+#' @return A length-1 list containing the same result
+#' \code{\link{catboost.get_test_eval}} would return.
+#' @export
+catboost.get_test_evals <- function(model, eval_pool) {
+    list(catboost.get_test_eval(model, eval_pool))
+}
+
+# Concatenate several catboost.Pool objects' raw data (features/label/weight)
+# into a single fresh Pool -- used by catboost.create_metric_calcer()'s
+# eval_metrics() to reconstruct BatchMetricCalcer's streaming-aggregation
+# effect via a plain catboost.eval_metrics() call over the reassembled whole.
+# group_id/pairs are intentionally not preserved (see catboost.create_metric_calcer
+# roxygen note); not exported.
+.catboost_rbind_pools <- function(pools) {
+    features <- do.call(rbind, lapply(pools, catboost.pool.get_features))
+    labels <- unlist(lapply(pools, catboost.pool.get_label))
+    weights <- unlist(lapply(pools, catboost.pool.get_weight))
+    combined <- catboost.load_pool(features, label = labels, weight = weights)
+    catboost.pool.set_feature_names(combined, catboost.pool.get_feature_names(pools[[1]]))
+    combined
+}
+
+#' @name catboost.create_metric_calcer
+#' @title Create a batch metric calcer
+#'
+#' @description R equivalent of Python's \code{CatBoost.create_metric_calcer()}
+#' (\code{core.py:3354-3374}): incrementally aggregate metrics across several
+#' pool chunks (e.g. a dataset too large to hold as a single Pool at once).
+#' Python's \code{BatchMetricCalcer} streams sufficient statistics natively;
+#' this R implementation instead buffers each \code{$add()}-ed
+#' \code{catboost.Pool} and, on \code{$eval_metrics()}, concatenates the raw
+#' feature/label/weight data of all buffered pools into one fresh Pool and
+#' delegates to \code{\link{catboost.eval_metrics}} -- numerically identical
+#' to streaming aggregation for standard per-object metrics (they are sums/
+#' means over all objects regardless of how those objects were chunked), but
+#' \strong{does not preserve \code{group_id}/pairs across chunks}: passing
+#' several chunks of a grouped/ranking pool will not reproduce Python's
+#' per-group behavior. Add the whole pool in one \code{$add()} call for
+#' grouped/ranking metrics.
+#'
+#' @param model The model obtained as the result of training.
+#' @param metrics A list (or single string) of metric names, same format as
+#' \code{\link{catboost.eval_metrics}}'s \code{metrics} argument.
+#' @param ntree_start Model is applied on the interval [ntree_start, ntree_end).
+#'
+#' Default value: 0
+#' @param ntree_end Model is applied on the interval [ntree_start, ntree_end).
+#' If value equals to 0 this parameter is ignored and ntree_end equal to
+#' tree_count.
+#'
+#' Default value: 0
+#' @param eval_period Model is applied on the interval [ntree_start, ntree_end)
+#' with the given step.
+#'
+#' Default value: 1
+#' @param thread_count The number of threads to use when applying the model.
+#'
+#' Default value: -1
+#' @param tmp_dir Directory for temporary files used by
+#' \code{\link{catboost.eval_metrics}}.
+#'
+#' Default value: \code{NULL}
+#' @return A \code{catboost.BatchMetricCalcer} object with \code{$add(pool)}
+#' and \code{$eval_metrics()} methods.
+#' @export
+catboost.create_metric_calcer <- function(model, metrics, ntree_start = 0, ntree_end = 0,
+                                          eval_period = 1, thread_count = -1, tmp_dir = NULL) {
+    catboost.restore_handle(model)
+    pools <- list()
+    calcer <- list(
+        add = function(pool) {
+            if (!inherits(pool, "catboost.Pool"))
+                stop("Expected catboost.Pool, got: ", class(pool))
+            if (is.null.handle(pool))
+                stop("Pool object is invalid.")
+            pools[[length(pools) + 1]] <<- pool
+            invisible(NULL)
+        },
+        eval_metrics = function() {
+            if (length(pools) == 0)
+                stop("No pool was added to the calcer, call $add(pool) first.")
+            # A single added chunk is used as-is (preserving group_id/pairs/etc.
+            # exactly); only reconstructing raw feature/label/weight data when
+            # there is more than one chunk to actually concatenate (see
+            # .catboost_rbind_pools's own group_id/pairs caveat).
+            combined <- if (length(pools) == 1) pools[[1]] else .catboost_rbind_pools(pools)
+            catboost.eval_metrics(model, combined, metrics, ntree_start = ntree_start,
+                                  ntree_end = ntree_end, eval_period = eval_period,
+                                  thread_count = thread_count, tmp_dir = tmp_dir)
+        }
+    )
+    class(calcer) <- "catboost.BatchMetricCalcer"
+    calcer
+}
+
+# Internal float-feature-borders accessor, R side of CatBoostGetFloatFeatureBorders_R
+# (see src/catboostr.cpp) -- mirrors _catboost.pyx _get_borders(): named list
+# keyed by the flat feature index (as a string), values are that feature's
+# numeric borders (empty for an unused/non-float feature). Not exported: the
+# public catboost.get_borders() row belongs to catboost-8z4.119.
+.catboost_float_feature_borders <- function(model) {
+    catboost.restore_handle(model)
+    .Call("CatBoostGetFloatFeatureBorders_R", model$cpp_obj$handle)
+}
+
+# Shared by catboost.plot_predictions()/catboost.plot_partial_dependence():
+# core.py's extended-borders trick (plot_predictions' inner `predict()`,
+# core.py:3862-3865) -- adds one virtual bucket on each side of the observed
+# float-feature borders so the outermost buckets get a finite representative
+# point, then returns the midpoint of every resulting bucket. Since CatBoost's
+# CPU tree splits are always at one of `borders`, any point within the same
+# bucket yields an identical prediction, so these midpoints are exact
+# representatives of their bucket, not approximations.
+.catboost_feature_bucket_midpoints <- function(borders) {
+    left_extend <- min(2 * borders[1], -1)
+    right_extend <- max(2 * borders[length(borders)], 1)
+    extended <- c(left_extend, borders, right_extend)
+    (extended[-length(extended)] + extended[-1]) / 2
+}
+
+# Shared by catboost.plot_predictions()/catboost.plot_partial_dependence():
+# resolve a `features`/`features_to_change` element (int, 0-based index, or
+# feature name string) to its 0-based flat feature index.
+.catboost_resolve_feature_index <- function(feature, feature_names) {
+    if (is.character(feature)) {
+        idx <- match(feature, feature_names)
+        if (is.na(idx))
+            stop("No feature named \"", feature, "\" in model")
+        return(idx - 1L)
+    }
+    as.integer(feature)
+}
+
+#' @name catboost.plot_predictions
+#' @title Vary one feature's value and observe the prediction
+#'
+#' @description R equivalent of Python's \code{CatBoost.plot_predictions()}
+#' (\code{core.py:3847-3945}), minus the optional plotly figure: for each
+#' object in \code{pool} and each feature in \code{features_to_change}, the
+#' feature's value is perturbed across every bucket of the model's float-
+#' feature borders (\code{\link{catboost.predict}} is then called on the
+#' perturbed data) and the resulting predictions are returned as the primary,
+#' required contract of this function -- \code{core.py:3847-4020}'s own
+#' evidence (see this ticket) established these are real numeric prediction
+#' arrays, not plotting-only output.
+#'
+#' @param model The model obtained as the result of training.
+#' @param pool The input dataset. Should be a \code{catboost.Pool} object.
+#' @param features_to_change A vector/list of 0-based integer feature indices
+#' or feature name strings, for float features only.
+#' @param prediction_type The prediction type passed to
+#' \code{\link{catboost.predict}} for the perturbed data.
+#'
+#' Note on R-vs-Python parity: Python's \code{plot_predictions()} calls
+#' \code{self.predict(doc)} with no explicit \code{prediction_type}, so its
+#' oracle value depends on which subclass' \code{predict()} default applies
+#' (\code{'RawFormulaVal'} for the base class and \code{CatBoostRanker},
+#' loss-dependent for \code{CatBoostRegressor}, \code{'Class'} for
+#' \code{CatBoostClassifier}); R has no per-subclass default to hang this on,
+#' so it must be passed explicitly to match a given Python class's behavior
+#' (same rationale as \code{\link{catboost.predict}}'s own parity note).
+#'
+#' Default value: \code{"RawFormulaVal"}
+#' @param ntree_start Model is applied on the interval [ntree_start, ntree_end).
+#'
+#' Default value: 0
+#' @param ntree_end Model is applied on the interval [ntree_start, ntree_end).
+#' If value equals to 0 this parameter is ignored and ntree_end equal to
+#' tree_count.
+#'
+#' Default value: 0
+#' @param thread_count The number of threads to use when applying the model.
+#'
+#' Default value: -1
+#' @return A list with one entry per object in \code{pool}; each entry is a
+#' named list keyed by the (string) 0-based feature index, holding the vector
+#' (or matrix, for multi-dimensional \code{prediction_type}s) of predictions
+#' across that feature's buckets.
+#' @export
+catboost.plot_predictions <- function(model, pool, features_to_change, prediction_type = "RawFormulaVal",
+                                      ntree_start = 0, ntree_end = 0, thread_count = -1) {
+    catboost.restore_handle(model)
+    if (!inherits(pool, "catboost.Pool"))
+        stop("Expected catboost.Pool, got: ", class(pool))
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+
+    feature_names <- catboost.pool.get_feature_names(pool)
+    borders_map <- .catboost_float_feature_borders(model)
+    data <- catboost.pool.get_features(pool)
+    n <- nrow(data)
+
+    all_predictions <- vector("list", n)
+    for (i in seq_len(n)) all_predictions[[i]] <- list()
+
+    for (feature in features_to_change) {
+        feature_idx <- .catboost_resolve_feature_index(feature, feature_names)
+        borders <- borders_map[[as.character(feature_idx)]]
+        if (is.null(borders) || length(borders) == 0)
+            stop("Feature with idx ", feature_idx, " is not a used float feature in this model.")
+
+        points <- .catboost_feature_bucket_midpoints(borders)
+        npoints <- length(points)
+
+        rep_data <- data[rep(seq_len(n), each = npoints), , drop = FALSE]
+        rep_data[, feature_idx + 1L] <- rep(points, times = n)
+        perturbed_pool <- catboost.load_pool(rep_data)
+        preds <- catboost.predict(model, perturbed_pool, prediction_type = prediction_type,
+                                  ntree_start = ntree_start, ntree_end = ntree_end, thread_count = thread_count)
+
+        for (i in seq_len(n)) {
+            rows <- ((i - 1) * npoints + 1):(i * npoints)
+            all_predictions[[i]][[as.character(feature_idx)]] <- if (is.matrix(preds)) preds[rows, , drop = FALSE] else preds[rows]
+        }
+    }
+    all_predictions
+}
+
+#' @name catboost.plot_partial_dependence
+#' @title Compute the partial dependence of the model on one or two features
+#'
+#' @description R equivalent of Python's \code{CatBoost.plot_partial_dependence()}
+#' (\code{core.py:3947-4020}), minus the optional plotly figure. Computes,
+#' per bucket of the given float feature(s), the model's mean prediction over
+#' \code{pool} when that feature is perturbed to a representative value of
+#' the bucket -- the standard partial-dependence definition, and
+#' mathematically identical to CatBoost's native tree-traversal
+#' implementation (\code{GetPartialDependence()},
+#' \code{catboost/libs/fstr/partial_dependence.cpp}) for CPU (oblivious-tree)
+#' models: since every float-feature split is at one of that feature's
+#' borders, the prediction is constant within a bucket, so averaging
+#' predictions at any one representative point per bucket equals the true
+#' expectation the native algorithm computes via leaf-weight redistribution.
+#'
+#' @param model The model obtained as the result of training. Only supported
+#' for single-dimensional (non-multiclass), all-numeric-feature, oblivious-tree
+#' models -- the same constraints \code{GetPartialDependence()} itself
+#' enforces (\code{partial_dependence.cpp:187-196}).
+#' @param pool The input dataset. Should be a \code{catboost.Pool} object.
+#' @param features A single feature, or a vector/list of 2 features (0-based
+#' integer index or feature name string), for float features only.
+#' @param prediction_type The prediction type passed to
+#' \code{\link{catboost.predict}} for the perturbed data.
+#'
+#' Default value: \code{"RawFormulaVal"}
+#' @param ntree_start Model is applied on the interval [ntree_start, ntree_end).
+#'
+#' Default value: 0
+#' @param ntree_end Model is applied on the interval [ntree_start, ntree_end).
+#' If value equals to 0 this parameter is ignored and ntree_end equal to
+#' tree_count.
+#'
+#' Default value: 0
+#' @param thread_count The number of threads to use when applying the model.
+#'
+#' Default value: -1
+#' @return If one feature was given: a numeric vector, one value per bucket.
+#' If two features were given: a numeric matrix, rows indexed by the first
+#' feature's buckets and columns by the second's.
+#' @export
+catboost.plot_partial_dependence <- function(model, pool, features, prediction_type = "RawFormulaVal",
+                                             ntree_start = 0, ntree_end = 0, thread_count = -1) {
+    catboost.restore_handle(model)
+    # GetPartialDependence()'s native leaf-weight-based implementation
+    # (MergeBucketRanges, catboost/libs/fstr/partial_dependence.cpp:119-160)
+    # sums raw leaf values only -- it does not apply the model's
+    # Scale/Bias (`Scale * sumTrees + Bias`, see catboost.get_scale_and_bias())
+    # the way normal prediction does. catboost.predict()'s perturbation
+    # average this function is built on DOES apply Scale/Bias, so it must be
+    # undone here to reproduce Python's actual (Scale/Bias-omitting) output.
+    scale_and_bias <- catboost.get_scale_and_bias(model)
+    bias <- if (length(scale_and_bias$bias) > 0) scale_and_bias$bias[1] else 0
+    scale <- scale_and_bias$scale
+    if (!inherits(pool, "catboost.Pool"))
+        stop("Expected catboost.Pool, got: ", class(pool))
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+
+    feature_names <- catboost.pool.get_feature_names(pool)
+    feature_idxs <- vapply(as.list(features), .catboost_resolve_feature_index, integer(1),
+                           feature_names = feature_names)
+    if (!(length(feature_idxs) %in% c(1L, 2L)))
+        stop("Number of 'features' should be 1 or 2, got: ", length(feature_idxs))
+
+    borders_map <- .catboost_float_feature_borders(model)
+    bucket_points <- function(idx) {
+        borders <- borders_map[[as.character(idx)]]
+        if (is.null(borders) || length(borders) == 0)
+            stop("Feature with idx ", idx, " is not a used float feature in this model.")
+        .catboost_feature_bucket_midpoints(borders)
+    }
+
+    data <- catboost.pool.get_features(pool)
+    n <- nrow(data)
+    mean_predictions <- function(rep_data, ncells) {
+        perturbed_pool <- catboost.load_pool(rep_data)
+        preds <- catboost.predict(model, perturbed_pool, prediction_type = prediction_type,
+                                  ntree_start = ntree_start, ntree_end = ntree_end, thread_count = thread_count)
+        raw_means <- vapply(seq_len(ncells), function(k) mean(preds[((k - 1) * n + 1):(k * n)]), numeric(1))
+        (raw_means - bias) / scale
+    }
+
+    if (length(feature_idxs) == 1L) {
+        points <- bucket_points(feature_idxs[1])
+        npoints <- length(points)
+        rep_data <- data[rep(seq_len(n), times = npoints), , drop = FALSE]
+        rep_data[, feature_idxs[1] + 1L] <- rep(points, each = n)
+        return(mean_predictions(rep_data, npoints))
+    }
+
+    points1 <- bucket_points(feature_idxs[1])
+    points2 <- bucket_points(feature_idxs[2])
+    grid <- expand.grid(p2 = points2, p1 = points1)
+    ncells <- nrow(grid)
+    rep_data <- data[rep(seq_len(n), times = ncells), , drop = FALSE]
+    rep_data[, feature_idxs[1] + 1L] <- rep(grid$p1, each = n)
+    rep_data[, feature_idxs[2] + 1L] <- rep(grid$p2, each = n)
+    means <- mean_predictions(rep_data, ncells)
+    matrix(means, nrow = length(points1), ncol = length(points2), byrow = TRUE)
 }
 
 

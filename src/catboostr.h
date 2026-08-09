@@ -238,6 +238,20 @@ EXPORT_FUNCTION CatBoostGetModelInfo_R(SEXP modelParam);
 
 EXPORT_FUNCTION CatBoostSetModelInfo_R(SEXP modelParam, SEXP keyParam, SEXP valueParam);
 
+// P10.F (catboost-8z4.120): erase support for
+// catboost.set_probability_threshold(model, NULL), mirroring _catboost.pyx
+// _MetadataHashProxy.__delitem__. Kept separate from CatBoostSetModelInfo_R
+// so that function's existing (string key, string value, always-sets)
+// contract is unchanged.
+EXPORT_FUNCTION CatBoostEraseModelInfo_R(SEXP modelParam, SEXP keyParam);
+
+// P10.F (catboost-8z4.120): internal float-feature-borders accessor used by
+// catboost.plot_predictions()/catboost.plot_partial_dependence() to
+// reproduce core.py's `model_borders = self._get_borders()`
+// (_catboost.pyx:5561). Not a public catboost.get_borders() API -- that
+// row belongs to catboost-8z4.119's tree-internals-accessor family.
+EXPORT_FUNCTION CatBoostGetFloatFeatureBorders_R(SEXP modelParam);
+
 // P5.7 (catboost-8z4.64): R equivalents of CLI's `normalize-model` mode /
 // Python's get_scale_and_bias()/set_scale_and_bias().
 EXPORT_FUNCTION CatBoostGetScaleAndBias_R(SEXP modelParam);

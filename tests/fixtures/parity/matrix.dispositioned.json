@@ -12636,10 +12636,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_advanced_eval_plotting_probability.R",
+    "state": "green",
+    "tolerance_justification": "P10.F (catboost-8z4.120): create_metric_calcer() is defined once on the CatBoost base class (core.py) and not overridden by any subclass (except the CatBoostClassifier-only get_probability_threshold/set_probability_threshold/predict_log_proba/staged_predict_log_proba rows), so R's new catboost.create_metric_calcer() function is the parity target for all matrix rows in this family. R's implementation buffers each $add()-ed catboost.Pool and concatenates their raw feature/label/weight data on $eval_metrics(), delegating to the already-oracle-verified catboost.eval_metrics(); tested with 2 chunks (CatBoost/CatBoostClassifier/CatBoostRegressor) and 1 chunk (CatBoostRanker, to keep group_id intact for the groupwise PFound/NDCG metrics).",
     "needs_disposition": false,
     "members": [
       {
@@ -13116,10 +13116,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_advanced_eval_plotting_probability.R",
+    "state": "green",
+    "tolerance_justification": "P10.F (catboost-8z4.120): get_test_eval() is defined once on the CatBoost base class (core.py) and not overridden by any subclass (except the CatBoostClassifier-only get_probability_threshold/set_probability_threshold/predict_log_proba/staged_predict_log_proba rows), so R's new catboost.get_test_eval() function is the parity target for all matrix rows in this family. R has no persistent reference to the test_pool a model was trained with (unlike Python's in-process __test_evals cache), so catboost.get_test_eval(model, eval_pool) takes it explicitly and recomputes the identical raw values via catboost.predict(model, eval_pool, prediction_type='RawFormulaVal') -- the same deterministic quantity Python's cached TEvalResult holds.",
     "needs_disposition": false,
     "members": [
       {
@@ -13140,10 +13140,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_advanced_eval_plotting_probability.R",
+    "state": "green",
+    "tolerance_justification": "P10.F (catboost-8z4.120): get_test_evals() is defined once on the CatBoost base class (core.py) and not overridden by any subclass (except the CatBoostClassifier-only get_probability_threshold/set_probability_threshold/predict_log_proba/staged_predict_log_proba rows), so R's new catboost.get_test_evals() function is the parity target for all matrix rows in this family. Thin wrapper returning a length-1 list around catboost.get_test_eval(), since catboost.train() only supports a single test_pool.",
     "needs_disposition": false,
     "members": [
       {
@@ -13332,10 +13332,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "structural",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_advanced_eval_plotting_probability.R",
+    "state": "green",
+    "tolerance_justification": "P10.F (catboost-8z4.120): plot_partial_dependence() is defined once on the CatBoost base class (core.py) and not overridden by any subclass (except the CatBoostClassifier-only get_probability_threshold/set_probability_threshold/predict_log_proba/staged_predict_log_proba rows), so R's new catboost.plot_partial_dependence() function is the parity target for all matrix rows in this family. Averages catboost.predict() over the dataset with the feature perturbed to one representative point per border bucket; mathematically identical to GetPartialDependence()'s native leaf-weight-redistribution algorithm for CPU (oblivious-tree) models, since every float-feature split is at one of that feature's borders so predictions are constant within a bucket. Also compensates for GetPartialDependence()'s own omission of the model's Scale/Bias (MergeBucketRanges sums raw leaf values only) by undoing catboost.predict()'s Scale/Bias application. The 'CatBoost' base-class row uses a binary-loss model instead of the shared MultiClass one, since GetPartialDependence() itself CB_ENSUREs GetDimensionsCount() == 1 (partial_dependence.cpp:187-196) and refuses multiclass models.",
     "needs_disposition": false,
     "members": [
       {
@@ -13356,10 +13356,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "structural",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_advanced_eval_plotting_probability.R",
+    "state": "green",
+    "tolerance_justification": "P10.F (catboost-8z4.120): plot_predictions() is defined once on the CatBoost base class (core.py) and not overridden by any subclass (except the CatBoostClassifier-only get_probability_threshold/set_probability_threshold/predict_log_proba/staged_predict_log_proba rows), so R's new catboost.plot_predictions() function is the parity target for all matrix rows in this family. Implements core.py:3847-3945's own per-document, per-extended-border perturbation algorithm directly in R (vectorized across documents via catboost.predict()); prediction_type is passed explicitly per class to match Python's per-subclass predict() default (RawFormulaVal for CatBoost/CatBoostRegressor/CatBoostRanker, Class for CatBoostClassifier), matching the R-vs-Python parity note already established for catboost.predict()/catboost.staged_predict().",
     "needs_disposition": false,
     "members": [
       {
@@ -13788,10 +13788,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_advanced_eval_plotting_probability.R",
+    "state": "green",
+    "tolerance_justification": "P10.F (catboost-8z4.120): create_metric_calcer() is defined once on the CatBoost base class (core.py) and not overridden by any subclass (except the CatBoostClassifier-only get_probability_threshold/set_probability_threshold/predict_log_proba/staged_predict_log_proba rows), so R's new catboost.create_metric_calcer() function is the parity target for all matrix rows in this family. R's implementation buffers each $add()-ed catboost.Pool and concatenates their raw feature/label/weight data on $eval_metrics(), delegating to the already-oracle-verified catboost.eval_metrics(); tested with 2 chunks (CatBoost/CatBoostClassifier/CatBoostRegressor) and 1 chunk (CatBoostRanker, to keep group_id intact for the groupwise PFound/NDCG metrics).",
     "needs_disposition": false,
     "members": [
       {
@@ -14220,10 +14220,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_advanced_eval_plotting_probability.R",
+    "state": "green",
+    "tolerance_justification": "P10.F (catboost-8z4.120): CatBoostClassifier-only row. Backed by the same model metadata key (binclass_probability_threshold) catboost.get_metadata()/catboost.set_metadata() expose; defaults to 0.5 (DEFAULT_BINCLASS_PROBABILITY_THRESHOLD, model.h:74) when unset, matching TFullModel::GetBinClassProbabilityThreshold().",
     "needs_disposition": false,
     "members": [
       {
@@ -14292,10 +14292,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_advanced_eval_plotting_probability.R",
+    "state": "green",
+    "tolerance_justification": "P10.F (catboost-8z4.120): get_test_eval() is defined once on the CatBoost base class (core.py) and not overridden by any subclass (except the CatBoostClassifier-only get_probability_threshold/set_probability_threshold/predict_log_proba/staged_predict_log_proba rows), so R's new catboost.get_test_eval() function is the parity target for all matrix rows in this family. R has no persistent reference to the test_pool a model was trained with (unlike Python's in-process __test_evals cache), so catboost.get_test_eval(model, eval_pool) takes it explicitly and recomputes the identical raw values via catboost.predict(model, eval_pool, prediction_type='RawFormulaVal') -- the same deterministic quantity Python's cached TEvalResult holds.",
     "needs_disposition": false,
     "members": [
       {
@@ -14316,10 +14316,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_advanced_eval_plotting_probability.R",
+    "state": "green",
+    "tolerance_justification": "P10.F (catboost-8z4.120): get_test_evals() is defined once on the CatBoost base class (core.py) and not overridden by any subclass (except the CatBoostClassifier-only get_probability_threshold/set_probability_threshold/predict_log_proba/staged_predict_log_proba rows), so R's new catboost.get_test_evals() function is the parity target for all matrix rows in this family. Thin wrapper returning a length-1 list around catboost.get_test_eval(), since catboost.train() only supports a single test_pool.",
     "needs_disposition": false,
     "members": [
       {
@@ -14508,10 +14508,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "structural",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_advanced_eval_plotting_probability.R",
+    "state": "green",
+    "tolerance_justification": "P10.F (catboost-8z4.120): plot_partial_dependence() is defined once on the CatBoost base class (core.py) and not overridden by any subclass (except the CatBoostClassifier-only get_probability_threshold/set_probability_threshold/predict_log_proba/staged_predict_log_proba rows), so R's new catboost.plot_partial_dependence() function is the parity target for all matrix rows in this family. Averages catboost.predict() over the dataset with the feature perturbed to one representative point per border bucket; mathematically identical to GetPartialDependence()'s native leaf-weight-redistribution algorithm for CPU (oblivious-tree) models, since every float-feature split is at one of that feature's borders so predictions are constant within a bucket. Also compensates for GetPartialDependence()'s own omission of the model's Scale/Bias (MergeBucketRanges sums raw leaf values only) by undoing catboost.predict()'s Scale/Bias application. The 'CatBoost' base-class row uses a binary-loss model instead of the shared MultiClass one, since GetPartialDependence() itself CB_ENSUREs GetDimensionsCount() == 1 (partial_dependence.cpp:187-196) and refuses multiclass models.",
     "needs_disposition": false,
     "members": [
       {
@@ -14532,10 +14532,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "structural",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_advanced_eval_plotting_probability.R",
+    "state": "green",
+    "tolerance_justification": "P10.F (catboost-8z4.120): plot_predictions() is defined once on the CatBoost base class (core.py) and not overridden by any subclass (except the CatBoostClassifier-only get_probability_threshold/set_probability_threshold/predict_log_proba/staged_predict_log_proba rows), so R's new catboost.plot_predictions() function is the parity target for all matrix rows in this family. Implements core.py:3847-3945's own per-document, per-extended-border perturbation algorithm directly in R (vectorized across documents via catboost.predict()); prediction_type is passed explicitly per class to match Python's per-subclass predict() default (RawFormulaVal for CatBoost/CatBoostRegressor/CatBoostRanker, Class for CatBoostClassifier), matching the R-vs-Python parity note already established for catboost.predict()/catboost.staged_predict().",
     "needs_disposition": false,
     "members": [
       {
@@ -14580,10 +14580,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_advanced_eval_plotting_probability.R",
+    "state": "green",
+    "tolerance_justification": "P10.F (catboost-8z4.120): CatBoostClassifier-only row. R's catboost.predict_log_proba() is a thin wrapper over catboost.predict(..., prediction_type='Probability') followed by log() -- for a binary model this reconstructs the two-column [log(1-p), log(p)] matrix Python always returns (R's own 'Probability' prediction_type collapses binary to a single P(class 1) column), for multiclass log() is applied to the already-full probability matrix directly.",
     "needs_disposition": false,
     "members": [
       {
@@ -14820,10 +14820,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_advanced_eval_plotting_probability.R",
+    "state": "green",
+    "tolerance_justification": "P10.F (catboost-8z4.120): CatBoostClassifier-only row. Sets the same metadata key via catboost.set_metadata(); NULL discards the key via a new CatBoostEraseModelInfo_R C entry point (mirrors _catboost.pyx _MetadataHashProxy.__delitem__), added as a separate entry point rather than overloading CatBoostSetModelInfo_R so that function's existing (always-sets) contract stays unchanged.",
     "needs_disposition": false,
     "members": [
       {
@@ -14868,10 +14868,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_advanced_eval_plotting_probability.R",
+    "state": "green",
+    "tolerance_justification": "P10.F (catboost-8z4.120): CatBoostClassifier-only row. Same log(Probability) transform as catboost.predict_log_proba(), applied per-iteration on top of catboost.staged_predict().",
     "needs_disposition": false,
     "members": [
       {
@@ -15108,10 +15108,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_advanced_eval_plotting_probability.R",
+    "state": "green",
+    "tolerance_justification": "P10.F (catboost-8z4.120): create_metric_calcer() is defined once on the CatBoost base class (core.py) and not overridden by any subclass (except the CatBoostClassifier-only get_probability_threshold/set_probability_threshold/predict_log_proba/staged_predict_log_proba rows), so R's new catboost.create_metric_calcer() function is the parity target for all matrix rows in this family. R's implementation buffers each $add()-ed catboost.Pool and concatenates their raw feature/label/weight data on $eval_metrics(), delegating to the already-oracle-verified catboost.eval_metrics(); tested with 2 chunks (CatBoost/CatBoostClassifier/CatBoostRegressor) and 1 chunk (CatBoostRanker, to keep group_id intact for the groupwise PFound/NDCG metrics).",
     "needs_disposition": false,
     "members": [
       {
@@ -15588,10 +15588,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_advanced_eval_plotting_probability.R",
+    "state": "green",
+    "tolerance_justification": "P10.F (catboost-8z4.120): get_test_eval() is defined once on the CatBoost base class (core.py) and not overridden by any subclass (except the CatBoostClassifier-only get_probability_threshold/set_probability_threshold/predict_log_proba/staged_predict_log_proba rows), so R's new catboost.get_test_eval() function is the parity target for all matrix rows in this family. R has no persistent reference to the test_pool a model was trained with (unlike Python's in-process __test_evals cache), so catboost.get_test_eval(model, eval_pool) takes it explicitly and recomputes the identical raw values via catboost.predict(model, eval_pool, prediction_type='RawFormulaVal') -- the same deterministic quantity Python's cached TEvalResult holds.",
     "needs_disposition": false,
     "members": [
       {
@@ -15612,10 +15612,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_advanced_eval_plotting_probability.R",
+    "state": "green",
+    "tolerance_justification": "P10.F (catboost-8z4.120): get_test_evals() is defined once on the CatBoost base class (core.py) and not overridden by any subclass (except the CatBoostClassifier-only get_probability_threshold/set_probability_threshold/predict_log_proba/staged_predict_log_proba rows), so R's new catboost.get_test_evals() function is the parity target for all matrix rows in this family. Thin wrapper returning a length-1 list around catboost.get_test_eval(), since catboost.train() only supports a single test_pool.",
     "needs_disposition": false,
     "members": [
       {
@@ -15804,10 +15804,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "structural",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_advanced_eval_plotting_probability.R",
+    "state": "green",
+    "tolerance_justification": "P10.F (catboost-8z4.120): plot_partial_dependence() is defined once on the CatBoost base class (core.py) and not overridden by any subclass (except the CatBoostClassifier-only get_probability_threshold/set_probability_threshold/predict_log_proba/staged_predict_log_proba rows), so R's new catboost.plot_partial_dependence() function is the parity target for all matrix rows in this family. Averages catboost.predict() over the dataset with the feature perturbed to one representative point per border bucket; mathematically identical to GetPartialDependence()'s native leaf-weight-redistribution algorithm for CPU (oblivious-tree) models, since every float-feature split is at one of that feature's borders so predictions are constant within a bucket. Also compensates for GetPartialDependence()'s own omission of the model's Scale/Bias (MergeBucketRanges sums raw leaf values only) by undoing catboost.predict()'s Scale/Bias application. The 'CatBoost' base-class row uses a binary-loss model instead of the shared MultiClass one, since GetPartialDependence() itself CB_ENSUREs GetDimensionsCount() == 1 (partial_dependence.cpp:187-196) and refuses multiclass models.",
     "needs_disposition": false,
     "members": [
       {
@@ -15828,10 +15828,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "structural",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_advanced_eval_plotting_probability.R",
+    "state": "green",
+    "tolerance_justification": "P10.F (catboost-8z4.120): plot_predictions() is defined once on the CatBoost base class (core.py) and not overridden by any subclass (except the CatBoostClassifier-only get_probability_threshold/set_probability_threshold/predict_log_proba/staged_predict_log_proba rows), so R's new catboost.plot_predictions() function is the parity target for all matrix rows in this family. Implements core.py:3847-3945's own per-document, per-extended-border perturbation algorithm directly in R (vectorized across documents via catboost.predict()); prediction_type is passed explicitly per class to match Python's per-subclass predict() default (RawFormulaVal for CatBoost/CatBoostRegressor/CatBoostRanker, Class for CatBoostClassifier), matching the R-vs-Python parity note already established for catboost.predict()/catboost.staged_predict().",
     "needs_disposition": false,
     "members": [
       {
@@ -16284,10 +16284,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_advanced_eval_plotting_probability.R",
+    "state": "green",
+    "tolerance_justification": "P10.F (catboost-8z4.120): create_metric_calcer() is defined once on the CatBoost base class (core.py) and not overridden by any subclass (except the CatBoostClassifier-only get_probability_threshold/set_probability_threshold/predict_log_proba/staged_predict_log_proba rows), so R's new catboost.create_metric_calcer() function is the parity target for all matrix rows in this family. R's implementation buffers each $add()-ed catboost.Pool and concatenates their raw feature/label/weight data on $eval_metrics(), delegating to the already-oracle-verified catboost.eval_metrics(); tested with 2 chunks (CatBoost/CatBoostClassifier/CatBoostRegressor) and 1 chunk (CatBoostRanker, to keep group_id intact for the groupwise PFound/NDCG metrics).",
     "needs_disposition": false,
     "members": [
       {
@@ -16764,10 +16764,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_advanced_eval_plotting_probability.R",
+    "state": "green",
+    "tolerance_justification": "P10.F (catboost-8z4.120): get_test_eval() is defined once on the CatBoost base class (core.py) and not overridden by any subclass (except the CatBoostClassifier-only get_probability_threshold/set_probability_threshold/predict_log_proba/staged_predict_log_proba rows), so R's new catboost.get_test_eval() function is the parity target for all matrix rows in this family. R has no persistent reference to the test_pool a model was trained with (unlike Python's in-process __test_evals cache), so catboost.get_test_eval(model, eval_pool) takes it explicitly and recomputes the identical raw values via catboost.predict(model, eval_pool, prediction_type='RawFormulaVal') -- the same deterministic quantity Python's cached TEvalResult holds.",
     "needs_disposition": false,
     "members": [
       {
@@ -16788,10 +16788,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_advanced_eval_plotting_probability.R",
+    "state": "green",
+    "tolerance_justification": "P10.F (catboost-8z4.120): get_test_evals() is defined once on the CatBoost base class (core.py) and not overridden by any subclass (except the CatBoostClassifier-only get_probability_threshold/set_probability_threshold/predict_log_proba/staged_predict_log_proba rows), so R's new catboost.get_test_evals() function is the parity target for all matrix rows in this family. Thin wrapper returning a length-1 list around catboost.get_test_eval(), since catboost.train() only supports a single test_pool.",
     "needs_disposition": false,
     "members": [
       {
@@ -16980,10 +16980,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "structural",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_advanced_eval_plotting_probability.R",
+    "state": "green",
+    "tolerance_justification": "P10.F (catboost-8z4.120): plot_partial_dependence() is defined once on the CatBoost base class (core.py) and not overridden by any subclass (except the CatBoostClassifier-only get_probability_threshold/set_probability_threshold/predict_log_proba/staged_predict_log_proba rows), so R's new catboost.plot_partial_dependence() function is the parity target for all matrix rows in this family. Averages catboost.predict() over the dataset with the feature perturbed to one representative point per border bucket; mathematically identical to GetPartialDependence()'s native leaf-weight-redistribution algorithm for CPU (oblivious-tree) models, since every float-feature split is at one of that feature's borders so predictions are constant within a bucket. Also compensates for GetPartialDependence()'s own omission of the model's Scale/Bias (MergeBucketRanges sums raw leaf values only) by undoing catboost.predict()'s Scale/Bias application. The 'CatBoost' base-class row uses a binary-loss model instead of the shared MultiClass one, since GetPartialDependence() itself CB_ENSUREs GetDimensionsCount() == 1 (partial_dependence.cpp:187-196) and refuses multiclass models.",
     "needs_disposition": false,
     "members": [
       {
@@ -17004,10 +17004,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "structural",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_advanced_eval_plotting_probability.R",
+    "state": "green",
+    "tolerance_justification": "P10.F (catboost-8z4.120): plot_predictions() is defined once on the CatBoost base class (core.py) and not overridden by any subclass (except the CatBoostClassifier-only get_probability_threshold/set_probability_threshold/predict_log_proba/staged_predict_log_proba rows), so R's new catboost.plot_predictions() function is the parity target for all matrix rows in this family. Implements core.py:3847-3945's own per-document, per-extended-border perturbation algorithm directly in R (vectorized across documents via catboost.predict()); prediction_type is passed explicitly per class to match Python's per-subclass predict() default (RawFormulaVal for CatBoost/CatBoostRegressor/CatBoostRanker, Class for CatBoostClassifier), matching the R-vs-Python parity note already established for catboost.predict()/catboost.staged_predict().",
     "needs_disposition": false,
     "members": [
       {

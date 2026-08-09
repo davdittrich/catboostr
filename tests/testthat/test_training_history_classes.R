@@ -109,6 +109,29 @@ test_that("classes_ is empty for a non-classification model (CatBoostRegressor)"
   expect_equal(length(model$classes_), 0)
 })
 
+test_that("evals_result_ drops un-recorded iterations instead of NA-padding them (metric_period > 1)", {
+  inputs <- fixture$inputs$CatBoostClassifierMetricPeriod
+  expected <- fixture$expected$CatBoostClassifierMetricPeriod
+  learn_data <- data.frame(num1 = inputs$num1, num2 = inputs$num2)
+  eval_data <- data.frame(num1 = inputs$eval_num1, num2 = inputs$eval_num2)
+  learn_pool <- catboost.load_pool(learn_data, label = inputs$label)
+  eval_pool <- catboost.load_pool(eval_data, label = inputs$eval_label)
+  catboost.pool.set_feature_names(learn_pool, inputs$feature_names)
+  catboost.pool.set_feature_names(eval_pool, inputs$feature_names)
+  model <- catboost.train(learn_pool, eval_pool, params = list(
+    loss_function = "Logloss", iterations = 20, depth = 2, random_seed = 42,
+    thread_count = 1, logging_level = "Silent", metric_period = 5
+  ))
+
+  # Python's evals_result_ lists only cover iterations where the metric was
+  # actually recorded (length ceil(iterations / metric_period), here 5), not
+  # the full 20-iteration count padded with NA.
+  expect_equal(length(model$evals_result_$learn$Logloss), length(expected$evals_result_$learn$Logloss))
+  expect_false(anyNA(model$evals_result_$learn$Logloss))
+  check_evals_result(model$evals_result_, expected$evals_result_)
+  check_evals_result(catboost.get_evals_result(model), expected$get_evals_result)
+})
+
 test_that("training-history introspection matches Python oracle without an eval set (BestIteration/TestMetricsHistory undefined, learn history still recorded)", {
   inputs <- fixture$inputs$CatBoostRegressorNoEvalSet
   expected <- fixture$expected$CatBoostRegressorNoEvalSet

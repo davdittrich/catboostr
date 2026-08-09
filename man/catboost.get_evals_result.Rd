@@ -10,10 +10,13 @@ catboost.get_evals_result(model)
 \item{model}{The model obtained as the result of training.}
 }
 \value{
-A named list, one element per dataset (\code{learn},
-\code{validation}, \code{validation_1}, ...), each itself a named list of
-metric name to a numeric vector (one value per training iteration).
-Empty list if the model has no recorded training history.
+A named list, one element per dataset (\code{learn}, plus
+\code{validation} if there is exactly one eval set, or
+\code{validation_0}, \code{validation_1}, ... if there are several),
+each itself a named list of metric name to a numeric vector (one value
+per iteration where the metric was recorded -- shorter than the total
+iteration count when \code{metric_period > 1}). Empty list if the model
+has no recorded training history.
 }
 \description{
 Return the full per-iteration metric history recorded

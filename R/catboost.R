@@ -4917,10 +4917,8 @@ catboost.get_metadata <- function(model) {
     metric_names <- unique(unlist(lapply(per_iteration, names)))
     result <- list()
     for (metric_name in metric_names) {
-        result[[metric_name]] <- vapply(per_iteration, function(iter_metrics) {
-            value <- iter_metrics[[metric_name]]
-            if (is.null(value)) NA_real_ else as.numeric(value)
-        }, numeric(1))
+        values <- lapply(per_iteration, `[[`, metric_name)
+        result[[metric_name]] <- as.numeric(unlist(values[!vapply(values, is.null, logical(1))]))
     }
     result
 }
@@ -4971,10 +4969,11 @@ catboost.get_best_iteration <- function(model) {
 #'
 #' @param model The model obtained as the result of training.
 #'
-#' @return A named list, one element per dataset (\code{learn},
-#' \code{validation}, \code{validation_1}, ...), each itself a named list of
-#' metric name to best value. Empty list if the model has no recorded
-#' training history.
+#' @return A named list, one element per dataset (\code{learn}, plus
+#' \code{validation} if there is exactly one eval set, or
+#' \code{validation_0}, \code{validation_1}, ... if there are several),
+#' each itself a named list of metric name to best value. Empty list if the
+#' model has no recorded training history.
 #' @export
 catboost.get_best_score <- function(model) {
     catboost.restore_handle(model)
@@ -4998,10 +4997,13 @@ catboost.get_best_score <- function(model) {
 #'
 #' @param model The model obtained as the result of training.
 #'
-#' @return A named list, one element per dataset (\code{learn},
-#' \code{validation}, \code{validation_1}, ...), each itself a named list of
-#' metric name to a numeric vector (one value per training iteration).
-#' Empty list if the model has no recorded training history.
+#' @return A named list, one element per dataset (\code{learn}, plus
+#' \code{validation} if there is exactly one eval set, or
+#' \code{validation_0}, \code{validation_1}, ... if there are several),
+#' each itself a named list of metric name to a numeric vector (one value
+#' per iteration where the metric was recorded -- shorter than the total
+#' iteration count when \code{metric_period > 1}). Empty list if the model
+#' has no recorded training history.
 #' @export
 catboost.get_evals_result <- function(model) {
     catboost.restore_handle(model)

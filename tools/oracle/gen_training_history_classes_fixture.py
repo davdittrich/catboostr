@@ -134,6 +134,26 @@ def main():
     }
     fixture["expected"]["CatBoostRegressorNoEvalSet"] = history_for(model)
 
+    # metric_period > 1 (catboost-8z4.118 fix-round-1 REQUIRED fix): metrics
+    # are only recorded every metric_period iterations, so Python's
+    # evals_result_ lists are SHORTER than the iteration count (length
+    # ceil(iterations / metric_period)), not full-length with gaps. Exercises
+    # .catboost_transpose_metrics_history() dropping absent iterations
+    # instead of padding them with NA.
+    train_pool, eval_pool = split(BINARY_LABEL)
+    model = CatBoostClassifier(
+        loss_function="Logloss", iterations=20, depth=2, random_seed=42,
+        thread_count=1, verbose=False, metric_period=5,
+        train_dir=os.path.join(SCRIPT_DIR, ".catboost_train_history"),
+    )
+    model.fit(train_pool, eval_set=eval_pool)
+    fixture["inputs"]["CatBoostClassifierMetricPeriod"] = {
+        "num1": NUM1[:TRAIN_N], "num2": NUM2[:TRAIN_N], "label": BINARY_LABEL[:TRAIN_N],
+        "eval_num1": NUM1[TRAIN_N:], "eval_num2": NUM2[TRAIN_N:], "eval_label": BINARY_LABEL[TRAIN_N:],
+        "feature_names": FEATURE_NAMES,
+    }
+    fixture["expected"]["CatBoostClassifierMetricPeriod"] = history_for(model)
+
     with open(FIXTURE_PATH, "w") as f:
         json.dump(fixture, f, indent=2, cls=_NumpyAwareEncoder)
     print(FIXTURE_PATH)

@@ -10,10 +10,11 @@ catboost.get_best_score(model)
 \item{model}{The model obtained as the result of training.}
 }
 \value{
-A named list, one element per dataset (\code{learn},
-\code{validation}, \code{validation_1}, ...), each itself a named list of
-metric name to best value. Empty list if the model has no recorded
-training history.
+A named list, one element per dataset (\code{learn}, plus
+\code{validation} if there is exactly one eval set, or
+\code{validation_0}, \code{validation_1}, ... if there are several),
+each itself a named list of metric name to best value. Empty list if the
+model has no recorded training history.
 }
 \description{
 Return the best metric value(s) seen during training for

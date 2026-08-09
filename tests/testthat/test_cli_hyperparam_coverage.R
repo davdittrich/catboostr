@@ -28,6 +28,9 @@ context("test_cli_hyperparam_coverage.R")
 #   tools/oracle/cli/gen_hyperparam_coverage2_fixture.sh
 #   tools/oracle/cli/gen_hyperparam_coverage3_fixture.sh
 #   tools/oracle/cli/gen_hyperparam_coverage4_fixture.sh
+#   tools/oracle/cli/gen_hyperparam_coverage5_fixture.sh
+#   tools/oracle/cli/gen_hyperparam_coverage6_fixture.sh
+#   tools/oracle/cli/gen_hyperparam_coverage7_fixture.sh
 
 POOL_PATH <- testthat::test_path("..", "fixtures", "oracle-cli", "smoke_data.csv")
 CD_PATH <- testthat::test_path("..", "fixtures", "oracle-cli", "smoke.cd")

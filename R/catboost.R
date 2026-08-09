@@ -3329,6 +3329,16 @@ prepare_train_export_parameters <- function(params) {
         return ("{}")
     }
 
+    # catboost-8z4.119: 'callbacks' is stripped from params and marshaled
+    # separately only in catboost.train() (see apply_train_callbacks_params()
+    # and its call site). Every other params consumer that reaches this
+    # choke point (catboost.cv, grid/select_features, etc.) never strips it,
+    # so a 'callbacks' key surviving to here would be silently JSON-encoded
+    # and ignored -- fail loudly instead.
+    if (!is.null(params$callbacks)) {
+        stop("'callbacks' params key is only supported by catboost.train().")
+    }
+
     if (!is.null(params$early_stopping_rounds)) {
         params$od_type <- "Iter"
         params$od_pval <- NULL

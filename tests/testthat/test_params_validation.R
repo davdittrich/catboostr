@@ -313,6 +313,13 @@ test_that("catboost.cv: a canonical params key (including one set by early_stopp
   )
 })
 
+test_that("catboost.cv: a 'callbacks' params key is rejected loudly instead of silently ignored (final-review finding, batch fix)", {
+  expect_error(
+    catboost.cv(pool, params = tiny_params(list(callbacks = list(function(info) TRUE))), fold_count = 2),
+    "'callbacks'.*only supported by catboost.train"
+  )
+})
+
 # --- catboost-8z4.100: catboost.eval_feature/catboost.model_based_eval ------
 # previously called prepare_train_export_parameters(params) directly with no
 # validate_params_keys()/process_synonyms() call at all. Neither function

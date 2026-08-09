@@ -311,6 +311,74 @@ test_that("model: catboost.save_model", {
   expect_true(is_equal_model_and_load_model(model, pool, file_format = "coreml"))
 })
 
+# catboost-8z4.117 (P10.C) disposition test: catboost.utils.convert_to_onnx_object
+# (catboost/python-package/catboost/utils.py:730) calls
+# _get_onnx_model(model._object, params_string), which serializes the model
+# to an in-memory ONNX ModelProto via the same native exporter as
+# CatBoost.save_model(..., format="onnx") (core.py's save_model dispatches
+# to the identical NCB::ExportModel(..., EModelType::Onnx) C++ path,
+# catboost/libs/model/model_export/model_exporter.cpp) -- Python's version
+# just skips the temp-file round trip and hands back the parsed bytes
+# directly. R's catboost.save_model(model, path, file_format = "onnx")
+# reaches the exact same exporter and is the closest observable R
+# equivalent (writing the ONNX bytes to disk instead of returning an
+# in-memory object). No R onnx-parsing package is available in this
+# environment (would be a new dependency for one test, out of this
+# disposition-only ticket's scope), so this verifies what's directly
+# observable without one: the call succeeds, produces a non-empty file, and
+# that file's bytes are format-specific (distinct from a "cbm" export of
+# the exact same model) -- i.e. the format argument genuinely reaches a
+# different native code path rather than silently falling back to "cbm".
+#
+# ONNX categorical/floating-point-label constraints (verified live): ONNX
+# export requires integer class labels (native error otherwise: "ONNX
+# format does not support floating-point labels",
+# catboost/libs/model/model_export/onnx_helpers.cpp:137) and no categorical
+# features (per convert_to_onnx_object's own docstring) -- the model below
+# is built to satisfy both.
+test_that("model: catboost.save_model(format = 'onnx') produces a distinct, non-empty export", {
+  target <- as.integer(sample(c(0L, 1L), size = 1000, replace = TRUE))
+  features <- data.frame(feature_0 = rnorm(length(target), mean = 0, sd = 1),
+                         feature_1 = rnorm(length(target), mean = 0, sd = 1),
+                         feature_2 = rnorm(length(target), mean = 0, sd = 1))
+
+  pool <- catboost.load_pool(features, target)
+
+  params <- list(iterations = 10,
+                 loss_function = "Logloss",
+                 random_seed = 12345,
+                 allow_writing_files = FALSE)
+
+  model <- catboost.train(pool, NULL, params)
+
+  cbm_path <- tempfile()
+  onnx_path <- tempfile()
+  on.exit(unlink(c(cbm_path, onnx_path)))
+
+  expect_true(catboost.save_model(model, cbm_path, file_format = "cbm"))
+  expect_true(catboost.save_model(model, onnx_path, file_format = "onnx"))
+
+  onnx_size <- file.info(onnx_path)$size
+  expect_true(onnx_size > 0)
+  cbm_bytes <- readBin(cbm_path, "raw", n = file.info(cbm_path)$size)
+  onnx_bytes <- readBin(onnx_path, "raw", n = onnx_size)
+  expect_false(identical(cbm_bytes, onnx_bytes))
+})
+
+test_that("model: catboost.save_model(format = 'onnx') rejects floating-point labels, matching convert_to_onnx_object's constraint", {
+  target <- sample(c(1, -1), size = 200, replace = TRUE) # double-valued labels
+  features <- data.frame(feature_0 = rnorm(length(target)), feature_1 = rnorm(length(target)))
+  pool <- catboost.load_pool(features, target)
+  model <- catboost.train(pool, NULL, list(iterations = 5, loss_function = "Logloss",
+                                           random_seed = 1, allow_writing_files = FALSE))
+  onnx_path <- tempfile()
+  on.exit(unlink(onnx_path))
+  expect_error(
+    catboost.save_model(model, onnx_path, file_format = "onnx"),
+    "floating-point labels"
+  )
+})
+
 test_that("model: loss_function = multiclass", {
   target <- sample(c(0, 1, 2), size = 1000, replace = TRUE)
   data <- data.frame(f_numeric = target + rnorm(length(target), mean = 0, sd = 1),

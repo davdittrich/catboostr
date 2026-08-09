@@ -139,3 +139,71 @@ test_that("get_roc_curve: matches the CatBoost CLI `roc` mode oracle", {
   expect_equal(result$tpr, cli_expected$TPR, tolerance = CLI_TOL)
   expect_equal(result$threshold, cli_expected$Threshold, tolerance = CLI_TOL)
 })
+
+## --- catboost-8z4.117 (P10.C): catboost.utils.get_fpr_curve / get_fnr_curve /
+## select_threshold -- these three Python functions (catboost/python-package/
+## catboost/utils.py:400-538) have no dedicated R wrapper, but they compute
+## nothing new: get_fpr_curve/get_fnr_curve are pure projections of the same
+## (fpr, tpr, thresholds) triple catboost.get_roc_curve() already returns
+## (fpr as-is; fnr = 1 - tpr), and select_threshold's native
+## _select_threshold (catboost/private/libs/algo/roc_curve.cpp
+## TRocCurve::SelectDecisionBoundaryByFalsePositiveRate/
+## ByFalseNegativeRate) is a plain upper_bound search over that same curve
+## -- reimplemented below directly from that C++ source (not guessed) and
+## applied to BOTH the pinned Python oracle curve (fixture$expected) and
+## catboost.get_roc_curve()'s live R output, so a match proves R's curve
+## data supports the identical selection Python's oracle would make.
+
+select_by_fpr <- function(fpr, threshold, target) {
+  # Mirrors TRocCurve::SelectDecisionBoundaryByFalsePositiveRate: points are
+  # ascending by FPR (same order get_roc_curve returns); upper_bound finds
+  # the first point with fpr > target, then steps back one.
+  idx <- which(fpr > target)[1]
+  idx <- if (is.na(idx)) length(fpr) else idx - 1
+  threshold[max(idx, 1)]
+}
+
+select_by_fnr <- function(tpr, threshold, target) {
+  # Mirrors TRocCurve::SelectDecisionBoundaryByFalseNegativeRate: the same
+  # points read back-to-front (rbegin/rend), where FNR = 1 - TPR is
+  # ascending; upper_bound finds the first (in that reversed reading) point
+  # with fnr > target, then steps back one.
+  fnr <- 1 - tpr
+  rev_fnr <- rev(fnr)
+  rev_threshold <- rev(threshold)
+  idx <- which(rev_fnr > target)[1]
+  idx <- if (is.na(idx)) length(rev_fnr) else idx - 1
+  rev_threshold[max(idx, 1)]
+}
+
+test_that("get_fpr_curve: (thresholds, fpr) projection matches the Python oracle curve", {
+  result <- catboost.get_roc_curve(py_model, py_pool)
+  # get_fpr_curve(model, data) returns (thresholds, fpr); both components
+  # are already part of get_roc_curve()'s output, unprojected.
+  expect_equal(result$threshold, expected$thresholds, tolerance = PY_TOL)
+  expect_equal(result$fpr, expected$fpr, tolerance = PY_TOL)
+})
+
+test_that("get_fnr_curve: (thresholds, 1 - tpr) projection matches the Python oracle curve", {
+  result <- catboost.get_roc_curve(py_model, py_pool)
+  expect_equal(result$threshold, expected$thresholds, tolerance = PY_TOL)
+  expect_equal(1 - result$tpr, 1 - expected$tpr, tolerance = PY_TOL)
+})
+
+test_that("select_threshold: FPR-based selection over R's curve matches the same selection over the Python oracle curve", {
+  result <- catboost.get_roc_curve(py_model, py_pool)
+  for (target in c(0.1, 0.3, 0.5, 0.7)) {
+    r_threshold <- select_by_fpr(result$fpr, result$threshold, target)
+    py_threshold <- select_by_fpr(expected$fpr, expected$thresholds, target)
+    expect_equal(r_threshold, py_threshold, tolerance = PY_TOL, info = target)
+  }
+})
+
+test_that("select_threshold: FNR-based selection over R's curve matches the same selection over the Python oracle curve", {
+  result <- catboost.get_roc_curve(py_model, py_pool)
+  for (target in c(0.1, 0.3, 0.5, 0.7)) {
+    r_threshold <- select_by_fnr(result$tpr, result$threshold, target)
+    py_threshold <- select_by_fnr(expected$tpr, expected$thresholds, target)
+    expect_equal(r_threshold, py_threshold, tolerance = PY_TOL, info = target)
+  }
+})

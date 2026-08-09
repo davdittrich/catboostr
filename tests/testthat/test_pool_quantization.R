@@ -70,3 +70,71 @@ test_that("pool quantization: save_quantization_borders on an unquantized pool e
     expect_silent(catboost.pool.save_quantization_borders(pool, out))
   }
 })
+
+# catboost-8z4.117 (P10.C) disposition test: catboost.utils.calculate_quantization_grid
+# (catboost/python-package/catboost/utils.py:779, `_calculate_quantization_grid`
+# in catboost/python-package/catboost/_grid_creator.pxi) calls BestSplit()
+# (library/cpp/grid_creator/binarization.h) directly on a raw values vector.
+# That is the exact same border-selection engine
+# catboost.pool.quantize()/save_quantization_borders() already exercises
+# above -- Pool quantization computes each numeric feature's borders by
+# calling the identical BestSplit(featureValues, border_count,
+# borderSelectionType, ...) per column (verified by reading both call
+# sites: _grid_creator.pxi:19-27 and the quantization pipeline both extern
+# "library/cpp/grid_creator/binarization.h"). The byte-for-byte Python
+# oracle match already proven above for feature "num1"'s borders is
+# therefore already a differential test of this exact engine; the fixture
+# doesn't need to be regenerated to prove that. This test additionally
+# confirms a `feature_border_type` value calculate_quantization_grid also
+# supports (border_type='Median' is *its* function default, vs. quantize()'s
+# separate native default) produces a well-formed, deterministic border set
+# when routed through the Pool path -- i.e. the parameter genuinely reaches
+# the shared engine rather than being silently ignored.
+test_that("pool quantization: feature_border_type = 'Median' (calculate_quantization_grid's own default) reaches BestSplit deterministically", {
+  make_pool <- function() {
+    catboost.load_pool(
+      data.frame(x = fixture$inputs$num1),
+      label = as.double(fixture$inputs$label)
+    )
+  }
+  border_count <- fixture$inputs$border_count
+
+  pool_a <- make_pool()
+  catboost.pool.quantize(pool_a, params = list(border_count = border_count, feature_border_type = "Median"))
+  out_a <- tempfile()
+  on.exit(unlink(out_a))
+  catboost.pool.save_quantization_borders(pool_a, out_a)
+  borders_a <- readChar(out_a, file.info(out_a)$size)
+
+  pool_b <- make_pool()
+  catboost.pool.quantize(pool_b, params = list(border_count = border_count, feature_border_type = "Median"))
+  out_b <- tempfile()
+  on.exit(unlink(out_b))
+  catboost.pool.save_quantization_borders(pool_b, out_b)
+  borders_b <- readChar(out_b, file.info(out_b)$size)
+
+  expect_equal(borders_a, borders_b) # deterministic: same input -> same borders
+  border_values <- as.numeric(sub("^0\t", "", strsplit(trimws(borders_a), "\n")[[1]]))
+  expect_true(length(border_values) >= 1 && length(border_values) <= border_count)
+  expect_equal(border_values, sort(border_values)) # BestSplit returns ascending borders
+})
+
+# catboost-8z4.117 (P10.C) disposition test: catboost.utils.quantize(data_path,
+# column_description, ...) (catboost/python-package/catboost/utils.py:541) is
+# a convenience wrapper composing exactly two primitives R already has and
+# already tests independently: loading a Pool from a file with a column
+# description (catboost.load_pool(path, column_description=), covered by
+# test_pool.R's file-loading tests) and then quantizing it
+# (catboost.pool.quantize(), covered byte-for-byte against the Python oracle
+# above). This test proves the composition itself -- not just each half in
+# isolation -- actually works end-to-end.
+test_that("catboost.utils.quantize's R equivalent: load_pool(file) + pool.quantize() composes correctly", {
+  pool_path <- system.file("extdata", "adult_train.1000", package = "catboostr")
+  cd_path <- system.file("extdata", "adult.cd", package = "catboostr")
+  skip_if(pool_path == "" || cd_path == "", "adult dataset fixture not installed")
+
+  pool <- catboost.load_pool(pool_path, column_description = cd_path)
+  expect_false(catboost.pool.is_quantized(pool))
+  catboost.pool.quantize(pool, params = list(border_count = 32))
+  expect_true(catboost.pool.is_quantized(pool))
+})

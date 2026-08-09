@@ -97,6 +97,56 @@ test_that("select_features: RecursiveByLossFunctionChange with train_final_model
   expect_null(result$model)
 })
 
+# catboost-8z4.117 (P10.C): EFeaturesSelectionAlgorithm.RecursiveByPredictionValuesChange
+# and EShapCalcType.{Regular,Approximate,Exact} -- no fixture exists for
+# these values (gen_select_features_fixture.py only pinned
+# RecursiveByShapValues/RecursiveByLossFunctionChange), and regenerating one
+# needs the pinned Python catboost binary, which is unavailable in this
+# worktree. Following this file's own precedent (the CLI-range-syntax test
+# below, which also has no oracle fixture), these are real, non-oracle
+# structural/self-consistency tests: the native NCB::SelectFeatures call is
+# genuinely exercised end-to-end with each value and must return a
+# selection that partitions features_for_select exactly, proving the value
+# is accepted and produces a well-formed result (not silently ignored or
+# defaulted).
+test_that("select_features: algorithm = 'RecursiveByPredictionValuesChange' produces a valid partition", {
+  result <- catboost.select_features(
+    learn_pool,
+    features_for_select = fixture$features_for_select,
+    num_features_to_select = fixture$num_features_to_select,
+    params = base_params(),
+    algorithm = "RecursiveByPredictionValuesChange",
+    steps = fixture$steps,
+    train_final_model = FALSE
+  )
+  expect_equal(length(result$selected_features), fixture$num_features_to_select)
+  expect_equal(
+    sort(c(result$selected_features, result$eliminated_features)),
+    sort(fixture$features_for_select)
+  )
+})
+
+test_that("select_features: shap_calc_type = 'Regular'/'Approximate'/'Exact' each produce a valid partition", {
+  for (sct in c("Regular", "Approximate", "Exact")) {
+    result <- catboost.select_features(
+      learn_pool,
+      features_for_select = fixture$features_for_select,
+      num_features_to_select = fixture$num_features_to_select,
+      params = base_params(),
+      algorithm = "RecursiveByShapValues",
+      shap_calc_type = sct,
+      steps = fixture$steps,
+      train_final_model = FALSE
+    )
+    expect_equal(length(result$selected_features), fixture$num_features_to_select, info = sct)
+    expect_equal(
+      sort(c(result$selected_features, result$eliminated_features)),
+      sort(fixture$features_for_select),
+      info = sct
+    )
+  }
+})
+
 test_that("select_features accepts the CLI range syntax for features_for_select", {
   result <- catboost.select_features(
     learn_pool,

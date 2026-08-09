@@ -11637,9 +11637,9 @@
     "kind": "class",
     "method": "roundtrip",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_predict_classes.R",
+    "state": "green",
+    "tolerance_justification": "P10.C (catboost-8z4.117): top-level class-existence row. R has no class hierarchy; the observable equivalent of 'a fitted catboost.CatBoost object exists and is usable' is the catboost.Model list catboost.train() returns for the base MultiClass loss family, already oracle-verified (RawFormulaVal bit-for-bit) in test_predict_classes.R's 'CatBoost (base class, MultiClass)' case.",
     "needs_disposition": false,
     "members": [
       {
@@ -11661,9 +11661,9 @@
     "kind": "class",
     "method": "roundtrip",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_predict_classes.R",
+    "state": "green",
+    "tolerance_justification": "P10.C: same reasoning as catboost.CatBoost, for the Logloss/classifier loss family -- test_predict_classes.R's 'CatBoostClassifier (Logloss)' case.",
     "needs_disposition": false,
     "members": [
       {
@@ -11685,9 +11685,9 @@
     "kind": "class",
     "method": "error_class",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_custom_objective.R",
+    "state": "green",
+    "tolerance_justification": "P10.C: R has no custom exception hierarchy (not idiomatic for a CRAN package); the observable equivalent of Python's CatBoostError is R's base stop()-raised 'error' condition, which the whole suite's expect_error() calls already exercise. test_custom_objective.R's 'a closure that throws inside calc_ders_range surfaces as a catchable R error' test specifically confirms library-internal failures surface as a normal, catchable R condition (verified live: R/catboost.R uses stop() throughout, no dedicated condition class).",
     "needs_disposition": false,
     "members": [
       {
@@ -11709,9 +11709,9 @@
     "kind": "class",
     "method": "roundtrip",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_predict_classes.R",
+    "state": "green",
+    "tolerance_justification": "P10.C: same reasoning as catboost.CatBoost, for the YetiRank/ranker loss family -- test_predict_classes.R's 'CatBoostRanker (YetiRank)' case.",
     "needs_disposition": false,
     "members": [
       {
@@ -11733,9 +11733,9 @@
     "kind": "class",
     "method": "roundtrip",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_predict_classes.R",
+    "state": "green",
+    "tolerance_justification": "P10.C: same reasoning as catboost.CatBoost, for the RMSE/regressor loss family -- test_predict_classes.R's 'CatBoostRegressor (RMSE)' case.",
     "needs_disposition": false,
     "members": [
       {
@@ -11781,9 +11781,9 @@
     "kind": "class",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_select_features.R",
+    "state": "green",
+    "tolerance_justification": "P10.C: enum-class row; R's catboost.select_features(algorithm=) accepts exactly this enum's string values (R/catboost.R:3719-3727), exercised throughout test_select_features.R.",
     "needs_disposition": false,
     "members": [
       {
@@ -11805,9 +11805,9 @@
     "kind": "enum_member",
     "method": "enum_member",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_select_features.R",
+    "state": "green",
+    "tolerance_justification": "P10.C: no pinned Python-oracle fixture exists for this algorithm value (gen_select_features_fixture.py only pinned RecursiveByShapValues/RecursiveByLossFunctionChange) and the pinned Python catboost binary needed to generate one is unavailable in this worktree; added a real, non-oracle structural test (new 'algorithm = RecursiveByPredictionValuesChange produces a valid partition' test, following this file's own pre-existing non-oracle precedent for the CLI-range-syntax test) confirming the native NCB::SelectFeatures call is genuinely exercised end-to-end and returns a well-formed selected/eliminated partition of features_for_select.",
     "needs_disposition": false,
     "members": [
       {
@@ -11827,9 +11827,9 @@
     "kind": "enum_member",
     "method": "enum_member",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_select_features.R",
+    "state": "green",
+    "tolerance_justification": "P10.C: already oracle-verified bit-for-bit in the pre-existing 'select_features: RecursiveByLossFunctionChange with train_final_model = FALSE matches the Python oracle' test.",
     "needs_disposition": false,
     "members": [
       {
@@ -11849,9 +11849,9 @@
     "kind": "enum_member",
     "method": "enum_member",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_select_features.R",
+    "state": "green",
+    "tolerance_justification": "P10.C: already oracle-verified bit-for-bit in the pre-existing 'select_features: RecursiveByShapValues summary and final model match the Python oracle' test.",
     "needs_disposition": false,
     "members": [
       {
@@ -11939,9 +11939,9 @@
     "kind": "class",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_get_feature_importance_classes.R",
+    "state": "green",
+    "tolerance_justification": "P10.C: enum-class row; R's catboost.get_feature_importance(type=) dispatches on exactly this enum's string values (R/catboost.R:4535-4576), exercised across test_get_feature_importance_classes.R, test_model.R, test_fstr_shap_prediction_diff.R.",
     "needs_disposition": false,
     "members": [
       {
@@ -11963,9 +11963,9 @@
     "kind": "enum_member",
     "method": "enum_member",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_get_feature_importance_classes.R",
+    "state": "green",
+    "tolerance_justification": "P10.C: PredictionValuesChange is exactly what the default type='FeatureImportance' resolves to for non-ranking losses (core.py:3404-3417); new test confirms passing it by name for a non-ranking (RMSE) model produces output identical to the default AND matching the pinned Python oracle's already-verified FeatureImportance values.",
     "needs_disposition": false,
     "members": [
       {
@@ -11985,9 +11985,9 @@
     "kind": "enum_member",
     "method": "enum_member",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_get_feature_importance_classes.R",
+    "state": "green",
+    "tolerance_justification": "P10.C: LossFunctionChange is exactly what the default type='FeatureImportance' resolves to for ranking losses (core.py:3404-3417); new test confirms passing it by name for the ranking (YetiRank) model produces output identical to the default AND matching the pinned Python oracle's already-verified FeatureImportance values.",
     "needs_disposition": false,
     "members": [
       {
@@ -12007,9 +12007,9 @@
     "kind": "enum_member",
     "method": "enum_member",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_get_feature_importance_classes.R",
+    "state": "green",
+    "tolerance_justification": "P10.C: already oracle-verified bit-for-bit across all 4 loss families in the pre-existing test_that blocks (type = 'FeatureImportance').",
     "needs_disposition": false,
     "members": [
       {
@@ -12029,9 +12029,9 @@
     "kind": "enum_member",
     "method": "enum_member",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_get_feature_importance_classes.R",
+    "state": "green",
+    "tolerance_justification": "P10.C: no prior test exercised type='Interaction' at all; new test confirms the real native output (CalcFeatureInteraction) is well-formed (one row per unordered feature pair, valid 0-based indices, finite scores) for a live model -- no Python-oracle fixture available in this worktree, so this is a structural real test, not fabricated.",
     "needs_disposition": false,
     "members": [
       {
@@ -12051,9 +12051,9 @@
     "kind": "enum_member",
     "method": "enum_member",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_get_feature_importance_classes.R",
+    "state": "green",
+    "tolerance_justification": "P10.C: test_model.R's pre-existing 'catboost.importance with shapvalues for multiclass' test only asserted expect_true(TRUE) (no real check) -- superseded by two new tests asserting the real, well-known SHAP invariant (per-row SHAP values + '<base>' bias column sum exactly to that row's RawFormulaVal prediction), for both binary and multiclass models; verified live that dim(shap) = (n_objects, n_classes, n_features + 1) (disambiguated against a fixture where n_features != n_classes, since the 2-feature/3-class case leaves two equal-sized dimensions ambiguous).",
     "needs_disposition": false,
     "members": [
       {
@@ -12119,7 +12119,7 @@
     "tolerance": null,
     "test_id": null,
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "P10.C: genuine capability gap, verified live and by reading R/catboost.R's catboost.get_feature_importance() dispatch -- 'SageValues' hits the function's final `else { stop(\"Unknown type: \", type) }` branch (R/catboost.R:4572-4574); unlike PredictionValuesChange/LossFunctionChange/FeatureImportance/Interaction/ShapValues/ShapInteractionValues/PredictionDiff (each has its own dispatch branch), SAGE feature importance was never wired into the R<->native bridge. Filed as a discovered-from follow-up rather than adding new R/src code in this disposition-only ticket.",
     "needs_disposition": false,
     "members": [
       {
@@ -12139,9 +12139,9 @@
     "kind": "class",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_select_features.R",
+    "state": "green",
+    "tolerance_justification": "P10.C: enum-class row; R's catboost.select_features(shap_calc_type=) accepts exactly this enum's string values (R/catboost.R:3729-3731, forwarded verbatim as the native 'shap_calc_type' params key), exercised by the new shap_calc_type test.",
     "needs_disposition": false,
     "members": [
       {
@@ -12163,9 +12163,9 @@
     "kind": "enum_member",
     "method": "enum_member",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_select_features.R",
+    "state": "green",
+    "tolerance_justification": "P10.C: no pinned Python-oracle fixture exists for an explicit shap_calc_type value (the existing RecursiveByShapValues fixture used the vendor default); new test confirms shap_calc_type='Regular' is accepted end-to-end and produces a well-formed selection partition (real, non-oracle structural test, following this file's own precedent -- see the RecursiveByPredictionValuesChange row).",
     "needs_disposition": false,
     "members": [
       {
@@ -12185,9 +12185,9 @@
     "kind": "enum_member",
     "method": "enum_member",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_select_features.R",
+    "state": "green",
+    "tolerance_justification": "P10.C: same reasoning and same new test (looped over Regular/Approximate/Exact) as catboost.EShapCalcType.Regular.",
     "needs_disposition": false,
     "members": [
       {
@@ -12207,9 +12207,9 @@
     "kind": "enum_member",
     "method": "enum_member",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_select_features.R",
+    "state": "green",
+    "tolerance_justification": "P10.C: same reasoning and same new test (looped over Regular/Approximate/Exact) as catboost.EShapCalcType.Regular.",
     "needs_disposition": false,
     "members": [
       {
@@ -12229,9 +12229,9 @@
     "kind": "class",
     "method": "roundtrip",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_features_data.R",
+    "state": "green",
+    "tolerance_justification": "P10.C: top-level class-existence row for catboost.FeaturesData()'s return value; exercised in test_features_data.R.",
     "needs_disposition": false,
     "members": [
       {
@@ -12253,9 +12253,9 @@
     "kind": "class",
     "method": "roundtrip",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_custom_eval_metric.R",
+    "state": "green",
+    "tolerance_justification": "P10.C: Python's MultiRegressionCustomMetric and MultiTargetCustomMetric abstract base classes both map onto R's custom_eval_metric_object argument with is_multi_target=TRUE (dispatches to TMultiTargetCustomMetric natively, R/catboost.R:1555-1576). Verified by test_custom_eval_metric.R's 'custom_eval_metric_object multi_target = TRUE (TEvalMultiTargetFuncPtr) reimplementing MultiRMSE matches built-in MultiRMSE eval_metric' test.",
     "needs_disposition": false,
     "members": [
       {
@@ -12277,9 +12277,9 @@
     "kind": "class",
     "method": "roundtrip",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_custom_objective.R",
+    "state": "green",
+    "tolerance_justification": "P10.C: Python's MultiRegressionCustomObjective and MultiTargetCustomObjective abstract base classes both map onto the single calc_ders_multi callback R's custom_objective argument dispatches to (apply_custom_objective_params, R/catboost.R:1522-1547, sets loss_function='PythonUserDefinedMultiTarget' -> TMultiTargetCustomError, the same native dispatch both Python classes ultimately reach). Verified by test_custom_objective.R's 'custom_objective calc_ders_multi (CalcDersMultiTarget) reimplementing MultiRMSE matches built-in MultiRMSE' test.",
     "needs_disposition": false,
     "members": [
       {
@@ -12301,9 +12301,9 @@
     "kind": "class",
     "method": "roundtrip",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_custom_eval_metric.R",
+    "state": "green",
+    "tolerance_justification": "P10.C: same R mechanism (custom_eval_metric_object, is_multi_target=TRUE) and same test as catboost.MultiRegressionCustomMetric -- see that row's justification.",
     "needs_disposition": false,
     "members": [
       {
@@ -12325,9 +12325,9 @@
     "kind": "class",
     "method": "roundtrip",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_custom_objective.R",
+    "state": "green",
+    "tolerance_justification": "P10.C: same R mechanism (calc_ders_multi) and same test as catboost.MultiRegressionCustomObjective -- see that row's justification.",
     "needs_disposition": false,
     "members": [
       {
@@ -12349,9 +12349,9 @@
     "kind": "class",
     "method": "roundtrip",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_pool.R",
+    "state": "green",
+    "tolerance_justification": "P10.C: top-level class-existence row for the object catboost.load_pool() returns (S3 class catboost.Pool); exercised extensively throughout test_pool.R.",
     "needs_disposition": false,
     "members": [
       {
@@ -12375,7 +12375,7 @@
     "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "P10.C: read the vendored Python implementation in full (catboost/python-package/catboost/core.py:6857-7020) before concluding this -- sample_gaussian_process is not a thin wrapper around one native call; it is a ~160-line pure-Python algorithm (Gaussian Process posterior sampling per arXiv:2206.05608) that trains two CatBoostRegressor models per sample, mutates a saved JSON model's leaf_values with a numpy RNG, reloads it, and combines both models via sum_models(). R has every underlying primitive (catboost.train, catboost.save_model(format='json')/catboost.load_model, catboost.get_scale_and_bias/set_scale_and_bias, catboost.sum_models, catboost.predict), but no R port of the orchestrating algorithm itself exists -- writing one (~150+ lines of new R, matching this exact paper's algorithm) is new capability, not a disposition, and out of this ticket's disposition-only scope per its own guard. Filed as a discovered-from follow-up rather than implementing it inline here.",
     "needs_disposition": false,
     "members": [
       {
@@ -18277,9 +18277,9 @@
     "kind": "function",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_pool_quantization.R",
+    "state": "green",
+    "tolerance_justification": "P10.C: read the vendored Python source before concluding this -- calculate_quantization_grid (catboost/python-package/catboost/utils.py:779) is a thin wrapper around _calculate_quantization_grid (catboost/python-package/catboost/_grid_creator.pxi:19-27), which calls BestSplit() (library/cpp/grid_creator/binarization.h) directly on a raw values vector. This is the exact same border-selection engine catboost.pool.quantize() calls per numeric feature during Pool quantization -- already verified byte-for-byte against the Python oracle in this file's 'save_quantization_borders output matches Python oracle byte-for-byte' test (feature num1's borders are BestSplit's output). A new test in this file additionally confirms feature_border_type='Median' (calculate_quantization_grid's own function default, as opposed to quantize()'s separate native default) reaches the shared engine deterministically and returns well-formed ascending borders.",
     "needs_disposition": false,
     "members": [
       {
@@ -18373,9 +18373,9 @@
     "kind": "function",
     "method": "roundtrip",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_model.R",
+    "state": "green",
+    "tolerance_justification": "P10.C: read the vendored Python source before concluding this -- convert_to_onnx_object (catboost/python-package/catboost/utils.py:730) calls _get_onnx_model(model._object, params_string), the same native ONNX exporter (NCB::ExportModel(..., EModelType::Onnx)) that CatBoost.save_model(format='onnx') uses; Python's version just returns the parsed in-memory bytes instead of writing them to disk. R's catboost.save_model(model, path, file_format='onnx') is the closest observable equivalent. No R onnx-parsing package is available in this environment (would be a new dependency for one test, out of scope); new tests confirm the call succeeds, produces a non-empty, format-distinct (from 'cbm') file, and -- discovered live while writing the test -- that it enforces the same integer-class-label constraint as the native exporter (onnx_helpers.cpp:137, 'ONNX format does not support floating-point labels').",
     "needs_disposition": false,
     "members": [
       {
@@ -18397,9 +18397,9 @@
     "kind": "function",
     "method": "roundtrip",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_pool.R",
+    "state": "green",
+    "tolerance_justification": "P10.C: R's catboost.save_pool() writes both the data file and the column-description (CD) file (R/catboost.R:627-659) -- the direct equivalent of Python's create_cd(), which only writes a CD file. Exercised by the pre-existing 'pool: catboost.save_pool' test, which round-trips through catboost.load_pool(column_description=).",
     "needs_disposition": false,
     "members": [
       {
@@ -18447,7 +18447,7 @@
     "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "P10.C: genuine capability gap, verified live (ls('package:catboostr') has no metric-name match besides catboost.eval_metrics) and by reading R/catboost.R -- Python's eval_metric(label, approx, metric) computes a metric directly from raw label/approx arrays with no Pool or model required. R's only metric-evaluation entry point, catboost.eval_metrics(model, pool, metrics), requires a real fitted catboost.Model and a catboost.Pool, and applies the model's trees natively (src/catboostr.cpp) -- there is no bridge exposing the standalone label+approx metric evaluator Python's _catboost.pyx wraps. A model+baseline trick to fake a 'model-free' evaluation would only be approximate (baseline plus a non-zero learned correction), not the same computation. Filed as a discovered-from follow-up rather than adding new R/src code in this disposition-only ticket.",
     "needs_disposition": false,
     "members": [
       {
@@ -18493,9 +18493,9 @@
     "kind": "function",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_confusion_matrix.R",
+    "state": "green",
+    "tolerance_justification": "P10.C: read the native MakeConfusionMatrix source (catboost/private/libs/algo/confusion_matrix.cpp:24-57) before concluding this -- it is exactly cm[trueLabel * classesCount + predictedLabel] += 1 for predictedLabel = argmax(RawFormulaVal), a row(=true)-by-column(=predicted) count table. New test builds the identical table using only existing R functions (catboost.predict(..., prediction_type='Class'), already proven to equal argmax(RawFormulaVal) live, plus base R table()) against the pinned predict_classes.json fixture, and cross-checks the resulting table against the same count independently computed from the fixture's own pinned Python RawFormulaVal output.",
     "needs_disposition": false,
     "members": [
       {
@@ -18517,9 +18517,9 @@
     "kind": "function",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_roc_curve.R",
+    "state": "green",
+    "tolerance_justification": "P10.C: read the vendored Python source (catboost/python-package/catboost/utils.py:445-488) before concluding this -- get_fnr_curve(model, data) returns (thresholds, 1 - tpr) computed from get_roc_curve()'s own output, no new native computation. Both components are already part of catboost.get_roc_curve()'s R-returned $threshold/$tpr, oracle-verified bit-for-bit; new test makes the fnr = 1 - tpr projection explicit and re-checks it against the pinned oracle's tpr.",
     "needs_disposition": false,
     "members": [
       {
@@ -18541,9 +18541,9 @@
     "kind": "function",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_roc_curve.R",
+    "state": "green",
+    "tolerance_justification": "P10.C: read the vendored Python source (catboost/python-package/catboost/utils.py:400-442) before concluding this -- get_fpr_curve(model, data) returns (thresholds, fpr) taken directly from get_roc_curve()'s output, no new native computation. Both components are already part of catboost.get_roc_curve()'s R-returned $threshold/$fpr, oracle-verified bit-for-bit in this file's 'matches the Python oracle' test; new test makes the projection explicit.",
     "needs_disposition": false,
     "members": [
       {
@@ -18661,9 +18661,9 @@
     "kind": "function",
     "method": "roundtrip",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_pool_quantization.R",
+    "state": "green",
+    "tolerance_justification": "P10.C: read the vendored Python source (catboost/python-package/catboost/utils.py:541-730) before concluding this -- module-level quantize(data_path, column_description, ...) is a convenience wrapper composing exactly two primitives R already has and independently tests: loading a Pool from a file with a column description (catboost.load_pool(path, column_description=), covered by test_pool.R's file-loading tests) and then quantizing it (catboost.pool.quantize(), covered byte-for-byte against the Python oracle in this file). New test proves the composition itself works end-to-end on a real file-backed Pool (inst/extdata/adult_train.1000 + adult.cd), not just each half in isolation.",
     "needs_disposition": false,
     "members": [
       {
@@ -18685,9 +18685,9 @@
     "kind": "function",
     "method": "roundtrip",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_pool.R",
+    "state": "green",
+    "tolerance_justification": "P10.C: R consumes CD files via catboost.load_pool(column_description=)/catboost.from_file() (R/catboost.R:106-188) rather than exposing a separate structured-metadata parser, but the observable capability (reading a CD file's column roles) is the same one Python's read_cd() provides. Exercised throughout test_pool.R (e.g. 'load_pool from file multitarget', 'catboost.save_pool' round-trip, 'data.frame vs tibble::tbl_df vs pool' using inst/extdata/adult.cd).",
     "needs_disposition": false,
     "members": [
       {
@@ -18733,9 +18733,9 @@
     "kind": "function",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_roc_curve.R",
+    "state": "green",
+    "tolerance_justification": "P10.C: read the native _select_threshold/TRocCurve::SelectDecisionBoundaryByFalsePositiveRate/ByFalseNegativeRate source (catboost/private/libs/algo/roc_curve.cpp:261-299) before concluding this -- it is a plain upper_bound search over the same (fpr, tpr, thresholds) triple catboost.get_roc_curve() already returns, no additional native state. New tests reimplement that exact search (transcribed from the C++ source, not guessed) and apply it to both R's live curve output and the pinned Python oracle's curve at several target FPR/FNR values, confirming they select identical thresholds.",
     "needs_disposition": false,
     "members": [
       {
@@ -19797,9 +19797,9 @@
     "kind": "class",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_text_processing.R",
+    "state": "green",
+    "tolerance_justification": "P10.C: R's catboost.Dictionary() is the direct equivalent, exercised by test_text_processing.R's Dictionary tests (fit/apply/introspection/save, all Python-oracle-verified).",
     "needs_disposition": false,
     "members": [
       {
@@ -19821,9 +19821,9 @@
     "kind": "class",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_text_processing.R",
+    "state": "green",
+    "tolerance_justification": "P10.C: R's catboost.Tokenizer() is the direct equivalent, exercised by test_text_processing.R's Tokenizer tests.",
     "needs_disposition": false,
     "members": [
       {

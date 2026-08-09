@@ -12685,8 +12685,8 @@
     "kind": "property",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_get_feature_importance_classes.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -12733,9 +12733,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_predict_classes.R",
+    "state": "green",
+    "tolerance_justification": "fit() is not itself a getter; parity is observed via fit -> predict(RawFormulaVal), which already differentially matches the Python oracle tree-for-tree for all 4 classes (identical trees imply identical fit).",
     "needs_disposition": false,
     "members": [
       {
@@ -12757,9 +12757,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "R equivalent is catboost.get_plain_params() (flat list), not catboost.get_model_params() (nested structure, rejected as a faithful match -- see catboost-8z4.116 report); compared on the subset of keys explicitly passed at fit time.",
     "needs_disposition": false,
     "members": [
       {
@@ -12853,9 +12853,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "R has no post-fit model-level indices accessor; catboost.pool.get_cat_feature_indices() on the training pool is the equivalent value, since a model's cat feature indices are a deterministic, never-mutated function of the fit pool's layout.",
     "needs_disposition": false,
     "members": [
       {
@@ -12877,9 +12877,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "Same reasoning as get_cat_feature_indices: training-pool indices via catboost.pool.get_embedding_feature_indices() (always empty in this fixture, matching the Python oracle).",
     "needs_disposition": false,
     "members": [
       {
@@ -12997,9 +12997,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "R equivalent is model$feature_count.",
     "needs_disposition": false,
     "members": [
       {
@@ -13021,9 +13021,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "Same R equivalent as get_all_params (catboost.get_plain_params()); Python's get_param() only echoes caller-supplied values (not auto-resolved ones), so the comparison is restricted to explicitly passed keys (learning_rate excluded -- see fixture generator).",
     "needs_disposition": false,
     "members": [
       {
@@ -13165,9 +13165,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "Same reasoning as get_cat_feature_indices: training-pool indices via catboost.pool.get_text_feature_indices() (always empty in this fixture, matching the Python oracle).",
     "needs_disposition": false,
     "members": [
       {
@@ -13285,9 +13285,9 @@
     "kind": "property",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "R equivalent is model$learning_rate.",
     "needs_disposition": false,
     "members": [
       {
@@ -13309,9 +13309,9 @@
     "kind": "property",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "R equivalent is model$feature_count.",
     "needs_disposition": false,
     "members": [
       {
@@ -13405,9 +13405,9 @@
     "kind": "property",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "R equivalent is catboost.get_plain_params(model)$random_seed, not model$random_seed (which is only ever set by catboost.shrink(), never by catboost.train()).",
     "needs_disposition": false,
     "members": [
       {
@@ -13501,9 +13501,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "R has no post-fit model-level renamer; the observably equivalent capability is catboost.pool.set_feature_names() on the pool before catboost.train(), since the fitted model's feature names are exactly the training pool's names.",
     "needs_disposition": false,
     "members": [
       {
@@ -13597,9 +13597,9 @@
     "kind": "property",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "R equivalent is model$tree_count.",
     "needs_disposition": false,
     "members": [
       {
@@ -13837,8 +13837,8 @@
     "kind": "property",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_get_feature_importance_classes.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -13885,9 +13885,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_predict_classes.R",
+    "state": "green",
+    "tolerance_justification": "fit() is not itself a getter; parity is observed via fit -> predict(RawFormulaVal), which already differentially matches the Python oracle tree-for-tree for all 4 classes (identical trees imply identical fit).",
     "needs_disposition": false,
     "members": [
       {
@@ -13909,9 +13909,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "R equivalent is catboost.get_plain_params() (flat list), not catboost.get_model_params() (nested structure, rejected as a faithful match -- see catboost-8z4.116 report); compared on the subset of keys explicitly passed at fit time.",
     "needs_disposition": false,
     "members": [
       {
@@ -14005,9 +14005,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "R has no post-fit model-level indices accessor; catboost.pool.get_cat_feature_indices() on the training pool is the equivalent value, since a model's cat feature indices are a deterministic, never-mutated function of the fit pool's layout.",
     "needs_disposition": false,
     "members": [
       {
@@ -14029,9 +14029,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "Same reasoning as get_cat_feature_indices: training-pool indices via catboost.pool.get_embedding_feature_indices() (always empty in this fixture, matching the Python oracle).",
     "needs_disposition": false,
     "members": [
       {
@@ -14149,9 +14149,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "R equivalent is model$feature_count.",
     "needs_disposition": false,
     "members": [
       {
@@ -14173,9 +14173,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "Same R equivalent as get_all_params (catboost.get_plain_params()); Python's get_param() only echoes caller-supplied values (not auto-resolved ones), so the comparison is restricted to explicitly passed keys (learning_rate excluded -- see fixture generator).",
     "needs_disposition": false,
     "members": [
       {
@@ -14341,9 +14341,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "Same reasoning as get_cat_feature_indices: training-pool indices via catboost.pool.get_text_feature_indices() (always empty in this fixture, matching the Python oracle).",
     "needs_disposition": false,
     "members": [
       {
@@ -14461,9 +14461,9 @@
     "kind": "property",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "R equivalent is model$learning_rate.",
     "needs_disposition": false,
     "members": [
       {
@@ -14485,9 +14485,9 @@
     "kind": "property",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "R equivalent is model$feature_count.",
     "needs_disposition": false,
     "members": [
       {
@@ -14605,9 +14605,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "R's catboost.predict(..., prediction_type='Probability') returns a single column (P(class 1)) for binary Logloss; Python's predict_proba() duplicates this as [P(0), P(1)] -- compared against Python's 2nd column.",
     "needs_disposition": false,
     "members": [
       {
@@ -14629,9 +14629,9 @@
     "kind": "property",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "R equivalent is catboost.get_plain_params(model)$random_seed, not model$random_seed (which is only ever set by catboost.shrink(), never by catboost.train()).",
     "needs_disposition": false,
     "members": [
       {
@@ -14749,9 +14749,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "R has no post-fit model-level renamer; the observably equivalent capability is catboost.pool.set_feature_names() on the pool before catboost.train(), since the fitted model's feature names are exactly the training pool's names.",
     "needs_disposition": false,
     "members": [
       {
@@ -14893,9 +14893,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "Same single-vs-two-column reasoning as predict_proba, applied per-stage via catboost.staged_predict(..., prediction_type='Probability').",
     "needs_disposition": false,
     "members": [
       {
@@ -14917,9 +14917,9 @@
     "kind": "property",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "R equivalent is model$tree_count.",
     "needs_disposition": false,
     "members": [
       {
@@ -15157,8 +15157,8 @@
     "kind": "property",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_get_feature_importance_classes.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -15205,9 +15205,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_predict_classes.R",
+    "state": "green",
+    "tolerance_justification": "fit() is not itself a getter; parity is observed via fit -> predict(RawFormulaVal), which already differentially matches the Python oracle tree-for-tree for all 4 classes (identical trees imply identical fit).",
     "needs_disposition": false,
     "members": [
       {
@@ -15229,9 +15229,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "R equivalent is catboost.get_plain_params() (flat list), not catboost.get_model_params() (nested structure, rejected as a faithful match -- see catboost-8z4.116 report); compared on the subset of keys explicitly passed at fit time.",
     "needs_disposition": false,
     "members": [
       {
@@ -15325,9 +15325,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "R has no post-fit model-level indices accessor; catboost.pool.get_cat_feature_indices() on the training pool is the equivalent value, since a model's cat feature indices are a deterministic, never-mutated function of the fit pool's layout.",
     "needs_disposition": false,
     "members": [
       {
@@ -15349,9 +15349,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "Same reasoning as get_cat_feature_indices: training-pool indices via catboost.pool.get_embedding_feature_indices() (always empty in this fixture, matching the Python oracle).",
     "needs_disposition": false,
     "members": [
       {
@@ -15469,9 +15469,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "R equivalent is model$feature_count.",
     "needs_disposition": false,
     "members": [
       {
@@ -15493,9 +15493,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "Same R equivalent as get_all_params (catboost.get_plain_params()); Python's get_param() only echoes caller-supplied values (not auto-resolved ones), so the comparison is restricted to explicitly passed keys (learning_rate excluded -- see fixture generator).",
     "needs_disposition": false,
     "members": [
       {
@@ -15637,9 +15637,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "Same reasoning as get_cat_feature_indices: training-pool indices via catboost.pool.get_text_feature_indices() (always empty in this fixture, matching the Python oracle).",
     "needs_disposition": false,
     "members": [
       {
@@ -15757,9 +15757,9 @@
     "kind": "property",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "R equivalent is model$learning_rate.",
     "needs_disposition": false,
     "members": [
       {
@@ -15781,9 +15781,9 @@
     "kind": "property",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "R equivalent is model$feature_count.",
     "needs_disposition": false,
     "members": [
       {
@@ -15877,9 +15877,9 @@
     "kind": "property",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "R equivalent is catboost.get_plain_params(model)$random_seed, not model$random_seed (which is only ever set by catboost.shrink(), never by catboost.train()).",
     "needs_disposition": false,
     "members": [
       {
@@ -15997,9 +15997,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "R has no post-fit model-level renamer; the observably equivalent capability is catboost.pool.set_feature_names() on the pool before catboost.train(), since the fitted model's feature names are exactly the training pool's names.",
     "needs_disposition": false,
     "members": [
       {
@@ -16093,9 +16093,9 @@
     "kind": "property",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "R equivalent is model$tree_count.",
     "needs_disposition": false,
     "members": [
       {
@@ -16333,8 +16333,8 @@
     "kind": "property",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_get_feature_importance_classes.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -16381,9 +16381,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_predict_classes.R",
+    "state": "green",
+    "tolerance_justification": "fit() is not itself a getter; parity is observed via fit -> predict(RawFormulaVal), which already differentially matches the Python oracle tree-for-tree for all 4 classes (identical trees imply identical fit).",
     "needs_disposition": false,
     "members": [
       {
@@ -16405,9 +16405,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "R equivalent is catboost.get_plain_params() (flat list), not catboost.get_model_params() (nested structure, rejected as a faithful match -- see catboost-8z4.116 report); compared on the subset of keys explicitly passed at fit time.",
     "needs_disposition": false,
     "members": [
       {
@@ -16501,9 +16501,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "R has no post-fit model-level indices accessor; catboost.pool.get_cat_feature_indices() on the training pool is the equivalent value, since a model's cat feature indices are a deterministic, never-mutated function of the fit pool's layout.",
     "needs_disposition": false,
     "members": [
       {
@@ -16525,9 +16525,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "Same reasoning as get_cat_feature_indices: training-pool indices via catboost.pool.get_embedding_feature_indices() (always empty in this fixture, matching the Python oracle).",
     "needs_disposition": false,
     "members": [
       {
@@ -16645,9 +16645,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "R equivalent is model$feature_count.",
     "needs_disposition": false,
     "members": [
       {
@@ -16669,9 +16669,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "Same R equivalent as get_all_params (catboost.get_plain_params()); Python's get_param() only echoes caller-supplied values (not auto-resolved ones), so the comparison is restricted to explicitly passed keys (learning_rate excluded -- see fixture generator).",
     "needs_disposition": false,
     "members": [
       {
@@ -16813,9 +16813,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "Same reasoning as get_cat_feature_indices: training-pool indices via catboost.pool.get_text_feature_indices() (always empty in this fixture, matching the Python oracle).",
     "needs_disposition": false,
     "members": [
       {
@@ -16933,9 +16933,9 @@
     "kind": "property",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "R equivalent is model$learning_rate.",
     "needs_disposition": false,
     "members": [
       {
@@ -16957,9 +16957,9 @@
     "kind": "property",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "R equivalent is model$feature_count.",
     "needs_disposition": false,
     "members": [
       {
@@ -17053,9 +17053,9 @@
     "kind": "property",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "R equivalent is catboost.get_plain_params(model)$random_seed, not model$random_seed (which is only ever set by catboost.shrink(), never by catboost.train()).",
     "needs_disposition": false,
     "members": [
       {
@@ -17173,9 +17173,9 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "R has no post-fit model-level renamer; the observably equivalent capability is catboost.pool.set_feature_names() on the pool before catboost.train(), since the fitted model's feature names are exactly the training pool's names.",
     "needs_disposition": false,
     "members": [
       {
@@ -17269,9 +17269,9 @@
     "kind": "property",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "state": "green",
+    "tolerance_justification": "R equivalent is model$tree_count.",
     "needs_disposition": false,
     "members": [
       {
@@ -17293,8 +17293,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_pool_metadata.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -17317,8 +17317,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_pool_introspection.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -17341,8 +17341,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_pool_embeddings.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -17365,8 +17365,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_pool_introspection.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -17389,8 +17389,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_pool_introspection.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -17413,8 +17413,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_pool_metadata.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -17437,8 +17437,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_pool_metadata.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -17461,8 +17461,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_pool_introspection.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -17485,8 +17485,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_pool_metadata.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -17509,8 +17509,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_pool_metadata.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -17533,8 +17533,8 @@
     "kind": "attribute",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_pool_introspection.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -17557,8 +17557,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_pool_quantization.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -17581,8 +17581,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_pool_introspection.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -17605,8 +17605,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_pool_metadata.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -17629,8 +17629,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_pool_introspection.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -17653,8 +17653,8 @@
     "kind": "method",
     "method": "roundtrip",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_pool_quantization.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -17677,8 +17677,8 @@
     "kind": "method",
     "method": "roundtrip",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_pool_structural.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -17701,8 +17701,8 @@
     "kind": "method",
     "method": "roundtrip",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_pool_quantization.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -17725,8 +17725,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_pool_metadata.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -17749,8 +17749,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_pool_introspection.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -17773,8 +17773,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_pool_metadata.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -17797,8 +17797,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_pool_metadata.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -17821,8 +17821,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_pool_metadata.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -17845,8 +17845,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_pool_metadata.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -17869,8 +17869,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_pool_metadata.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -17893,8 +17893,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_pool_metadata.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -17917,8 +17917,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_pool_metadata.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -17941,8 +17941,8 @@
     "kind": "attribute",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_pool_introspection.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -17965,8 +17965,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_pool_structural.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -17989,8 +17989,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_pool_structural.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -18013,8 +18013,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_features_data.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -18037,8 +18037,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_features_data.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -18061,8 +18061,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_features_data.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -18085,8 +18085,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_features_data.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -18109,8 +18109,8 @@
     "kind": "method",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
+    "test_id": "tests/testthat/test_features_data.R",
+    "state": "green",
     "tolerance_justification": "",
     "needs_disposition": false,
     "members": [
@@ -18303,7 +18303,7 @@
     "tolerance": 1e-12,
     "test_id": null,
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "No R equivalent exists: R has no function that resolves training options to their final values without training (same underlying native gap as the CLI's mode:dump-options, already recorded as untriaged-but-real in catboost-8z4.115's follow-up evidence). Genuinely missing capability, not a disposition gap -- filed as a discovered-from follow-up (catboost-8z4.116 report) rather than adding new R/src code in this disposition-only ticket.",
     "needs_disposition": false,
     "members": [
       {

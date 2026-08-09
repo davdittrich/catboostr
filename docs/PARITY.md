@@ -7,14 +7,14 @@ Machine-derived summary of the CatBoost R/Python/CLI capability parity matrix (`
 
 | State | Count |
 | --- | --- |
-| green | 368 |
-| red | 291 |
+| green | 457 |
+| red | 202 |
 | other | 111 |
 | **Total** | 770 |
 
 ## Red rows (not yet available)
 
-291 rows. Each entry is the capability's `inventory_row_id` and its recorded reason, verbatim from the matrix (`final_method_note`, falling back to `tolerance_justification`, falling back to "no note recorded" if neither is recorded).
+202 rows. Each entry is the capability's `inventory_row_id` and its recorded reason, verbatim from the matrix (`final_method_note`, falling back to `tolerance_justification`, falling back to "no note recorded" if neither is recorded).
 
 ### enum_member_attachment (14)
 
@@ -33,7 +33,7 @@ Machine-derived summary of the CatBoost R/Python/CLI capability parity matrix (`
 - `catboost.EShapCalcType.Exact` -- no note recorded
 - `catboost.EShapCalcType.Regular` -- no note recorded
 
-### method_mode_shaped (203)
+### method_mode_shaped (114)
 
 - `CatBoost.best_iteration_` -- no note recorded
 - `CatBoost.best_score_` -- no note recorded
@@ -41,173 +41,84 @@ Machine-derived summary of the CatBoost R/Python/CLI capability parity matrix (`
 - `CatBoost.classes_` -- label array, exact-compare leaves
 - `CatBoost.create_metric_calcer` -- returns a calcer object; parity observable via its numeric add()/eval_metrics() results, not the object itself
 - `CatBoost.evals_result_` -- no note recorded
-- `CatBoost.feature_importances_` -- no note recorded
-- `CatBoost.fit` -- no output of its own; parity is actually established transitively via every other getter/predict row on the fitted model -- flagged low-confidence rather than force-fit
-- `CatBoost.get_all_params` -- config dict, not a model output; nearest available bucket
 - `CatBoost.get_best_iteration` -- no note recorded
 - `CatBoost.get_best_score` -- no note recorded
 - `CatBoost.get_borders` -- no note recorded
-- `CatBoost.get_cat_feature_indices` -- no note recorded
-- `CatBoost.get_embedding_feature_indices` -- no note recorded
 - `CatBoost.get_evals_result` -- no note recorded
 - `CatBoost.get_leaf_values` -- no note recorded
 - `CatBoost.get_leaf_weights` -- no note recorded
-- `CatBoost.get_n_features_in` -- no note recorded
-- `CatBoost.get_param` -- config dict, not a model output; nearest available bucket
 - `CatBoost.get_test_eval` -- no note recorded
 - `CatBoost.get_test_evals` -- no note recorded
-- `CatBoost.get_text_feature_indices` -- no note recorded
 - `CatBoost.get_tree_leaf_counts` -- no note recorded
 - `CatBoost.iterate_leaf_indexes` -- iterator of numeric arrays
-- `CatBoost.learning_rate_` -- no note recorded
-- `CatBoost.n_features_in_` -- no note recorded
 - `CatBoost.plot_partial_dependence` -- no note recorded
 - `CatBoost.plot_predictions` -- no note recorded
-- `CatBoost.random_seed_` -- no note recorded
 - `CatBoost.save_borders` -- writes a borders file artifact
-- `CatBoost.set_feature_names` -- state-mutator; parity only observable via a paired getter
 - `CatBoost.set_leaf_values` -- state-mutator; parity only observable via a paired getter
-- `CatBoost.tree_count_` -- no note recorded
 - `CatBoostClassifier.best_iteration_` -- no note recorded
 - `CatBoostClassifier.best_score_` -- no note recorded
 - `CatBoostClassifier.calc_leaf_indexes` -- no note recorded
 - `CatBoostClassifier.classes_` -- label array, exact-compare leaves
 - `CatBoostClassifier.create_metric_calcer` -- returns a calcer object; parity observable via its numeric add()/eval_metrics() results, not the object itself
 - `CatBoostClassifier.evals_result_` -- no note recorded
-- `CatBoostClassifier.feature_importances_` -- no note recorded
-- `CatBoostClassifier.fit` -- no output of its own; parity is actually established transitively via every other getter/predict row on the fitted model -- flagged low-confidence rather than force-fit
-- `CatBoostClassifier.get_all_params` -- config dict, not a model output; nearest available bucket
 - `CatBoostClassifier.get_best_iteration` -- no note recorded
 - `CatBoostClassifier.get_best_score` -- no note recorded
 - `CatBoostClassifier.get_borders` -- no note recorded
-- `CatBoostClassifier.get_cat_feature_indices` -- no note recorded
-- `CatBoostClassifier.get_embedding_feature_indices` -- no note recorded
 - `CatBoostClassifier.get_evals_result` -- no note recorded
 - `CatBoostClassifier.get_leaf_values` -- no note recorded
 - `CatBoostClassifier.get_leaf_weights` -- no note recorded
-- `CatBoostClassifier.get_n_features_in` -- no note recorded
-- `CatBoostClassifier.get_param` -- config dict, not a model output; nearest available bucket
 - `CatBoostClassifier.get_probability_threshold` -- no note recorded
 - `CatBoostClassifier.get_test_eval` -- no note recorded
 - `CatBoostClassifier.get_test_evals` -- no note recorded
-- `CatBoostClassifier.get_text_feature_indices` -- no note recorded
 - `CatBoostClassifier.get_tree_leaf_counts` -- no note recorded
 - `CatBoostClassifier.iterate_leaf_indexes` -- iterator of numeric arrays
-- `CatBoostClassifier.learning_rate_` -- no note recorded
-- `CatBoostClassifier.n_features_in_` -- no note recorded
 - `CatBoostClassifier.plot_partial_dependence` -- no note recorded
 - `CatBoostClassifier.plot_predictions` -- no note recorded
 - `CatBoostClassifier.predict_log_proba` -- no note recorded
-- `CatBoostClassifier.predict_proba` -- no note recorded
-- `CatBoostClassifier.random_seed_` -- no note recorded
 - `CatBoostClassifier.save_borders` -- writes a borders file artifact
-- `CatBoostClassifier.set_feature_names` -- state-mutator; parity only observable via a paired getter
 - `CatBoostClassifier.set_leaf_values` -- state-mutator; parity only observable via a paired getter
 - `CatBoostClassifier.set_probability_threshold` -- state-mutator; parity only observable via a paired getter
 - `CatBoostClassifier.staged_predict_log_proba` -- iterator of numeric arrays
-- `CatBoostClassifier.staged_predict_proba` -- iterator of numeric arrays
-- `CatBoostClassifier.tree_count_` -- no note recorded
 - `CatBoostRanker.best_iteration_` -- no note recorded
 - `CatBoostRanker.best_score_` -- no note recorded
 - `CatBoostRanker.calc_leaf_indexes` -- no note recorded
 - `CatBoostRanker.classes_` -- label array, exact-compare leaves
 - `CatBoostRanker.create_metric_calcer` -- returns a calcer object; parity observable via its numeric add()/eval_metrics() results, not the object itself
 - `CatBoostRanker.evals_result_` -- no note recorded
-- `CatBoostRanker.feature_importances_` -- no note recorded
-- `CatBoostRanker.fit` -- no output of its own; parity is actually established transitively via every other getter/predict row on the fitted model -- flagged low-confidence rather than force-fit
-- `CatBoostRanker.get_all_params` -- config dict, not a model output; nearest available bucket
 - `CatBoostRanker.get_best_iteration` -- no note recorded
 - `CatBoostRanker.get_best_score` -- no note recorded
 - `CatBoostRanker.get_borders` -- no note recorded
-- `CatBoostRanker.get_cat_feature_indices` -- no note recorded
-- `CatBoostRanker.get_embedding_feature_indices` -- no note recorded
 - `CatBoostRanker.get_evals_result` -- no note recorded
 - `CatBoostRanker.get_leaf_values` -- no note recorded
 - `CatBoostRanker.get_leaf_weights` -- no note recorded
-- `CatBoostRanker.get_n_features_in` -- no note recorded
-- `CatBoostRanker.get_param` -- config dict, not a model output; nearest available bucket
 - `CatBoostRanker.get_test_eval` -- no note recorded
 - `CatBoostRanker.get_test_evals` -- no note recorded
-- `CatBoostRanker.get_text_feature_indices` -- no note recorded
 - `CatBoostRanker.get_tree_leaf_counts` -- no note recorded
 - `CatBoostRanker.iterate_leaf_indexes` -- iterator of numeric arrays
-- `CatBoostRanker.learning_rate_` -- no note recorded
-- `CatBoostRanker.n_features_in_` -- no note recorded
 - `CatBoostRanker.plot_partial_dependence` -- no note recorded
 - `CatBoostRanker.plot_predictions` -- no note recorded
-- `CatBoostRanker.random_seed_` -- no note recorded
 - `CatBoostRanker.save_borders` -- writes a borders file artifact
-- `CatBoostRanker.set_feature_names` -- state-mutator; parity only observable via a paired getter
 - `CatBoostRanker.set_leaf_values` -- state-mutator; parity only observable via a paired getter
-- `CatBoostRanker.tree_count_` -- no note recorded
 - `CatBoostRegressor.best_iteration_` -- no note recorded
 - `CatBoostRegressor.best_score_` -- no note recorded
 - `CatBoostRegressor.calc_leaf_indexes` -- no note recorded
 - `CatBoostRegressor.classes_` -- label array, exact-compare leaves
 - `CatBoostRegressor.create_metric_calcer` -- returns a calcer object; parity observable via its numeric add()/eval_metrics() results, not the object itself
 - `CatBoostRegressor.evals_result_` -- no note recorded
-- `CatBoostRegressor.feature_importances_` -- no note recorded
-- `CatBoostRegressor.fit` -- no output of its own; parity is actually established transitively via every other getter/predict row on the fitted model -- flagged low-confidence rather than force-fit
-- `CatBoostRegressor.get_all_params` -- config dict, not a model output; nearest available bucket
 - `CatBoostRegressor.get_best_iteration` -- no note recorded
 - `CatBoostRegressor.get_best_score` -- no note recorded
 - `CatBoostRegressor.get_borders` -- no note recorded
-- `CatBoostRegressor.get_cat_feature_indices` -- no note recorded
-- `CatBoostRegressor.get_embedding_feature_indices` -- no note recorded
 - `CatBoostRegressor.get_evals_result` -- no note recorded
 - `CatBoostRegressor.get_leaf_values` -- no note recorded
 - `CatBoostRegressor.get_leaf_weights` -- no note recorded
-- `CatBoostRegressor.get_n_features_in` -- no note recorded
-- `CatBoostRegressor.get_param` -- config dict, not a model output; nearest available bucket
 - `CatBoostRegressor.get_test_eval` -- no note recorded
 - `CatBoostRegressor.get_test_evals` -- no note recorded
-- `CatBoostRegressor.get_text_feature_indices` -- no note recorded
 - `CatBoostRegressor.get_tree_leaf_counts` -- no note recorded
 - `CatBoostRegressor.iterate_leaf_indexes` -- iterator of numeric arrays
-- `CatBoostRegressor.learning_rate_` -- no note recorded
-- `CatBoostRegressor.n_features_in_` -- no note recorded
 - `CatBoostRegressor.plot_partial_dependence` -- no note recorded
 - `CatBoostRegressor.plot_predictions` -- no note recorded
-- `CatBoostRegressor.random_seed_` -- no note recorded
 - `CatBoostRegressor.save_borders` -- writes a borders file artifact
-- `CatBoostRegressor.set_feature_names` -- state-mutator; parity only observable via a paired getter
 - `CatBoostRegressor.set_leaf_values` -- state-mutator; parity only observable via a paired getter
-- `CatBoostRegressor.tree_count_` -- no note recorded
-- `FeaturesData.get_cat_feature_count` -- no note recorded
-- `FeaturesData.get_feature_count` -- no note recorded
-- `FeaturesData.get_feature_names` -- no note recorded
-- `FeaturesData.get_num_feature_count` -- no note recorded
-- `FeaturesData.get_object_count` -- no note recorded
-- `Pool.get_baseline` -- no note recorded
-- `Pool.get_cat_feature_indices` -- no note recorded
-- `Pool.get_embedding_feature_indices` -- no note recorded
-- `Pool.get_feature_names` -- no note recorded
-- `Pool.get_features` -- no note recorded
-- `Pool.get_group_id_hash` -- no note recorded
-- `Pool.get_label` -- no note recorded
-- `Pool.get_text_feature_indices` -- no note recorded
-- `Pool.get_weight` -- no note recorded
-- `Pool.has_label` -- boolean flag, exact-compare
-- `Pool.is_empty_` -- boolean flag, exact-compare
-- `Pool.is_quantized` -- boolean flag, exact-compare
-- `Pool.num_col` -- no note recorded
-- `Pool.num_pairs` -- no note recorded
-- `Pool.num_row` -- no note recorded
-- `Pool.quantize` -- produces a quantized Pool artifact
-- `Pool.save` -- writes a Pool file artifact
-- `Pool.save_quantization_borders` -- writes a borders file artifact
-- `Pool.set_baseline` -- state-mutator; parity only observable via a paired getter
-- `Pool.set_feature_names` -- state-mutator; parity only observable via a paired getter
-- `Pool.set_group_id` -- state-mutator; parity only observable via a paired getter
-- `Pool.set_group_weight` -- state-mutator; parity only observable via a paired getter
-- `Pool.set_pairs` -- state-mutator; parity only observable via a paired getter
-- `Pool.set_pairs_weight` -- state-mutator; parity only observable via a paired getter
-- `Pool.set_subgroup_id` -- state-mutator; parity only observable via a paired getter
-- `Pool.set_timestamp` -- state-mutator; parity only observable via a paired getter
-- `Pool.set_weight` -- state-mutator; parity only observable via a paired getter
-- `Pool.shape` -- int tuple
-- `Pool.slice` -- returns a data-subset Pool; parity compares the subset contents
-- `Pool.train_eval_split` -- returns two data-subset Pools; parity compares split contents
 - `catboost.CatBoost` -- class existence/constructibility; no output of its own
 - `catboost.CatBoostClassifier` -- class existence/constructibility; no output of its own
 - `catboost.CatBoostError` -- no note recorded
@@ -435,10 +346,10 @@ Machine-derived summary of the CatBoost R/Python/CLI capability parity matrix (`
 - `param:plot` -- BLOCKED, not green. Python-only convenience args with no catboostr equivalent (no callback/live-plot/stream-redirect mechanism in R). Verified directly: native rejects each with 'Unknown option {name}' (plain_options_helper.cpp:512). See test_params_validation.R.
 - `param:plot_file` -- BLOCKED, not green. Python-only convenience args with no catboostr equivalent (no callback/live-plot/stream-redirect mechanism in R). Verified directly: native rejects each with 'Unknown option {name}' (plain_options_helper.cpp:512). See test_params_validation.R.
 
-## Green rows (368)
+## Green rows (457)
 
 Covered by a passing differential test. Listed compactly by `inventory_row_id` -- see the red rows above for what's NOT yet covered, which is the more interesting information for a reader.
 
 - **enum_member_attachment** (2): `catboost.EFstrType.PredictionDiff`, `catboost.EFstrType.ShapInteractionValues`
-- **method_mode_shaped** (101): `CatBoost.calc_feature_statistics`, `CatBoost.compare`, `CatBoost.drop_unused_features`, `CatBoost.eval_metrics`, `CatBoost.feature_names_`, `CatBoost.get_feature_importance`, `CatBoost.get_metadata`, `CatBoost.get_object_importance`, `CatBoost.get_scale_and_bias`, `CatBoost.grid_search`, `CatBoost.load_model`, `CatBoost.plot_tree`, `CatBoost.predict`, `CatBoost.randomized_search`, `CatBoost.save_model`, `CatBoost.select_features`, `CatBoost.set_scale_and_bias`, `CatBoost.shrink`, `CatBoost.staged_predict`, `CatBoost.virtual_ensembles_predict`, `CatBoostClassifier.calc_feature_statistics`, `CatBoostClassifier.compare`, `CatBoostClassifier.drop_unused_features`, `CatBoostClassifier.eval_metrics`, `CatBoostClassifier.feature_names_`, `CatBoostClassifier.get_feature_importance`, `CatBoostClassifier.get_metadata`, `CatBoostClassifier.get_object_importance`, `CatBoostClassifier.get_scale_and_bias`, `CatBoostClassifier.grid_search`, `CatBoostClassifier.load_model`, `CatBoostClassifier.plot_tree`, `CatBoostClassifier.predict`, `CatBoostClassifier.randomized_search`, `CatBoostClassifier.save_model`, `CatBoostClassifier.select_features`, `CatBoostClassifier.set_scale_and_bias`, `CatBoostClassifier.shrink`, `CatBoostClassifier.staged_predict`, `CatBoostClassifier.virtual_ensembles_predict`, `CatBoostRanker.calc_feature_statistics`, `CatBoostRanker.compare`, `CatBoostRanker.drop_unused_features`, `CatBoostRanker.eval_metrics`, `CatBoostRanker.feature_names_`, `CatBoostRanker.get_feature_importance`, `CatBoostRanker.get_metadata`, `CatBoostRanker.get_object_importance`, `CatBoostRanker.get_scale_and_bias`, `CatBoostRanker.grid_search`, `CatBoostRanker.load_model`, `CatBoostRanker.plot_tree`, `CatBoostRanker.predict`, `CatBoostRanker.randomized_search`, `CatBoostRanker.save_model`, `CatBoostRanker.select_features`, `CatBoostRanker.set_scale_and_bias`, `CatBoostRanker.shrink`, `CatBoostRanker.staged_predict`, `CatBoostRanker.virtual_ensembles_predict`, `CatBoostRegressor.calc_feature_statistics`, `CatBoostRegressor.compare`, `CatBoostRegressor.drop_unused_features`, `CatBoostRegressor.eval_metrics`, `CatBoostRegressor.feature_names_`, `CatBoostRegressor.get_feature_importance`, `CatBoostRegressor.get_metadata`, `CatBoostRegressor.get_object_importance`, `CatBoostRegressor.get_scale_and_bias`, `CatBoostRegressor.grid_search`, `CatBoostRegressor.load_model`, `CatBoostRegressor.plot_tree`, `CatBoostRegressor.predict`, `CatBoostRegressor.randomized_search`, `CatBoostRegressor.save_model`, `CatBoostRegressor.select_features`, `CatBoostRegressor.set_scale_and_bias`, `CatBoostRegressor.shrink`, `CatBoostRegressor.staged_predict`, `CatBoostRegressor.virtual_ensembles_predict`, `catboost.cv`, `catboost.sum_models`, `catboost.train`, `catboost.utils.get_roc_curve`, `mode:calc`, `mode:dataset-statistics`, `mode:eval-feature`, `mode:eval-metrics`, `mode:fit`, `mode:fstr`, `mode:metadata`, `mode:metadata dump`, `mode:metadata dump-feature-names`, `mode:metadata get`, `mode:metadata set`, `mode:model-sum`, `mode:normalize-model`, `mode:ostr`, `mode:roc`, `mode:run-worker`, `mode:select-features`
+- **method_mode_shaped** (190): `CatBoost.calc_feature_statistics`, `CatBoost.compare`, `CatBoost.drop_unused_features`, `CatBoost.eval_metrics`, `CatBoost.feature_importances_`, `CatBoost.feature_names_`, `CatBoost.fit`, `CatBoost.get_all_params`, `CatBoost.get_cat_feature_indices`, `CatBoost.get_embedding_feature_indices`, `CatBoost.get_feature_importance`, `CatBoost.get_metadata`, `CatBoost.get_n_features_in`, `CatBoost.get_object_importance`, `CatBoost.get_param`, `CatBoost.get_scale_and_bias`, `CatBoost.get_text_feature_indices`, `CatBoost.grid_search`, `CatBoost.learning_rate_`, `CatBoost.load_model`, `CatBoost.n_features_in_`, `CatBoost.plot_tree`, `CatBoost.predict`, `CatBoost.random_seed_`, `CatBoost.randomized_search`, `CatBoost.save_model`, `CatBoost.select_features`, `CatBoost.set_feature_names`, `CatBoost.set_scale_and_bias`, `CatBoost.shrink`, `CatBoost.staged_predict`, `CatBoost.tree_count_`, `CatBoost.virtual_ensembles_predict`, `CatBoostClassifier.calc_feature_statistics`, `CatBoostClassifier.compare`, `CatBoostClassifier.drop_unused_features`, `CatBoostClassifier.eval_metrics`, `CatBoostClassifier.feature_importances_`, `CatBoostClassifier.feature_names_`, `CatBoostClassifier.fit`, `CatBoostClassifier.get_all_params`, `CatBoostClassifier.get_cat_feature_indices`, `CatBoostClassifier.get_embedding_feature_indices`, `CatBoostClassifier.get_feature_importance`, `CatBoostClassifier.get_metadata`, `CatBoostClassifier.get_n_features_in`, `CatBoostClassifier.get_object_importance`, `CatBoostClassifier.get_param`, `CatBoostClassifier.get_scale_and_bias`, `CatBoostClassifier.get_text_feature_indices`, `CatBoostClassifier.grid_search`, `CatBoostClassifier.learning_rate_`, `CatBoostClassifier.load_model`, `CatBoostClassifier.n_features_in_`, `CatBoostClassifier.plot_tree`, `CatBoostClassifier.predict`, `CatBoostClassifier.predict_proba`, `CatBoostClassifier.random_seed_`, `CatBoostClassifier.randomized_search`, `CatBoostClassifier.save_model`, `CatBoostClassifier.select_features`, `CatBoostClassifier.set_feature_names`, `CatBoostClassifier.set_scale_and_bias`, `CatBoostClassifier.shrink`, `CatBoostClassifier.staged_predict`, `CatBoostClassifier.staged_predict_proba`, `CatBoostClassifier.tree_count_`, `CatBoostClassifier.virtual_ensembles_predict`, `CatBoostRanker.calc_feature_statistics`, `CatBoostRanker.compare`, `CatBoostRanker.drop_unused_features`, `CatBoostRanker.eval_metrics`, `CatBoostRanker.feature_importances_`, `CatBoostRanker.feature_names_`, `CatBoostRanker.fit`, `CatBoostRanker.get_all_params`, `CatBoostRanker.get_cat_feature_indices`, `CatBoostRanker.get_embedding_feature_indices`, `CatBoostRanker.get_feature_importance`, `CatBoostRanker.get_metadata`, `CatBoostRanker.get_n_features_in`, `CatBoostRanker.get_object_importance`, `CatBoostRanker.get_param`, `CatBoostRanker.get_scale_and_bias`, `CatBoostRanker.get_text_feature_indices`, `CatBoostRanker.grid_search`, `CatBoostRanker.learning_rate_`, `CatBoostRanker.load_model`, `CatBoostRanker.n_features_in_`, `CatBoostRanker.plot_tree`, `CatBoostRanker.predict`, `CatBoostRanker.random_seed_`, `CatBoostRanker.randomized_search`, `CatBoostRanker.save_model`, `CatBoostRanker.select_features`, `CatBoostRanker.set_feature_names`, `CatBoostRanker.set_scale_and_bias`, `CatBoostRanker.shrink`, `CatBoostRanker.staged_predict`, `CatBoostRanker.tree_count_`, `CatBoostRanker.virtual_ensembles_predict`, `CatBoostRegressor.calc_feature_statistics`, `CatBoostRegressor.compare`, `CatBoostRegressor.drop_unused_features`, `CatBoostRegressor.eval_metrics`, `CatBoostRegressor.feature_importances_`, `CatBoostRegressor.feature_names_`, `CatBoostRegressor.fit`, `CatBoostRegressor.get_all_params`, `CatBoostRegressor.get_cat_feature_indices`, `CatBoostRegressor.get_embedding_feature_indices`, `CatBoostRegressor.get_feature_importance`, `CatBoostRegressor.get_metadata`, `CatBoostRegressor.get_n_features_in`, `CatBoostRegressor.get_object_importance`, `CatBoostRegressor.get_param`, `CatBoostRegressor.get_scale_and_bias`, `CatBoostRegressor.get_text_feature_indices`, `CatBoostRegressor.grid_search`, `CatBoostRegressor.learning_rate_`, `CatBoostRegressor.load_model`, `CatBoostRegressor.n_features_in_`, `CatBoostRegressor.plot_tree`, `CatBoostRegressor.predict`, `CatBoostRegressor.random_seed_`, `CatBoostRegressor.randomized_search`, `CatBoostRegressor.save_model`, `CatBoostRegressor.select_features`, `CatBoostRegressor.set_feature_names`, `CatBoostRegressor.set_scale_and_bias`, `CatBoostRegressor.shrink`, `CatBoostRegressor.staged_predict`, `CatBoostRegressor.tree_count_`, `CatBoostRegressor.virtual_ensembles_predict`, `FeaturesData.get_cat_feature_count`, `FeaturesData.get_feature_count`, `FeaturesData.get_feature_names`, `FeaturesData.get_num_feature_count`, `FeaturesData.get_object_count`, `Pool.get_baseline`, `Pool.get_cat_feature_indices`, `Pool.get_embedding_feature_indices`, `Pool.get_feature_names`, `Pool.get_features`, `Pool.get_group_id_hash`, `Pool.get_label`, `Pool.get_text_feature_indices`, `Pool.get_weight`, `Pool.has_label`, `Pool.is_empty_`, `Pool.is_quantized`, `Pool.num_col`, `Pool.num_pairs`, `Pool.num_row`, `Pool.quantize`, `Pool.save`, `Pool.save_quantization_borders`, `Pool.set_baseline`, `Pool.set_feature_names`, `Pool.set_group_id`, `Pool.set_group_weight`, `Pool.set_pairs`, `Pool.set_pairs_weight`, `Pool.set_subgroup_id`, `Pool.set_timestamp`, `Pool.set_weight`, `Pool.shape`, `Pool.slice`, `Pool.train_eval_split`, `catboost.cv`, `catboost.sum_models`, `catboost.train`, `catboost.utils.get_roc_curve`, `mode:calc`, `mode:dataset-statistics`, `mode:eval-feature`, `mode:eval-metrics`, `mode:fit`, `mode:fstr`, `mode:metadata`, `mode:metadata dump`, `mode:metadata dump-feature-names`, `mode:metadata get`, `mode:metadata set`, `mode:model-sum`, `mode:normalize-model`, `mode:ostr`, `mode:roc`, `mode:run-worker`, `mode:select-features`
 - **parameter_flag_family** (265): `flag:--allow-const-label`, `flag:--allow-writing-files`, `flag:--approx-on-full-history`, `flag:--auto-class-weights`, `flag:--bagging-temperature/--tmp`, `flag:--bayesian-matrix-reg`, `flag:--best-model-min-trees`, `flag:--boost-from-average`, `flag:--boosting-type`, `flag:--bootstrap-type`, `flag:--border-count/-x`, `flag:--border-counts`, `flag:--cd/--column-description`, `flag:--class-names`, `flag:--class-weights`, `flag:--classes-count`, `flag:--combinations-ctr`, `flag:--counter-calc-method`, `flag:--ctr-history-unit`, `flag:--ctr-leaf-count-limit`, `flag:--ctr-merge-policy`, `flag:--ctr-target-border-count`, `flag:--custom-loss/--custom-metric`, `flag:--delimiter`, `flag:--depth/-n`, `flag:--detailed-profile`, `flag:--dictionaries`, `flag:--diffusion-temperature`, `flag:--dump-format`, `flag:--embedding-processing`, `flag:--eval-file/-i`, `flag:--eval-metric`, `flag:--eval-period`, `flag:--feature-border-type/--grid/-g`, `flag:--feature-calcers`, `flag:--feature-ctr/--per-feature-ctr`, `flag:--feature-eval-mode`, `flag:--feature-eval-output-file`, `flag:--feature-weights`, `flag:--features-for-select`, `flag:--features-selection-algorithm`, `flag:--features-selection-grouping`, `flag:--features-selection-result-path`, `flag:--features-selection-steps`, `flag:--features-to-evaluate`, `flag:--file-with-hosts`, `flag:--final-ctr-computation-mode`, `flag:--first-feature-use-penalties`, `flag:--fold-count`, `flag:--fold-len-multiplier`, `flag:--fold-permutation-block`, `flag:--fold-size`, `flag:--fold-size-unit`, `flag:--force-unit-auto-pair-weights`, `flag:--fstr-type`, `flag:--grow-policy`, `flag:--has-header`, `flag:--has-time`, `flag:--histograms-path`, `flag:--ignore-features/-I`, `flag:--input-path`, `flag:--input-path/-i`, `flag:--iterations/-i`, `flag:--json-log`, `flag:--key`, `flag:--l2-leaf-reg`, `flag:--langevin`, `flag:--leaf-estimation-backtracking`, `flag:--leaf-estimation-iterations`, `flag:--leaf-estimation-method`, `flag:--learn-err-log`, `flag:--learn-set/-f`, `flag:--learning-rate/-w`, `flag:--logging-level`, `flag:--loss-function`, `flag:--max-ctr-complexity`, `flag:--max-leaves`, `flag:--metric-period`, `flag:--metrics`, `flag:--min-data-in-leaf`, `flag:--model-file/--model-path/-m`, `flag:--model-file/-m`, `flag:--model-shrink-mode`, `flag:--model-shrink-rate`, `flag:--model-size-reg`, `flag:--model-with-weight`, `flag:--model-with-weight-and-prefix`, `flag:--model/-m`, `flag:--monotone-constraints`, `flag:--mvs-reg`, `flag:--name`, `flag:--nan-mode`, `flag:--node-port`, `flag:--node-type`, `flag:--ntree-end`, `flag:--ntree-start`, `flag:--num-features-to-select`, `flag:--od-pval`, `flag:--od-type`, `flag:--od-wait`, `flag:--offset`, `flag:--one-hot-max-size`, `flag:--only-light-statistics`, `flag:--output-borders-file`, `flag:--output-model`, `flag:--output-model-path/-o`, `flag:--penalties-coefficient`, `flag:--per-float-feature-binarization/--per-float-feature-quantization`, `flag:--per-object-feature-penalties`, `flag:--posterior-sampling`, `flag:--prediction-type`, `flag:--print-scale-and-bias`, `flag:--profile-log`, `flag:--random-seed/--seed/-r`, `flag:--random-strength`, `flag:--relative-fold-size`, `flag:--rsm`, `flag:--sampling-frequency`, `flag:--sampling-unit`, `flag:--score-function`, `flag:--set-bias`, `flag:--set-scale`, `flag:--simple-ctr`, `flag:--snapshot-file`, `flag:--snapshot-interval`, `flag:--sparse-features-conflict-fraction`, `flag:--store-all-simple-ctr`, `flag:--subsample`, `flag:--target-border`, `flag:--task-type`, `flag:--test-err-log`, `flag:--test-set/-t`, `flag:--text-processing`, `flag:--thread-count/-T`, `flag:--tmp-dir`, `flag:--tokenizers`, `flag:--train-dir`, `flag:--train-final-model`, `flag:--training-options-file`, `flag:--tree-count-limit`, `flag:--update-method`, `flag:--use-best-model`, `flag:--used-ram-limit`, `flag:--value`, `flag:--virtual-ensembles-count`, `param:X`, `param:allow_const_label`, `param:allow_writing_files`, `param:approx_on_full_history`, `param:auto_class_weights`, `param:bagging_temperature`, `param:baseline`, `param:best_model_min_trees`, `param:boost_from_average`, `param:boosting_type`, `param:bootstrap_type`, `param:border_count`, `param:cat_features`, `param:class_weights`, `param:colsample_bylevel`, `param:column_description`, `param:combinations_ctr`, `param:counter_calc_method`, `param:ctr_description`, `param:ctr_history_unit`, `param:ctr_leaf_count_limit`, `param:ctr_target_border_count`, `param:custom_loss`, `param:custom_metric`, `param:data_partition`, `param:depth`, `param:dev_efb_max_buckets`, `param:dev_score_calc_obj_block_size`, `param:dictionaries`, `param:diffusion_temperature`, `param:early_stopping_rounds`, `param:embedding_features`, `param:eta`, `param:eval_fraction`, `param:eval_metric`, `param:eval_set`, `param:feature_border_type`, `param:feature_calcers`, `param:feature_weights`, `param:final_ctr_computation_mode`, `param:first_feature_use_penalties`, `param:fold_len_multiplier`, `param:fold_permutation_block`, `param:group_id`, `param:group_weight`, `param:grow_policy`, `param:has_time`, `param:ignored_features`, `param:init_model`, `param:iterations`, `param:l2_leaf_reg`, `param:langevin`, `param:leaf_estimation_backtracking`, `param:leaf_estimation_iterations`, `param:leaf_estimation_method`, `param:learning_rate`, `param:logging_level`, `param:loss_function`, `param:max_bin`, `param:max_ctr_complexity`, `param:max_depth`, `param:max_leaves`, `param:metadata`, `param:metric_period`, `param:min_child_samples`, `param:min_data_in_leaf`, `param:model_shrink_mode`, `param:model_shrink_rate`, `param:model_size_reg`, `param:monotone_constraints`, `param:mvs_reg`, `param:n_estimators`, `param:name`, `param:nan_mode`, `param:num_boost_round`, `param:num_leaves`, `param:num_trees`, `param:objective`, `param:od_pval`, `param:od_type`, `param:od_wait`, `param:one_hot_max_size`, `param:output_borders`, `param:pairs`, `param:pairs_weight`, `param:params`, `param:penalties_coefficient`, `param:per_feature_ctr`, `param:per_float_feature_quantization`, `param:per_object_feature_penalties`, `param:posterior_sampling`, `param:random_seed`, `param:random_state`, `param:random_strength`, `param:reg_lambda`, `param:rsm`, `param:sample_weight`, `param:sampling_frequency`, `param:sampling_unit`, `param:save_snapshot`, `param:score_function`, `param:simple_ctr`, `param:snapshot_file`, `param:snapshot_interval`, `param:sparse_features_conflict_fraction`, `param:store_all_simple_ctr`, `param:subgroup_id`, `param:subsample`, `param:target_border`, `param:task_type`, `param:text_features`, `param:text_processing`, `param:thread_count`, `param:tokenizers`, `param:train_dir`, `param:use_best_model`, `param:used_ram_limit`, `param:verbose`, `param:verbose_eval`, `param:y`

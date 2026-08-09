@@ -2624,5 +2624,415 @@
   "mode:dump-options": {
     "state": "red",
     "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): no R equivalent (code-verified): dump-options resolves and writes a fully-merged, pre-fit option set to a file without training a model. The closest R analog, catboost.get_plain_params() (R/catboost.R:4753), requires an already-fitted model handle and returns an in-memory list -- it cannot resolve options ahead of a fit run or write them to a file. No R function shells out to or reimplements this CLI mode."
+  },
+  "Pool.get_baseline": {
+    "state": "green",
+    "test_id": "tests/testthat/test_pool_metadata.R"
+  },
+  "Pool.get_cat_feature_indices": {
+    "state": "green",
+    "test_id": "tests/testthat/test_pool_introspection.R"
+  },
+  "Pool.get_embedding_feature_indices": {
+    "state": "green",
+    "test_id": "tests/testthat/test_pool_embeddings.R"
+  },
+  "Pool.get_feature_names": {
+    "state": "green",
+    "test_id": "tests/testthat/test_pool_introspection.R"
+  },
+  "Pool.get_features": {
+    "state": "green",
+    "test_id": "tests/testthat/test_pool_introspection.R"
+  },
+  "Pool.get_group_id_hash": {
+    "state": "green",
+    "test_id": "tests/testthat/test_pool_metadata.R"
+  },
+  "Pool.get_label": {
+    "state": "green",
+    "test_id": "tests/testthat/test_pool_metadata.R"
+  },
+  "Pool.get_text_feature_indices": {
+    "state": "green",
+    "test_id": "tests/testthat/test_pool_introspection.R"
+  },
+  "Pool.get_weight": {
+    "state": "green",
+    "test_id": "tests/testthat/test_pool_metadata.R"
+  },
+  "Pool.has_label": {
+    "state": "green",
+    "test_id": "tests/testthat/test_pool_metadata.R"
+  },
+  "Pool.is_empty_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_pool_introspection.R"
+  },
+  "Pool.is_quantized": {
+    "state": "green",
+    "test_id": "tests/testthat/test_pool_quantization.R"
+  },
+  "Pool.num_col": {
+    "state": "green",
+    "test_id": "tests/testthat/test_pool_introspection.R"
+  },
+  "Pool.num_pairs": {
+    "state": "green",
+    "test_id": "tests/testthat/test_pool_metadata.R"
+  },
+  "Pool.num_row": {
+    "state": "green",
+    "test_id": "tests/testthat/test_pool_introspection.R"
+  },
+  "Pool.quantize": {
+    "state": "green",
+    "test_id": "tests/testthat/test_pool_quantization.R"
+  },
+  "Pool.save": {
+    "state": "green",
+    "test_id": "tests/testthat/test_pool_structural.R"
+  },
+  "Pool.save_quantization_borders": {
+    "state": "green",
+    "test_id": "tests/testthat/test_pool_quantization.R"
+  },
+  "Pool.set_baseline": {
+    "state": "green",
+    "test_id": "tests/testthat/test_pool_metadata.R"
+  },
+  "Pool.set_feature_names": {
+    "state": "green",
+    "test_id": "tests/testthat/test_pool_introspection.R"
+  },
+  "Pool.set_group_id": {
+    "state": "green",
+    "test_id": "tests/testthat/test_pool_metadata.R"
+  },
+  "Pool.set_group_weight": {
+    "state": "green",
+    "test_id": "tests/testthat/test_pool_metadata.R"
+  },
+  "Pool.set_pairs": {
+    "state": "green",
+    "test_id": "tests/testthat/test_pool_metadata.R"
+  },
+  "Pool.set_pairs_weight": {
+    "state": "green",
+    "test_id": "tests/testthat/test_pool_metadata.R"
+  },
+  "Pool.set_subgroup_id": {
+    "state": "green",
+    "test_id": "tests/testthat/test_pool_metadata.R"
+  },
+  "Pool.set_timestamp": {
+    "state": "green",
+    "test_id": "tests/testthat/test_pool_metadata.R"
+  },
+  "Pool.set_weight": {
+    "state": "green",
+    "test_id": "tests/testthat/test_pool_metadata.R"
+  },
+  "Pool.shape": {
+    "state": "green",
+    "test_id": "tests/testthat/test_pool_introspection.R"
+  },
+  "Pool.slice": {
+    "state": "green",
+    "test_id": "tests/testthat/test_pool_structural.R"
+  },
+  "Pool.train_eval_split": {
+    "state": "green",
+    "test_id": "tests/testthat/test_pool_structural.R"
+  },
+  "FeaturesData.get_cat_feature_count": {
+    "state": "green",
+    "test_id": "tests/testthat/test_features_data.R"
+  },
+  "FeaturesData.get_feature_count": {
+    "state": "green",
+    "test_id": "tests/testthat/test_features_data.R"
+  },
+  "FeaturesData.get_feature_names": {
+    "state": "green",
+    "test_id": "tests/testthat/test_features_data.R"
+  },
+  "FeaturesData.get_num_feature_count": {
+    "state": "green",
+    "test_id": "tests/testthat/test_features_data.R"
+  },
+  "FeaturesData.get_object_count": {
+    "state": "green",
+    "test_id": "tests/testthat/test_features_data.R"
+  },
+  "CatBoost.feature_importances_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_get_feature_importance_classes.R"
+  },
+  "CatBoost.fit": {
+    "state": "green",
+    "test_id": "tests/testthat/test_predict_classes.R",
+    "tolerance_justification": "fit() is not itself a getter; parity is observed via fit -> predict(RawFormulaVal), which already differentially matches the Python oracle tree-for-tree for all 4 classes (identical trees imply identical fit)."
+  },
+  "CatBoostClassifier.feature_importances_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_get_feature_importance_classes.R"
+  },
+  "CatBoostClassifier.fit": {
+    "state": "green",
+    "test_id": "tests/testthat/test_predict_classes.R",
+    "tolerance_justification": "fit() is not itself a getter; parity is observed via fit -> predict(RawFormulaVal), which already differentially matches the Python oracle tree-for-tree for all 4 classes (identical trees imply identical fit)."
+  },
+  "CatBoostRegressor.feature_importances_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_get_feature_importance_classes.R"
+  },
+  "CatBoostRegressor.fit": {
+    "state": "green",
+    "test_id": "tests/testthat/test_predict_classes.R",
+    "tolerance_justification": "fit() is not itself a getter; parity is observed via fit -> predict(RawFormulaVal), which already differentially matches the Python oracle tree-for-tree for all 4 classes (identical trees imply identical fit)."
+  },
+  "CatBoostRanker.feature_importances_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_get_feature_importance_classes.R"
+  },
+  "CatBoostRanker.fit": {
+    "state": "green",
+    "test_id": "tests/testthat/test_predict_classes.R",
+    "tolerance_justification": "fit() is not itself a getter; parity is observed via fit -> predict(RawFormulaVal), which already differentially matches the Python oracle tree-for-tree for all 4 classes (identical trees imply identical fit)."
+  },
+  "CatBoost.get_all_params": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "R equivalent is catboost.get_plain_params() (flat list), not catboost.get_model_params() (nested structure, rejected as a faithful match -- see catboost-8z4.116 report); compared on the subset of keys explicitly passed at fit time."
+  },
+  "CatBoost.get_param": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "Same R equivalent as get_all_params (catboost.get_plain_params()); Python's get_param() only echoes caller-supplied values (not auto-resolved ones), so the comparison is restricted to explicitly passed keys (learning_rate excluded -- see fixture generator)."
+  },
+  "CatBoost.get_cat_feature_indices": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "R has no post-fit model-level indices accessor; catboost.pool.get_cat_feature_indices() on the training pool is the equivalent value, since a model's cat feature indices are a deterministic, never-mutated function of the fit pool's layout."
+  },
+  "CatBoost.get_text_feature_indices": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "Same reasoning as get_cat_feature_indices: training-pool indices via catboost.pool.get_text_feature_indices() (always empty in this fixture, matching the Python oracle)."
+  },
+  "CatBoost.get_embedding_feature_indices": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "Same reasoning as get_cat_feature_indices: training-pool indices via catboost.pool.get_embedding_feature_indices() (always empty in this fixture, matching the Python oracle)."
+  },
+  "CatBoost.get_n_features_in": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "R equivalent is model$feature_count."
+  },
+  "CatBoost.n_features_in_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "R equivalent is model$feature_count."
+  },
+  "CatBoost.learning_rate_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "R equivalent is model$learning_rate."
+  },
+  "CatBoost.random_seed_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "R equivalent is catboost.get_plain_params(model)$random_seed, not model$random_seed (which is only ever set by catboost.shrink(), never by catboost.train())."
+  },
+  "CatBoost.tree_count_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "R equivalent is model$tree_count."
+  },
+  "CatBoost.set_feature_names": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "R has no post-fit model-level renamer; the observably equivalent capability is catboost.pool.set_feature_names() on the pool before catboost.train(), since the fitted model's feature names are exactly the training pool's names."
+  },
+  "CatBoostClassifier.get_all_params": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "R equivalent is catboost.get_plain_params() (flat list), not catboost.get_model_params() (nested structure, rejected as a faithful match -- see catboost-8z4.116 report); compared on the subset of keys explicitly passed at fit time."
+  },
+  "CatBoostClassifier.get_param": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "Same R equivalent as get_all_params (catboost.get_plain_params()); Python's get_param() only echoes caller-supplied values (not auto-resolved ones), so the comparison is restricted to explicitly passed keys (learning_rate excluded -- see fixture generator)."
+  },
+  "CatBoostClassifier.get_cat_feature_indices": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "R has no post-fit model-level indices accessor; catboost.pool.get_cat_feature_indices() on the training pool is the equivalent value, since a model's cat feature indices are a deterministic, never-mutated function of the fit pool's layout."
+  },
+  "CatBoostClassifier.get_text_feature_indices": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "Same reasoning as get_cat_feature_indices: training-pool indices via catboost.pool.get_text_feature_indices() (always empty in this fixture, matching the Python oracle)."
+  },
+  "CatBoostClassifier.get_embedding_feature_indices": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "Same reasoning as get_cat_feature_indices: training-pool indices via catboost.pool.get_embedding_feature_indices() (always empty in this fixture, matching the Python oracle)."
+  },
+  "CatBoostClassifier.get_n_features_in": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "R equivalent is model$feature_count."
+  },
+  "CatBoostClassifier.n_features_in_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "R equivalent is model$feature_count."
+  },
+  "CatBoostClassifier.learning_rate_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "R equivalent is model$learning_rate."
+  },
+  "CatBoostClassifier.random_seed_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "R equivalent is catboost.get_plain_params(model)$random_seed, not model$random_seed (which is only ever set by catboost.shrink(), never by catboost.train())."
+  },
+  "CatBoostClassifier.tree_count_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "R equivalent is model$tree_count."
+  },
+  "CatBoostClassifier.set_feature_names": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "R has no post-fit model-level renamer; the observably equivalent capability is catboost.pool.set_feature_names() on the pool before catboost.train(), since the fitted model's feature names are exactly the training pool's names."
+  },
+  "CatBoostRegressor.get_all_params": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "R equivalent is catboost.get_plain_params() (flat list), not catboost.get_model_params() (nested structure, rejected as a faithful match -- see catboost-8z4.116 report); compared on the subset of keys explicitly passed at fit time."
+  },
+  "CatBoostRegressor.get_param": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "Same R equivalent as get_all_params (catboost.get_plain_params()); Python's get_param() only echoes caller-supplied values (not auto-resolved ones), so the comparison is restricted to explicitly passed keys (learning_rate excluded -- see fixture generator)."
+  },
+  "CatBoostRegressor.get_cat_feature_indices": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "R has no post-fit model-level indices accessor; catboost.pool.get_cat_feature_indices() on the training pool is the equivalent value, since a model's cat feature indices are a deterministic, never-mutated function of the fit pool's layout."
+  },
+  "CatBoostRegressor.get_text_feature_indices": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "Same reasoning as get_cat_feature_indices: training-pool indices via catboost.pool.get_text_feature_indices() (always empty in this fixture, matching the Python oracle)."
+  },
+  "CatBoostRegressor.get_embedding_feature_indices": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "Same reasoning as get_cat_feature_indices: training-pool indices via catboost.pool.get_embedding_feature_indices() (always empty in this fixture, matching the Python oracle)."
+  },
+  "CatBoostRegressor.get_n_features_in": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "R equivalent is model$feature_count."
+  },
+  "CatBoostRegressor.n_features_in_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "R equivalent is model$feature_count."
+  },
+  "CatBoostRegressor.learning_rate_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "R equivalent is model$learning_rate."
+  },
+  "CatBoostRegressor.random_seed_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "R equivalent is catboost.get_plain_params(model)$random_seed, not model$random_seed (which is only ever set by catboost.shrink(), never by catboost.train())."
+  },
+  "CatBoostRegressor.tree_count_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "R equivalent is model$tree_count."
+  },
+  "CatBoostRegressor.set_feature_names": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "R has no post-fit model-level renamer; the observably equivalent capability is catboost.pool.set_feature_names() on the pool before catboost.train(), since the fitted model's feature names are exactly the training pool's names."
+  },
+  "CatBoostRanker.get_all_params": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "R equivalent is catboost.get_plain_params() (flat list), not catboost.get_model_params() (nested structure, rejected as a faithful match -- see catboost-8z4.116 report); compared on the subset of keys explicitly passed at fit time."
+  },
+  "CatBoostRanker.get_param": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "Same R equivalent as get_all_params (catboost.get_plain_params()); Python's get_param() only echoes caller-supplied values (not auto-resolved ones), so the comparison is restricted to explicitly passed keys (learning_rate excluded -- see fixture generator)."
+  },
+  "CatBoostRanker.get_cat_feature_indices": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "R has no post-fit model-level indices accessor; catboost.pool.get_cat_feature_indices() on the training pool is the equivalent value, since a model's cat feature indices are a deterministic, never-mutated function of the fit pool's layout."
+  },
+  "CatBoostRanker.get_text_feature_indices": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "Same reasoning as get_cat_feature_indices: training-pool indices via catboost.pool.get_text_feature_indices() (always empty in this fixture, matching the Python oracle)."
+  },
+  "CatBoostRanker.get_embedding_feature_indices": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "Same reasoning as get_cat_feature_indices: training-pool indices via catboost.pool.get_embedding_feature_indices() (always empty in this fixture, matching the Python oracle)."
+  },
+  "CatBoostRanker.get_n_features_in": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "R equivalent is model$feature_count."
+  },
+  "CatBoostRanker.n_features_in_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "R equivalent is model$feature_count."
+  },
+  "CatBoostRanker.learning_rate_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "R equivalent is model$learning_rate."
+  },
+  "CatBoostRanker.random_seed_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "R equivalent is catboost.get_plain_params(model)$random_seed, not model$random_seed (which is only ever set by catboost.shrink(), never by catboost.train())."
+  },
+  "CatBoostRanker.tree_count_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "R equivalent is model$tree_count."
+  },
+  "CatBoostRanker.set_feature_names": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "R has no post-fit model-level renamer; the observably equivalent capability is catboost.pool.set_feature_names() on the pool before catboost.train(), since the fitted model's feature names are exactly the training pool's names."
+  },
+  "CatBoostClassifier.predict_proba": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "R's catboost.predict(..., prediction_type='Probability') returns a single column (P(class 1)) for binary Logloss; Python's predict_proba() duplicates this as [P(0), P(1)] -- compared against Python's 2nd column."
+  },
+  "CatBoostClassifier.staged_predict_proba": {
+    "state": "green",
+    "test_id": "tests/testthat/test_sklearn_accessor_classes.R",
+    "tolerance_justification": "Same single-vs-two-column reasoning as predict_proba, applied per-stage via catboost.staged_predict(..., prediction_type='Probability')."
+  },
+  "catboost.utils.compute_training_options": {
+    "state": "red",
+    "tolerance_justification": "No R equivalent exists: R has no function that resolves training options to their final values without training (same underlying native gap as the CLI's mode:dump-options, already recorded as untriaged-but-real in catboost-8z4.115's follow-up evidence). Genuinely missing capability, not a disposition gap -- filed as a discovered-from follow-up (catboost-8z4.116 report) rather than adding new R/src code in this disposition-only ticket."
   }
 }

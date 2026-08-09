@@ -13,6 +13,7 @@ C CatBoostFit_R
 C CatBoostGetBinarizedStatistics_R
 C CatBoostGetCatFeatureValues_R
 C CatBoostGetFeatureTypeAndInternalIndex_R
+C CatBoostGetModelClassLabels_R
 C CatBoostGetModelInfo_R
 C CatBoostGetModelParams_R
 C CatBoostGetModelUsedFeatureNames_R

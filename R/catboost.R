@@ -4882,6 +4882,149 @@ catboost.get_metadata <- function(model) {
     return(.Call("CatBoostGetModelInfo_R", model$cpp_obj$handle))
 }
 
+# P10.D (catboost-8z4.118): training-history introspection -- R equivalents
+# of Python's CatBoost.best_iteration_/best_score_/evals_result_/classes_
+# properties and get_best_iteration()/get_best_score()/get_evals_result()
+# methods (core.py:1851-2098). CatBoost's native trainer already computes
+# and records per-iteration learn/eval metric history and the early-stopping
+# best iteration/score during catboost.train() (TMetricsAndTimeLeftHistory,
+# libs/loggers/catboost_logger_helpers.h); TCoreModelToFullModelConverter
+# unconditionally serializes it into the fitted model's own metadata under
+# the "training" key (full_model_saver.cpp:572-578, ::SaveMetrics()) -- the
+# same source Python's _get_best_iteration()/_get_best_score()/
+# _get_metrics_evals() read from (either the in-memory TMetricsAndTimeLeftHistory
+# populated during _train(), or -- after a model is loaded from disk --
+# GetTrainingMetrics()'s reload of this same "training" metadata key).
+# Reading this already-computed metadata is the parity target here; nothing
+# below re-derives training telemetry client-side.
+.catboost_get_training_metrics <- function(model) {
+    training_json <- catboost.get_metadata(model)["training"]
+    if (is.na(training_json) || !nzchar(training_json))
+        return(NULL)
+    training <- jsonlite::fromJSON(training_json, simplifyVector = FALSE)
+    training$metrics
+}
+
+.catboost_eval_set_name <- function(test_index, test_count) {
+    if (test_count > 1) paste0("validation_", test_index - 1) else "validation"
+}
+
+# Transposes a per-iteration list of named metric->value lists (as stored in
+# LearnMetricsHistory/TestMetricsHistory) into a named list of
+# metric->numeric-vector-across-iterations, matching Python's evals_result_
+# shape (dict of dicts of per-iteration lists).
+.catboost_transpose_metrics_history <- function(per_iteration) {
+    metric_names <- unique(unlist(lapply(per_iteration, names)))
+    result <- list()
+    for (metric_name in metric_names) {
+        result[[metric_name]] <- vapply(per_iteration, function(iter_metrics) {
+            value <- iter_metrics[[metric_name]]
+            if (is.null(value)) NA_real_ else as.numeric(value)
+        }, numeric(1))
+    }
+    result
+}
+
+# R equivalent of Python's CatBoost.classes_ property (core.py:2085,
+# `self._object._get_class_labels()`). Not exported as a get_ function of
+# its own -- Python only exposes it as a property -- so R attaches it as a
+# model-object field in create.model.base() below, matching the
+# CatBoost.classes_/CatBoostClassifier.classes_/CatBoostRegressor.classes_/
+# CatBoostRanker.classes_ matrix rows exactly. Delegates to native
+# TFullModel::GetModelClassLabels() (model.cpp:1425) via
+# CatBoostGetModelClassLabels_R, the same resolution logic (class_params/
+# multiclass_params, falling back to sequential integer labels) Python's
+# _get_model_class_labels() (_catboost.pyx:5342) uses -- read access to
+# already-computed native state, not a second implementation of it.
+.catboost_get_class_labels <- function(model) {
+    catboost.restore_handle(model)
+    labels_json <- .Call("CatBoostGetModelClassLabels_R", model$cpp_obj$handle)
+    jsonlite::fromJSON(labels_json, simplifyVector = TRUE)
+}
+
+#' @name catboost.get_best_iteration
+#' @title Get best iteration
+#'
+#' @description Return the 0-based iteration index of the best model seen
+#' during training, as determined by early stopping / \code{use_best_model}
+#' against the (last) eval set, or \code{NULL} if the model was fitted
+#' without an eval set (or has no recorded training history). R equivalent
+#' of Python's \code{model.get_best_iteration()}/\code{model.best_iteration_}.
+#'
+#' @param model The model obtained as the result of training.
+#'
+#' @return A single integer, or \code{NULL}.
+#' @export
+catboost.get_best_iteration <- function(model) {
+    catboost.restore_handle(model)
+    metrics <- .catboost_get_training_metrics(model)
+    best_iteration <- metrics$best_iteration
+    if (is.null(best_iteration)) NULL else as.integer(best_iteration)
+}
+
+#' @name catboost.get_best_score
+#' @title Get best score
+#'
+#' @description Return the best metric value(s) seen during training for
+#' the learn set and each eval set. R equivalent of Python's
+#' \code{model.get_best_score()}/\code{model.best_score_}.
+#'
+#' @param model The model obtained as the result of training.
+#'
+#' @return A named list, one element per dataset (\code{learn},
+#' \code{validation}, \code{validation_1}, ...), each itself a named list of
+#' metric name to best value. Empty list if the model has no recorded
+#' training history.
+#' @export
+catboost.get_best_score <- function(model) {
+    catboost.restore_handle(model)
+    metrics <- .catboost_get_training_metrics(model)
+    if (is.null(metrics) || length(metrics$learn_best_error) == 0)
+        return(list())
+    result <- list(learn = metrics$learn_best_error)
+    test_count <- length(metrics$test_best_error)
+    for (test_index in seq_len(test_count)) {
+        result[[.catboost_eval_set_name(test_index, test_count)]] <- metrics$test_best_error[[test_index]]
+    }
+    result
+}
+
+#' @name catboost.get_evals_result
+#' @title Get evaluation results
+#'
+#' @description Return the full per-iteration metric history recorded
+#' during training for the learn set and each eval set. R equivalent of
+#' Python's \code{model.get_evals_result()}/\code{model.evals_result_}.
+#'
+#' @param model The model obtained as the result of training.
+#'
+#' @return A named list, one element per dataset (\code{learn},
+#' \code{validation}, \code{validation_1}, ...), each itself a named list of
+#' metric name to a numeric vector (one value per training iteration).
+#' Empty list if the model has no recorded training history.
+#' @export
+catboost.get_evals_result <- function(model) {
+    catboost.restore_handle(model)
+    metrics <- .catboost_get_training_metrics(model)
+    if (is.null(metrics))
+        return(list())
+    result <- list()
+    learn_history <- metrics$learn_metrics_history
+    if (length(learn_history) > 0)
+        result$learn <- .catboost_transpose_metrics_history(learn_history)
+    test_history <- metrics$test_metrics_history
+    if (length(test_history) > 0) {
+        test_count <- max(vapply(test_history, length, integer(1)))
+        for (test_index in seq_len(test_count)) {
+            per_test <- lapply(test_history, function(iter_tests) {
+                if (length(iter_tests) >= test_index) iter_tests[[test_index]] else list()
+            })
+            result[[.catboost_eval_set_name(test_index, test_count)]] <- .catboost_transpose_metrics_history(per_test)
+        }
+    }
+    result
+}
+
 #' @name catboost.set_metadata
 #' @title Set model metadata
 #'
@@ -5712,5 +5855,14 @@ is.null.handle <- function(handle) {
 create.model.base <- function(handle, raw) {
     model <- list(cpp_obj = as.environment(list(handle = handle, raw = raw)))
     class(model) <- "catboost.Model"
+    # P10.D (catboost-8z4.118): attach training-history introspection fields
+    # to every constructed model object (trained, loaded, sum_models'd, or
+    # select_features' final refit), matching Python's CatBoost.classes_/
+    # best_iteration_/best_score_/evals_result_ being properties available
+    # on any CatBoost instance, not just a freshly-fit one.
+    model$classes_ <- .catboost_get_class_labels(model)
+    model$best_iteration_ <- catboost.get_best_iteration(model)
+    model$best_score_ <- catboost.get_best_score(model)
+    model$evals_result_ <- catboost.get_evals_result(model)
     return(model)
 }

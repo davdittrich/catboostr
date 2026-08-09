@@ -3242,5 +3242,173 @@
     "state": "green",
     "test_id": "tests/testthat/test_roc_curve.R",
     "tolerance_justification": "P10.C: read the native _select_threshold/TRocCurve::SelectDecisionBoundaryByFalsePositiveRate/ByFalseNegativeRate source (catboost/private/libs/algo/roc_curve.cpp:261-299) before concluding this -- it is a plain upper_bound search over the same (fpr, tpr, thresholds) triple catboost.get_roc_curve() already returns, no additional native state. New tests reimplement that exact search (transcribed from the C++ source, not guessed) and apply it to both R's live curve output and the pinned Python oracle's curve at several target FPR/FNR values, confirming they select identical thresholds."
+  },
+  "CatBoost.best_iteration_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_training_history_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.D (catboost-8z4.118): best_iteration_ is defined once on the CatBoost base class (core.py:2097, `self.get_best_iteration()` -> `self._object._get_best_iteration()` -> TMetricsAndTimeLeftHistory::BestIteration) and not overridden by any subclass. TCoreModelToFullModelConverter unconditionally serializes this same TMetricsAndTimeLeftHistory into the fitted model's own metadata (catboost/private/libs/algo/full_model_saver.cpp:572-578, ::SaveMetrics()) under the \"training\" key -- R's create.model.base() reads that same already-computed native state (via a new catboost.get_metadata() lookup, no client-side re-derivation) and attaches it as model$best_iteration_, the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.best_iteration_ rows."
+  },
+  "CatBoost.best_score_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_training_history_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.D (catboost-8z4.118): best_score_ is defined once on the CatBoost base class (core.py:2093, `self.get_best_score()` -> `self._object._get_best_score()` -> TMetricsAndTimeLeftHistory.LearnBestError/TestBestError) and not overridden by any subclass. Read from the same native \"training\" model-metadata key as best_iteration_ (full_model_saver.cpp:572-578); R's model$best_score_ (create.model.base()) ports _catboost.pyx:5524's exact early-return-{} -when-LearnBestError-empty behaviour (verified against a live YetiRank fixture case where TestBestError is non-empty but best_score_ is still {} entirely), the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.best_score_ rows."
+  },
+  "CatBoost.classes_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_training_history_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.D (catboost-8z4.118): classes_ is defined once on the CatBoost base class (core.py:2085, `self._object._get_class_labels()`) and not overridden by any subclass. R's model$classes_ (create.model.base()) delegates to the same native TFullModel::GetModelClassLabels() (catboost/libs/model/model.cpp:1425) via a new CatBoostGetModelClassLabels_R src/catboostr.cpp entry point -- the identical class_params/multiclass_params resolution (with sequential-integer-label fallback) Python's _get_model_class_labels() (_catboost.pyx:5342) uses, so this is read access to already-computed native state, not a second implementation of that resolution logic. Parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.classes_ rows, including the non-classification case (CatBoostRegressor: empty)."
+  },
+  "CatBoost.evals_result_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_training_history_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.D (catboost-8z4.118): evals_result_ is defined once on the CatBoost base class (core.py:2089, `self.get_evals_result()` -> `self._object._get_metrics_evals()` -> TMetricsAndTimeLeftHistory.LearnMetricsHistory/TestMetricsHistory) and not overridden by any subclass. Read from the same native \"training\" model-metadata key as best_iteration_/best_score_; R's model$evals_result_ (create.model.base()) transposes the per-iteration metric-history JSON into the same dataset-name -> metric-name -> per-iteration-vector shape _get_metrics_evals_pydict() (_catboost.pyx:6406) produces (including its \"validation\"/\"validation_N\" eval-set naming for N>1 test sets), the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.evals_result_ rows."
+  },
+  "CatBoost.get_best_iteration": {
+    "state": "green",
+    "test_id": "tests/testthat/test_training_history_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.D (catboost-8z4.118): get_best_iteration() is defined once on the CatBoost base class (core.py:1857) and not overridden by any subclass; R's new catboost.get_best_iteration() function is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.get_best_iteration rows -- same native \"training\" model-metadata source as the best_iteration_ property (they are the same underlying value in both languages)."
+  },
+  "CatBoost.get_best_score": {
+    "state": "green",
+    "test_id": "tests/testthat/test_training_history_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.D (catboost-8z4.118): get_best_score() is defined once on the CatBoost base class (core.py:1854) and not overridden by any subclass; R's new catboost.get_best_score() function is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.get_best_score rows -- same native \"training\" model-metadata source as the best_score_ property."
+  },
+  "CatBoost.get_evals_result": {
+    "state": "green",
+    "test_id": "tests/testthat/test_training_history_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.D (catboost-8z4.118): get_evals_result() is defined once on the CatBoost base class (core.py:1851) and not overridden by any subclass; R's new catboost.get_evals_result() function is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.get_evals_result rows -- same native \"training\" model-metadata source as the evals_result_ property."
+  },
+  "CatBoostClassifier.best_iteration_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_training_history_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.D (catboost-8z4.118): best_iteration_ is defined once on the CatBoost base class (core.py:2097, `self.get_best_iteration()` -> `self._object._get_best_iteration()` -> TMetricsAndTimeLeftHistory::BestIteration) and not overridden by any subclass. TCoreModelToFullModelConverter unconditionally serializes this same TMetricsAndTimeLeftHistory into the fitted model's own metadata (catboost/private/libs/algo/full_model_saver.cpp:572-578, ::SaveMetrics()) under the \"training\" key -- R's create.model.base() reads that same already-computed native state (via a new catboost.get_metadata() lookup, no client-side re-derivation) and attaches it as model$best_iteration_, the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.best_iteration_ rows."
+  },
+  "CatBoostClassifier.best_score_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_training_history_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.D (catboost-8z4.118): best_score_ is defined once on the CatBoost base class (core.py:2093, `self.get_best_score()` -> `self._object._get_best_score()` -> TMetricsAndTimeLeftHistory.LearnBestError/TestBestError) and not overridden by any subclass. Read from the same native \"training\" model-metadata key as best_iteration_ (full_model_saver.cpp:572-578); R's model$best_score_ (create.model.base()) ports _catboost.pyx:5524's exact early-return-{} -when-LearnBestError-empty behaviour (verified against a live YetiRank fixture case where TestBestError is non-empty but best_score_ is still {} entirely), the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.best_score_ rows."
+  },
+  "CatBoostClassifier.classes_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_training_history_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.D (catboost-8z4.118): classes_ is defined once on the CatBoost base class (core.py:2085, `self._object._get_class_labels()`) and not overridden by any subclass. R's model$classes_ (create.model.base()) delegates to the same native TFullModel::GetModelClassLabels() (catboost/libs/model/model.cpp:1425) via a new CatBoostGetModelClassLabels_R src/catboostr.cpp entry point -- the identical class_params/multiclass_params resolution (with sequential-integer-label fallback) Python's _get_model_class_labels() (_catboost.pyx:5342) uses, so this is read access to already-computed native state, not a second implementation of that resolution logic. Parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.classes_ rows, including the non-classification case (CatBoostRegressor: empty)."
+  },
+  "CatBoostClassifier.evals_result_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_training_history_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.D (catboost-8z4.118): evals_result_ is defined once on the CatBoost base class (core.py:2089, `self.get_evals_result()` -> `self._object._get_metrics_evals()` -> TMetricsAndTimeLeftHistory.LearnMetricsHistory/TestMetricsHistory) and not overridden by any subclass. Read from the same native \"training\" model-metadata key as best_iteration_/best_score_; R's model$evals_result_ (create.model.base()) transposes the per-iteration metric-history JSON into the same dataset-name -> metric-name -> per-iteration-vector shape _get_metrics_evals_pydict() (_catboost.pyx:6406) produces (including its \"validation\"/\"validation_N\" eval-set naming for N>1 test sets), the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.evals_result_ rows."
+  },
+  "CatBoostClassifier.get_best_iteration": {
+    "state": "green",
+    "test_id": "tests/testthat/test_training_history_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.D (catboost-8z4.118): get_best_iteration() is defined once on the CatBoost base class (core.py:1857) and not overridden by any subclass; R's new catboost.get_best_iteration() function is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.get_best_iteration rows -- same native \"training\" model-metadata source as the best_iteration_ property (they are the same underlying value in both languages)."
+  },
+  "CatBoostClassifier.get_best_score": {
+    "state": "green",
+    "test_id": "tests/testthat/test_training_history_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.D (catboost-8z4.118): get_best_score() is defined once on the CatBoost base class (core.py:1854) and not overridden by any subclass; R's new catboost.get_best_score() function is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.get_best_score rows -- same native \"training\" model-metadata source as the best_score_ property."
+  },
+  "CatBoostClassifier.get_evals_result": {
+    "state": "green",
+    "test_id": "tests/testthat/test_training_history_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.D (catboost-8z4.118): get_evals_result() is defined once on the CatBoost base class (core.py:1851) and not overridden by any subclass; R's new catboost.get_evals_result() function is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.get_evals_result rows -- same native \"training\" model-metadata source as the evals_result_ property."
+  },
+  "CatBoostRegressor.best_iteration_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_training_history_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.D (catboost-8z4.118): best_iteration_ is defined once on the CatBoost base class (core.py:2097, `self.get_best_iteration()` -> `self._object._get_best_iteration()` -> TMetricsAndTimeLeftHistory::BestIteration) and not overridden by any subclass. TCoreModelToFullModelConverter unconditionally serializes this same TMetricsAndTimeLeftHistory into the fitted model's own metadata (catboost/private/libs/algo/full_model_saver.cpp:572-578, ::SaveMetrics()) under the \"training\" key -- R's create.model.base() reads that same already-computed native state (via a new catboost.get_metadata() lookup, no client-side re-derivation) and attaches it as model$best_iteration_, the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.best_iteration_ rows."
+  },
+  "CatBoostRegressor.best_score_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_training_history_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.D (catboost-8z4.118): best_score_ is defined once on the CatBoost base class (core.py:2093, `self.get_best_score()` -> `self._object._get_best_score()` -> TMetricsAndTimeLeftHistory.LearnBestError/TestBestError) and not overridden by any subclass. Read from the same native \"training\" model-metadata key as best_iteration_ (full_model_saver.cpp:572-578); R's model$best_score_ (create.model.base()) ports _catboost.pyx:5524's exact early-return-{} -when-LearnBestError-empty behaviour (verified against a live YetiRank fixture case where TestBestError is non-empty but best_score_ is still {} entirely), the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.best_score_ rows."
+  },
+  "CatBoostRegressor.classes_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_training_history_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.D (catboost-8z4.118): classes_ is defined once on the CatBoost base class (core.py:2085, `self._object._get_class_labels()`) and not overridden by any subclass. R's model$classes_ (create.model.base()) delegates to the same native TFullModel::GetModelClassLabels() (catboost/libs/model/model.cpp:1425) via a new CatBoostGetModelClassLabels_R src/catboostr.cpp entry point -- the identical class_params/multiclass_params resolution (with sequential-integer-label fallback) Python's _get_model_class_labels() (_catboost.pyx:5342) uses, so this is read access to already-computed native state, not a second implementation of that resolution logic. Parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.classes_ rows, including the non-classification case (CatBoostRegressor: empty)."
+  },
+  "CatBoostRegressor.evals_result_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_training_history_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.D (catboost-8z4.118): evals_result_ is defined once on the CatBoost base class (core.py:2089, `self.get_evals_result()` -> `self._object._get_metrics_evals()` -> TMetricsAndTimeLeftHistory.LearnMetricsHistory/TestMetricsHistory) and not overridden by any subclass. Read from the same native \"training\" model-metadata key as best_iteration_/best_score_; R's model$evals_result_ (create.model.base()) transposes the per-iteration metric-history JSON into the same dataset-name -> metric-name -> per-iteration-vector shape _get_metrics_evals_pydict() (_catboost.pyx:6406) produces (including its \"validation\"/\"validation_N\" eval-set naming for N>1 test sets), the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.evals_result_ rows."
+  },
+  "CatBoostRegressor.get_best_iteration": {
+    "state": "green",
+    "test_id": "tests/testthat/test_training_history_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.D (catboost-8z4.118): get_best_iteration() is defined once on the CatBoost base class (core.py:1857) and not overridden by any subclass; R's new catboost.get_best_iteration() function is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.get_best_iteration rows -- same native \"training\" model-metadata source as the best_iteration_ property (they are the same underlying value in both languages)."
+  },
+  "CatBoostRegressor.get_best_score": {
+    "state": "green",
+    "test_id": "tests/testthat/test_training_history_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.D (catboost-8z4.118): get_best_score() is defined once on the CatBoost base class (core.py:1854) and not overridden by any subclass; R's new catboost.get_best_score() function is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.get_best_score rows -- same native \"training\" model-metadata source as the best_score_ property."
+  },
+  "CatBoostRegressor.get_evals_result": {
+    "state": "green",
+    "test_id": "tests/testthat/test_training_history_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.D (catboost-8z4.118): get_evals_result() is defined once on the CatBoost base class (core.py:1851) and not overridden by any subclass; R's new catboost.get_evals_result() function is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.get_evals_result rows -- same native \"training\" model-metadata source as the evals_result_ property."
+  },
+  "CatBoostRanker.best_iteration_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_training_history_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.D (catboost-8z4.118): best_iteration_ is defined once on the CatBoost base class (core.py:2097, `self.get_best_iteration()` -> `self._object._get_best_iteration()` -> TMetricsAndTimeLeftHistory::BestIteration) and not overridden by any subclass. TCoreModelToFullModelConverter unconditionally serializes this same TMetricsAndTimeLeftHistory into the fitted model's own metadata (catboost/private/libs/algo/full_model_saver.cpp:572-578, ::SaveMetrics()) under the \"training\" key -- R's create.model.base() reads that same already-computed native state (via a new catboost.get_metadata() lookup, no client-side re-derivation) and attaches it as model$best_iteration_, the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.best_iteration_ rows."
+  },
+  "CatBoostRanker.best_score_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_training_history_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.D (catboost-8z4.118): best_score_ is defined once on the CatBoost base class (core.py:2093, `self.get_best_score()` -> `self._object._get_best_score()` -> TMetricsAndTimeLeftHistory.LearnBestError/TestBestError) and not overridden by any subclass. Read from the same native \"training\" model-metadata key as best_iteration_ (full_model_saver.cpp:572-578); R's model$best_score_ (create.model.base()) ports _catboost.pyx:5524's exact early-return-{} -when-LearnBestError-empty behaviour (verified against a live YetiRank fixture case where TestBestError is non-empty but best_score_ is still {} entirely), the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.best_score_ rows."
+  },
+  "CatBoostRanker.classes_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_training_history_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.D (catboost-8z4.118): classes_ is defined once on the CatBoost base class (core.py:2085, `self._object._get_class_labels()`) and not overridden by any subclass. R's model$classes_ (create.model.base()) delegates to the same native TFullModel::GetModelClassLabels() (catboost/libs/model/model.cpp:1425) via a new CatBoostGetModelClassLabels_R src/catboostr.cpp entry point -- the identical class_params/multiclass_params resolution (with sequential-integer-label fallback) Python's _get_model_class_labels() (_catboost.pyx:5342) uses, so this is read access to already-computed native state, not a second implementation of that resolution logic. Parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.classes_ rows, including the non-classification case (CatBoostRegressor: empty)."
+  },
+  "CatBoostRanker.evals_result_": {
+    "state": "green",
+    "test_id": "tests/testthat/test_training_history_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.D (catboost-8z4.118): evals_result_ is defined once on the CatBoost base class (core.py:2089, `self.get_evals_result()` -> `self._object._get_metrics_evals()` -> TMetricsAndTimeLeftHistory.LearnMetricsHistory/TestMetricsHistory) and not overridden by any subclass. Read from the same native \"training\" model-metadata key as best_iteration_/best_score_; R's model$evals_result_ (create.model.base()) transposes the per-iteration metric-history JSON into the same dataset-name -> metric-name -> per-iteration-vector shape _get_metrics_evals_pydict() (_catboost.pyx:6406) produces (including its \"validation\"/\"validation_N\" eval-set naming for N>1 test sets), the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.evals_result_ rows."
+  },
+  "CatBoostRanker.get_best_iteration": {
+    "state": "green",
+    "test_id": "tests/testthat/test_training_history_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.D (catboost-8z4.118): get_best_iteration() is defined once on the CatBoost base class (core.py:1857) and not overridden by any subclass; R's new catboost.get_best_iteration() function is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.get_best_iteration rows -- same native \"training\" model-metadata source as the best_iteration_ property (they are the same underlying value in both languages)."
+  },
+  "CatBoostRanker.get_best_score": {
+    "state": "green",
+    "test_id": "tests/testthat/test_training_history_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.D (catboost-8z4.118): get_best_score() is defined once on the CatBoost base class (core.py:1854) and not overridden by any subclass; R's new catboost.get_best_score() function is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.get_best_score rows -- same native \"training\" model-metadata source as the best_score_ property."
+  },
+  "CatBoostRanker.get_evals_result": {
+    "state": "green",
+    "test_id": "tests/testthat/test_training_history_classes.R",
+    "tolerance": 1e-06,
+    "tolerance_justification": "P10.D (catboost-8z4.118): get_evals_result() is defined once on the CatBoost base class (core.py:1851) and not overridden by any subclass; R's new catboost.get_evals_result() function is the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.get_evals_result rows -- same native \"training\" model-metadata source as the evals_result_ property."
   }
 }

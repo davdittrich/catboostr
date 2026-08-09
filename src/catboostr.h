@@ -229,6 +229,9 @@ EXPORT_FUNCTION CatBoostGetModelParams_R(SEXP modelParam);
 
 EXPORT_FUNCTION CatBoostGetPlainParams_R(SEXP modelParam);
 
+// P10.D (catboost-8z4.118): R equivalent of Python's CatBoost.classes_.
+EXPORT_FUNCTION CatBoostGetModelClassLabels_R(SEXP modelParam);
+
 // P5.6 (catboost-8z4.63): R equivalents of the CLI's `metadata` mode and
 // Python's model.get_metadata()/model.feature_names_.
 EXPORT_FUNCTION CatBoostGetModelInfo_R(SEXP modelParam);

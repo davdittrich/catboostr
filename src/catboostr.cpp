@@ -2869,6 +2869,29 @@ EXPORT_FUNCTION CatBoostGetPlainParams_R(SEXP modelParam) {
     return result;
 }
 
+// P10.D (catboost-8z4.118): R equivalent of Python's CatBoost.classes_
+// property (core.py:2085, `self._object._get_class_labels()`). Delegates to
+// the same native TFullModel::GetModelClassLabels() (model.cpp:1425) Python's
+// _catboost.pyx:5342 _get_model_class_labels() calls -- that function already
+// resolves class labels from class_params/multiclass_params (falling back to
+// sequential integer labels derived from the loss function), so this is read
+// access to already-computed native state, not a second implementation of
+// that resolution logic. Returns a JSON array string (possibly empty, for
+// non-classification models); catboost.R parses it with jsonlite.
+EXPORT_FUNCTION CatBoostGetModelClassLabels_R(SEXP modelParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    NJson::TJsonValue classLabelsJson(NJson::JSON_ARRAY);
+    for (const auto& label : model->GetModelClassLabels()) {
+        classLabelsJson.AppendValue(label);
+    }
+    result = PROTECT(mkString(ToString(classLabelsJson).c_str()));
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
 // Mirrors _catboost.pyx _MetadataHashProxy: model->ModelInfo is the same
 // THashMap<TString, TString> the CLI's `metadata dump`/`metadata get` modes
 // (mode_metadata.cpp) and Python's model.get_metadata() read. Returns a named

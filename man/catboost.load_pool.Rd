@@ -109,8 +109,17 @@ objects. Convenience wrapper around \code{\link{catboost.pool.set_timestamp}}: a
 constructed Pool before it is returned, equivalent to calling
 \code{catboost.pool.set_timestamp(pool, timestamp)} afterward.}
 
-\item{feature_tags}{Not currently supported by catboostr; passing
-a non-NULL value raises an error rather than being silently ignored.}
+\item{feature_tags}{A named list grouping features for
+\code{\link{catboost.select_features}}'s \code{grouping = "ByTags"} mode
+(mirrors Python's \code{Pool(feature_tags=...)}). Each element is itself a
+list with a required \code{features} entry -- a vector of 0-based feature
+indices or feature names (requires \code{feature_names} to be supplied) --
+and an optional \code{cost} (default \code{1.0}), e.g.
+\code{list(group_a = list(features = c(0, 1)), group_b = list(features = c("f2", "f3"), cost = 2))}.
+Only supported when \code{data} is a matrix, sparse matrix or
+\code{catboost.FeaturesData}; \code{NULL} (the default) attaches no tags.
+Loading a pool from a file or a data.frame does not support feature tags;
+passing a non-NULL value in those cases raises an error.}
 }
 \value{
 catboost.Pool

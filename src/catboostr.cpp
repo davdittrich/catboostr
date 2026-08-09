@@ -282,6 +282,48 @@ void SetClassLabels(SEXP classLabelsParam, TDataMetaInfo* metaInfo) {
     }
 }
 
+// catboost-8z4.121: feature-tags plumbing for catboost.select_features's
+// grouping = "ByTags" (Python's Pool(feature_tags=...), _catboost.pyx:2341-2388).
+// featureTagsParam is a named R list; each element is itself a list with
+// $features (0-based integer indices, already resolved from names/ranges on
+// the R side) and an optional $cost (defaults to 1.0, mirroring
+// NCB::TTagDescription's own default). Indices/cost validation happens in R
+// (catboost.from_matrix) so this only has to trust well-formed input, same
+// division of labor as the other index vectors this function already parses
+// (cat/text/embedding_features_indices).
+THashMap<TString, NCB::TTagDescription> GetFeatureTagsFromSEXP(SEXP featureTagsParam) {
+    THashMap<TString, NCB::TTagDescription> result;
+    if (Rf_isNull(featureTagsParam)) {
+        return result;
+    }
+    SEXP tagNames = getAttrib(featureTagsParam, R_NamesSymbol);
+    CB_ENSURE(!Rf_isNull(tagNames), "feature_tags must be a named list");
+    for (R_xlen_t i = 0; i < Rf_xlength(featureTagsParam); ++i) {
+        TString tagName = CHAR(STRING_ELT(tagNames, i));
+        SEXP tagEntry = VECTOR_ELT(featureTagsParam, i);
+        SEXP entryNames = getAttrib(tagEntry, R_NamesSymbol);
+        CB_ENSURE(!Rf_isNull(entryNames), "feature_tags[['" << tagName << "']] must be a named list");
+        SEXP featuresElt = R_NilValue;
+        SEXP costElt = R_NilValue;
+        for (R_xlen_t j = 0; j < Rf_xlength(tagEntry); ++j) {
+            TStringBuf entryName(CHAR(STRING_ELT(entryNames, j)));
+            if (entryName == "features") {
+                featuresElt = VECTOR_ELT(tagEntry, j);
+            } else if (entryName == "cost") {
+                costElt = VECTOR_ELT(tagEntry, j);
+            }
+        }
+        CB_ENSURE(
+            featuresElt != R_NilValue,
+            "feature_tags[['" << tagName << "']] is missing required element 'features'"
+        );
+        TVector<ui32> features = ToUnsigned(GetVectorFromNullableSEXP<int>(featuresElt, "feature_tags$features"_sb));
+        float cost = costElt != R_NilValue ? static_cast<float>(asReal(costElt)) : 1.0f;
+        result[tagName] = NCB::TTagDescription(features, cost);
+    }
+    return result;
+}
+
 template <class TSrc>
 void AddTarget(
     const TSrc* srcTarget,
@@ -380,9 +422,11 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(SEXP floatAndCatMatrixParam,
                                 SEXP featureNamesParam,
                                 SEXP classLabelsParam,
                                 SEXP embeddingListParam,
-                                SEXP embeddingFeaturesIndicesParam) {
+                                SEXP embeddingFeaturesIndicesParam,
+                                SEXP featureTagsParam) {
     SEXP result = NULL;
     R_API_BEGIN();
+    THashMap<TString, NCB::TTagDescription> featureTags = GetFeatureTagsFromSEXP(featureTagsParam);
     // Embedding features arrive as a VECSXP whose elements are (objectCount x embeddingDimension)
     // numeric matrices, one per embedding feature -- an R matrix cell cannot itself hold a vector,
     // so they travel beside the flat float/cat matrix exactly like text features do.
@@ -430,7 +474,9 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(SEXP floatAndCatMatrixParam,
             ToUnsigned(GetVectorFromNullableSEXP<int>(catFeaturesIndicesParam, "cat_features_indices"_sb)),
             ToUnsigned(GetVectorFromNullableSEXP<int>(textFeaturesIndicesParam, "text_features_indices"_sb)),
             ToUnsigned(GetVectorFromNullableSEXP<int>(embeddingFeaturesIndicesParam, "embedding_features_indices"_sb)),
-            featureId);
+            featureId,
+            /*hasGraph*/ false,
+            featureTags);
 
         if (!targetColumns) {
             metaInfo.TargetType = ERawTargetType::None;

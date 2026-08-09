@@ -77,8 +77,17 @@ NULL
 #' objects. Convenience wrapper around \code{\link{catboost.pool.set_timestamp}}: applied to the
 #' constructed Pool before it is returned, equivalent to calling
 #' \code{catboost.pool.set_timestamp(pool, timestamp)} afterward.
-#' @param feature_tags Not currently supported by catboostr; passing
-#' a non-NULL value raises an error rather than being silently ignored.
+#' @param feature_tags A named list grouping features for
+#' \code{\link{catboost.select_features}}'s \code{grouping = "ByTags"} mode
+#' (mirrors Python's \code{Pool(feature_tags=...)}). Each element is itself a
+#' list with a required \code{features} entry -- a vector of 0-based feature
+#' indices or feature names (requires \code{feature_names} to be supplied) --
+#' and an optional \code{cost} (default \code{1.0}), e.g.
+#' \code{list(group_a = list(features = c(0, 1)), group_b = list(features = c("f2", "f3"), cost = 2))}.
+#' Only supported when \code{data} is a matrix, sparse matrix or
+#' \code{catboost.FeaturesData}; \code{NULL} (the default) attaches no tags.
+#' Loading a pool from a file or a data.frame does not support feature tags;
+#' passing a non-NULL value in those cases raises an error.
 #'
 #' @examples
 #' \dontrun{
@@ -108,10 +117,6 @@ catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_d
                                group_id = NULL, group_weight = NULL, subgroup_id = NULL, pairs_weight = NULL,
                                baseline = NULL, feature_names = NULL, thread_count = -1, graph = NULL,
                                embedding_features = NULL, timestamp = NULL, feature_tags = NULL) {
-    if (!is.null(feature_tags)) {
-        # catboost-8z4.49
-        stop("feature_tags is not currently supported by catboostr")
-    }
     if (!is.null(pairs) && (is.character(data) != is.character(pairs))) {
         stop("Data and pairs should be the same types.")
     }
@@ -132,10 +137,14 @@ catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_d
                 stop("parameter '", arg, "' should be NULL when the pool is read from file")
             }
         }
+        if (!is.null(feature_tags)) {
+            stop("parameter 'feature_tags' should be NULL when the pool is read from file")
+        }
         pool <- catboost.from_file(data, column_description, pairs, delimiter, has_header, thread_count, FALSE, feature_names, graph_path = graph)
     } else if (is.matrix(data) || inherits(data, "sparseMatrix")) {
         pool <- catboost.from_matrix(data, label, cat_features, NULL, NULL, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight,
-                                     baseline, feature_names, graph, embedding_features_data = embedding_features, timestamp = timestamp)
+                                     baseline, feature_names, graph, embedding_features_data = embedding_features, timestamp = timestamp,
+                                     feature_tags = feature_tags)
     } else if (inherits(data, "catboost.FeaturesData")) {
         for (arg in list("cat_features", "feature_names")) {
             if (!is.null(get(arg))) {
@@ -143,12 +152,15 @@ catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_d
             }
         }
         pool <- catboost.from_matrix(data, label, NULL, NULL, NULL, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight,
-                                     baseline, NULL, graph, timestamp = timestamp)
+                                     baseline, NULL, graph, timestamp = timestamp, feature_tags = feature_tags)
     } else if (is.data.frame(data)) {
         for (arg in list("column_description")) {
             if (!is.null(get(arg))) {
                 stop("Parameter '", arg, "' should be NULL when the pool is constructed from data.frame")
             }
+        }
+        if (!is.null(feature_tags)) {
+            stop("parameter 'feature_tags' should be NULL when the pool is constructed from data.frame")
         }
         if (!is.null(get("cat_features"))) {
             cat("Parameter 'cat_features' is meaningless because column types are taken from data.frame.",
@@ -196,9 +208,6 @@ catboost.from_matrix <- function(float_and_cat_features_data, label = NULL, cat_
                                  subgroup_id = NULL, pairs_weight = NULL, baseline = NULL, feature_names = NULL, graph = NULL,
                                  embedding_features_data = NULL, embedding_features_indices = NULL, timestamp = NULL,
                                  feature_tags = NULL) {
-  # catboost-8z4.49
-  if (!is.null(feature_tags))
-      stop("feature_tags is not currently supported by catboostr")
   if (inherits(float_and_cat_features_data, "sparseMatrix")) {
       # ponytail: densify; CatBoost's sparse column format is a memory optimisation only, stored
       # zeros are ordinary zero values, so the resulting Pool equals the dense one. Upgrade path:
@@ -357,6 +366,46 @@ catboost.from_matrix <- function(float_and_cat_features_data, label = NULL, cat_
   if (!is.null(feature_names) && (length(feature_names) != data_columns))
       stop("Data has ", data_columns, " columns, feature_names has ", length(feature_names), " columns.")
 
+  # catboost-8z4.121: feature-tags plumbing for catboost.select_features's
+  # grouping = "ByTags" (mirrors Python's Pool(feature_tags=...), a named
+  # dict of {'features': [...], 'cost': <number>} -- core.py:1080-1101). Each
+  # tag's features may be given as 0-based indices or (when feature_names is
+  # supplied) feature name strings; resolved to plain 0-based integer indices
+  # here so the native side (src/catboostr.cpp's GetFeatureTagsFromSEXP) only
+  # has to trust well-formed input, same division of labor as this function's
+  # other index arguments (cat/text/embedding_features_indices).
+  if (!is.null(feature_tags)) {
+      if (!is.list(feature_tags) || is.null(names(feature_tags)) ||
+          any(names(feature_tags) == "") || anyDuplicated(names(feature_tags)))
+          stop("feature_tags must be a named list with unique, non-empty names")
+      tag_names <- names(feature_tags)
+      feature_tags <- setNames(lapply(tag_names, function(tag_name) {
+          entry <- feature_tags[[tag_name]]
+          if (!is.list(entry) || is.null(entry$features))
+              stop("feature_tags[['", tag_name, "']] must be a list with a 'features' element")
+          features <- entry$features
+          if (is.character(features)) {
+              if (is.null(feature_names))
+                  stop("feature_tags[['", tag_name, "']]$features was given as name(s), but no feature_names were supplied")
+              idx <- match(features, as.character(feature_names))
+              if (any(is.na(idx)))
+                  stop("feature_tags[['", tag_name, "']]$features has name(s) not present in feature_names: ",
+                       paste(features[is.na(idx)], collapse = ", "))
+              features <- idx - 1L
+          } else if (is.numeric(features)) {
+              features <- as.integer(features)
+          } else {
+              stop("feature_tags[['", tag_name, "']]$features must be a numeric or character vector, got: ", typeof(features))
+          }
+          if (length(features) == 0 || anyNA(features) || any(features < 0L | features >= data_columns))
+              stop("feature_tags[['", tag_name, "']]$features must be non-empty 0-based indices in [0, ", data_columns - 1, "]")
+          cost <- if (is.null(entry$cost)) 1.0 else as.double(entry$cost)
+          if (length(cost) != 1 || is.na(cost))
+              stop("feature_tags[['", tag_name, "']]$cost must be a single numeric value")
+          list(features = features, cost = cost)
+      }), tag_names)
+  }
+
   if (!is.numeric(timestamp) && !is.null(timestamp))
       stop("Unsupported timestamp type, expecting numeric, got: ", typeof(timestamp))
   if (length(timestamp) != nrow(float_and_cat_features_data) && !is.null(timestamp))
@@ -369,7 +418,7 @@ catboost.from_matrix <- function(float_and_cat_features_data, label = NULL, cat_
   pool <- .Call("CatBoostCreateFromMatrix_R",
                 float_and_cat_features_data, label, cat_features_indices, text_features_data, text_features_indices, pairs, graph, weight,
                 group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names, class_labels,
-                embedding_features_data, embedding_features_indices)
+                embedding_features_data, embedding_features_indices, feature_tags)
   attributes(pool) <- list(.Dimnames = list(NULL, as.character(feature_names)), class = "catboost.Pool")
   if (!is.null(timestamp))
       catboost.pool.set_timestamp(pool, timestamp)
@@ -3690,24 +3739,44 @@ catboost.randomized_search <- function(param_distributions,
 #' scores caller-supplied feature sets by cross-validation instead of
 #' eliminating features.
 #'
-#' Feature selection by feature \emph{tags} (Python's \code{grouping = "ByTags"},
-#' \code{features_tags_for_select}, \code{num_features_tags_to_select}) is not
-#' supported: \code{catboost.load_pool} has no feature-tags argument, so an R
-#' pool never carries the tags that grouping selects over.
+#' Feature selection by feature \emph{tags} (Python's \code{grouping = "ByTags"})
+#' is supported via \code{grouping}/\code{features_tags_for_select}/
+#' \code{num_features_tags_to_select}: attach tags to \code{learn_pool} with
+#' \code{\link{catboost.load_pool}}'s \code{feature_tags} argument, then select
+#' among them here.
 #' @param learn_pool The dataset to select features on (a \code{catboost.Pool}).
 #'
 #' Default value: Required argument
-#' @param features_for_select Which features may be eliminated. A vector of
-#' 0-based feature indices or of feature names, or a single string in the CLI's
-#' range syntax (\code{"0,2-4,17"}, both ends of a range inclusive). Vectors are
-#' collapsed with commas, matching Python's
-#' \code{",".join(map(str, features_for_select))}.
+#' @param features_for_select (for \code{grouping = "Individual"}, the default)
+#' Which features may be eliminated. A vector of 0-based feature indices or of
+#' feature names, or a single string in the CLI's range syntax
+#' (\code{"0,2-4,17"}, both ends of a range inclusive). Vectors are collapsed
+#' with commas, matching Python's \code{",".join(map(str, features_for_select))}.
+#' Must be \code{NULL} when \code{grouping = "ByTags"}.
 #'
-#' Default value: Required argument
-#' @param num_features_to_select How many features to keep out of
-#' \code{features_for_select}.
+#' Default value: Required argument when \code{grouping = "Individual"}
+#' @param num_features_to_select (for \code{grouping = "Individual"}) How many
+#' features to keep out of \code{features_for_select}. Must be \code{NULL} when
+#' \code{grouping = "ByTags"}.
 #'
-#' Default value: Required argument
+#' Default value: Required argument when \code{grouping = "Individual"}
+#' @param grouping One of \code{"Individual"} (the default) or \code{"ByTags"}.
+#' \code{"Individual"} selects among \code{features_for_select}; \code{"ByTags"}
+#' selects among the tags attached to \code{learn_pool} via
+#' \code{\link{catboost.load_pool}}'s \code{feature_tags} argument, using
+#' \code{features_tags_for_select}/\code{num_features_tags_to_select} instead.
+#'
+#' Default value: \code{"Individual"}
+#' @param features_tags_for_select (for \code{grouping = "ByTags"}) A character
+#' vector of tag names (from \code{learn_pool}'s \code{feature_tags}) that may
+#' be eliminated as a group. Must be \code{NULL} when \code{grouping = "Individual"}.
+#'
+#' Default value: Required argument when \code{grouping = "ByTags"}
+#' @param num_features_tags_to_select (for \code{grouping = "ByTags"}) How many
+#' tags to keep out of \code{features_tags_for_select}. Must be \code{NULL} when
+#' \code{grouping = "Individual"}.
+#'
+#' Default value: Required argument when \code{grouping = "ByTags"}
 #' @param test_pool Validation dataset used to measure the loss during
 #' elimination (a \code{catboost.Pool}), or \code{NULL} to measure it on
 #' \code{learn_pool}. Only one validation dataset is supported.
@@ -3752,6 +3821,8 @@ catboost.randomized_search <- function(param_distributions,
 #'   \item \code{selected_features_names} -- their names.
 #'   \item \code{eliminated_features} -- 0-based indices of the dropped features.
 #'   \item \code{eliminated_features_names} -- their names.
+#'   \item \code{selected_features_tags}/\code{eliminated_features_tags} --
+#'     present only when \code{grouping = "ByTags"}: the kept/dropped tag names.
 #'   \item \code{loss_graph} -- list with \code{removed_features_count},
 #'     \code{loss_values} and \code{main_indices} (the graph points whose loss
 #'     was measured by fitting a model rather than estimated from fstr).
@@ -3760,15 +3831,18 @@ catboost.randomized_search <- function(param_distributions,
 #' }
 #' @export catboost.select_features
 catboost.select_features <- function(learn_pool,
-                                     features_for_select,
-                                     num_features_to_select,
+                                     features_for_select = NULL,
+                                     num_features_to_select = NULL,
                                      test_pool = NULL,
                                      params = list(),
                                      algorithm = NULL,
                                      steps = NULL,
                                      shap_calc_type = NULL,
                                      train_final_model = TRUE,
-                                     custom_eval_metric_object = NULL) {
+                                     custom_eval_metric_object = NULL,
+                                     grouping = NULL,
+                                     features_tags_for_select = NULL,
+                                     num_features_tags_to_select = NULL) {
     if (!inherits(learn_pool, "catboost.Pool"))
         stop("Expected catboost.Pool, got: ", class(learn_pool))
     if (is.null.handle(learn_pool))
@@ -3777,20 +3851,49 @@ catboost.select_features <- function(learn_pool,
         stop("Expected catboost.Pool, got: ", class(test_pool))
     if (!is.null(test_pool) && is.null.handle(test_pool))
         stop("'test_pool' object is invalid.")
-    if (missing(features_for_select) || is.null(features_for_select))
-        stop("You should specify features_for_select")
-    if (missing(num_features_to_select) || is.null(num_features_to_select))
-        stop("You should specify num_features_to_select")
+    if (is.null(grouping))
+        grouping <- "Individual"
+    if (!grouping %in% c("Individual", "ByTags"))
+        stop("Unsupported grouping, expecting 'Individual' or 'ByTags', got: ", grouping)
     if (length(params) == 0)
         message("Training catboost with default parameters! See help(catboost.train).")
 
     # Every selection knob travels inside the params JSON, exactly as Python
     # sets them on its own params dict before calling _select_features
-    # (core.py:4774-4802); PlainJsonToOptions splits them back out into
-    # TFeaturesSelectOptions inside the native SelectFeatures.
+    # (core.py:4757-4788); PlainJsonToOptions splits them back out into
+    # TFeaturesSelectOptions inside the native SelectFeatures (Grouping/
+    # FeaturesTagsForSelect/NumberOfFeaturesTagsToSelect: private/libs/
+    # options/features_select_options.h, plain_options_helper.cpp:496-502
+    # already wire "features_selection_grouping"/"features_tags_for_select"/
+    # "num_features_tags_to_select" through -- no native change needed here).
     fit_params <- process_synonyms(params)
-    fit_params$features_for_select <- paste(features_for_select, collapse = ",")
-    fit_params$num_features_to_select <- as.integer(num_features_to_select)
+    if (grouping == "Individual") {
+        if (is.null(features_for_select))
+            stop("You should specify features_for_select")
+        if (!is.null(features_tags_for_select))
+            stop("You should not specify features_tags_for_select when grouping is Individual")
+        if (is.null(num_features_to_select))
+            stop("You should specify num_features_to_select")
+        if (!is.null(num_features_tags_to_select))
+            stop("You should not specify num_features_tags_to_select when grouping is Individual")
+        fit_params$features_for_select <- paste(features_for_select, collapse = ",")
+        fit_params$num_features_to_select <- as.integer(num_features_to_select)
+    } else {
+        if (is.null(features_tags_for_select))
+            stop("You should specify features_tags_for_select")
+        if (!is.null(features_for_select))
+            stop("You should not specify features_for_select when grouping is ByTags")
+        if (is.null(num_features_tags_to_select))
+            stop("You should specify num_features_tags_to_select")
+        if (!is.null(num_features_to_select))
+            stop("You should not specify num_features_to_select when grouping is ByTags")
+        fit_params$features_selection_grouping <- grouping
+        # AsIs, same idiom prepare_train_export_parameters already uses for
+        # ignored_features: avoids jsonlite's auto_unbox collapsing a
+        # single-tag vector to a scalar instead of a 1-element JSON array.
+        fit_params$features_tags_for_select <- I(as.character(features_tags_for_select))
+        fit_params$num_features_tags_to_select <- as.integer(num_features_tags_to_select)
+    }
     fit_params$train_final_model <- isTRUE(train_final_model)
     if (!is.null(algorithm))
         fit_params$features_selection_algorithm <- algorithm

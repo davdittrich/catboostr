@@ -3120,6 +3120,22 @@
     "test_id": "tests/testthat/test_select_features.R",
     "tolerance_justification": "P10.C: already oracle-verified bit-for-bit in the pre-existing 'select_features: RecursiveByShapValues summary and final model match the Python oracle' test."
   },
+  "catboost.EFeaturesSelectionGrouping": {
+    "state": "green",
+    "test_id": "tests/testthat/test_select_features_bytags.R",
+    "tolerance_justification": "P10.G (catboost-8z4.121): enum-class row; R's catboost.select_features(grouping=) now dispatches on both of this enum's string values (R/catboost.R), exercised by test_select_features.R (Individual, pre-existing) and test_select_features_bytags.R (ByTags, new)."
+  },
+  "catboost.EFeaturesSelectionGrouping.ByTags": {
+    "state": "green",
+    "test_id": "tests/testthat/test_select_features_bytags.R",
+    "tolerance": 1e-12,
+    "tolerance_justification": "P10.G (catboost-8z4.121): catboost.load_pool gained a feature_tags argument (threaded through the same TFeaturesLayout construction path catboost.from_matrix already used for grouping=Individual, via a new featureTags parameter on CatBoostCreateFromMatrix_R -- no parallel Pool representation) and catboost.select_features gained grouping/features_tags_for_select/num_features_tags_to_select, which travel through the existing params-JSON path straight into TFeaturesSelectOptions (already wired by plain_options_helper.cpp, no other native change needed); new fixture (tools/oracle/gen_select_features_bytags_fixture.py) verifies grouping=\"ByTags\" against the Python oracle bit-for-bit, same 1e-12 tolerance as the sibling Individual-mode test, for both RecursiveByShapValues (incl. final-model predictions) and RecursiveByLossFunctionChange."
+  },
+  "catboost.EFeaturesSelectionGrouping.Individual": {
+    "state": "green",
+    "test_id": "tests/testthat/test_select_features.R",
+    "tolerance_justification": "P10.G (catboost-8z4.121): already oracle-verified bit-for-bit by the pre-existing select_features tests (catboost.select_features's grouping defaults to Individual, which is exactly what test_select_features.R exercises); this ticket only had to prove the sibling ByTags row was reachable, not re-test Individual."
+  },
   "catboost.EFstrType": {
     "state": "green",
     "test_id": "tests/testthat/test_get_feature_importance_classes.R",

@@ -5334,6 +5334,227 @@ catboost.set_scale_and_bias <- function(model, scale, bias) {
     invisible(.Call("CatBoostSetScaleAndBias_R", model$cpp_obj$handle, as.double(scale), as.double(bias)))
 }
 
+#' @name catboost.get_borders
+#' @title Get a model's float feature borders
+#'
+#' @description R equivalent of Python's \code{model.get_borders()}
+#' (\code{core.py:3822-3827}, defined once on the \code{CatBoost} base class
+#' and inherited unchanged by \code{CatBoostClassifier}/\code{CatBoostRegressor}/
+#' \code{CatBoostRanker}): returns the quantization borders the model's
+#' float features were split on during training.
+#'
+#' @param model The model obtained as the result of training.
+#'
+#' @return A named list keyed by flat feature index (as a string); each
+#' element is the numeric vector of that feature's borders (empty for a
+#' feature the model does not use as a float feature).
+#' @export
+catboost.get_borders <- function(model) {
+    if (!inherits(model, "catboost.Model"))
+        stop("Expected catboost.Model, got: ", class(model))
+    .catboost_float_feature_borders(model)
+}
+
+#' @name catboost.save_borders
+#' @title Save a model's float feature borders to a file
+#'
+#' @description R equivalent of Python's \code{model.save_borders(fname)}
+#' (\code{core.py:3809-3820, _save_borders()}): writes the model's float
+#' feature quantization borders to a file in the format described at
+#' \url{https://catboost.ai/docs/concepts/input-data_custom-borders.html},
+#' so they can be reused to quantize another Pool identically (upstream's
+#' \code{input_borders} mechanism). Unlike
+#' \code{\link{catboost.pool.save_quantization_borders}} (which requires an
+#' already-quantized Pool), this reads borders directly off a trained model.
+#'
+#' @param model The model obtained as the result of training.
+#' @param output_file Output file path.
+#'
+#' @return No return value, called for side effects.
+#' @export
+catboost.save_borders <- function(model, output_file) {
+    if (!inherits(model, "catboost.Model"))
+        stop("Expected catboost.Model, got: ", class(model))
+    if (!is.character(output_file) || length(output_file) != 1)
+        stop("output_file must be a single string.")
+    catboost.restore_handle(model)
+    invisible(.Call("CatBoostSaveModelBorders_R", model$cpp_obj$handle, path.expand(output_file)))
+}
+
+#' @name catboost.get_leaf_values
+#' @title Get the model's tree leaf values
+#'
+#' @description R equivalent of Python's \code{model.get_leaf_values()}
+#' (\code{core.py:2121-2129}, defined once on \code{_CatBoostBase} and
+#' inherited unchanged by \code{CatBoost}/\code{CatBoostClassifier}/
+#' \code{CatBoostRegressor}/\code{CatBoostRanker}).
+#'
+#' @param model The model obtained as the result of training.
+#'
+#' @return A numeric vector of leaf values for all trees. The value for the
+#' j-th leaf (0-based) of the i-th tree (0-based) is at position
+#' \code{sum(catboost.get_tree_leaf_counts(model)[seq_len(i)]) + j + 1}
+#' (1-based R indexing).
+#' @export
+catboost.get_leaf_values <- function(model) {
+    if (!inherits(model, "catboost.Model"))
+        stop("Expected catboost.Model, got: ", class(model))
+    catboost.restore_handle(model)
+    .Call("CatBoostGetLeafValues_R", model$cpp_obj$handle)
+}
+
+#' @name catboost.get_leaf_weights
+#' @title Get the model's tree leaf weights
+#'
+#' @description R equivalent of Python's \code{model.get_leaf_weights()}
+#' (\code{core.py:2131-2139}, defined once on \code{_CatBoostBase} and
+#' inherited unchanged by \code{CatBoost}/\code{CatBoostClassifier}/
+#' \code{CatBoostRegressor}/\code{CatBoostRanker}).
+#'
+#' @param model The model obtained as the result of training.
+#'
+#' @return A numeric vector of leaf weights for all trees, indexed the same
+#' way as \code{\link{catboost.get_leaf_values}}.
+#' @export
+catboost.get_leaf_weights <- function(model) {
+    if (!inherits(model, "catboost.Model"))
+        stop("Expected catboost.Model, got: ", class(model))
+    catboost.restore_handle(model)
+    .Call("CatBoostGetLeafWeights_R", model$cpp_obj$handle)
+}
+
+#' @name catboost.get_tree_leaf_counts
+#' @title Get the number of leaves in each tree of the model
+#'
+#' @description R equivalent of Python's \code{model.get_tree_leaf_counts()}
+#' (\code{core.py:2112-2119}, defined once on \code{_CatBoostBase} and
+#' inherited unchanged by \code{CatBoost}/\code{CatBoostClassifier}/
+#' \code{CatBoostRegressor}/\code{CatBoostRanker}).
+#'
+#' @param model The model obtained as the result of training.
+#'
+#' @return An integer vector of size \code{catboost.ntrees(model)}; element i
+#' is the number of leaves in the i-th tree (1-based R indexing).
+#' @export
+catboost.get_tree_leaf_counts <- function(model) {
+    if (!inherits(model, "catboost.Model"))
+        stop("Expected catboost.Model, got: ", class(model))
+    catboost.restore_handle(model)
+    .Call("CatBoostGetTreeLeafCounts_R", model$cpp_obj$handle)
+}
+
+#' @name catboost.set_leaf_values
+#' @title Set the model's tree leaf values
+#'
+#' @description R equivalent of Python's
+#' \code{model.set_leaf_values(new_leaf_values)} (\code{core.py:2141-2152},
+#' defined once on \code{_CatBoostBase} and inherited unchanged by
+#' \code{CatBoost}/\code{CatBoostClassifier}/\code{CatBoostRegressor}/
+#' \code{CatBoostRanker}). The change is held in memory only; call
+#' \code{\link{catboost.save_model}} to persist it, same calling convention
+#' as \code{\link{catboost.set_scale_and_bias}}.
+#'
+#' @param model The model obtained as the result of training.
+#' @param new_leaf_values A numeric vector with new leaf values for all
+#' trees. Its length must equal \code{sum(catboost.get_tree_leaf_counts(model))},
+#' indexed the same way as \code{\link{catboost.get_leaf_values}}.
+#'
+#' @return No return value, called for side effects.
+#' @export
+catboost.set_leaf_values <- function(model, new_leaf_values) {
+    if (!inherits(model, "catboost.Model"))
+        stop("Expected catboost.Model, got: ", class(model))
+    if (!is.numeric(new_leaf_values))
+        stop("new_leaf_values must be numeric, got: ", class(new_leaf_values))
+    catboost.restore_handle(model)
+    invisible(.Call("CatBoostSetLeafValues_R", model$cpp_obj$handle, as.double(new_leaf_values)))
+}
+
+#' @name catboost.calc_leaf_indexes
+#' @title Calculate the leaf index each object falls into, per tree
+#'
+#' @description R equivalent of Python's
+#' \code{model.calc_leaf_indexes(data, ntree_start, ntree_end, thread_count,
+#' verbose)} (\code{core.py:3157-3195}).
+#'
+#' @param model The model obtained as the result of training.
+#' @param pool The input data on which to calculate leaf indexes. Should be
+#' a \code{catboost.Pool} object.
+#' @param ntree_start Index of the first tree for which leaf indexes will be
+#' calculated (zero-based indexing).
+#'
+#' Default value: 0
+#' @param ntree_end Index of the tree after the last tree for which leaf
+#' indexes will be calculated (zero-based indexing). If 0, resolves to
+#' \code{catboost.ntrees(model)}.
+#'
+#' Default value: 0
+#' @param thread_count The number of threads to use. If -1, then the number
+#' of threads is set to the number of CPU cores.
+#'
+#' Default value: -1
+#' @param verbose If \code{TRUE}, writes debug logging.
+#'
+#' Default value: \code{FALSE}
+#'
+#' @return An integer matrix of shape (number of objects in \code{pool}) x
+#' (\code{ntree_end} - \code{ntree_start}); row i is the array of leaf
+#' indexes for the i-th object.
+#' @export
+catboost.calc_leaf_indexes <- function(model, pool, ntree_start = 0, ntree_end = 0,
+                                        thread_count = -1, verbose = FALSE) {
+    if (!inherits(model, "catboost.Model"))
+        stop("Expected catboost.Model, got: ", class(model))
+    if (!inherits(pool, "catboost.Pool"))
+        stop("Expected catboost.Pool, got: ", class(pool))
+    if (is.null.handle(pool))
+        stop("Pool object is invalid.")
+    catboost.restore_handle(model)
+    if (ntree_end == 0)
+        ntree_end <- catboost.ntrees(model)
+    n_objects <- catboost.pool.num_row(pool)
+    flat <- .Call("CatBoostCalcLeafIndexes_R", model$cpp_obj$handle, pool,
+                  as.integer(ntree_start), as.integer(ntree_end),
+                  as.integer(thread_count), as.logical(verbose))
+    matrix(flat, nrow = n_objects, byrow = TRUE)
+}
+
+#' @name catboost.iterate_leaf_indexes
+#' @title Iterate the leaf index each object falls into, per tree
+#'
+#' @description R equivalent of Python's
+#' \code{model.iterate_leaf_indexes(data, ntree_start, ntree_end)}
+#' (\code{core.py:3132-3155}). Python streams results one object at a time
+#' via \code{_leaf_indexes_iterator} purely to bound memory for very large
+#' pools; the underlying leaf-index computation is identical to
+#' \code{\link{catboost.calc_leaf_indexes}} (same
+#' \code{CalcLeafIndexesMulti} native call). R has no lazy generator
+#' protocol in the base language, so this is a thin wrapper that computes
+#' the full result via \code{catboost.calc_leaf_indexes} and splits it into
+#' one list element per object -- identical numeric output, not an
+#' approximation.
+#'
+#' @param model The model obtained as the result of training.
+#' @param pool The input data on which to calculate leaf indexes. Should be
+#' a \code{catboost.Pool} object.
+#' @param ntree_start Index of the first tree for which leaf indexes will be
+#' calculated (zero-based indexing).
+#'
+#' Default value: 0
+#' @param ntree_end Index of the tree after the last tree for which leaf
+#' indexes will be calculated (zero-based indexing). If 0, resolves to
+#' \code{catboost.ntrees(model)}.
+#'
+#' Default value: 0
+#'
+#' @return A list with one element per object in \code{pool}; each element
+#' is an integer vector of leaf indexes for that object.
+#' @export
+catboost.iterate_leaf_indexes <- function(model, pool, ntree_start = 0, ntree_end = 0) {
+    leaf_matrix <- catboost.calc_leaf_indexes(model, pool, ntree_start, ntree_end)
+    lapply(seq_len(nrow(leaf_matrix)), function(i) leaf_matrix[i, ])
+}
+
 #' @name catboost.normalize_model_from_pool
 #' @title Rescale a model so its raw predictions on a pool span [0, 1]
 #'
@@ -5610,8 +5831,9 @@ catboost.create_metric_calcer <- function(model, metrics, ntree_start = 0, ntree
 # Internal float-feature-borders accessor, R side of CatBoostGetFloatFeatureBorders_R
 # (see src/catboostr.cpp) -- mirrors _catboost.pyx _get_borders(): named list
 # keyed by the flat feature index (as a string), values are that feature's
-# numeric borders (empty for an unused/non-float feature). Not exported: the
-# public catboost.get_borders() row belongs to catboost-8z4.119.
+# numeric borders (empty for an unused/non-float feature). Shared by
+# catboost.get_borders() (catboost-8z4.119) and
+# catboost.plot_predictions()/catboost.plot_partial_dependence() below.
 .catboost_float_feature_borders <- function(model) {
     catboost.restore_handle(model)
     .Call("CatBoostGetFloatFeatureBorders_R", model$cpp_obj$handle)

@@ -12540,10 +12540,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_tree_internals.R",
+    "state": "green",
+    "tolerance_justification": "P10.E (catboost-8z4.119): calc_leaf_indexes() is defined once on the CatBoost class (core.py:3157-3195, `self._base_calc_leaf_indexes(...)` -> _catboost.pyx:5606-5621 CalcLeafIndexesMulti(), catboost/private/libs/algo/apply.h/.cpp -- already linked into libcatboostr via apply.h for CatBoostPredictMulti_R's ApplyModelMulti sibling) and not overridden by any subclass. R's catboost.calc_leaf_indexes() calls the same native CalcLeafIndexesMulti() via a new CatBoostCalcLeafIndexes_R entry point, verified over both the full tree range and a restricted ntree_start/ntree_end range -- the parity target for all 4 *.calc_leaf_indexes rows.",
     "needs_disposition": false,
     "members": [
       {
@@ -12828,10 +12828,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_tree_internals.R",
+    "state": "green",
+    "tolerance_justification": "P10.E (catboost-8z4.119): get_borders() is defined once on the CatBoost class (core.py:3822-3827, `self._object._get_borders()` -> _catboost.pyx:5561-5563, reading TModelTrees::GetFloatFeatures()[i].Borders) and not overridden by any subclass. R's catboost.get_borders() delegates to the same already-linked native accessor (CatBoostGetFloatFeatureBorders_R, already used internally by catboost.plot_predictions()/catboost.plot_partial_dependence()), the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.get_borders rows.",
     "needs_disposition": false,
     "members": [
       {
@@ -12924,10 +12924,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_tree_internals.R",
+    "state": "green",
+    "tolerance_justification": "P10.E (catboost-8z4.119): get_leaf_values() is defined once on _CatBoostBase (core.py:2121-2129, `self._object._get_leaf_values()` -> _catboost.pyx:6105-6106, reading TModelTrees::GetModelTreeData()->GetLeafValues()) and inherited unchanged by CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker. R's catboost.get_leaf_values() reads the same native array via a new CatBoostGetLeafValues_R entry point, the parity target for all 4 *.get_leaf_values rows.",
     "needs_disposition": false,
     "members": [
       {
@@ -12948,10 +12948,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_tree_internals.R",
+    "state": "green",
+    "tolerance_justification": "P10.E (catboost-8z4.119): get_leaf_weights() is defined once on _CatBoostBase (core.py:2131-2139, `self._object._get_leaf_weights()` -> _catboost.pyx:6108-6117, reading TModelTrees::GetModelTreeData()->GetLeafWeights()) and inherited unchanged by CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker. R's catboost.get_leaf_weights() reads the same native array via a new CatBoostGetLeafWeights_R entry point, the parity target for all 4 *.get_leaf_weights rows.",
     "needs_disposition": false,
     "members": [
       {
@@ -13188,10 +13188,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_tree_internals.R",
+    "state": "green",
+    "tolerance_justification": "P10.E (catboost-8z4.119): get_tree_leaf_counts() is defined once on _CatBoostBase (core.py:2112-2119, `self._object._get_tree_leaf_counts()` -> _catboost.pyx:6119-6121, reading TModelTrees::GetTreeLeafCounts()) and inherited unchanged by CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker. R's catboost.get_tree_leaf_counts() reads the same native array via a new CatBoostGetTreeLeafCounts_R entry point, the parity target for all 4 *.get_tree_leaf_counts rows.",
     "needs_disposition": false,
     "members": [
       {
@@ -13260,10 +13260,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_tree_internals.R",
+    "state": "green",
+    "tolerance_justification": "P10.E (catboost-8z4.119): iterate_leaf_indexes() is defined once on the CatBoost class (core.py:3132-3155, `self._iterate_leaf_indexes(...)` -> _leaf_indexes_iterator() -> _catboost.pyx:5623-5626 _LeafIndexIterator, which streams the exact same CalcLeafIndexesMulti() computation one object at a time purely to bound memory) and not overridden by any subclass. R has no lazy-generator protocol, so catboost.iterate_leaf_indexes() is a thin wrapper splitting catboost.calc_leaf_indexes()'s full result into one list element per object -- verified equal to both the Python oracle's streamed output and to catboost.calc_leaf_indexes()'s own matrix, the parity target for all 4 *.iterate_leaf_indexes rows.",
     "needs_disposition": false,
     "members": [
       {
@@ -13453,9 +13453,9 @@
     "kind": "method",
     "method": "roundtrip",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_tree_internals.R",
+    "state": "green",
+    "tolerance_justification": "P10.E (catboost-8z4.119): save_borders() is defined once on the CatBoost class (core.py:3809-3820, `self._object._save_borders(output_file)` -> _catboost.pyx:5900-5901 SaveModelBorders()) and not overridden by any subclass. R's catboost.save_borders() calls the same native SaveModelBorders() (model.h/model.cpp, already linked) via a new CatBoostSaveModelBorders_R entry point, the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.save_borders rows. No numeric return value of its own (writes a borders file), so parity is verified byte-for-byte against the fixture's recorded borders_text, same convention as catboost.pool.save_quantization_borders's existing test.",
     "needs_disposition": false,
     "members": [
       {
@@ -13524,10 +13524,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_tree_internals.R",
+    "state": "green",
+    "tolerance_justification": "P10.E (catboost-8z4.119): set_leaf_values() is defined once on _CatBoostBase (core.py:2141-2152, `self._object._set_leaf_values(v)` -> _catboost.pyx:6123-6130, TModelTrees::SetLeafValues()) and inherited unchanged by CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker. R's catboost.set_leaf_values() mutates the same native state via a new CatBoostSetLeafValues_R entry point (same in-memory-only, save_model()-to-persist calling convention as catboost.set_scale_and_bias()), verified both by the mutated leaf values themselves and by downstream RawFormulaVal predictions changing consistently -- the parity target for all 4 *.set_leaf_values rows.",
     "needs_disposition": false,
     "members": [
       {
@@ -13692,10 +13692,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_tree_internals.R",
+    "state": "green",
+    "tolerance_justification": "P10.E (catboost-8z4.119): calc_leaf_indexes() is defined once on the CatBoost class (core.py:3157-3195, `self._base_calc_leaf_indexes(...)` -> _catboost.pyx:5606-5621 CalcLeafIndexesMulti(), catboost/private/libs/algo/apply.h/.cpp -- already linked into libcatboostr via apply.h for CatBoostPredictMulti_R's ApplyModelMulti sibling) and not overridden by any subclass. R's catboost.calc_leaf_indexes() calls the same native CalcLeafIndexesMulti() via a new CatBoostCalcLeafIndexes_R entry point, verified over both the full tree range and a restricted ntree_start/ntree_end range -- the parity target for all 4 *.calc_leaf_indexes rows.",
     "needs_disposition": false,
     "members": [
       {
@@ -13980,10 +13980,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_tree_internals.R",
+    "state": "green",
+    "tolerance_justification": "P10.E (catboost-8z4.119): get_borders() is defined once on the CatBoost class (core.py:3822-3827, `self._object._get_borders()` -> _catboost.pyx:5561-5563, reading TModelTrees::GetFloatFeatures()[i].Borders) and not overridden by any subclass. R's catboost.get_borders() delegates to the same already-linked native accessor (CatBoostGetFloatFeatureBorders_R, already used internally by catboost.plot_predictions()/catboost.plot_partial_dependence()), the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.get_borders rows.",
     "needs_disposition": false,
     "members": [
       {
@@ -14076,10 +14076,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_tree_internals.R",
+    "state": "green",
+    "tolerance_justification": "P10.E (catboost-8z4.119): get_leaf_values() is defined once on _CatBoostBase (core.py:2121-2129, `self._object._get_leaf_values()` -> _catboost.pyx:6105-6106, reading TModelTrees::GetModelTreeData()->GetLeafValues()) and inherited unchanged by CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker. R's catboost.get_leaf_values() reads the same native array via a new CatBoostGetLeafValues_R entry point, the parity target for all 4 *.get_leaf_values rows.",
     "needs_disposition": false,
     "members": [
       {
@@ -14100,10 +14100,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_tree_internals.R",
+    "state": "green",
+    "tolerance_justification": "P10.E (catboost-8z4.119): get_leaf_weights() is defined once on _CatBoostBase (core.py:2131-2139, `self._object._get_leaf_weights()` -> _catboost.pyx:6108-6117, reading TModelTrees::GetModelTreeData()->GetLeafWeights()) and inherited unchanged by CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker. R's catboost.get_leaf_weights() reads the same native array via a new CatBoostGetLeafWeights_R entry point, the parity target for all 4 *.get_leaf_weights rows.",
     "needs_disposition": false,
     "members": [
       {
@@ -14364,10 +14364,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_tree_internals.R",
+    "state": "green",
+    "tolerance_justification": "P10.E (catboost-8z4.119): get_tree_leaf_counts() is defined once on _CatBoostBase (core.py:2112-2119, `self._object._get_tree_leaf_counts()` -> _catboost.pyx:6119-6121, reading TModelTrees::GetTreeLeafCounts()) and inherited unchanged by CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker. R's catboost.get_tree_leaf_counts() reads the same native array via a new CatBoostGetTreeLeafCounts_R entry point, the parity target for all 4 *.get_tree_leaf_counts rows.",
     "needs_disposition": false,
     "members": [
       {
@@ -14436,10 +14436,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_tree_internals.R",
+    "state": "green",
+    "tolerance_justification": "P10.E (catboost-8z4.119): iterate_leaf_indexes() is defined once on the CatBoost class (core.py:3132-3155, `self._iterate_leaf_indexes(...)` -> _leaf_indexes_iterator() -> _catboost.pyx:5623-5626 _LeafIndexIterator, which streams the exact same CalcLeafIndexesMulti() computation one object at a time purely to bound memory) and not overridden by any subclass. R has no lazy-generator protocol, so catboost.iterate_leaf_indexes() is a thin wrapper splitting catboost.calc_leaf_indexes()'s full result into one list element per object -- verified equal to both the Python oracle's streamed output and to catboost.calc_leaf_indexes()'s own matrix, the parity target for all 4 *.iterate_leaf_indexes rows.",
     "needs_disposition": false,
     "members": [
       {
@@ -14677,9 +14677,9 @@
     "kind": "method",
     "method": "roundtrip",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_tree_internals.R",
+    "state": "green",
+    "tolerance_justification": "P10.E (catboost-8z4.119): save_borders() is defined once on the CatBoost class (core.py:3809-3820, `self._object._save_borders(output_file)` -> _catboost.pyx:5900-5901 SaveModelBorders()) and not overridden by any subclass. R's catboost.save_borders() calls the same native SaveModelBorders() (model.h/model.cpp, already linked) via a new CatBoostSaveModelBorders_R entry point, the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.save_borders rows. No numeric return value of its own (writes a borders file), so parity is verified byte-for-byte against the fixture's recorded borders_text, same convention as catboost.pool.save_quantization_borders's existing test.",
     "needs_disposition": false,
     "members": [
       {
@@ -14772,10 +14772,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_tree_internals.R",
+    "state": "green",
+    "tolerance_justification": "P10.E (catboost-8z4.119): set_leaf_values() is defined once on _CatBoostBase (core.py:2141-2152, `self._object._set_leaf_values(v)` -> _catboost.pyx:6123-6130, TModelTrees::SetLeafValues()) and inherited unchanged by CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker. R's catboost.set_leaf_values() mutates the same native state via a new CatBoostSetLeafValues_R entry point (same in-memory-only, save_model()-to-persist calling convention as catboost.set_scale_and_bias()), verified both by the mutated leaf values themselves and by downstream RawFormulaVal predictions changing consistently -- the parity target for all 4 *.set_leaf_values rows.",
     "needs_disposition": false,
     "members": [
       {
@@ -15012,10 +15012,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_tree_internals.R",
+    "state": "green",
+    "tolerance_justification": "P10.E (catboost-8z4.119): calc_leaf_indexes() is defined once on the CatBoost class (core.py:3157-3195, `self._base_calc_leaf_indexes(...)` -> _catboost.pyx:5606-5621 CalcLeafIndexesMulti(), catboost/private/libs/algo/apply.h/.cpp -- already linked into libcatboostr via apply.h for CatBoostPredictMulti_R's ApplyModelMulti sibling) and not overridden by any subclass. R's catboost.calc_leaf_indexes() calls the same native CalcLeafIndexesMulti() via a new CatBoostCalcLeafIndexes_R entry point, verified over both the full tree range and a restricted ntree_start/ntree_end range -- the parity target for all 4 *.calc_leaf_indexes rows.",
     "needs_disposition": false,
     "members": [
       {
@@ -15300,10 +15300,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_tree_internals.R",
+    "state": "green",
+    "tolerance_justification": "P10.E (catboost-8z4.119): get_borders() is defined once on the CatBoost class (core.py:3822-3827, `self._object._get_borders()` -> _catboost.pyx:5561-5563, reading TModelTrees::GetFloatFeatures()[i].Borders) and not overridden by any subclass. R's catboost.get_borders() delegates to the same already-linked native accessor (CatBoostGetFloatFeatureBorders_R, already used internally by catboost.plot_predictions()/catboost.plot_partial_dependence()), the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.get_borders rows.",
     "needs_disposition": false,
     "members": [
       {
@@ -15396,10 +15396,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_tree_internals.R",
+    "state": "green",
+    "tolerance_justification": "P10.E (catboost-8z4.119): get_leaf_values() is defined once on _CatBoostBase (core.py:2121-2129, `self._object._get_leaf_values()` -> _catboost.pyx:6105-6106, reading TModelTrees::GetModelTreeData()->GetLeafValues()) and inherited unchanged by CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker. R's catboost.get_leaf_values() reads the same native array via a new CatBoostGetLeafValues_R entry point, the parity target for all 4 *.get_leaf_values rows.",
     "needs_disposition": false,
     "members": [
       {
@@ -15420,10 +15420,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_tree_internals.R",
+    "state": "green",
+    "tolerance_justification": "P10.E (catboost-8z4.119): get_leaf_weights() is defined once on _CatBoostBase (core.py:2131-2139, `self._object._get_leaf_weights()` -> _catboost.pyx:6108-6117, reading TModelTrees::GetModelTreeData()->GetLeafWeights()) and inherited unchanged by CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker. R's catboost.get_leaf_weights() reads the same native array via a new CatBoostGetLeafWeights_R entry point, the parity target for all 4 *.get_leaf_weights rows.",
     "needs_disposition": false,
     "members": [
       {
@@ -15660,10 +15660,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_tree_internals.R",
+    "state": "green",
+    "tolerance_justification": "P10.E (catboost-8z4.119): get_tree_leaf_counts() is defined once on _CatBoostBase (core.py:2112-2119, `self._object._get_tree_leaf_counts()` -> _catboost.pyx:6119-6121, reading TModelTrees::GetTreeLeafCounts()) and inherited unchanged by CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker. R's catboost.get_tree_leaf_counts() reads the same native array via a new CatBoostGetTreeLeafCounts_R entry point, the parity target for all 4 *.get_tree_leaf_counts rows.",
     "needs_disposition": false,
     "members": [
       {
@@ -15732,10 +15732,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_tree_internals.R",
+    "state": "green",
+    "tolerance_justification": "P10.E (catboost-8z4.119): iterate_leaf_indexes() is defined once on the CatBoost class (core.py:3132-3155, `self._iterate_leaf_indexes(...)` -> _leaf_indexes_iterator() -> _catboost.pyx:5623-5626 _LeafIndexIterator, which streams the exact same CalcLeafIndexesMulti() computation one object at a time purely to bound memory) and not overridden by any subclass. R has no lazy-generator protocol, so catboost.iterate_leaf_indexes() is a thin wrapper splitting catboost.calc_leaf_indexes()'s full result into one list element per object -- verified equal to both the Python oracle's streamed output and to catboost.calc_leaf_indexes()'s own matrix, the parity target for all 4 *.iterate_leaf_indexes rows.",
     "needs_disposition": false,
     "members": [
       {
@@ -15925,9 +15925,9 @@
     "kind": "method",
     "method": "roundtrip",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_tree_internals.R",
+    "state": "green",
+    "tolerance_justification": "P10.E (catboost-8z4.119): save_borders() is defined once on the CatBoost class (core.py:3809-3820, `self._object._save_borders(output_file)` -> _catboost.pyx:5900-5901 SaveModelBorders()) and not overridden by any subclass. R's catboost.save_borders() calls the same native SaveModelBorders() (model.h/model.cpp, already linked) via a new CatBoostSaveModelBorders_R entry point, the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.save_borders rows. No numeric return value of its own (writes a borders file), so parity is verified byte-for-byte against the fixture's recorded borders_text, same convention as catboost.pool.save_quantization_borders's existing test.",
     "needs_disposition": false,
     "members": [
       {
@@ -16020,10 +16020,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_tree_internals.R",
+    "state": "green",
+    "tolerance_justification": "P10.E (catboost-8z4.119): set_leaf_values() is defined once on _CatBoostBase (core.py:2141-2152, `self._object._set_leaf_values(v)` -> _catboost.pyx:6123-6130, TModelTrees::SetLeafValues()) and inherited unchanged by CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker. R's catboost.set_leaf_values() mutates the same native state via a new CatBoostSetLeafValues_R entry point (same in-memory-only, save_model()-to-persist calling convention as catboost.set_scale_and_bias()), verified both by the mutated leaf values themselves and by downstream RawFormulaVal predictions changing consistently -- the parity target for all 4 *.set_leaf_values rows.",
     "needs_disposition": false,
     "members": [
       {
@@ -16188,10 +16188,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_tree_internals.R",
+    "state": "green",
+    "tolerance_justification": "P10.E (catboost-8z4.119): calc_leaf_indexes() is defined once on the CatBoost class (core.py:3157-3195, `self._base_calc_leaf_indexes(...)` -> _catboost.pyx:5606-5621 CalcLeafIndexesMulti(), catboost/private/libs/algo/apply.h/.cpp -- already linked into libcatboostr via apply.h for CatBoostPredictMulti_R's ApplyModelMulti sibling) and not overridden by any subclass. R's catboost.calc_leaf_indexes() calls the same native CalcLeafIndexesMulti() via a new CatBoostCalcLeafIndexes_R entry point, verified over both the full tree range and a restricted ntree_start/ntree_end range -- the parity target for all 4 *.calc_leaf_indexes rows.",
     "needs_disposition": false,
     "members": [
       {
@@ -16476,10 +16476,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_tree_internals.R",
+    "state": "green",
+    "tolerance_justification": "P10.E (catboost-8z4.119): get_borders() is defined once on the CatBoost class (core.py:3822-3827, `self._object._get_borders()` -> _catboost.pyx:5561-5563, reading TModelTrees::GetFloatFeatures()[i].Borders) and not overridden by any subclass. R's catboost.get_borders() delegates to the same already-linked native accessor (CatBoostGetFloatFeatureBorders_R, already used internally by catboost.plot_predictions()/catboost.plot_partial_dependence()), the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.get_borders rows.",
     "needs_disposition": false,
     "members": [
       {
@@ -16572,10 +16572,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_tree_internals.R",
+    "state": "green",
+    "tolerance_justification": "P10.E (catboost-8z4.119): get_leaf_values() is defined once on _CatBoostBase (core.py:2121-2129, `self._object._get_leaf_values()` -> _catboost.pyx:6105-6106, reading TModelTrees::GetModelTreeData()->GetLeafValues()) and inherited unchanged by CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker. R's catboost.get_leaf_values() reads the same native array via a new CatBoostGetLeafValues_R entry point, the parity target for all 4 *.get_leaf_values rows.",
     "needs_disposition": false,
     "members": [
       {
@@ -16596,10 +16596,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_tree_internals.R",
+    "state": "green",
+    "tolerance_justification": "P10.E (catboost-8z4.119): get_leaf_weights() is defined once on _CatBoostBase (core.py:2131-2139, `self._object._get_leaf_weights()` -> _catboost.pyx:6108-6117, reading TModelTrees::GetModelTreeData()->GetLeafWeights()) and inherited unchanged by CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker. R's catboost.get_leaf_weights() reads the same native array via a new CatBoostGetLeafWeights_R entry point, the parity target for all 4 *.get_leaf_weights rows.",
     "needs_disposition": false,
     "members": [
       {
@@ -16836,10 +16836,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_tree_internals.R",
+    "state": "green",
+    "tolerance_justification": "P10.E (catboost-8z4.119): get_tree_leaf_counts() is defined once on _CatBoostBase (core.py:2112-2119, `self._object._get_tree_leaf_counts()` -> _catboost.pyx:6119-6121, reading TModelTrees::GetTreeLeafCounts()) and inherited unchanged by CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker. R's catboost.get_tree_leaf_counts() reads the same native array via a new CatBoostGetTreeLeafCounts_R entry point, the parity target for all 4 *.get_tree_leaf_counts rows.",
     "needs_disposition": false,
     "members": [
       {
@@ -16908,10 +16908,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_tree_internals.R",
+    "state": "green",
+    "tolerance_justification": "P10.E (catboost-8z4.119): iterate_leaf_indexes() is defined once on the CatBoost class (core.py:3132-3155, `self._iterate_leaf_indexes(...)` -> _leaf_indexes_iterator() -> _catboost.pyx:5623-5626 _LeafIndexIterator, which streams the exact same CalcLeafIndexesMulti() computation one object at a time purely to bound memory) and not overridden by any subclass. R has no lazy-generator protocol, so catboost.iterate_leaf_indexes() is a thin wrapper splitting catboost.calc_leaf_indexes()'s full result into one list element per object -- verified equal to both the Python oracle's streamed output and to catboost.calc_leaf_indexes()'s own matrix, the parity target for all 4 *.iterate_leaf_indexes rows.",
     "needs_disposition": false,
     "members": [
       {
@@ -17101,9 +17101,9 @@
     "kind": "method",
     "method": "roundtrip",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_tree_internals.R",
+    "state": "green",
+    "tolerance_justification": "P10.E (catboost-8z4.119): save_borders() is defined once on the CatBoost class (core.py:3809-3820, `self._object._save_borders(output_file)` -> _catboost.pyx:5900-5901 SaveModelBorders()) and not overridden by any subclass. R's catboost.save_borders() calls the same native SaveModelBorders() (model.h/model.cpp, already linked) via a new CatBoostSaveModelBorders_R entry point, the parity target for all 4 CatBoost{,Classifier,Regressor,Ranker}.save_borders rows. No numeric return value of its own (writes a borders file), so parity is verified byte-for-byte against the fixture's recorded borders_text, same convention as catboost.pool.save_quantization_borders's existing test.",
     "needs_disposition": false,
     "members": [
       {
@@ -17196,10 +17196,10 @@
     "oracle": "python",
     "kind": "method",
     "method": "elementwise",
-    "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "tolerance": 1e-06,
+    "test_id": "tests/testthat/test_tree_internals.R",
+    "state": "green",
+    "tolerance_justification": "P10.E (catboost-8z4.119): set_leaf_values() is defined once on _CatBoostBase (core.py:2141-2152, `self._object._set_leaf_values(v)` -> _catboost.pyx:6123-6130, TModelTrees::SetLeafValues()) and inherited unchanged by CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker. R's catboost.set_leaf_values() mutates the same native state via a new CatBoostSetLeafValues_R entry point (same in-memory-only, save_model()-to-persist calling convention as catboost.set_scale_and_bias()), verified both by the mutated leaf values themselves and by downstream RawFormulaVal predictions changing consistently -- the parity target for all 4 *.set_leaf_values rows.",
     "needs_disposition": false,
     "members": [
       {

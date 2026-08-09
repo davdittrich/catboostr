@@ -1,5 +1,6 @@
 C CatBoostCalcCatFeatureHash_R
 C CatBoostCalcCatFeaturePerfectHash_R
+C CatBoostCalcLeafIndexes_R
 C CatBoostCalcRegularFeatureEffect_R
 C CatBoostCreateFromFile_R
 C CatBoostCreateFromMatrix_R
@@ -15,6 +16,8 @@ C CatBoostGetBinarizedStatistics_R
 C CatBoostGetCatFeatureValues_R
 C CatBoostGetFeatureTypeAndInternalIndex_R
 C CatBoostGetFloatFeatureBorders_R
+C CatBoostGetLeafValues_R
+C CatBoostGetLeafWeights_R
 C CatBoostGetModelClassLabels_R
 C CatBoostGetModelInfo_R
 C CatBoostGetModelParams_R
@@ -22,6 +25,7 @@ C CatBoostGetModelUsedFeatureNames_R
 C CatBoostGetNumTrees_R
 C CatBoostGetPlainParams_R
 C CatBoostGetScaleAndBias_R
+C CatBoostGetTreeLeafCounts_R
 C CatBoostGridSearch_R
 C CatBoostHashStrings_R
 C CatBoostIsGroupwiseMetric_R
@@ -67,8 +71,10 @@ C CatBoostRCallbackBridgeSelfTest_R
 C CatBoostRandomizedSearch_R
 C CatBoostReadModel_R
 C CatBoostRunWorker_R
+C CatBoostSaveModelBorders_R
 C CatBoostSelectFeatures_R
 C CatBoostSerializeModel_R
+C CatBoostSetLeafValues_R
 C CatBoostSetModelInfo_R
 C CatBoostSetScaleAndBias_R
 C CatBoostShrinkModel_R

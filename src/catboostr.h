@@ -252,9 +252,32 @@ EXPORT_FUNCTION CatBoostEraseModelInfo_R(SEXP modelParam, SEXP keyParam);
 // P10.F (catboost-8z4.120): internal float-feature-borders accessor used by
 // catboost.plot_predictions()/catboost.plot_partial_dependence() to
 // reproduce core.py's `model_borders = self._get_borders()`
-// (_catboost.pyx:5561). Not a public catboost.get_borders() API -- that
-// row belongs to catboost-8z4.119's tree-internals-accessor family.
+// (_catboost.pyx:5561). Also the sole native entry point backing the public
+// catboost.get_borders() R function (P10.E, catboost-8z4.119) -- both
+// callers need the exact same (feature_index -> borders) map, so this one
+// function backs both instead of a second identical accessor.
 EXPORT_FUNCTION CatBoostGetFloatFeatureBorders_R(SEXP modelParam);
+
+// P10.E (catboost-8z4.119): tree-internals accessors/mutator (see
+// src/catboostr.cpp for full rationale).
+EXPORT_FUNCTION CatBoostGetLeafValues_R(SEXP modelParam);
+
+EXPORT_FUNCTION CatBoostGetLeafWeights_R(SEXP modelParam);
+
+EXPORT_FUNCTION CatBoostGetTreeLeafCounts_R(SEXP modelParam);
+
+EXPORT_FUNCTION CatBoostSetLeafValues_R(SEXP modelParam, SEXP valuesParam);
+
+EXPORT_FUNCTION CatBoostSaveModelBorders_R(SEXP modelParam, SEXP outputFileParam);
+
+EXPORT_FUNCTION CatBoostCalcLeafIndexes_R(
+    SEXP modelParam,
+    SEXP poolParam,
+    SEXP treeStartParam,
+    SEXP treeEndParam,
+    SEXP threadCountParam,
+    SEXP verboseParam
+);
 
 // P5.7 (catboost-8z4.64): R equivalents of CLI's `normalize-model` mode /
 // Python's get_scale_and_bias()/set_scale_and_bias().

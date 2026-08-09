@@ -3005,6 +3005,139 @@ EXPORT_FUNCTION CatBoostGetFloatFeatureBorders_R(SEXP modelParam) {
     return result;
 }
 
+// P10.E (catboost-8z4.119): tree-internals accessors/mutator. Mirror
+// _catboost.pyx's _get_leaf_values/_get_leaf_weights/_get_tree_leaf_counts/
+// _set_leaf_values (backing CatBoost.get_leaf_values()/get_leaf_weights()/
+// get_tree_leaf_counts()/set_leaf_values(), core.py:2112-2152, defined once
+// on _CatBoostBase and inherited unchanged by
+// CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker) and
+// _save_borders (core.py:1976-1979, CatBoost.save_borders(),
+// core.py:3809-3820). All read/write TFullModel's already-computed
+// ModelTrees state directly (model.h) -- no new tree-structure parsing,
+// same native state Python's own binding reads/writes via
+// GetModelTreeData()->GetLeafValues()/GetLeafWeights(),
+// TModelTrees::GetTreeLeafCounts()/SetLeafValues(), and
+// SaveModelBorders() (already linked via model.h, used by
+// CatBoostPoolSaveQuantizationBorders_R's sibling pool-level function
+// above).
+EXPORT_FUNCTION CatBoostGetLeafValues_R(SEXP modelParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    TConstArrayRef<double> leafValues = model->ModelTrees.Get()->GetModelTreeData()->GetLeafValues();
+    result = PROTECT(allocVector(REALSXP, leafValues.size()));
+    for (size_t i = 0; i < leafValues.size(); ++i) {
+        REAL(result)[i] = leafValues[i];
+    }
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+EXPORT_FUNCTION CatBoostGetLeafWeights_R(SEXP modelParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    TConstArrayRef<double> leafWeights = model->ModelTrees.Get()->GetModelTreeData()->GetLeafWeights();
+    result = PROTECT(allocVector(REALSXP, leafWeights.size()));
+    for (size_t i = 0; i < leafWeights.size(); ++i) {
+        REAL(result)[i] = leafWeights[i];
+    }
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+EXPORT_FUNCTION CatBoostGetTreeLeafCounts_R(SEXP modelParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    TVector<ui32> counts = model->ModelTrees.Get()->GetTreeLeafCounts();
+    result = PROTECT(allocVector(INTSXP, counts.size()));
+    for (size_t i = 0; i < counts.size(); ++i) {
+        INTEGER(result)[i] = static_cast<int>(counts[i]);
+    }
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+// Mutates the live model handle's leaf values in place, matching Python's
+// set_leaf_values() calling convention (in-memory only; call
+// catboost.save_model() to persist, same note as CatBoostSetScaleAndBias_R
+// above). new_leaf_values must have exactly one entry per existing leaf
+// (sum(get_tree_leaf_counts())), same length check _catboost.pyx:6127
+// performs.
+EXPORT_FUNCTION CatBoostSetLeafValues_R(SEXP modelParam, SEXP valuesParam) {
+    R_API_BEGIN();
+    TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    size_t expected = model->ModelTrees.Get()->GetModelTreeData()->GetLeafValues().size();
+    size_t n = static_cast<size_t>(Rf_length(valuesParam));
+    CB_ENSURE(n == expected,
+        "set_leaf_values: expected " << expected << " leaf values (sum of get_tree_leaf_counts()), got " << n);
+    TVector<double> values(n);
+    for (size_t i = 0; i < n; ++i) {
+        values[i] = REAL(valuesParam)[i];
+    }
+    model->ModelTrees.GetMutable()->SetLeafValues(values);
+    R_API_END();
+    return R_NilValue;
+}
+
+// R equivalent of CatBoost.save_borders() (core.py:3809-3820,
+// _save_borders() -> _catboost.pyx:5900-5901 SaveModelBorders()). Writes the
+// model's float-feature borders to a file in the same
+// input-data_custom-borders.html format
+// CatBoostPoolSaveQuantizationBorders_R's pool-level sibling above writes;
+// unlike that pool-level function (which requires an already-quantized
+// Pool), this reads borders directly off the trained model, matching
+// Python's is_fitted()-gated precondition (enforced R-side by
+// catboost.save_borders() below via catboost.restore_handle()).
+EXPORT_FUNCTION CatBoostSaveModelBorders_R(SEXP modelParam, SEXP outputFileParam) {
+    R_API_BEGIN();
+    TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    SaveModelBorders(TString(CHAR(asChar(outputFileParam))), *model);
+    R_API_END();
+    return R_NilValue;
+}
+
+// R equivalent of CatBoost.calc_leaf_indexes() (core.py:3157-3195,
+// _base_calc_leaf_indexes() -> _catboost.pyx:5606-5621 CalcLeafIndexesMulti(),
+// catboost/private/libs/algo/apply.h/.cpp -- already linked into this
+// library via apply.h for CatBoostPredictMulti_R's ApplyModelMulti sibling
+// above). Returns a flat, object-major vector (each object's contiguous
+// block of (treeEnd - treeStart) leaf indexes) -- CalcLeafIndexesMulti's own
+// output layout -- matching CatBoostPredictMulti_R's existing
+// flatten-then-reshape convention: catboost.calc_leaf_indexes() (R/catboost.R)
+// reshapes with matrix(..., nrow = object count, byrow = TRUE).
+// catboost.iterate_leaf_indexes() is a thin R-side wrapper around this same
+// entry point (splitting the resulting matrix into one row per object)
+// rather than a second native streaming iterator: Python's own
+// _leaf_indexes_iterator only differs by batching for memory, not by
+// computing anything different, so re-deriving identical numeric output
+// from the already-computed matrix is exact, not an approximation.
+EXPORT_FUNCTION CatBoostCalcLeafIndexes_R(SEXP modelParam, SEXP poolParam, SEXP treeStartParam,
+                                          SEXP treeEndParam, SEXP threadCountParam, SEXP verboseParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    TVector<ui32> leafIndexes = CalcLeafIndexesMulti(
+        *model,
+        pool->ObjectsData,
+        static_cast<bool>(asLogical(verboseParam)),
+        asInteger(treeStartParam),
+        asInteger(treeEndParam),
+        UpdateThreadCount(asInteger(threadCountParam)));
+    result = PROTECT(allocVector(INTSXP, leafIndexes.size()));
+    for (size_t i = 0; i < leafIndexes.size(); ++i) {
+        INTEGER(result)[i] = static_cast<int>(leafIndexes[i]);
+    }
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
 // P5.7 (catboost-8z4.64): R equivalents of Python's
 // _CatBoostBase.get_scale_and_bias()/set_scale_and_bias() (core.py:2422-2429,
 // inherited unchanged by CatBoost/CatBoostClassifier/CatBoostRegressor/

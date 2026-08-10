@@ -1675,8 +1675,10 @@
     "tolerance_justification": "Imported Python stdlib/3rd-party symbol picked up by the introspector under a catboost.* namespace re-export -- not a CatBoost API symbol at all."
   },
   "catboost.utils.eval_metric": {
-    "state": "red",
-    "tolerance_justification": "P10.C: genuine capability gap, verified live (ls('package:catboostr') has no metric-name match besides catboost.eval_metrics) and by reading R/catboost.R -- Python's eval_metric(label, approx, metric) computes a metric directly from raw label/approx arrays with no Pool or model required. R's only metric-evaluation entry point, catboost.eval_metrics(model, pool, metrics), requires a real fitted catboost.Model and a catboost.Pool, and applies the model's trees natively (src/catboostr.cpp) -- there is no bridge exposing the standalone label+approx metric evaluator Python's _catboost.pyx wraps. A model+baseline trick to fake a 'model-free' evaluation would only be approximate (baseline plus a non-zero learned correction), not the same computation. Filed as a discovered-from follow-up rather than adding new R/src code in this disposition-only ticket."
+    "state": "green",
+    "test_id": "tests/testthat/test_eval_metric.R",
+    "tolerance": 1e-09,
+    "tolerance_justification": "catboost-8z4.124: implemented via new native entry point CatBoostEvalMetric_R (src/catboostr.cpp) plus new R/catboost.R function catboost.eval_metric(label, approx, metric, weight, group_id, group_weight, subgroup_id, pairs, thread_count) -- ports the same call sequence Python's _catboost.pyx _eval_metric_util()/EvalMetricsForUtils() (python-package/catboost/helpers.cpp, itself unreachable directly since that file pulls in Python.h) uses: CreateMetricsFromDescription, IsGroupwiseMetric, NCB::CreateObjectsGroupingFromGroupIds, NCB::CheckPairs, NCB::MakeGroupInfos, EvalErrorsWithCaching. Differential-tested in tests/testthat/test_eval_metric.R against catboost.eval_metrics(model, pool, ...) evaluated on the same trained model's full-ensemble RawFormulaVal predictions over the same pool, 1e-9 tolerance."
   },
   "catboost.utils.fspath": {
     "state": "out_of_scope",

@@ -93,4 +93,5 @@ C CatBoostTextTokenizerCreate_R
 C CatBoostTextTokenizerTokenize_R
 C CatBoostVersion_R
 C CatBoostEvalMetrics_R
+C CatBoostEvalMetric_R
 C R_init_libcatboostr

@@ -11,6 +11,7 @@
 #include <catboost/libs/helpers/int_cast.h>
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/logging/logging.h>
+#include <catboost/libs/metrics/caching_metric.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/model/model_export/model_exporter.h>
@@ -3669,6 +3670,174 @@ EXPORT_FUNCTION CatBoostEvalMetrics_R(
 
     R_API_END();
     UNPROTECT(protectedCount);
+    return result;
+}
+
+// catboost-8z4.124: R equivalent of Python's catboost.utils.eval_metric()
+// (vendor/catboost/catboost/python-package/catboost/utils.py:271, native
+// side vendor/catboost/catboost/python-package/catboost/_catboost.pyx
+// _eval_metric_util() -> EvalMetricsForUtils(), vendor/catboost/catboost/
+// python-package/catboost/helpers.cpp:138) -- evaluates a single named
+// metric directly on raw label/approx arrays, with neither a fitted model
+// nor a catboost.Pool. helpers.cpp lives under python-package/ and pulls in
+// <Python.h>, so it cannot be linked into libcatboostr as-is; this ports the
+// same call sequence (CreateMetricsFromDescription, IsGroupwiseMetric,
+// NCB::CreateObjectsGroupingFromGroupIds, NCB::CheckPairs, NCB::MakeGroupInfos,
+// EvalErrorsWithCaching) using this package's own SEXP marshalling
+// conventions -- group_id/subgroup_id follow the same pre-canonicalized
+// decimal-string -> CalcGroupIdFor()/CalcSubgroupIdFor() convention as
+// CatBoostPoolSetGroupId_R/CatBoostPoolSetSubgroupId_R above, and pairs
+// follows the same (N x 2 or N x 3) matrix convention as
+// CatBoostPoolSetPairs_R.
+EXPORT_FUNCTION CatBoostEvalMetric_R(
+        SEXP labelParam,
+        SEXP approxParam,
+        SEXP metricParam,
+        SEXP weightParam,
+        SEXP groupIdParam,
+        SEXP groupWeightParam,
+        SEXP subgroupIdParam,
+        SEXP pairsParam,
+        SEXP threadCountParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+
+    SEXP labelDim = getAttrib(labelParam, R_DimSymbol);
+    size_t objectCount = labelDim != R_NilValue
+        ? SafeIntegerCast<size_t>(INTEGER(labelDim)[0])
+        : SafeIntegerCast<size_t>(length(labelParam));
+    size_t labelDimension = labelDim != R_NilValue ? SafeIntegerCast<size_t>(INTEGER(labelDim)[1]) : 1;
+    CB_ENSURE(objectCount > 0, "Cannot evaluate metric on empty data");
+    double* ptr_label = REAL(labelParam);
+    TVector<TVector<float>> label(labelDimension, TVector<float>(objectCount));
+    for (auto d : xrange(labelDimension)) {
+        for (auto i : xrange(objectCount)) {
+            label[d][i] = static_cast<float>(ptr_label[i + objectCount * d]);
+        }
+    }
+
+    SEXP approxDim = getAttrib(approxParam, R_DimSymbol);
+    size_t approxObjectCount = approxDim != R_NilValue
+        ? SafeIntegerCast<size_t>(INTEGER(approxDim)[0])
+        : SafeIntegerCast<size_t>(length(approxParam));
+    size_t approxDimension = approxDim != R_NilValue ? SafeIntegerCast<size_t>(INTEGER(approxDim)[1]) : 1;
+    CB_ENSURE(approxObjectCount == objectCount, "Label and approx should have same sizes.");
+    double* ptr_approx = REAL(approxParam);
+    TVector<TVector<double>> approx(approxDimension, TVector<double>(objectCount));
+    for (auto d : xrange(approxDimension)) {
+        for (auto i : xrange(objectCount)) {
+            approx[d][i] = ptr_approx[i + objectCount * d];
+        }
+    }
+
+    TString metricName = CHAR(asChar(metricParam));
+
+    TVector<float> weight = GetVectorFromNullableSEXP<float>(weightParam, "weight"_sb);
+    CB_ENSURE(weight.empty() || weight.size() == objectCount, "Label and weight should have same sizes.");
+
+    TVector<TGroupId> groupId;
+    if (!Rf_isNull(groupIdParam)) {
+        CB_ENSURE(
+            static_cast<size_t>(length(groupIdParam)) == objectCount,
+            "Label and group_id should have same sizes."
+        );
+        groupId.reserve(objectCount);
+        for (auto i : xrange(objectCount)) {
+            groupId.push_back(CalcGroupIdFor(TStringBuf(CHAR(STRING_ELT(groupIdParam, i)))));
+        }
+    }
+
+    TVector<float> groupWeight = GetVectorFromNullableSEXP<float>(groupWeightParam, "group_weight"_sb);
+    CB_ENSURE(groupWeight.empty() || groupWeight.size() == objectCount, "Label and group weight should have same sizes.");
+
+    TVector<TSubgroupId> subgroupId;
+    if (!Rf_isNull(subgroupIdParam)) {
+        CB_ENSURE(
+            static_cast<size_t>(length(subgroupIdParam)) == objectCount,
+            "Label and subgroup_id should have same sizes."
+        );
+        subgroupId.reserve(objectCount);
+        for (auto i : xrange(objectCount)) {
+            subgroupId.push_back(CalcSubgroupIdFor(TStringBuf(CHAR(STRING_ELT(subgroupIdParam, i)))));
+        }
+    }
+
+    TVector<TPair> pairs;
+    if (!Rf_isNull(pairsParam)) {
+        SEXP pairsDim = getAttrib(pairsParam, R_DimSymbol);
+        CB_ENSURE(pairsDim != R_NilValue, "pairs must be a matrix");
+        size_t pairsCount = SafeIntegerCast<size_t>(INTEGER(pairsDim)[0]);
+        int pairsColumns = INTEGER(pairsDim)[1];
+        CB_ENSURE(pairsColumns == 2 || pairsColumns == 3, "pairs must have 2 or 3 columns");
+        double* ptr_pairs = REAL(pairsParam);
+        pairs.reserve(pairsCount);
+        for (auto i : xrange(pairsCount)) {
+            float pairWeight = pairsColumns == 3 ? static_cast<float>(ptr_pairs[i + pairsCount * 2]) : 1.0f;
+            pairs.emplace_back(
+                static_cast<ui32>(ptr_pairs[i + pairsCount * 0]),
+                static_cast<ui32>(ptr_pairs[i + pairsCount * 1]),
+                pairWeight
+            );
+        }
+    }
+
+    int threadCount = UpdateThreadCount(asInteger(threadCountParam));
+
+    CB_ENSURE(
+        !IsGroupwiseMetric(metricName) || !groupId.empty(),
+        "Metric \"" << metricName << "\" requires group data"
+    );
+
+    NPar::TLocalExecutor executor;
+    executor.RunAdditionalThreads(threadCount - 1);
+    TVector<THolder<IMetric>> metrics = CreateMetricsFromDescription({metricName}, approx.ysize());
+    if (!weight.empty()) {
+        for (auto& metric : metrics) {
+            metric->UseWeights.SetDefaultValue(true);
+        }
+    }
+
+    NCB::TObjectsGrouping objectGrouping = NCB::CreateObjectsGroupingFromGroupIds<TGroupId>(
+        objectCount,
+        groupId.empty() ? Nothing() : NCB::TMaybeData<TConstArrayRef<TGroupId>>(groupId)
+    );
+    if (!pairs.empty()) {
+        NCB::CheckPairs(pairs, objectGrouping);
+    }
+    TVector<TQueryInfo> queriesInfo;
+    if (!groupId.empty()) {
+        queriesInfo = *NCB::MakeGroupInfos(
+            objectGrouping,
+            subgroupId.empty() ? Nothing() : NCB::TMaybeData<TConstArrayRef<TSubgroupId>>(subgroupId),
+            groupWeight.empty() ? NCB::TWeights<float>(groupId.size()) : NCB::TWeights<float>(TVector<float>(groupWeight)),
+            TConstArrayRef<TPair>(pairs)
+        ).Get();
+    }
+
+    TVector<const IMetric*> metricPtrs;
+    metricPtrs.reserve(metrics.size());
+    for (const auto& metric : metrics) {
+        metricPtrs.push_back(metric.Get());
+    }
+
+    TVector<TMetricHolder> stats = EvalErrorsWithCaching(
+        approx,
+        /*approxDelta*/ {},
+        /*isExpApprox*/ false,
+        To2DConstArrayRef<float>(label),
+        weight,
+        queriesInfo,
+        metricPtrs,
+        &executor
+    );
+
+    result = PROTECT(allocVector(REALSXP, metricPtrs.size()));
+    for (auto metricIdx : xrange(metricPtrs.size())) {
+        REAL(result)[metricIdx] = metricPtrs[metricIdx]->GetFinalError(stats[metricIdx]);
+    }
+
+    R_API_END();
+    UNPROTECT(1);
     return result;
 }
 

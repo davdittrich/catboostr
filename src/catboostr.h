@@ -335,6 +335,18 @@ EXPORT_FUNCTION CatBoostEvalMetrics_R(
     SEXP resultDirParam
 );
 
+EXPORT_FUNCTION CatBoostEvalMetric_R(
+    SEXP labelParam,
+    SEXP approxParam,
+    SEXP metricParam,
+    SEXP weightParam,
+    SEXP groupIdParam,
+    SEXP groupWeightParam,
+    SEXP subgroupIdParam,
+    SEXP pairsParam,
+    SEXP threadCountParam
+);
+
 EXPORT_FUNCTION CatBoostVersion_R(void);
 
 // P8.1 (catboost-8z4.102): R equivalent of the CLI's `run-worker` mode

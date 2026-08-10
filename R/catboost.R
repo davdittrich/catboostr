@@ -5712,6 +5712,83 @@ catboost.eval_metrics <- function(model, pool, metrics, ntree_start = 0L, ntree_
   return(result)
 }
 
+#' @name catboost.eval_metric
+#' @title Evaluate a metric directly on raw label/approx arrays
+#' @description R equivalent of Python's \code{catboost.utils.eval_metric()}
+#' (\code{utils.py:271}): evaluates a single named metric directly on raw
+#' label and approx (prediction) arrays, needing neither a fitted model nor a
+#' \code{\link{catboost.Pool}} -- unlike \code{\link{catboost.eval_metrics}},
+#' which requires both.
+#' @param label Object labels: a numeric vector of length \code{n_objects},
+#' or an \code{n_objects x n_target_dimension} numeric matrix.
+#'
+#' Default value: Required argument
+#' @param approx Object approxes (raw predictions): a numeric vector of
+#' length \code{n_objects}, or an \code{n_objects x n_approx_dimension}
+#' numeric matrix.
+#'
+#' Default value: Required argument
+#' @param metric Metric name, e.g. \code{"Logloss"} or \code{"RMSE"}.
+#'
+#' Default value: Required argument
+#' @param weight Object weights, a numeric vector of length \code{n_objects}.
+#'
+#' Default value: NULL
+#' @param group_id Object group ids, a numeric or character vector of length
+#' \code{n_objects}. Required by groupwise metrics (e.g. \code{"PairLogit"},
+#' \code{"QueryRMSE"}).
+#'
+#' Default value: NULL
+#' @param group_weight Group weights, a numeric vector of length
+#' \code{n_objects} (one value per object, constant within each group).
+#'
+#' Default value: NULL
+#' @param subgroup_id Subgroup ids, a numeric or character vector of length
+#' \code{n_objects}.
+#'
+#' Default value: NULL
+#' @param pairs An (N x 2) or (N x 3) numeric matrix of
+#' \code{(winner_id, loser_id[, weight])} rows, same convention as
+#' \code{\link{catboost.pool.set_pairs}}.
+#'
+#' Default value: NULL
+#' @param thread_count The number of threads to use. Set to -1 to use all
+#' available CPU cores.
+#'
+#' Default value: -1
+#' @return A numeric vector with the metric's value(s).
+#' @export
+catboost.eval_metric <- function(label, approx, metric, weight = NULL, group_id = NULL,
+                                  group_weight = NULL, subgroup_id = NULL, pairs = NULL,
+                                  thread_count = -1) {
+  if (!is.numeric(label))
+    stop("Unsupported label type, expecting numeric vector or matrix, got: ", typeof(label))
+  if (!is.numeric(approx))
+    stop("Unsupported approx type, expecting numeric vector or matrix, got: ", typeof(approx))
+  if (!is.character(metric) || length(metric) != 1)
+    stop("Unsupported metric type, expecting a single string, got: ", typeof(metric))
+
+  label <- if (is.matrix(label)) matrix(as.double(label), nrow = nrow(label)) else as.double(label)
+  approx <- if (is.matrix(approx)) matrix(as.double(approx), nrow = nrow(approx)) else as.double(approx)
+
+  group_id_tokens <- if (is.null(group_id)) NULL else id.tokens.from.vector(group_id, "group_id")
+  subgroup_id_tokens <- if (is.null(subgroup_id)) NULL else id.tokens.from.vector(subgroup_id, "subgroup_id")
+
+  if (!is.null(pairs) && (!is.matrix(pairs) || !(ncol(pairs) %in% c(2, 3))))
+    stop("pairs must be an (N x 2) or (N x 3) matrix.")
+  pairs_matrix <- if (is.null(pairs)) NULL else matrix(as.double(pairs), nrow = nrow(pairs))
+
+  result <- .Call("CatBoostEvalMetric_R", label, approx, metric,
+                  if (is.null(weight)) NULL else as.double(weight),
+                  group_id_tokens,
+                  if (is.null(group_weight)) NULL else as.double(group_weight),
+                  subgroup_id_tokens,
+                  pairs_matrix,
+                  thread_count)
+
+  return(result)
+}
+
 #' @name catboost.get_test_eval
 #' @title Get the model's raw predictions on its eval set
 #'

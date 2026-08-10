@@ -102,7 +102,12 @@ here) defaults to \code{list(default = list("LDA", "KNN"))}. The LDA calcer's ou
 bit-reproducible against the Python package: LDA solves a float32 symmetric eigenproblem whose
 eigenvector signs and near-degenerate eigenvalue ordering depend on the LAPACK/BLAS build, so
 this package and the Python wheel legitimately disagree. The KNN calcer agrees exactly. For
-parity-sensitive use, pass \code{embedding_processing = list(default = list("KNN"))}.}
+parity-sensitive use, pass \code{embedding_processing = list(default = list("KNN"))}.
+The CLI's \code{--embedding-calcers} flag is a mutually exclusive alternate encoding of the
+same default-slot calcer list, also accepted as a \code{catboost.train} \code{params} key:
+\code{embedding_calcers = list("KNN")} is equivalent to the \code{embedding_processing} call
+above (giving \code{embedding_calcers} and \code{embedding_processing} together is an error,
+matching the CLI).}
 
 \item{timestamp}{A numeric vector of per-object timestamps, length equal to the number of
 objects. Convenience wrapper around \code{\link{catboost.pool.set_timestamp}}: applied to the

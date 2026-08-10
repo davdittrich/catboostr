@@ -92,11 +92,15 @@ CUSTOM_NOTES = {
 # Included in .catboostr_known_params so the new validation gate cannot
 # regress pre-existing behavior (found via a full-suite sweep after adding
 # the gate; see tests/testthat/test_pool_embeddings.R).
-# `embedding_processing` is not a literal CopyOption(plainOptions, "...") name
-# in plain_options_helper.cpp (it is routed through a different code path),
-# so it cannot be picked up by parse_native_copyoption_names() below and stays
-# a hand-kept exception here.
-EXTRA_KNOWN_PARAMS = {"embedding_processing"}
+# `embedding_processing` and `embedding_calcers` are not literal
+# CopyOption(plainOptions, "...") names in plain_options_helper.cpp (both are
+# routed through ParseEmbeddingProcessingOptionsFromPlainJson instead, a
+# distinct code path that accepts either key as a mutually-exclusive
+# alternate encoding of the same embedding-calcer descriptor -- see
+# embedding_processing_options.cpp), so neither can be picked up by
+# parse_native_copyoption_names() below and both stay hand-kept exceptions
+# here.
+EXTRA_KNOWN_PARAMS = {"embedding_processing", "embedding_calcers"}
 
 
 def parse_native_copyoption_names(vendor_cpp_path):

@@ -58,6 +58,11 @@ NULL
 #' eigenvector signs and near-degenerate eigenvalue ordering depend on the LAPACK/BLAS build, so
 #' this package and the Python wheel legitimately disagree. The KNN calcer agrees exactly. For
 #' parity-sensitive use, pass \code{embedding_processing = list(default = list("KNN"))}.
+#' The CLI's \code{--embedding-calcers} flag is a mutually exclusive alternate encoding of the
+#' same default-slot calcer list, also accepted as a \code{catboost.train} \code{params} key:
+#' \code{embedding_calcers = list("KNN")} is equivalent to the \code{embedding_processing} call
+#' above (giving \code{embedding_calcers} and \code{embedding_processing} together is an error,
+#' matching the CLI).
 #' @param pairs A file path, matrix or data.frame that contains the pairs descriptions. The shape should be Nx2, where N is the pairs' count.
 #' The first element of pair is the index of winner document in training set. The second element of pair is the index of loser document in training set.
 #' @param delimiter Delimiter character to use to separate features in a file.
@@ -3276,10 +3281,10 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list(), init_m
     "dev_max_ctr_complexity_for_borders_cache", "dev_max_subset_size_for_build_borders", 
     "dev_score_calc_obj_block_size", "dev_sparse_array_indexing", "device_config", 
     "devices", "dictionaries", "diffusion_temperature", "early_stopping_rounds", 
-    "embedding_features", "embedding_processing", "eta", "eval_file_name", 
-    "eval_fraction", "eval_metric", "eval_set", "experiment_count", "experiment_size", 
-    "feature_border_type", "feature_calcers", "feature_weights", "features_for_select", 
-    "features_selection_algorithm", "features_selection_grouping", 
+    "embedding_calcers", "embedding_features", "embedding_processing", "eta", 
+    "eval_file_name", "eval_fraction", "eval_metric", "eval_set", "experiment_count", 
+    "experiment_size", "feature_border_type", "feature_calcers", "feature_weights", 
+    "features_for_select", "features_selection_algorithm", "features_selection_grouping", 
     "features_selection_result_path", "features_selection_steps", 
     "features_tags_for_select", "features_to_evaluate", "file_with_hosts", 
     "final_ctr_computation_mode", "final_feature_calcer_computation_mode", 

@@ -4498,8 +4498,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost-inm: P10.A fix-round-1 left no justification for this row (empty tolerance_justification, no overlay entry) -- newly triaged for this ticket. Not exposed in R/C++ bridge (code-verified): the CLI's own DSV file parser has an IgnoreCsvQuoting toggle (vendor/catboost/catboost/private/libs/data/columnar_pool_format_params, DsvFormat.IgnoreCsvQuoting) with no corresponding argument on catboost.from_file()'s C signature (CatBoostCreateFromFile_R: pool_path, cd_path, pairs_path, graph_path, feature_names_path, delimiter, num_vector_delimiter, has_header, thread_count, verbose --  no quoting flag). R's own file-loading paths (read.csv/data.frame) handle CSV quoting themselves before the data ever reaches CatBoost's native bridge, so there is no R-level toggle for this CLI-parser-internal behavior to control.",
     "needs_disposition": false,
     "members": [
       {
@@ -4557,8 +4557,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): not exposed in R/C++ bridge (code-verified): catboost.from_file()'s full parameter list (R/catboost.R:171-173) and CatBoostCreateFromFile_R's 10-argument C signature (pool_path, cd_path, pairs_path, graph_path, feature_names_path, delimiter, num_vector_delimiter, has_header, thread_count, verbose) have no borders-file argument at all -- there is no way to load a pool with precomputed float-feature borders from an external file in R.",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost-inm: redispositioned from red to out_of_scope (P10.A fix-round-1's evidence stands unchanged; this ticket's job was specifically to act on that evidence rather than leave a permanently-inapplicable capability sitting in bucket C indefinitely). Original finding: P10.A fix-round-1 (catboost-8z4.115 review findings): not exposed in R/C++ bridge (code-verified): catboost.from_file()'s full parameter list (R/catboost.R:171-173) and CatBoostCreateFromFile_R's 10-argument C signature (pool_path, cd_path, pairs_path, graph_path, feature_names_path, delimiter, num_vector_delimiter, has_header, thread_count, verbose) have no borders-file argument at all -- there is no way to load a pool with precomputed float-feature borders from an external file in R.",
     "needs_disposition": false,
     "members": [
       {
@@ -4592,8 +4592,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): wired only on the internal, unexported catboost.from_file() helper (R/catboost.R:172, feature_names_path -> CatBoostCreateFromFile_R); verified absent from NAMESPACE (grep found zero 'from_file' exports) and absent from the public catboost.load_pool()'s formal arguments -- not reachable from the package's public API surface.",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost-inm: redispositioned from red to out_of_scope (P10.A fix-round-1's evidence stands unchanged; this ticket's job was specifically to act on that evidence rather than leave a permanently-inapplicable capability sitting in bucket C indefinitely). Original finding: P10.A fix-round-1 (catboost-8z4.115 review findings): wired only on the internal, unexported catboost.from_file() helper (R/catboost.R:172, feature_names_path -> CatBoostCreateFromFile_R); verified absent from NAMESPACE (grep found zero 'from_file' exports) and absent from the public catboost.load_pool()'s formal arguments -- not reachable from the package's public API surface.",
     "needs_disposition": false,
     "members": [
       {
@@ -4648,7 +4648,7 @@
     "tolerance": null,
     "test_id": null,
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "catboost-inm: P10.A fix-round-1 left no justification for this row (empty tolerance_justification, no overlay entry) -- newly triaged for this ticket. Same root cause as flag:--cv (already red, verified mechanism mismatch: the CLI's --cv flag picks a single train/test split via TCvDataPartitionParams at data-load time, while R's catboost.cv binds to CrossValidate(), which builds and averages ALL k folds via the separate TCrossValidationParams struct -- different native code paths). --cv-no-shuffle only has meaning as a modifier of that same CLI-side data-partition mechanism (cross_validation_params.h), which R has no binding for at all -- not a distinct gap, the same one.",
     "needs_disposition": false,
     "members": [
       {
@@ -4759,9 +4759,9 @@
     "kind": "flag",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_grouped_data_parity.R",
+    "state": "green",
+    "tolerance_justification": "catboost-inm: closed with a real CLI-oracle-verified test (tools/oracle/cli/gen_grouped_data_fixture.sh + tests/testthat/test_grouped_data_parity.R). All six pairs/graph flags load the same dsv-flat WinnerId<TAB>LoserId format (catboost/libs/data/pairs_data_loaders.cpp) into the same TRawPairsData structure (catboost/libs/data/graph.cpp); this fixture trains a PairLogit model with pairs (closes --learn-pairs/--test-pairs) and an RMSE model with a graph (closes --learn-graph/--test-graph), then re-predicts with --input-pairs/--input-graph-equivalent pools (closes --input-pairs/--input-graph), matching the CLI oracle at relative 1e-6. Note: catboost.from_matrix's in-memory graph loading is separately verified unimplemented (data_provider_builders.cpp SetGraph() is CB_ENSURE_INTERNAL(false, \"Unimplemented\")) -- the graph half of this fixture uses the file-based catboost.from_file() path instead, which works and is what the CLI's own file-based loaders match anyway. Filed as catboost-hpk (discovered-from).",
     "needs_disposition": false,
     "members": [
       {
@@ -4794,9 +4794,9 @@
     "kind": "flag",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_grouped_data_parity.R",
+    "state": "green",
+    "tolerance_justification": "catboost-inm: closed with a real CLI-oracle-verified test (tools/oracle/cli/gen_grouped_data_fixture.sh + tests/testthat/test_grouped_data_parity.R). All six pairs/graph flags load the same dsv-flat WinnerId<TAB>LoserId format (catboost/libs/data/pairs_data_loaders.cpp) into the same TRawPairsData structure (catboost/libs/data/graph.cpp); this fixture trains a PairLogit model with pairs (closes --learn-pairs/--test-pairs) and an RMSE model with a graph (closes --learn-graph/--test-graph), then re-predicts with --input-pairs/--input-graph-equivalent pools (closes --input-pairs/--input-graph), matching the CLI oracle at relative 1e-6. Note: catboost.from_matrix's in-memory graph loading is separately verified unimplemented (data_provider_builders.cpp SetGraph() is CB_ENSURE_INTERNAL(false, \"Unimplemented\")) -- the graph half of this fixture uses the file-based catboost.from_file() path instead, which works and is what the CLI's own file-based loaders match anyway. Filed as catboost-hpk (discovered-from).",
     "needs_disposition": false,
     "members": [
       {
@@ -4829,9 +4829,9 @@
     "kind": "flag",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_grouped_data_parity.R",
+    "state": "green",
+    "tolerance_justification": "catboost-inm: closed with a real CLI-oracle-verified test (tools/oracle/cli/gen_grouped_data_fixture.sh + tests/testthat/test_grouped_data_parity.R). All six pairs/graph flags load the same dsv-flat WinnerId<TAB>LoserId format (catboost/libs/data/pairs_data_loaders.cpp) into the same TRawPairsData structure (catboost/libs/data/graph.cpp); this fixture trains a PairLogit model with pairs (closes --learn-pairs/--test-pairs) and an RMSE model with a graph (closes --learn-graph/--test-graph), then re-predicts with --input-pairs/--input-graph-equivalent pools (closes --input-pairs/--input-graph), matching the CLI oracle at relative 1e-6. Note: catboost.from_matrix's in-memory graph loading is separately verified unimplemented (data_provider_builders.cpp SetGraph() is CB_ENSURE_INTERNAL(false, \"Unimplemented\")) -- the graph half of this fixture uses the file-based catboost.from_file() path instead, which works and is what the CLI's own file-based loaders match anyway. Filed as catboost-hpk (discovered-from).",
     "needs_disposition": false,
     "members": [
       {
@@ -4864,9 +4864,9 @@
     "kind": "flag",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_grouped_data_parity.R",
+    "state": "green",
+    "tolerance_justification": "catboost-inm: closed with a real CLI-oracle-verified test (tools/oracle/cli/gen_grouped_data_fixture.sh + tests/testthat/test_grouped_data_parity.R). All six pairs/graph flags load the same dsv-flat WinnerId<TAB>LoserId format (catboost/libs/data/pairs_data_loaders.cpp) into the same TRawPairsData structure (catboost/libs/data/graph.cpp); this fixture trains a PairLogit model with pairs (closes --learn-pairs/--test-pairs) and an RMSE model with a graph (closes --learn-graph/--test-graph), then re-predicts with --input-pairs/--input-graph-equivalent pools (closes --input-pairs/--input-graph), matching the CLI oracle at relative 1e-6. Note: catboost.from_matrix's in-memory graph loading is separately verified unimplemented (data_provider_builders.cpp SetGraph() is CB_ENSURE_INTERNAL(false, \"Unimplemented\")) -- the graph half of this fixture uses the file-based catboost.from_file() path instead, which works and is what the CLI's own file-based loaders match anyway. Filed as catboost-hpk (discovered-from).",
     "needs_disposition": false,
     "members": [
       {
@@ -4901,7 +4901,7 @@
     "tolerance": null,
     "test_id": null,
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "catboost-inm: P10.A fix-round-1 left no justification for this row (empty tolerance_justification, no overlay entry) -- newly triaged for this ticket. Real, wired capability, genuinely untested against either oracle (bucket C, same family as the newly-closed flag:--learn-pairs/flag:--learn-graph above): catboost.load_pool()'s `group_weight` argument (R/catboost.R:66-79/116-118, code-verified formal argument, not a params-list key) is the real R equivalent of this CLI sidecar-file flag. Deliberately not folded into this ticket's grouped-data fixture (catboost-inm's named scope was pairs/graph specifically) -- no fixture in this repo compares this flag against either oracle yet.",
     "needs_disposition": false,
     "members": [
       {
@@ -4936,7 +4936,7 @@
     "tolerance": null,
     "test_id": null,
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "catboost-inm: P10.A fix-round-1 left no justification for this row (empty tolerance_justification, no overlay entry) -- newly triaged for this ticket. Real, wired capability, genuinely untested against either oracle (bucket C, same family as the newly-closed flag:--learn-pairs/flag:--learn-graph above): catboost.load_pool()'s `group_weight` argument (R/catboost.R:66-79/116-118, code-verified formal argument, not a params-list key) is the real R equivalent of this CLI sidecar-file flag. Deliberately not folded into this ticket's grouped-data fixture (catboost-inm's named scope was pairs/graph specifically) -- no fixture in this repo compares this flag against either oracle yet.",
     "needs_disposition": false,
     "members": [
       {
@@ -4971,7 +4971,7 @@
     "tolerance": null,
     "test_id": null,
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "catboost-inm: P10.A fix-round-1 left no justification for this row (empty tolerance_justification, no overlay entry) -- newly triaged for this ticket. Real, wired capability, genuinely untested against either oracle (bucket C, same family as the newly-closed flag:--learn-pairs/flag:--learn-graph above): catboost.load_pool()'s `timestamp` argument (R/catboost.R:66-79/116-118, code-verified formal argument, not a params-list key) is the real R equivalent of this CLI sidecar-file flag. Deliberately not folded into this ticket's grouped-data fixture (catboost-inm's named scope was pairs/graph specifically) -- no fixture in this repo compares this flag against either oracle yet.",
     "needs_disposition": false,
     "members": [
       {
@@ -5006,7 +5006,7 @@
     "tolerance": null,
     "test_id": null,
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "catboost-inm: P10.A fix-round-1 left no justification for this row (empty tolerance_justification, no overlay entry) -- newly triaged for this ticket. Real, wired capability, genuinely untested against either oracle (bucket C, same family as the newly-closed flag:--learn-pairs/flag:--learn-graph above): catboost.load_pool()'s `timestamp` argument (R/catboost.R:66-79/116-118, code-verified formal argument, not a params-list key) is the real R equivalent of this CLI sidecar-file flag. Deliberately not folded into this ticket's grouped-data fixture (catboost-inm's named scope was pairs/graph specifically) -- no fixture in this repo compares this flag against either oracle yet.",
     "needs_disposition": false,
     "members": [
       {
@@ -5041,7 +5041,7 @@
     "tolerance": null,
     "test_id": null,
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "catboost-inm: P10.A fix-round-1 left no justification for this row (empty tolerance_justification, no overlay entry) -- newly triaged for this ticket. Real, wired capability, genuinely untested against either oracle (bucket C, same family as the newly-closed flag:--learn-pairs/flag:--learn-graph above): catboost.load_pool()'s `baseline` argument (R/catboost.R:66-79/116-118, code-verified formal argument, not a params-list key) is the real R equivalent of this CLI sidecar-file flag. Deliberately not folded into this ticket's grouped-data fixture (catboost-inm's named scope was pairs/graph specifically) -- no fixture in this repo compares this flag against either oracle yet.",
     "needs_disposition": false,
     "members": [
       {
@@ -5076,7 +5076,7 @@
     "tolerance": null,
     "test_id": null,
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "catboost-inm: P10.A fix-round-1 left no justification for this row (empty tolerance_justification, no overlay entry) -- newly triaged for this ticket. Real, wired capability, genuinely untested against either oracle (bucket C, same family as the newly-closed flag:--learn-pairs/flag:--learn-graph above): catboost.load_pool()'s `baseline` argument (R/catboost.R:66-79/116-118, code-verified formal argument, not a params-list key) is the real R equivalent of this CLI sidecar-file flag. Deliberately not folded into this ticket's grouped-data fixture (catboost-inm's named scope was pairs/graph specifically) -- no fixture in this repo compares this flag against either oracle yet.",
     "needs_disposition": false,
     "members": [
       {
@@ -5111,7 +5111,7 @@
     "tolerance": null,
     "test_id": null,
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "catboost-inm: P10.A fix-round-1 left no justification for this row (empty tolerance_justification, no overlay entry) -- newly triaged for this ticket. Same root cause as flag:--cv above -- --cv-rand sets TCvDataPartitionParams::PartitionRandSeed (bind_options.cpp:187-189), a modifier of the same CLI-side data-partition mechanism R has no binding for. Not a distinct gap, the same one.",
     "needs_disposition": false,
     "members": [
       {
@@ -5145,8 +5145,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost-inm: P10.A fix-round-1 left no justification for this row (empty tolerance_justification, no overlay entry) -- newly triaged for this ticket. Distributed-mode CLI-invocation-only mechanic, not a training option (code-verified): HostsAlreadyContainLoadedData is a field on TCatBoostOptions's load-params struct, set directly by CLI arg parsing (vendor/catboost/catboost/private/libs/app_helpers/bind_options.cpp:191-199) and never serialized into the plain JSON options that PlainJsonToOptions consumes. R's catboost.train() only ever sends that JSON (via prepare_train_export_parameters()) to the native trainer -- there is no path, even in principle, to set this field from R. It is also specific to the CLI's own multi-process master/worker launch (skip a redundant data reload on workers that already have the data), a concept the R package's single-process distributed-training support (file_with_hosts/node_type/node_port params, catboost-8z4.109) has no analog for.",
     "needs_disposition": false,
     "members": [
       {
@@ -5180,8 +5180,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost-inm: P10.A fix-round-1 left no justification for this row (empty tolerance_justification, no overlay entry) -- newly triaged for this ticket. File-based load-param field, not a training option (code-verified): PrecomputedMetadataFile is a TCatBoostOptions load-params struct field set directly by CLI arg parsing (bind_options.cpp:201-203), never serialized into the plain JSON options. Same reasoning as flag:--hosts-already-contain-loaded-data: no path from R's JSON-options-only catboost.train() to set this field.",
     "needs_disposition": false,
     "members": [
       {
@@ -5215,8 +5215,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost-inm: P10.A fix-round-1 left no justification for this row (empty tolerance_justification, no overlay entry) -- newly triaged for this ticket. File-path load-param field, not a training option (code-verified): PoolMetaInfoPath is a TCatBoostOptions load-params struct field set directly by CLI arg parsing (bind_options.cpp:205-209), never serialized into the plain JSON options. The underlying capability (supplying pool metainfo) IS available to R through a different mechanism -- 'pool_metainfo_options' is a real entry in R's .catboostr_known_params (R/catboost.R:3224), an inline JSON value rather than a file path -- so this specific file-loading flag has no R equivalent, but the capability it loads is not actually missing.",
     "needs_disposition": false,
     "members": [
       {
@@ -5270,8 +5270,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost-inm: P10.A fix-round-1 left no justification for this row (empty tolerance_justification, no overlay entry) -- newly triaged for this ticket. CLI reads the full training params from a JSON file (bind_options.cpp: 4 separate 'Path to JSON file with params.' AddLongOption call sites, one per mode). R's catboost.train() and siblings always take params as an in-memory R list passed directly by the caller (params = list(...)) -- there is no file-based params loading path in the R package's design at all, matching the same architectural distinction already established for mode:dump-options' --input/--output (also file-based option I/O with no R analog).",
     "needs_disposition": false,
     "members": [
       {
@@ -5446,7 +5446,7 @@
     "tolerance": null,
     "test_id": null,
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "catboost-inm: P10.A fix-round-1 left no justification for this row (empty tolerance_justification, no overlay entry) -- newly triaged for this ticket. Real capability via a different call shape, genuinely untested against either oracle (bucket C, same pattern as flag:--output-path/-o above): 'model_format' is a real entry in R's .catboostr_known_params (R/catboost.R:3215) and is empirically accepted by catboost.train() without error, but (empirically verified) produces no observable model-format-conversion side effect from that call alone -- the actual format-selection capability is catboost.save_model(model, path, file_format = ...) (R/catboost.R:4370-4383, supports cbm/coreml/onnx/pmml/cpp/python), a separate call from training, unlike the CLI's fit mode which saves the model directly at the end of the same command. No fixture compares the CLI's inline multi-format save against R's two-call equivalent.",
     "needs_disposition": false,
     "members": [
       {
@@ -5516,8 +5516,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): accepted as a params-list key ('eval_file_name', R/catboost.R:3091) but empirically produces no output file: probed catboost.train(pool, test_pool = pool, params = list(..., eval_file_name = <path>)) -- train succeeds, file never gets created. Same 'accepted but produces no output file, root cause not isolated' bucket as --fstr-file/--fstr-internal-file from the original P10.A sweep. (Distinct from the CLI's -t/--test-set, which R's test_pool argument already covers -- see --learn-set/--test-set closures above.)",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost-inm: redispositioned from red to out_of_scope (P10.A fix-round-1's evidence stands unchanged; this ticket's job was specifically to act on that evidence rather than leave a permanently-inapplicable capability sitting in bucket C indefinitely). Original finding: P10.A fix-round-1 (catboost-8z4.115 review findings): accepted as a params-list key ('eval_file_name', R/catboost.R:3091) but empirically produces no output file: probed catboost.train(pool, test_pool = pool, params = list(..., eval_file_name = <path>)) -- train succeeds, file never gets created. Same 'accepted but produces no output file, root cause not isolated' bucket as --fstr-file/--fstr-internal-file from the original P10.A sweep. (Distinct from the CLI's -t/--test-set, which R's test_pool argument already covers -- see --learn-set/--test-set closures above.)",
     "needs_disposition": false,
     "members": [
       {
@@ -5587,7 +5587,7 @@
     "tolerance": null,
     "test_id": null,
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "catboost-inm: P10.A fix-round-1 left no justification for this row (empty tolerance_justification, no overlay entry) -- newly triaged for this ticket. Accepted params-list key, empirically verified to produce no output file (same 'accepted but produces no output file, root cause not isolated' bucket as flag:--eval-file/flag:--output-columns above): 'fstr_regular_file' is a real entry in R's .catboostr_known_params (R/catboost.R:3204) and catboost.train(params = list(..., fstr_regular_file = <path>)) completes without error, but the path is never created (probed live: file.exists() is FALSE after training). R has its own in-process catboost.get_feature_importance() for this capability; the file-writing path specifically is dead.",
     "needs_disposition": false,
     "members": [
       {
@@ -5661,7 +5661,7 @@
     "tolerance": null,
     "test_id": null,
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "catboost-inm: P10.A fix-round-1 left no justification for this row (empty tolerance_justification, no overlay entry) -- newly triaged for this ticket. Same finding as flag:--fstr-file above, for 'fstr_internal_file' (R/catboost.R:3202): accepted, empirically verified to produce no output file.",
     "needs_disposition": false,
     "members": [
       {
@@ -5870,8 +5870,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost-inm: P10.A fix-round-1 left no justification for this row (empty tolerance_justification, no overlay entry) -- newly triaged for this ticket. Not exposed, and not even a training-JSON option (code-verified): --trace-log directly calls TCatBoostLogSettings::GetRef().Log.ResetTraceBackend(...) at CLI arg-parse time (bind_options.cpp:334-338) -- it swaps the process's native trace-log backend as a side effect of parsing, never touches plainJsonPtr/the training options JSON at all. There is no 'trace_log' entry in R's .catboostr_known_params, and no other route from R into this native logging subsystem.",
     "needs_disposition": false,
     "members": [
       {
@@ -6046,7 +6046,7 @@
     "tolerance": null,
     "test_id": null,
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "catboost-inm: P10.A fix-round-1 left no justification for this row (empty tolerance_justification, no overlay entry) -- newly triaged for this ticket. Real, wired capability, genuinely untested (bucket C): 'verbose' is a real entry in R's .catboostr_known_params (R/catboost.R:3234) and is empirically confirmed working as an integer value (verbose = 1L, verbose = 0L both trained successfully, verified live) -- but NOT as an R logical: catboost.train(params = list(..., verbose = TRUE)) and verbose = FALSE both empirically fail with 'Can't parse parameter \"verbose\" with value: true/false' (json_helper.h:41), because CatBoost's native 'verbose' option is fundamentally an int (print-every-N-iterations cadence), and (unlike 'silent', which P10.H already special-cased) R's process_synonyms()/prepare_train_export_parameters() do not convert an R logical to that int the way Python's client-side _process_verbose() does. This is CatBoost's native option design, not a bug this ticket introduces or should silently paper over -- no fixture in this repo exercises the integer-valued form against either oracle.",
     "needs_disposition": false,
     "members": [
       {
@@ -6193,8 +6193,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): no explicit-flag equivalent (code + empirical): catboost.train() accepts 'output_columns' as a params-list key (R/catboost.R:3114) with no observable effect (probed: train succeeds silently), and catboost.predict()/staged_predict()/etc. return raw R objects/matrices directly rather than a formatted text file with selectable columns -- the underlying capability (choosing which columns a text prediction file contains) has no R-side surface because R never writes such a file.",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost-inm: redispositioned from red to out_of_scope (P10.A fix-round-1's evidence stands unchanged; this ticket's job was specifically to act on that evidence rather than leave a permanently-inapplicable capability sitting in bucket C indefinitely). Original finding: P10.A fix-round-1 (catboost-8z4.115 review findings): no explicit-flag equivalent (code + empirical): catboost.train() accepts 'output_columns' as a params-list key (R/catboost.R:3114) with no observable effect (probed: train succeeds silently), and catboost.predict()/staged_predict()/etc. return raw R objects/matrices directly rather than a formatted text file with selectable columns -- the underlying capability (choosing which columns a text prediction file contains) has no R-side surface because R never writes such a file.",
     "needs_disposition": false,
     "members": [
       {
@@ -6517,7 +6517,7 @@
     "tolerance": null,
     "test_id": null,
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "catboost-inm: P10.A fix-round-1 left no justification for this row (empty tolerance_justification, no overlay entry) -- newly triaged for this ticket. Real, wired capability, genuinely untested (bucket C, not a permanent gap): 'min_fold_size' is a real entry in R's .catboostr_known_params (R/catboost.R:3216) and a formal argument's underlying JSON key is unrestricted (no GPU-only note on this flag's CLI --help text, unlike --permutations/--data-partition above); empirically confirmed it is accepted by catboost.eval_feature() without error. No fixture in this repo exercises it at a non-default value against either oracle.",
     "needs_disposition": false,
     "members": [
       {
@@ -6551,8 +6551,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "gpu_deferred",
+    "tolerance_justification": "catboost-inm: GPU only (verified via CLI --help: \"GPU only. Sets permutation count.\", bind_options.cpp:469). No CUDA device is available to this project (design spec 9.1); same category as the existing flag:--fixed-binary-splits/flag:--devices gpu_deferred rows.",
     "needs_disposition": false,
     "members": [
       {
@@ -6656,8 +6656,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "gpu_deferred",
+    "tolerance_justification": "catboost-inm: GPU only (verified via CLI --help: \"Sets method to split learn samples between multiple workers (GPU only currently)\", bind_options.cpp:492-501). No CUDA device is available to this project (design spec 9.1).",
     "needs_disposition": false,
     "members": [
       {
@@ -7251,8 +7251,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "gpu_deferred",
+    "tolerance_justification": "catboost-inm: GPU only (verified via CLI --help: \"GPU only. Exponent value for meta L2 score function.\", bind_options.cpp:826). No CUDA device is available to this project (design spec 9.1).",
     "needs_disposition": false,
     "members": [
       {
@@ -7286,8 +7286,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "gpu_deferred",
+    "tolerance_justification": "catboost-inm: GPU only (verified via CLI --help: \"GPU only. Frequency value for meta L2 score function.\", bind_options.cpp:832). No CUDA device is available to this project (design spec 9.1).",
     "needs_disposition": false,
     "members": [
       {
@@ -7636,8 +7636,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "gpu_deferred",
+    "tolerance_justification": "catboost-inm: GPU only (verified via CLI --help: \"GPU only. Use fold size as loss normalizations for different fold models.\", bind_options.cpp:917-922). No CUDA device is available to this project (design spec 9.1).",
     "needs_disposition": false,
     "members": [
       {
@@ -7671,8 +7671,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "gpu_deferred",
+    "tolerance_justification": "catboost-inm: GPU only (verified via CLI --help: \"False by default. Could be changed on GPU only. Add ridge (l2) penalty for loss function for leaves estimation.\", bind_options.cpp:925-930). Its JSON key (add_ridge_penalty_to_loss_function) is in R's .catboostr_known_params, but the CLI itself refuses to change it away from the CPU default -- there is no non-default CPU value to differentially test. No CUDA device is available to this project (design spec 9.1).",
     "needs_disposition": false,
     "members": [
       {
@@ -7951,8 +7951,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "gpu_deferred",
+    "tolerance_justification": "catboost-inm: GPU only (verified via CLI --help: \"GPU only.Use bootstraped weights on learn and test folds.\", bind_options.cpp:996-1002). No CUDA device is available to this project (design spec 9.1).",
     "needs_disposition": false,
     "members": [
       {
@@ -8337,7 +8337,7 @@
     "tolerance": null,
     "test_id": null,
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "catboost-inm: P10.A fix-round-1 left no justification for this row (empty tolerance_justification, no overlay entry) -- newly triaged for this ticket. Real, wired capability, genuinely untested (bucket C): --ctr is the CLI's own documented 'legacy fallback' for --per-feature-ctr (bind_options.cpp:1093-1101), writing to the JSON key 'ctr_description' (comma-split), which is a real entry in R's .catboostr_known_params (R/catboost.R:3190). No fixture in this repo exercises 'ctr_description' at a non-default value against either oracle.",
     "needs_disposition": false,
     "members": [
       {
@@ -8722,7 +8722,7 @@
     "tolerance": null,
     "test_id": null,
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "catboost-inm: P10.A fix-round-1 left no justification for this row (empty tolerance_justification, no overlay entry) -- newly triaged for this ticket. Genuinely unexposed, real gap (code-verified, not a permanent architecture mismatch): 'embedding_calcers' is absent from R's .catboostr_known_params (R/catboost.R:3183-3235) -- R exposes 'embedding_features'/'embedding_processing' but not the calcer-descriptor sub-option the CLI wires via BindEmbeddingFeaturesParams (bind_options.cpp:1209-1214). A real, plausibly-addable capability gap, not fixed in this disposition-only ticket -- filed as catboost-hpk (discovered-from).",
     "needs_disposition": false,
     "members": [
       {
@@ -9822,8 +9822,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): no explicit-flag equivalent: this flag is a CLI argument-parsing convenience (treating positional freeargs as key/value metadata pairs) that has no meaning in an R function call, which has no 'free args' concept. The underlying capability -- setting model metadata -- is exposed via catboost.set_metadata()/catboost.get_metadata() (R/catboost.R:4777-4793) and the params-list 'metadata' key (R/catboost.R:2689), just not via this CLI-specific syntax.",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost-inm: redispositioned from red to out_of_scope (P10.A fix-round-1's evidence stands unchanged; this ticket's job was specifically to act on that evidence rather than leave a permanently-inapplicable capability sitting in bucket C indefinitely). Original finding: P10.A fix-round-1 (catboost-8z4.115 review findings): no explicit-flag equivalent: this flag is a CLI argument-parsing convenience (treating positional freeargs as key/value metadata pairs) that has no meaning in an R function call, which has no 'free args' concept. The underlying capability -- setting model metadata -- is exposed via catboost.set_metadata()/catboost.get_metadata() (R/catboost.R:4777-4793) and the params-list 'metadata' key (R/catboost.R:2689), just not via this CLI-specific syntax.",
     "needs_disposition": false,
     "members": [
       {
@@ -9887,9 +9887,9 @@
     "kind": "flag",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_grouped_data_parity.R",
+    "state": "green",
+    "tolerance_justification": "catboost-inm: closed with a real CLI-oracle-verified test (tools/oracle/cli/gen_grouped_data_fixture.sh + tests/testthat/test_grouped_data_parity.R). All six pairs/graph flags load the same dsv-flat WinnerId<TAB>LoserId format (catboost/libs/data/pairs_data_loaders.cpp) into the same TRawPairsData structure (catboost/libs/data/graph.cpp); this fixture trains a PairLogit model with pairs (closes --learn-pairs/--test-pairs) and an RMSE model with a graph (closes --learn-graph/--test-graph), then re-predicts with --input-pairs/--input-graph-equivalent pools (closes --input-pairs/--input-graph), matching the CLI oracle at relative 1e-6. Note: catboost.from_matrix's in-memory graph loading is separately verified unimplemented (data_provider_builders.cpp SetGraph() is CB_ENSURE_INTERNAL(false, \"Unimplemented\")) -- the graph half of this fixture uses the file-based catboost.from_file() path instead, which works and is what the CLI's own file-based loaders match anyway. Filed as catboost-hpk (discovered-from).",
     "needs_disposition": false,
     "members": [
       {
@@ -9922,9 +9922,9 @@
     "kind": "flag",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "test_id": "tests/testthat/test_grouped_data_parity.R",
+    "state": "green",
+    "tolerance_justification": "catboost-inm: closed with a real CLI-oracle-verified test (tools/oracle/cli/gen_grouped_data_fixture.sh + tests/testthat/test_grouped_data_parity.R). All six pairs/graph flags load the same dsv-flat WinnerId<TAB>LoserId format (catboost/libs/data/pairs_data_loaders.cpp) into the same TRawPairsData structure (catboost/libs/data/graph.cpp); this fixture trains a PairLogit model with pairs (closes --learn-pairs/--test-pairs) and an RMSE model with a graph (closes --learn-graph/--test-graph), then re-predicts with --input-pairs/--input-graph-equivalent pools (closes --input-pairs/--input-graph), matching the CLI oracle at relative 1e-6. Note: catboost.from_matrix's in-memory graph loading is separately verified unimplemented (data_provider_builders.cpp SetGraph() is CB_ENSURE_INTERNAL(false, \"Unimplemented\")) -- the graph half of this fixture uses the file-based catboost.from_file() path instead, which works and is what the CLI's own file-based loaders match anyway. Filed as catboost-hpk (discovered-from).",
     "needs_disposition": false,
     "members": [
       {
@@ -10013,8 +10013,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): no explicit-flag equivalent across any of its 7 owning modes (code-verified): calc/fstr/ostr/eval-metrics/model-sum/roc all return in-process R objects rather than writing a result file to a caller-chosen path. catboost.dataset_statistics() (R/catboost.R:1346-1350) is the one owner that does use this exact write-then-read-back mechanism internally (already exercised by test_dataset_statistics.R), but via a hardcoded tempfile(), not a user-settable argument -- so the flag's 'choose the output path' capability itself is still unexposed.",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost-inm: redispositioned from red to out_of_scope (P10.A fix-round-1's evidence stands unchanged; this ticket's job was specifically to act on that evidence rather than leave a permanently-inapplicable capability sitting in bucket C indefinitely). Original finding: P10.A fix-round-1 (catboost-8z4.115 review findings): no explicit-flag equivalent across any of its 7 owning modes (code-verified): calc/fstr/ostr/eval-metrics/model-sum/roc all return in-process R objects rather than writing a result file to a caller-chosen path. catboost.dataset_statistics() (R/catboost.R:1346-1350) is the one owner that does use this exact write-then-read-back mechanism internally (already exercised by test_dataset_statistics.R), but via a hardcoded tempfile(), not a user-settable argument -- so the flag's 'choose the output path' capability itself is still unexposed.",
     "needs_disposition": false,
     "members": [
       {
@@ -10060,8 +10060,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): not applicable to R (verified via CLI --help: 'annotations to attach to all YT operations'): a Yandex distributed-cluster (YT) scheduling feature. This R package has no distributed/YT execution surface at all, so there is nothing for this flag to attach annotations to.",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost-inm: redispositioned from red to out_of_scope (P10.A fix-round-1's evidence stands unchanged; this ticket's job was specifically to act on that evidence rather than leave a permanently-inapplicable capability sitting in bucket C indefinitely). Original finding: P10.A fix-round-1 (catboost-8z4.115 review findings): not applicable to R (verified via CLI --help: 'annotations to attach to all YT operations'): a Yandex distributed-cluster (YT) scheduling feature. This R package has no distributed/YT execution surface at all, so there is nothing for this flag to attach annotations to.",
     "needs_disposition": false,
     "members": [
       {
@@ -10164,8 +10164,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): not exposed in R/C++ bridge (code-verified): CatBoostPrepareEval_R's full 5-argument signature (src/catboostr.cpp:2728 -- approx, prediction_type, loss_function, column_count, thread_count) has no threshold argument; catboost.predict()'s prediction_type = 'Class' path has no way to override the classification threshold.",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost-inm: redispositioned from red to out_of_scope (P10.A fix-round-1's evidence stands unchanged; this ticket's job was specifically to act on that evidence rather than leave a permanently-inapplicable capability sitting in bucket C indefinitely). Original finding: P10.A fix-round-1 (catboost-8z4.115 review findings): not exposed in R/C++ bridge (code-verified): CatBoostPrepareEval_R's full 5-argument signature (src/catboostr.cpp:2728 -- approx, prediction_type, loss_function, column_count, thread_count) has no threshold argument; catboost.predict()'s prediction_type = 'Class' path has no way to override the classification threshold.",
     "needs_disposition": false,
     "members": [
       {
@@ -10187,8 +10187,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): not exposed (code-verified): no R function accepts a raw-formula-value blending expression; catboost.sum_models() (R/catboost.R:4096) combines whole models via ctr_merge_policy/weights, not per-formula algebraic expressions, and no other R entry point references 'blend'.",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost-inm: redispositioned from red to out_of_scope (P10.A fix-round-1's evidence stands unchanged; this ticket's job was specifically to act on that evidence rather than leave a permanently-inapplicable capability sitting in bucket C indefinitely). Original finding: P10.A fix-round-1 (catboost-8z4.115 review findings): not exposed (code-verified): no R function accepts a raw-formula-value blending expression; catboost.sum_models() (R/catboost.R:4096) combines whole models via ctr_merge_policy/weights, not per-formula algebraic expressions, and no other R entry point references 'blend'.",
     "needs_disposition": false,
     "members": [
       {
@@ -10211,7 +10211,7 @@
     "tolerance": null,
     "test_id": null,
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "catboost-inm: P10.A fix-round-1 left no justification for this row (empty tolerance_justification, no overlay entry) -- newly triaged for this ticket. Real, wired capability, genuinely untested against either oracle (bucket C): 'only_group_statistics' is a real, code-verified formal argument of catboost.dataset_statistics() (R/catboost.R:1394-1396, default FALSE, passed straight to CatBoostDatasetStatistics_R), an exact name-match for this flag. The existing test_dataset_statistics.R fixture only ever exercises the default (FALSE) value -- no fixture compares only_group_statistics = TRUE against either oracle.",
     "needs_disposition": false,
     "members": [
       {
@@ -10279,8 +10279,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost-inm: P10.A fix-round-1 left no justification for this row (empty tolerance_justification, no overlay entry) -- newly triaged for this ticket. dataset-statistics-mode-only sub-option with no R equivalent (code-verified): defined as a local TCalculateStatisticsParams field in mode_dataset_statistics_helpers.cpp:36-40, not part of the shared training-options JSON. catboost.dataset_statistics()'s R wrapper has 9 formal arguments (pool_path, cd_path, pairs_path, delimiter, has_header, thread_count, border_count, only_group_statistics, only_light_statistics, R/catboost.R:1394) with nothing corresponding. A real, addable capability gap (not architecturally impossible) -- filed as catboost-hpk (discovered-from) rather than fixed in this disposition-only ticket.",
     "needs_disposition": false,
     "members": [
       {
@@ -10302,8 +10302,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost-inm: P10.A fix-round-1 left no justification for this row (empty tolerance_justification, no overlay entry) -- newly triaged for this ticket. dataset-statistics-mode-only sub-option with no R equivalent, same root cause and same follow-up (catboost-hpk) as flag:--not-convert-string-targets above (mode_dataset_statistics_helpers.cpp:41-64; catboost.dataset_statistics()'s 9-argument R wrapper has nothing corresponding).",
     "needs_disposition": false,
     "members": [
       {
@@ -10348,8 +10348,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost-inm: P10.A fix-round-1 left no justification for this row (empty tolerance_justification, no overlay entry) -- newly triaged for this ticket. dataset-statistics-mode-only sub-option with no R equivalent, same root cause and same follow-up (catboost-hpk) as flag:--not-convert-string-targets above (mode_dataset_statistics_helpers.cpp:70-71).",
     "needs_disposition": false,
     "members": [
       {
@@ -10371,8 +10371,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost-inm: P10.A fix-round-1 left no justification for this row (empty tolerance_justification, no overlay entry) -- newly triaged for this ticket. dataset-statistics-mode-only sub-option with no R equivalent, same root cause and same follow-up (catboost-hpk) as flag:--not-convert-string-targets above (mode_dataset_statistics_helpers.cpp:72-73).",
     "needs_disposition": false,
     "members": [
       {
@@ -10393,9 +10393,9 @@
     "kind": "flag",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): mixed, deferred: wired on the select-features side (catboost.select_features's shap_calc_type argument, R/catboost.R:3769/3799-3800, feeds fit_params$shap_calc_type) but never exercised at a non-default value against either oracle this round -- closing it needs a new fixture with shap_calc_type != 'Regular' (the existing test_select_features.R fixture is Python-oracle-generated and does not vary it). On the fstr side, catboost.get_feature_importance() has no shap_calc_type parameter at all (checked its full formal argument list, R/catboost.R:4535) -- not exposed there.",
+    "test_id": "tests/testthat/test_select_features.R",
+    "state": "green",
+    "tolerance_justification": "catboost-inm: closed the select-features half with a real CLI-oracle-verified test (tools/oracle/cli/gen_select_features_shap_calc_type_fixture.sh + tests/testthat/test_select_features.R's \"shap_calc_type = 'Exact' matches the CLI oracle's elimination decision\" test): shap_calc_type = 'Exact' produces the same selected_features/eliminated_features/removed_features_count as the CLI oracle, and a same-session comparison against 'Approximate' proves the value has a real numeric effect (not accepted-and-ignored). loss_graph's absolute loss_values do not match the CLI oracle at any tolerance tried (~1.6% relative, present even in the pre-shap_calc_type baseline entry) -- a distinct select-features-mode test-set-evaluation discrepancy, filed as catboost-hpk (discovered-from) rather than papered over. The fstr side (catboost.get_feature_importance()) still has no shap_calc_type parameter at all (R/catboost.R:4535, code-verified, unchanged from P10.A fix-round-1's finding) -- genuinely unexposed there, not part of this closure.",
     "needs_disposition": false,
     "members": [
       {
@@ -10513,8 +10513,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): not exposed as an independent argument (code-verified): CatBoostEvalMetrics_R does take a resultDirParam (src/catboostr.cpp:3294, used at :3375 for plotCalcer.SaveResult) but catboost.eval_metrics() (R/catboost.R:4941) hardwires it to the fitted model's own 'train_dir' params entry (defaulting to 'catboost_info'), not a user-settable argument -- there is no way to point it anywhere else.",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost-inm: redispositioned from red to out_of_scope (P10.A fix-round-1's evidence stands unchanged; this ticket's job was specifically to act on that evidence rather than leave a permanently-inapplicable capability sitting in bucket C indefinitely). Original finding: P10.A fix-round-1 (catboost-8z4.115 review findings): not exposed as an independent argument (code-verified): CatBoostEvalMetrics_R does take a resultDirParam (src/catboostr.cpp:3294, used at :3375 for plotCalcer.SaveResult) but catboost.eval_metrics() (R/catboost.R:4941) hardwires it to the fitted model's own 'train_dir' params entry (defaulting to 'catboost_info'), not a user-settable argument -- there is no way to point it anywhere else.",
     "needs_disposition": false,
     "members": [
       {
@@ -10536,8 +10536,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): not exposed in R/C++ bridge (code-verified): CatBoostEvalMetrics_R's full 9-argument signature (src/catboostr.cpp:3285-3294 -- model, pool, metrics, treeCountStart, treeCountEnd, evalPeriod, threadCount, tmpDir, resultDir) has no compute-block-size argument at all.",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost-inm: redispositioned from red to out_of_scope (P10.A fix-round-1's evidence stands unchanged; this ticket's job was specifically to act on that evidence rather than leave a permanently-inapplicable capability sitting in bucket C indefinitely). Original finding: P10.A fix-round-1 (catboost-8z4.115 review findings): not exposed in R/C++ bridge (code-verified): CatBoostEvalMetrics_R's full 9-argument signature (src/catboostr.cpp:3285-3294 -- model, pool, metrics, treeCountStart, treeCountEnd, evalPeriod, threadCount, tmpDir, resultDir) has no compute-block-size argument at all.",
     "needs_disposition": false,
     "members": [
       {
@@ -10582,8 +10582,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): no user-facing toggle (code-verified): CatBoostEvalMetrics_R unconditionally calls plotCalcer.SaveResult(..., /*saveStats=*/true) (src/catboostr.cpp:3375) -- stats are always saved, with no R-level argument to disable it, so the flag has no two-state surface to test a difference against.",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost-inm: redispositioned from red to out_of_scope (P10.A fix-round-1's evidence stands unchanged; this ticket's job was specifically to act on that evidence rather than leave a permanently-inapplicable capability sitting in bucket C indefinitely). Original finding: P10.A fix-round-1 (catboost-8z4.115 review findings): no user-facing toggle (code-verified): CatBoostEvalMetrics_R unconditionally calls plotCalcer.SaveResult(..., /*saveStats=*/true) (src/catboostr.cpp:3375) -- stats are always saved, with no R-level argument to disable it, so the flag has no two-state surface to test a difference against.",
     "needs_disposition": false,
     "members": [
       {
@@ -10605,8 +10605,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): not exposed in R/C++ bridge (code-verified): same CatBoostEvalMetrics_R 9-argument signature as --block-size above has no calc-on-parts argument.",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost-inm: redispositioned from red to out_of_scope (P10.A fix-round-1's evidence stands unchanged; this ticket's job was specifically to act on that evidence rather than leave a permanently-inapplicable capability sitting in bucket C indefinitely). Original finding: P10.A fix-round-1 (catboost-8z4.115 review findings): not exposed in R/C++ bridge (code-verified): same CatBoostEvalMetrics_R 9-argument signature as --block-size above has no calc-on-parts argument.",
     "needs_disposition": false,
     "members": [
       {
@@ -10701,8 +10701,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): GPU-only, no CUDA device (matches mode:model-based-eval precedent from the original P10.A sweep): confirmed via CLI --help text -- 'processors usage summary ... collected on GPU only'.",
+    "state": "gpu_deferred",
+    "tolerance_justification": "catboost-inm: GPU only (verified via CLI --help text: \"processors usage summary ... collected on GPU only\"). Matches mode:model-based-eval precedent from the original P10.A sweep. No CUDA device is available to this project (design spec 9.1).",
     "needs_disposition": false,
     "members": [
       {
@@ -10842,9 +10842,9 @@
     "kind": "flag",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): wired (code-verified: catboost.eval_feature's timesplit_quantile argument, R/catboost.R:3900, default 0.5, passed through to the native .Call at :3938) but only takes effect under eval_mode = 'TimeSplit', which the existing committed oracle-cli fixture (tests/fixtures/oracle-cli/eval_feature_summary.tsv, generated by gen_eval_feature_fixture.sh with --feature-eval-mode OneVsAll) does not cover -- closing it needs a new TimeSplit-mode fixture variant, deferred.",
+    "test_id": "tests/testthat/test_eval_feature.R",
+    "state": "green",
+    "tolerance_justification": "catboost-inm: closed with a real CLI-oracle-verified test (tools/oracle/cli/gen_eval_feature_timesplit_fixture.sh + tests/testthat/test_eval_feature.R's \"eval_feature: timesplit_quantile matches the CatBoost CLI oracle\" test). P10.A fix-round-1's justification named the wrong trigger condition (assumed a '--feature-eval-mode TimeSplit' value, which does not exist -- feature-eval-mode is one of OneVsNone/OneVsOthers/OneVsAll/OthersVsAll, verified via CLI --help). Verified in catboost/libs/train_lib/eval_feature.cpp:910 that the real trigger is the dataset having a timestamp column (TrainingData->MetaInfo.HasTimestamp), which switches PrepareFolds to PrepareTimeSplitFolds -- the only path that reads TimeSplitQuantile at all. The new fixture (8 groups, one timestamp per GroupId) drives R's catboost.eval_feature(timesplit_quantile = 0.5) and (= 0.75) to match the CLI oracle exactly at both values, which the fixture generator also verifies produce genuinely different output from each other (proving the flag has a real effect, not just accepted-and-ignored).",
     "needs_disposition": false,
     "members": [
       {
@@ -10940,7 +10940,7 @@
     "tolerance": null,
     "test_id": null,
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "catboost-inm: P10.A fix-round-1 left no justification for this row (empty tolerance_justification, no overlay entry) -- newly triaged for this ticket. Same reasoning as flag:--model-format above, for this row's owning modes (metadata-set/model-sum/normalize-model): the format-selection capability exists via catboost.save_model(file_format = ...) (R/catboost.R:4370), but not fused into catboost.sum_models() or catboost.set_metadata() (both explicitly in-memory-only per their own roxygen docs, R/catboost.R:4282/5225) the way the CLI's model-sum/metadata-set modes write directly. No fixture compares this.",
     "needs_disposition": false,
     "members": [
       {
@@ -11117,7 +11117,7 @@
     "tolerance": null,
     "test_id": null,
     "state": "red",
-    "tolerance_justification": "",
+    "tolerance_justification": "catboost-inm: P10.A fix-round-1 left no justification for this row (empty tolerance_justification, no overlay entry) -- newly triaged for this ticket. Genuinely unexposed, real gap (code-verified): the CLI's roc mode has --label-border/-b (LabelBinarizationBorder, default 0.5, vendor/catboost/catboost/app/mode_roc.cpp:34-37) overriding the target-binarization threshold; catboost.get_roc_curve(model, pool) (R/catboost.R:6378) has a fixed 2-argument signature with no such override, even though it ports the identical TRocCurve engine (per its own roxygen doc). A real, plausibly-addable capability gap -- filed as catboost-hpk (discovered-from).",
     "needs_disposition": false,
     "members": [
       {
@@ -11139,8 +11139,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "gpu_deferred",
+    "tolerance_justification": "catboost-inm: model-based-eval-only flag (verified via matrix members: sole owner is model-based-eval). Its R equivalent is a real, wired formal argument of catboost.model_based_eval() (R/catboost.R:4200-4210), but the whole mode requires GPU (task_type = \"GPU\" is the function's own hardcoded default) and the pinned CLI oracle itself dies with 'CUDA error 35: CUDA driver version is insufficient' on this host, so no numbers exist on either side to compare -- exact same reasoning as the existing mode:model-based-eval gpu_deferred row (design spec 9.1: no CUDA device available to this project).",
     "needs_disposition": false,
     "members": [
       {
@@ -11162,8 +11162,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "gpu_deferred",
+    "tolerance_justification": "catboost-inm: model-based-eval-only flag (verified via matrix members: sole owner is model-based-eval). Its R equivalent is a real, wired formal argument of catboost.model_based_eval() (R/catboost.R:4200-4210), but the whole mode requires GPU (task_type = \"GPU\" is the function's own hardcoded default) and the pinned CLI oracle itself dies with 'CUDA error 35: CUDA driver version is insufficient' on this host, so no numbers exist on either side to compare -- exact same reasoning as the existing mode:model-based-eval gpu_deferred row (design spec 9.1: no CUDA device available to this project).",
     "needs_disposition": false,
     "members": [
       {
@@ -11185,8 +11185,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "gpu_deferred",
+    "tolerance_justification": "catboost-inm: model-based-eval-only flag (verified via matrix members: sole owner is model-based-eval). Its R equivalent is a real, wired formal argument of catboost.model_based_eval() (R/catboost.R:4200-4210), but the whole mode requires GPU (task_type = \"GPU\" is the function's own hardcoded default) and the pinned CLI oracle itself dies with 'CUDA error 35: CUDA driver version is insufficient' on this host, so no numbers exist on either side to compare -- exact same reasoning as the existing mode:model-based-eval gpu_deferred row (design spec 9.1: no CUDA device available to this project).",
     "needs_disposition": false,
     "members": [
       {
@@ -11208,8 +11208,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "",
+    "state": "gpu_deferred",
+    "tolerance_justification": "catboost-inm: model-based-eval-only flag (verified via matrix members: sole owner is model-based-eval). Its R equivalent is a real, wired formal argument of catboost.model_based_eval() (R/catboost.R:4200-4210), but the whole mode requires GPU (task_type = \"GPU\" is the function's own hardcoded default) and the pinned CLI oracle itself dies with 'CUDA error 35: CUDA driver version is insufficient' on this host, so no numbers exist on either side to compare -- exact same reasoning as the existing mode:model-based-eval gpu_deferred row (design spec 9.1: no CUDA device available to this project).",
     "needs_disposition": false,
     "members": [
       {
@@ -11392,8 +11392,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): explicitly documented as unsupported (R/catboost.R:3693-3697, catboost.select_features roxygen doc): 'Feature selection by feature tags ... is not supported: catboost.load_pool has no feature-tags argument, so an R pool never carries the tags that grouping selects over.'",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost-inm: redispositioned from red to out_of_scope (P10.A fix-round-1's evidence stands unchanged; this ticket's job was specifically to act on that evidence rather than leave a permanently-inapplicable capability sitting in bucket C indefinitely). Original finding: P10.A fix-round-1 (catboost-8z4.115 review findings): explicitly documented as unsupported (R/catboost.R:3693-3697, catboost.select_features roxygen doc): 'Feature selection by feature tags ... is not supported: catboost.load_pool has no feature-tags argument, so an R pool never carries the tags that grouping selects over.'",
     "needs_disposition": false,
     "members": [
       {
@@ -11415,8 +11415,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): explicitly documented as unsupported, same root cause as --features-tags-for-select above (R/catboost.R:3693-3697): requires pool-level feature tags, which catboost.load_pool() cannot carry.",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost-inm: redispositioned from red to out_of_scope (P10.A fix-round-1's evidence stands unchanged; this ticket's job was specifically to act on that evidence rather than leave a permanently-inapplicable capability sitting in bucket C indefinitely). Original finding: P10.A fix-round-1 (catboost-8z4.115 review findings): explicitly documented as unsupported, same root cause as --features-tags-for-select above (R/catboost.R:3693-3697): requires pool-level feature tags, which catboost.load_pool() cannot carry.",
     "needs_disposition": false,
     "members": [
       {
@@ -11553,8 +11553,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): mode unreachable from R (see mode:dump-options below), so this mode-specific flag is moot: no R entry point invokes dump-options at all, with or without an --input params file.",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost-inm: redispositioned from red to out_of_scope (P10.A fix-round-1's evidence stands unchanged; this ticket's job was specifically to act on that evidence rather than leave a permanently-inapplicable capability sitting in bucket C indefinitely). Original finding: P10.A fix-round-1 (catboost-8z4.115 review findings): mode unreachable from R (see mode:dump-options below), so this mode-specific flag is moot: no R entry point invokes dump-options at all, with or without an --input params file.",
     "needs_disposition": false,
     "members": [
       {
@@ -11576,8 +11576,8 @@
     "method": "parameter_or_flag",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): mode unreachable from R (see mode:dump-options below), same reasoning as --input above.",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost-inm: redispositioned from red to out_of_scope (P10.A fix-round-1's evidence stands unchanged; this ticket's job was specifically to act on that evidence rather than leave a permanently-inapplicable capability sitting in bucket C indefinitely). Original finding: P10.A fix-round-1 (catboost-8z4.115 review findings): mode unreachable from R (see mode:dump-options below), same reasoning as --input above.",
     "needs_disposition": false,
     "members": [
       {
@@ -20254,8 +20254,8 @@
     "method": "snapshot",
     "tolerance": null,
     "test_id": null,
-    "state": "red",
-    "tolerance_justification": "P10.A fix-round-1 (catboost-8z4.115 review findings): no R equivalent (code-verified): dump-options resolves and writes a fully-merged, pre-fit option set to a file without training a model. The closest R analog, catboost.get_plain_params() (R/catboost.R:4753), requires an already-fitted model handle and returns an in-memory list -- it cannot resolve options ahead of a fit run or write them to a file. No R function shells out to or reimplements this CLI mode.",
+    "state": "out_of_scope",
+    "tolerance_justification": "catboost-inm: redispositioned from red to out_of_scope (P10.A fix-round-1's evidence stands unchanged; this ticket's job was specifically to act on that evidence rather than leave a permanently-inapplicable capability sitting in bucket C indefinitely). Original finding: P10.A fix-round-1 (catboost-8z4.115 review findings): no R equivalent (code-verified): dump-options resolves and writes a fully-merged, pre-fit option set to a file without training a model. The closest R analog, catboost.get_plain_params() (R/catboost.R:4753), requires an already-fitted model handle and returns an in-memory list -- it cannot resolve options ahead of a fit run or write them to a file. No R function shells out to or reimplements this CLI mode.",
     "needs_disposition": false,
     "members": [
       {

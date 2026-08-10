@@ -1234,6 +1234,18 @@ seed -- it is statistically equivalent, not reproducible against it.
 \code{node_type = "Master"} requires \code{task_type = "CPU"} (the
 default); it is rejected for GPU training.
 }
+\note{
+If \code{params$class_names} is set and \code{learn_pool}/
+\code{test_pool} was built from a factor or character \code{label}, this
+function permanently mutates that Pool object's internal target
+representation as a side effect (needed to match native's classification
+target converter against string class names). The Pool remains fully
+usable afterwards, including being retrained or reused as both
+\code{learn_pool} and \code{test_pool}. This \code{class_names} +
+string-label combination is currently only supported via
+\code{catboost.train}; \code{catboost.cv}/\code{catboost.grid_search}/
+\code{catboost.select_features}/etc. do not yet apply the same promotion.
+}
 \section{Full Parameter Reference (generated)}{
 
 All 139 hyperparameters from the machine-generated capability

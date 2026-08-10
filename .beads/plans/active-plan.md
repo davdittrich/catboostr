@@ -1,7 +1,10 @@
 # Active Plan
-<!-- approved: 2026-08-09 -->
-<!-- gate-iterations: 2 -->
+<!-- approved: 2026-08-10T14:46:17+02:00 -->
+<!-- gate-iterations: 3 -->
 <!-- user-approved: true -->
-<!-- status: in-progress -->
+<!-- status: complete -->
 
-Phase 10 execution: catboost-8z4.115, .116, .117, .121, .118, .120, .122, .119 (bd show <id> for each; hermetic, no separate plan body). Mechanism: subagent-driven-development, ledger at .superpowers/sdd/r1-release/progress.md. Partial unblock of catboost-8z4.109 (catboost-8z4.108 remains a separate open blocker, out of scope here).
+Plan: catboost-hpk split-tickets batch (catboost-ahs, catboost-6g1, catboost-z1x, catboost-1ji, catboost-z5i).
+Exec order: catboost-ahs -> catboost-6g1 -> catboost-z1x -> catboost-1ji -> catboost-z5i -- all 5 closed, task review PASS each, final whole-branch review PASS (commits 987610c..f789770).
+Gate: plan-review-gate APPROVED iteration 3/3. User approved 2026-08-10.
+Mechanism: subagent-driven-development, ledger .superpowers/sdd/r1-release/progress.md.

@@ -79,6 +79,15 @@ NULL
 #' @param graph A file path, matrix or data.frame that contains the pairs of indices of objects for graph features.
 #' The shape should be Nx2, where N is the pairs of indices count.
 #' If -1, then the number of threads is set to the number of CPU cores.
+#' Known limitation: passing a matrix or data.frame here (in-memory \code{graph}) fails with a native
+#' \code{"Unimplemented"} error. The in-memory Pool builder catboost.load_pool()/catboost.from_matrix() use
+#' (\code{TRawFeaturesOrderDataProviderBuilder} in vendor/catboost's
+#' \code{catboost/libs/data/data_provider_builders.cpp}) has never implemented \code{SetGraph()}; only the
+#' sibling builder used by the file-based path (\code{TRawObjectsOrderDataProviderBuilder}) does. There is no
+#' patch layer over the vendored native sources in this package, so this cannot be fixed from the R/C++
+#' bridge alone. Documented workaround: write \code{graph} to a file and pass a file \code{data} path
+#' instead (\code{catboost.load_pool(pool_path, ..., graph = graph_path)}), which routes through the
+#' working file-based builder.
 #' @param timestamp A numeric vector of per-object timestamps, length equal to the number of
 #' objects. Convenience wrapper around \code{\link{catboost.pool.set_timestamp}}: applied to the
 #' constructed Pool before it is returned, equivalent to calling

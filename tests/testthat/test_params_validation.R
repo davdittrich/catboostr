@@ -202,6 +202,48 @@ test_that("catboost.load_pool: 'graph' is accepted syntactically but the R Pool-
   )
 })
 
+test_that("catboost.load_pool: in-memory 'graph' always fails, even with no group_id at all (catboost-hpk.1, matrix row stays red)", {
+  # catboost-hpk.1: read vendor/catboost/catboost/libs/data/data_provider_builders.cpp
+  # in full. R's in-memory Pool-construction path (src/catboostr.cpp's
+  # CatBoostCreateFromMatrix_R) drives an IRawFeaturesOrderDataVisitor
+  # exclusively, so visitor->SetGraph() always resolves to
+  # TRawFeaturesOrderDataProviderBuilder::SetGraph
+  # (data_provider_builders.cpp:1321-1324), whose body is unconditionally
+  # CB_ENSURE_INTERNAL(false, "Unimplemented") -- confirmed by reading the
+  # body. This is a strictly more general reproduction than the
+  # graph+group_id test above: no group_id, no grouped queries, just a plain
+  # matrix Pool with graph set. TRawObjectsOrderDataProviderBuilder::SetGraph
+  # (data_provider_builders.cpp:205-209), which IS implemented, is only ever
+  # reached by the file-based dsv-flat loader (catboost.from_file()), never
+  # by catboost.from_matrix()/catboost.load_pool(data = <matrix>, ...).
+  plain_matrix_data <- matrix(c(1, 2, 3, 4, 5, 6, 7, 8), ncol = 2)
+  expect_error(
+    catboost.load_pool(plain_matrix_data, label = c(0, 1, 0, 1),
+                        graph = matrix(c(1L, 2L, 3L, 4L), ncol = 2)),
+    "Internal CatBoost Error|Unimplemented"
+  )
+})
+
+test_that("catboost.load_pool: the documented file-based workaround for 'graph' actually builds a Pool (catboost-hpk.1)", {
+  # Positive control for the roxygen workaround added to catboost.load_pool's
+  # @param graph docs: writing graph to a dsv-flat file and passing a file
+  # `data` path routes through TRawObjectsOrderDataProviderBuilder (the
+  # sibling builder that DOES implement SetGraph), so the same logical Pool
+  # that fails in-memory above succeeds here. Oracle-level numeric parity for
+  # this file-based graph path is already covered by
+  # test_grouped_data_parity.R (catboost-inm); this test only proves the
+  # workaround itself is real and does not throw.
+  pool_path <- tempfile()
+  cd_path <- tempfile()
+  graph_path <- tempfile()
+  writeLines(c("1\t5\t2", "2\t6\t3", "3\t7\t4", "4\t8\t1"), pool_path)
+  writeLines(c("0\tLabel"), cd_path)
+  writeLines(c("0\t1", "2\t3"), graph_path)
+  workaround_pool <- catboost.load_pool(pool_path, column_description = cd_path, graph = graph_path)
+  expect_true(inherits(workaround_pool, "catboost.Pool"))
+  expect_equal(dim(workaround_pool)[1], 4)
+})
+
 test_that("GPU-only params keys fail without a CUDA device, matching the mode:model-based-eval precedent (matrix rows stay red)", {
   # Each key needs a syntactically valid value so the failure genuinely comes
   # from "no CUDA device", not from a value-parsing error one layer earlier.

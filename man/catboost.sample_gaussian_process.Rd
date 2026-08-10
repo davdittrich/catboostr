@@ -118,8 +118,12 @@ prior, a residual for the posterior); this package's Pool object has no
 which Python simply resubmits with a different \code{y} each stage), so
 each stage instead builds a throwaway \code{catboost.Pool} from
 \code{learn_pool}'s features (\code{\link{catboost.pool.get_features}})
-plus the desired label -- the same "extract features, rebuild pool with
-something else changed" idiom already used by
+plus the desired label, carrying over \code{learn_pool}'s weight
+(\code{\link{catboost.pool.get_weight}}) and group id
+(\code{\link{catboost.pool.get_group_id_hash}}/
+\code{\link{catboost.pool.set_group_id}}) if either is set -- the same
+"extract features, rebuild pool with something else changed" idiom
+already used by
 \code{\link{catboost.plot_predictions}}/\code{\link{catboost.plot_partial_dependence}}.
 As with those, this restricts \code{learn_pool} to all-numeric features
 (\code{get_features}'s own restriction); an earlier revision instead kept
@@ -129,9 +133,17 @@ embedding features), but CatBoost's native trainer silently zeroes out
 \code{model_shrink_rate} whenever a baseline column is present ("Model
 shrinkage in combination with baseline column is not implemented yet"),
 which would silently drop a term the paper's Algorithm 4 requires -- not
-an acceptable substitution.
+an acceptable substitution. \code{learn_pool}'s own baseline and pairs (if
+either is set) are NOT propagated onto the rebuilt Pools and trigger a
+warning, not a silent drop; group weight/subgroup id have no accessor
+anywhere in this package to even detect, so they can't be checked either.
 
-RNG note: seeded and reproducible within this package, but not
+RNG note: draws a seeded, deterministic sequence from \code{random_seed}
+(default 0), scoped to this call only -- the caller's global RNG stream is
+saved before and restored after, so this function has no observable RNG
+side effect (unlike Python's local \code{np.random.default_rng}, R has no
+non-global RNG object, so this is done by save/restore of
+\code{.Random.seed} instead). Reproducible within this package, but not
 byte-identical to the Python implementation -- R has no generator matching
 numpy's PCG64 \code{default_rng} bit-for-bit (same caveat as this
 package's \code{embedding_processing} LDA calcer; see

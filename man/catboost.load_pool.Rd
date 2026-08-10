@@ -89,7 +89,16 @@ Used in the calculation of final values of trees.}
 
 \item{graph}{A file path, matrix or data.frame that contains the pairs of indices of objects for graph features.
 The shape should be Nx2, where N is the pairs of indices count.
-If -1, then the number of threads is set to the number of CPU cores.}
+If -1, then the number of threads is set to the number of CPU cores.
+Known limitation: passing a matrix or data.frame here (in-memory \code{graph}) fails with a native
+\code{"Unimplemented"} error. The in-memory Pool builder catboost.load_pool()/catboost.from_matrix() use
+(\code{TRawFeaturesOrderDataProviderBuilder} in vendor/catboost's
+\code{catboost/libs/data/data_provider_builders.cpp}) has never implemented \code{SetGraph()}; only the
+sibling builder used by the file-based path (\code{TRawObjectsOrderDataProviderBuilder}) does. There is no
+patch layer over the vendored native sources in this package, so this cannot be fixed from the R/C++
+bridge alone. Documented workaround: write \code{graph} to a file and pass a file \code{data} path
+instead (\code{catboost.load_pool(pool_path, ..., graph = graph_path)}), which routes through the
+working file-based builder.}
 
 \item{embedding_features}{A named list of numeric matrices, one per embedding feature; each matrix
 has one row per object and one column per embedding dimension. R matrix cells cannot hold vectors,
@@ -102,15 +111,29 @@ here) defaults to \code{list(default = list("LDA", "KNN"))}. The LDA calcer's ou
 bit-reproducible against the Python package: LDA solves a float32 symmetric eigenproblem whose
 eigenvector signs and near-degenerate eigenvalue ordering depend on the LAPACK/BLAS build, so
 this package and the Python wheel legitimately disagree. The KNN calcer agrees exactly. For
-parity-sensitive use, pass \code{embedding_processing = list(default = list("KNN"))}.}
+parity-sensitive use, pass \code{embedding_processing = list(default = list("KNN"))}.
+The CLI's \code{--embedding-calcers} flag is a mutually exclusive alternate encoding of the
+same default-slot calcer list, also accepted as a \code{catboost.train} \code{params} key:
+\code{embedding_calcers = list("KNN")} is equivalent to the \code{embedding_processing} call
+above (giving \code{embedding_calcers} and \code{embedding_processing} together is an error,
+matching the CLI).}
 
 \item{timestamp}{A numeric vector of per-object timestamps, length equal to the number of
 objects. Convenience wrapper around \code{\link{catboost.pool.set_timestamp}}: applied to the
 constructed Pool before it is returned, equivalent to calling
 \code{catboost.pool.set_timestamp(pool, timestamp)} afterward.}
 
-\item{feature_tags}{Not currently supported by catboostr; passing
-a non-NULL value raises an error rather than being silently ignored.}
+\item{feature_tags}{A named list grouping features for
+\code{\link{catboost.select_features}}'s \code{grouping = "ByTags"} mode
+(mirrors Python's \code{Pool(feature_tags=...)}). Each element is itself a
+list with a required \code{features} entry -- a vector of 0-based feature
+indices or feature names (requires \code{feature_names} to be supplied) --
+and an optional \code{cost} (default \code{1.0}), e.g.
+\code{list(group_a = list(features = c(0, 1)), group_b = list(features = c("f2", "f3"), cost = 2))}.
+Only supported when \code{data} is a matrix, sparse matrix or
+\code{catboost.FeaturesData}; \code{NULL} (the default) attaches no tags.
+Loading a pool from a file or a data.frame does not support feature tags;
+passing a non-NULL value in those cases raises an error.}
 }
 \value{
 catboost.Pool

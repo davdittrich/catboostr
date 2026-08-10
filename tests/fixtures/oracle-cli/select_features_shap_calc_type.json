@@ -1,0 +1,35 @@
+{
+  "eliminated_features":
+    [
+      1
+    ],
+  "eliminated_features_names":
+    [
+      ""
+    ],
+  "loss_graph":
+    {
+      "loss_values":
+        [
+          0.4171481374,
+          0.4249924435
+        ],
+      "main_indices":
+        [
+          0
+        ],
+      "removed_features_count":
+        [
+          0,
+          1
+        ]
+    },
+  "selected_features":
+    [
+      0
+    ],
+  "selected_features_names":
+    [
+      ""
+    ]
+}

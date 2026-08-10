@@ -11,6 +11,7 @@
 #include <catboost/libs/helpers/int_cast.h>
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/logging/logging.h>
+#include <catboost/libs/metrics/caching_metric.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/model/model_export/model_exporter.h>
@@ -104,6 +105,9 @@
 #include <util/stream/file.h>
 #include <util/stream/str.h>
 #include <util/string/cast.h>
+#include <util/string/split.h>
+
+#include <limits>
 #include <util/system/info.h>
 
 #include <algorithm>
@@ -121,6 +125,7 @@
 #include "r_custom_objective.h"
 // P6.4 (catboost-8z4.90): custom-R-eval-metric trampolines, same bridge.
 #include "r_custom_metric.h"
+#include "r_train_callbacks.h"
 
 
 using namespace NCB;
@@ -142,8 +147,22 @@ using namespace NCB;
     try {                                                                       \
 
 
+// catboost-8z4.122 fix: R's error() below never returns -- it longjmps
+// straight back to R's top-level context, which does not run C++ destructors
+// for objects still in scope in this frame (an RAII teardown guard placed
+// here would silently never fire on this path, same failure mode). That left
+// the process-global custom logger (TCatBoostLogSettings, vendor
+// catboost/libs/logging/logging.cpp:133-137's ResetBackend) installed forever
+// after any exception thrown between R_API_BEGIN() and R_API_END(): the next
+// entry point's SetCustomLoggingFunction() call would then warn "Custom
+// logger is already specified" through the still-installed stale backend and
+// leave raw native training output racing past whatever logging_level/silent
+// the next call actually requested. Restoring explicitly before error() is
+// called -- rather than only on the statement after the catch block, which
+// error()'s jump skips -- guarantees teardown runs on every exit path.
 #define R_API_END()                                                 \
     } catch (std::exception& e) {                                   \
+        RestoreOriginalLogger();                                    \
         error(e.what());                                            \
     }                                                               \
     RestoreOriginalLogger();                                        \
@@ -282,6 +301,48 @@ void SetClassLabels(SEXP classLabelsParam, TDataMetaInfo* metaInfo) {
     }
 }
 
+// catboost-8z4.121: feature-tags plumbing for catboost.select_features's
+// grouping = "ByTags" (Python's Pool(feature_tags=...), _catboost.pyx:2341-2388).
+// featureTagsParam is a named R list; each element is itself a list with
+// $features (0-based integer indices, already resolved from names/ranges on
+// the R side) and an optional $cost (defaults to 1.0, mirroring
+// NCB::TTagDescription's own default). Indices/cost validation happens in R
+// (catboost.from_matrix) so this only has to trust well-formed input, same
+// division of labor as the other index vectors this function already parses
+// (cat/text/embedding_features_indices).
+THashMap<TString, NCB::TTagDescription> GetFeatureTagsFromSEXP(SEXP featureTagsParam) {
+    THashMap<TString, NCB::TTagDescription> result;
+    if (Rf_isNull(featureTagsParam)) {
+        return result;
+    }
+    SEXP tagNames = getAttrib(featureTagsParam, R_NamesSymbol);
+    CB_ENSURE(!Rf_isNull(tagNames), "feature_tags must be a named list");
+    for (R_xlen_t i = 0; i < Rf_xlength(featureTagsParam); ++i) {
+        TString tagName = CHAR(STRING_ELT(tagNames, i));
+        SEXP tagEntry = VECTOR_ELT(featureTagsParam, i);
+        SEXP entryNames = getAttrib(tagEntry, R_NamesSymbol);
+        CB_ENSURE(!Rf_isNull(entryNames), "feature_tags[['" << tagName << "']] must be a named list");
+        SEXP featuresElt = R_NilValue;
+        SEXP costElt = R_NilValue;
+        for (R_xlen_t j = 0; j < Rf_xlength(tagEntry); ++j) {
+            TStringBuf entryName(CHAR(STRING_ELT(entryNames, j)));
+            if (entryName == "features") {
+                featuresElt = VECTOR_ELT(tagEntry, j);
+            } else if (entryName == "cost") {
+                costElt = VECTOR_ELT(tagEntry, j);
+            }
+        }
+        CB_ENSURE(
+            featuresElt != R_NilValue,
+            "feature_tags[['" << tagName << "']] is missing required element 'features'"
+        );
+        TVector<ui32> features = ToUnsigned(GetVectorFromNullableSEXP<int>(featuresElt, "feature_tags$features"_sb));
+        float cost = costElt != R_NilValue ? static_cast<float>(asReal(costElt)) : 1.0f;
+        result[tagName] = NCB::TTagDescription(features, cost);
+    }
+    return result;
+}
+
 template <class TSrc>
 void AddTarget(
     const TSrc* srcTarget,
@@ -380,9 +441,11 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(SEXP floatAndCatMatrixParam,
                                 SEXP featureNamesParam,
                                 SEXP classLabelsParam,
                                 SEXP embeddingListParam,
-                                SEXP embeddingFeaturesIndicesParam) {
+                                SEXP embeddingFeaturesIndicesParam,
+                                SEXP featureTagsParam) {
     SEXP result = NULL;
     R_API_BEGIN();
+    THashMap<TString, NCB::TTagDescription> featureTags = GetFeatureTagsFromSEXP(featureTagsParam);
     // Embedding features arrive as a VECSXP whose elements are (objectCount x embeddingDimension)
     // numeric matrices, one per embedding feature -- an R matrix cell cannot itself hold a vector,
     // so they travel beside the flat float/cat matrix exactly like text features do.
@@ -430,7 +493,9 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(SEXP floatAndCatMatrixParam,
             ToUnsigned(GetVectorFromNullableSEXP<int>(catFeaturesIndicesParam, "cat_features_indices"_sb)),
             ToUnsigned(GetVectorFromNullableSEXP<int>(textFeaturesIndicesParam, "text_features_indices"_sb)),
             ToUnsigned(GetVectorFromNullableSEXP<int>(embeddingFeaturesIndicesParam, "embedding_features_indices"_sb)),
-            featureId);
+            featureId,
+            /*hasGraph*/ false,
+            featureTags);
 
         if (!targetColumns) {
             metaInfo.TargetType = ERawTargetType::None;
@@ -850,7 +915,10 @@ EXPORT_FUNCTION CatBoostPoolSliceSubset_R(SEXP poolParam, SEXP sizeParam, SEXP o
 // TDataProvider::GetSubset), which are all already reachable from this file.
 // Only the float-typed-target branch of the stratified path is implemented,
 // matching this fork's existing precedent at CatBoostPoolGetLabel_R: R's own
-// Pool construction paths never produce ERawTargetType::String labels.
+// Pool construction paths never produce ERawTargetType::String labels (the
+// one narrow exception, catboost-1wu's CatBoostPoolPromoteStringTarget_R,
+// only fires right before catboost.train() when classes_count/class_names
+// are supplied -- never for a Pool that reaches train_eval_split unpromoted).
 EXPORT_FUNCTION CatBoostPoolTrainEvalSplit_R(
     SEXP poolParam,
     SEXP hasTimeParam,
@@ -1016,7 +1084,11 @@ EXPORT_FUNCTION CatBoostPoolHasLabel_R(SEXP poolParam) {
 // into a pre-sized buffer per target dimension. String targets are out of
 // scope for this fork's Pool construction paths (CreateFromMatrix/FromFile
 // only ever set ERawTargetType::Integer/Float/None), so unlike the Python
-// method this does not need an ERawTargetType::String branch.
+// method this does not need an ERawTargetType::String branch -- the one
+// exception is a Pool that catboost.train() has since promoted via
+// catboost-1wu's CatBoostPoolPromoteStringTarget_R (classes_count/
+// class_names), which correctly hits the CB_ENSURE below instead of
+// silently misreading its (now string-typed) target as numeric.
 EXPORT_FUNCTION CatBoostPoolGetLabel_R(SEXP poolParam) {
     SEXP result = NULL;
     SEXP resultDim = NULL;
@@ -1055,6 +1127,177 @@ EXPORT_FUNCTION CatBoostPoolGetLabel_R(SEXP poolParam) {
     R_API_END();
     UNPROTECT(protectedCount);
     return result;
+}
+
+// catboost-1wu: rebuilds pool->RawTargetData in place with a new one-
+// dimensional Target value, copying every other field (Baseline, Weights,
+// GroupWeights, Pairs) across unchanged. Shared by
+// CatBoostPoolPromoteStringTarget_R/CatBoostPoolDemoteStringTarget_R below,
+// which are exact inverses of each other (Integer <-> String) built on top
+// of this.
+static void RetargetPool(TPoolHandle pool, ERawTargetType newTargetType, TRawTarget&& newTarget) {
+    TRawTargetData newRawTargetData;
+    newRawTargetData.TargetType = newTargetType;
+    newRawTargetData.Target = {std::move(newTarget)};
+    TMaybeData<TBaselineArrayRef> maybeBaseline = pool->RawTargetData.GetBaseline();
+    if (maybeBaseline) {
+        for (const auto& approxRef : *maybeBaseline) {
+            newRawTargetData.Baseline.emplace_back(approxRef.begin(), approxRef.end());
+        }
+    }
+    newRawTargetData.Weights = pool->RawTargetData.GetWeights();
+    newRawTargetData.GroupWeights = pool->RawTargetData.GetGroupWeights();
+    newRawTargetData.Pairs = pool->RawTargetData.GetPairs();
+
+    pool->RawTargetData = TRawTargetDataProvider(
+        pool->ObjectsGrouping,
+        std::move(newRawTargetData),
+        /*skipCheck*/ false,
+        pool->RawTargetData.IsForceUnitAutoPairWeights(),
+        &NPar::LocalExecutor()
+    );
+    pool->MetaInfo.TargetType = newTargetType;
+}
+
+// catboost-1wu: retargets a Pool's target in-place from
+// ERawTargetType::Integer to ERawTargetType::String, using the Pool's own
+// MetaInfo.ClassLabels (the original factor/character label levels,
+// catboost.from_matrix's is.factor()/is.character() branch, SetClassLabels
+// above) as the index -> string mapping. Exists solely to unblock
+// class_names (a params key that supplies STRING class names, e.g.
+// list("neg","pos")) for Pools built from factor/character labels: native's
+// target converter (target_converter.cpp's TUseClassLabelsTargetConverter)
+// requires the Pool's raw target itself to be String-typed when class_names
+// are strings, rejecting an already-numeric target outright ("Not all
+// class names are numeric, but specified target data is",
+// target_converter.cpp:279) -- catboost.load_pool() otherwise always
+// pre-converts such labels to a 0-based integer vector before it ever
+// reaches native (catboostr.cpp:900/1065-66), so that combination could
+// never succeed before this.
+//
+// This is a lossless round trip, not a reinterpretation: index i was
+// produced from ClassLabels[i] via `as.integer(factor(label)) - 1L` (R/
+// catboost.R), and TUseClassLabelsTargetConverter maps each ClassLabels[i]
+// string right back to class index i (target_converter.cpp:210-211) --
+// so training on the promoted Pool is numerically identical to training on
+// the (hypothetical, never-reachable) Integer target directly, for the one
+// scenario this unblocks.
+//
+// catboost-1wu fix round 2: this mutation must NOT outlive the single
+// catboost.train() call that needed it -- a Pool object is legitimately
+// reused afterwards (retrained, read via catboost.pool.get_label(),
+// train_eval_split()'d, ...), all of which assume an Integer target, and a
+// factor whose levels() aren't already alphabetical would otherwise
+// silently retrain into a DIFFERENT (complemented) class-index mapping the
+// next time round (see CatBoostPoolDemoteStringTarget_R below, which
+// R/catboost.R now always pairs with a call to this one via on.exit()).
+EXPORT_FUNCTION CatBoostPoolPromoteStringTarget_R(SEXP poolParam) {
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    // Idempotent no-op if already promoted (e.g. the same underlying Pool
+    // passed as both learn_pool and test_pool in one catboost.train() call).
+    if (pool->RawTargetData.GetTargetType() != ERawTargetType::String) {
+        CB_ENSURE(
+            pool->RawTargetData.GetTargetType() == ERawTargetType::Integer,
+            "CatBoostPoolPromoteStringTarget_R: only an Integer-typed Pool target can be promoted to String"
+        );
+        CB_ENSURE(
+            pool->MetaInfo.TargetCount == 1,
+            "CatBoostPoolPromoteStringTarget_R: only single-dimensional targets are supported"
+        );
+        CB_ENSURE(
+            !pool->MetaInfo.ClassLabels.empty(),
+            "CatBoostPoolPromoteStringTarget_R: Pool has no class labels to promote its target against"
+        );
+        CB_ENSURE(
+            !pool->MetaInfo.HasGraph,
+            "CatBoostPoolPromoteStringTarget_R: Pools with graph data are not supported"
+        );
+
+        const ui32 classCount = SafeIntegerCast<ui32>(pool->MetaInfo.ClassLabels.size());
+        auto maybeTarget = pool->RawTargetData.GetOneDimensionalTarget();
+        CB_ENSURE_INTERNAL(maybeTarget, "CatBoostPoolPromoteStringTarget_R: Pool has no target");
+        const ITypedSequencePtr<float>* typedSequence
+            = std::get_if<ITypedSequencePtr<float>>(&(**maybeTarget));
+        CB_ENSURE_INTERNAL(typedSequence, "CatBoostPoolPromoteStringTarget_R: expected a numeric target");
+
+        TVector<TString> stringTarget(pool->GetObjectCount());
+        ui32 nextIdx = 0;
+        (*typedSequence)->ForEach(
+            [&](float value) {
+                // AddTarget<int>() (this file) only ever writes a
+                // static_cast<float>() of an R integer here, exactly
+                // representable as a float, so a plain round-trip cast check
+                // (no <cmath>/std::modf dependency) is exact, not an
+                // approximation.
+                ui32 classIdx = value >= 0.0f ? static_cast<ui32>(value) : classCount;
+                CB_ENSURE(
+                    classIdx < classCount && static_cast<float>(classIdx) == value,
+                    "CatBoostPoolPromoteStringTarget_R: target value " << value << " is not a valid class index"
+                );
+                stringTarget[nextIdx++] = pool->MetaInfo.ClassLabels[static_cast<size_t>(classIdx)].GetStringRobust();
+            }
+        );
+
+        RetargetPool(pool, ERawTargetType::String, TRawTarget(std::move(stringTarget)));
+    }
+
+    R_API_END();
+    return R_NilValue;
+}
+
+// catboost-1wu fix round 2: the exact inverse of
+// CatBoostPoolPromoteStringTarget_R above, restoring a Pool's target to
+// ERawTargetType::Integer by mapping each String value back to its index in
+// MetaInfo.ClassLabels -- i.e. undoing the promotion losslessly, byte-for-
+// byte reproducing the Integer target that was there before (same
+// ClassLabels, same round trip, run backwards). R/catboost.R calls this via
+// on.exit() right after every promotion, so the Pool never remains
+// String-typed once catboost.train() returns (success or error).
+EXPORT_FUNCTION CatBoostPoolDemoteStringTarget_R(SEXP poolParam) {
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    // Idempotent no-op if not currently promoted (mirrors the Promote side:
+    // the same underlying Pool passed as both learn_pool and test_pool
+    // gets demoted back to Integer by the first call already).
+    if (pool->RawTargetData.GetTargetType() == ERawTargetType::String) {
+        CB_ENSURE_INTERNAL(
+            pool->MetaInfo.TargetCount == 1,
+            "CatBoostPoolDemoteStringTarget_R: only single-dimensional targets are supported"
+        );
+        CB_ENSURE_INTERNAL(
+            !pool->MetaInfo.ClassLabels.empty(),
+            "CatBoostPoolDemoteStringTarget_R: Pool has no class labels to demote its target against"
+        );
+
+        THashMap<TString, ui32> classLabelToIdx;
+        for (size_t i : xrange(pool->MetaInfo.ClassLabels.size())) {
+            classLabelToIdx[pool->MetaInfo.ClassLabels[i].GetStringRobust()] = SafeIntegerCast<ui32>(i);
+        }
+
+        TVector<TConstArrayRef<TString>> stringTargetRefs;
+        pool->RawTargetData.GetStringTargetRef(&stringTargetRefs);
+        CB_ENSURE_INTERNAL(stringTargetRefs.size() == 1, "CatBoostPoolDemoteStringTarget_R: expected a one-dimensional target");
+
+        TVector<float> intTarget(stringTargetRefs[0].size());
+        for (size_t i : xrange(stringTargetRefs[0].size())) {
+            const auto it = classLabelToIdx.find(stringTargetRefs[0][i]);
+            CB_ENSURE_INTERNAL(
+                it != classLabelToIdx.end(),
+                "CatBoostPoolDemoteStringTarget_R: target value '" << stringTargetRefs[0][i] << "' is not a known class label"
+            );
+            intTarget[i] = static_cast<float>(it->second);
+        }
+
+        RetargetPool(
+            pool,
+            ERawTargetType::Integer,
+            TRawTarget(MakeIntrusive<TTypeCastArrayHolder<float, float>>(std::move(intTarget)))
+        );
+    }
+
+    R_API_END();
+    return R_NilValue;
 }
 
 // Mirrors _catboost.pyx get_weight(): TWeights::IsTrivial() means "weight
@@ -1528,6 +1771,10 @@ EXPORT_FUNCTION CatBoostDatasetStatistics_R(
     SEXP borderCountParam,
     SEXP onlyGroupStatisticsParam,
     SEXP onlyLightStatisticsParam,
+    SEXP notConvertStringTargetsParam,
+    SEXP customFeatureLimitsParam,
+    SEXP spotSizeParam,
+    SEXP spotCountParam,
     SEXP outputPathParam,
     SEXP histogramPathParam
 ) {
@@ -1552,6 +1799,45 @@ EXPORT_FUNCTION CatBoostDatasetStatistics_R(
     params.BorderCount = static_cast<size_t>(asInteger(borderCountParam));
     params.OnlyGroupStatistics = static_cast<bool>(asLogical(onlyGroupStatisticsParam));
     params.OnlyLightStatistics = static_cast<bool>(asLogical(onlyLightStatisticsParam));
+    // CLI's --not-convert-string-targets negates onto ConvertStringTargets
+    // (mode_dataset_statistics_helpers.cpp BindParserOpts); mirrored here.
+    params.ConvertStringTargets = !static_cast<bool>(asLogical(notConvertStringTargetsParam));
+
+    // CLI's --custom-feature-limits parsing (mode_dataset_statistics_helpers.cpp
+    // BindParserOpts), reproduced verbatim so both entry points accept the
+    // same "<feature_id>:<min>:<max>,..." syntax and reject the same inputs.
+    TStringBuf customFeatureLimits(CHAR(asChar(customFeatureLimitsParam)));
+    if (!customFeatureLimits.empty()) {
+        for (const TStringBuf& featureLimit : StringSplitter(customFeatureLimits).Split(',')) {
+            TVector<TString> tokens = StringSplitter(featureLimit).Split(':');
+            if (tokens.empty()) {
+                continue;
+            }
+            CB_ENSURE(tokens.size() == 3, "Inappropriate feature limits description: " << TString(featureLimit));
+            ui32 featureId = FromString<ui32>(tokens[0]);
+            double minValue = -std::numeric_limits<float>::infinity();
+            double maxValue = std::numeric_limits<float>::infinity();
+            if (tokens[1] != "-inf") {
+                minValue = FromString<double>(tokens[1]);
+            }
+            if (tokens[2] != "inf") {
+                maxValue = FromString<double>(tokens[2]);
+            }
+            CB_ENSURE(minValue <= maxValue, "Inappropriate feature limits description: " << TString(featureLimit));
+            CB_ENSURE(params.FeatureLimits.find(featureId) == params.FeatureLimits.end(),
+                      "Duplicate feature " << featureId << " in custom-feature-limits");
+            params.FeatureLimits[featureId] = {minValue, maxValue};
+        }
+    }
+
+    params.SpotSize = static_cast<ui32>(asInteger(spotSizeParam));
+    params.SpotCount = static_cast<ui32>(asInteger(spotCountParam));
+    // Same joint-specification guard as TCalculateStatisticsParams::ProcessParams
+    // (mode_dataset_statistics_helpers.cpp), which this R entry point bypasses
+    // since it fills params in-process instead of parsing argv.
+    CB_ENSURE((params.SpotSize == 0) == (params.SpotCount == 0),
+              "spot size and spot count must be specified together");
+
     params.OutputPath = TString(CHAR(asChar(outputPathParam)));
     params.HistogramPath = TString(CHAR(asChar(histogramPathParam)));
 
@@ -1760,7 +2046,7 @@ static void TrainModelDistributed(
         /*dstLearnProgress*/ nullptr);
 }
 
-EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitParamsAsJsonParam, SEXP initModelParam, SEXP customObjectiveParam, SEXP customEvalMetricParam) {
+EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitParamsAsJsonParam, SEXP initModelParam, SEXP customObjectiveParam, SEXP customEvalMetricParam, SEXP callbacksParam) {
     SEXP result = NULL;
     R_API_BEGIN();
     TPoolHandle learnPool = static_cast<TPoolHandle>(R_ExternalPtrAddr(learnPoolParam));
@@ -1807,6 +2093,18 @@ EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitP
     const bool isDistributed =
         fitParams.Has("node_type") && !(fitParams["node_type"] == "SingleHost");
 
+    // catboost-8z4.122: params$callbacks's per-iteration hook (see
+    // r_train_callbacks.h). TrainModelDistributed's TCPUModelTrainer path
+    // hardcodes Nothing() for its own customCallbacks and was not extended
+    // here (out of scope -- distributed callback marshaling would need a
+    // bridge reachable from every worker node, not just this process), so
+    // fail loudly instead of the callbacks silently never firing.
+    NCatboostR::TRTrainCallbacksContext trainCallbacksContext;
+    TMaybe<TCustomCallbackDescriptor> trainCallbackDescriptor =
+        NCatboostR::BuildTrainCallbacksDescriptor(callbacksParam, &callbackWiring.Bridge, &trainCallbacksContext);
+    CB_ENSURE(!(isDistributed && trainCallbackDescriptor.Defined()),
+              "'callbacks' is not supported with distributed training (params$node_type != 'SingleHost')");
+
     auto runTraining = [&] {
         // The test-pool and no-test-pool cases used to repeat the whole
         // TrainModel() call just to pass {&evalResult} vs {}; P8.4
@@ -1838,7 +2136,7 @@ EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitP
                 nullptr,
                 objectiveDescriptor,
                 evalMetricDescriptor,
-                Nothing(),
+                trainCallbackDescriptor,
                 pools,
                 initModel,
                 /*initLearnProgress*/ nullptr,
@@ -1850,11 +2148,17 @@ EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitP
     };
 
     // Only route through the background-thread bridge when a custom
-    // objective and/or custom eval metric is actually in play: every other
-    // entry point (and every built-in-loss/built-in-eval_metric
-    // catboost.train() call) keeps running TrainModel() directly on R's main
-    // thread, exactly as before this ticket.
-    if (callbackWiring.Defined()) {
+    // objective, a custom eval metric, and/or params$callbacks is actually in
+    // play: every other entry point (and every built-in-loss/built-in-
+    // eval_metric/no-callbacks catboost.train() call) keeps running
+    // TrainModel() directly on R's main thread, exactly as before this
+    // ticket. params$callbacks alone must still go through the bridge:
+    // AfterIterationFunc runs on whatever thread called TrainModel(), and
+    // without the bridge that would be a background std::thread only when
+    // combined with a custom objective/metric -- forcing the bridge here too
+    // keeps RTrainAfterIteration's R_tryEval() always on R's main thread,
+    // regardless of what else is (or isn't) also supplied.
+    if (callbackWiring.Defined() || trainCallbackDescriptor.Defined()) {
         callbackWiring.Bridge.Run(runTraining);
         // catboost-8z4.91/test instrumentation: CatBoostLastCustomObjectiveMaxActiveWorkers_R()
         // reads this back, so a differential test can assert real TBB
@@ -2823,6 +3127,138 @@ EXPORT_FUNCTION CatBoostGetPlainParams_R(SEXP modelParam) {
     return result;
 }
 
+// catboost-azg: R equivalent of Python's catboost.utils.compute_training_options
+// (_catboost.pyx:7095), which resolves a plain params dict to its final,
+// fully-resolved training options *without* fitting a model. Python builds
+// that resolution from a hand-constructed DataMetaInfo (object_count,
+// feature_count, max_cat_features_uniq_values_on_learn, target_stats,
+// has_pairs -- _catboost.pyx:7075-7091, exercised exactly this way by
+// test_compute_options in the vendored ut/medium/test.py) rather than a real
+// pool, so this export takes those same primitives instead of a pool handle.
+//
+// Python's compute_training_options calls the native GetTrainingOptions
+// (python-package/catboost/helpers.cpp:205), which is just:
+//   PlainJsonToOptions -> ConvertParamsToCanonicalFormat -> LoadOptions
+//   -> SetDataDependentDefaults -> TCatBoostOptions::Save
+// Every one of those calls is already used in this file (see
+// TrainModelDistributed above) and already linked via private-libs-options,
+// so this reproduces the same sequence directly instead of linking the
+// python-package-only helpers.cpp/.h (which pulls in Cython-generated types
+// this target doesn't otherwise need).
+static TDataMetaInfo BuildDataMetaInfoFromR(const NJson::TJsonValue& metaInfoJson) {
+    // Python's DataMetaInfo.__init__ requires object_count/feature_count as
+    // positional args (TypeError if missing) -- mirror that instead of
+    // silently defaulting a missing/misspelled key to 0 (GetUIntegerSafe(0)
+    // would otherwise resolve a garbage-but-plausible-looking options tree).
+    CB_ENSURE(
+        metaInfoJson.Has("object_count") && metaInfoJson.Has("feature_count"),
+        "train_meta_info/test_meta_info must include 'object_count' and 'feature_count'"
+    );
+    TDataMetaInfo metaInfo;
+    metaInfo.ObjectCount = metaInfoJson["object_count"].GetUIntegerSafe(0);
+    const ui32 featureCount = SafeIntegerCast<ui32>(metaInfoJson["feature_count"].GetUIntegerSafe(0));
+    metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(featureCount);
+    metaInfo.MaxCatFeaturesUniqValuesOnLearn =
+        metaInfoJson["max_cat_features_uniq_values_on_learn"].GetUIntegerSafe(0);
+    metaInfo.HasPairs = metaInfoJson["has_pairs"].GetBooleanSafe(false);
+    if (metaInfoJson.Has("target_min_value") && metaInfoJson.Has("target_max_value")) {
+        TTargetStats targetStats;
+        targetStats.MinValue = static_cast<float>(metaInfoJson["target_min_value"].GetDoubleSafe(0.0));
+        targetStats.MaxValue = static_cast<float>(metaInfoJson["target_max_value"].GetDoubleSafe(0.0));
+        metaInfo.TargetStats = targetStats;
+    }
+    return metaInfo;
+}
+
+EXPORT_FUNCTION CatBoostComputeTrainingOptions_R(
+    SEXP paramsAsJsonParam,
+    SEXP trainMetaInfoAsJsonParam,
+    SEXP testMetaInfoAsJsonParam
+) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+
+    NJson::TJsonValue plainJsonParams = LoadFitParams(paramsAsJsonParam);
+    const TDataMetaInfo trainMetaInfo = BuildDataMetaInfoFromR(LoadFitParams(trainMetaInfoAsJsonParam));
+    TMaybe<TDataMetaInfo> testMetaInfo;
+    if (testMetaInfoAsJsonParam != R_NilValue) {
+        testMetaInfo = BuildDataMetaInfoFromR(LoadFitParams(testMetaInfoAsJsonParam));
+    }
+
+    NJson::TJsonValue trainOptionsJson;
+    NJson::TJsonValue outputFilesOptionsJson;
+    NCatboostOptions::PlainJsonToOptions(plainJsonParams, &trainOptionsJson, &outputFilesOptionsJson);
+    ConvertParamsToCanonicalFormat(trainMetaInfo, &trainOptionsJson);
+
+    const ETaskType taskType = NCatboostOptions::GetTaskType(trainOptionsJson);
+    NCatboostOptions::TCatBoostOptions catBoostOptions(taskType);
+    catBoostOptions.Load(trainOptionsJson);
+
+    // Deliberate divergence from Python's GetTrainingOptions (helpers.cpp),
+    // which passes SetDataDependentDefaults a default-constructed (empty)
+    // TOutputFilesOptions: this loads the caller's own output-file options
+    // (train_dir, use_best_model, etc.) out of params first, matching how
+    // every other params-consuming entry point in this file (e.g.
+    // TrainModelDistributed above) builds TOutputFilesOptions. Since only
+    // catBoostOptions is Saved/returned below, this has no observed effect
+    // on the resolved tree this row's oracle test compares against -- but
+    // it is untested against Python's own empty-TOutputFilesOptions path,
+    // so flag it here rather than leave it silently unexplained.
+    NCatboostOptions::TOutputFilesOptions outputOptions;
+    outputOptions.Load(outputFilesOptionsJson);
+    outputOptions.UseBestModel.SetDefault(false);
+
+    SetDataDependentDefaults(
+        trainMetaInfo,
+        testMetaInfo,
+        /*continueFromModel*/ false,
+        /*learningContinuation*/ false,
+        &outputOptions,
+        &catBoostOptions
+    );
+
+    NJson::TJsonValue catBoostOptionsJson;
+    catBoostOptions.Save(&catBoostOptionsJson);
+
+    // ToString(TJsonValue) uses the default writer config, whose
+    // DefaultDoubleNDigits = 10 (library/cpp/json/json_writer.h:16) silently
+    // truncates resolved-option doubles (e.g. learning_rate) to 10
+    // significant digits. Use PREC_AUTO, same fix as BestOptionValuesToRList
+    // and CatBoostSelectFeatures_R's summary JSON above.
+    TStringStream optionsStream;
+    NJson::TJsonWriterConfig optionsConfig;
+    optionsConfig.FloatToStringMode = PREC_AUTO;
+    NJson::WriteJson(&optionsStream, &catBoostOptionsJson, optionsConfig);
+
+    result = PROTECT(mkString(optionsStream.Str().c_str()));
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+// P10.D (catboost-8z4.118): R equivalent of Python's CatBoost.classes_
+// property (core.py:2085, `self._object._get_class_labels()`). Delegates to
+// the same native TFullModel::GetModelClassLabels() (model.cpp:1425) Python's
+// _catboost.pyx:5342 _get_model_class_labels() calls -- that function already
+// resolves class labels from class_params/multiclass_params (falling back to
+// sequential integer labels derived from the loss function), so this is read
+// access to already-computed native state, not a second implementation of
+// that resolution logic. Returns a JSON array string (possibly empty, for
+// non-classification models); catboost.R parses it with jsonlite.
+EXPORT_FUNCTION CatBoostGetModelClassLabels_R(SEXP modelParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    NJson::TJsonValue classLabelsJson(NJson::JSON_ARRAY);
+    for (const auto& label : model->GetModelClassLabels()) {
+        classLabelsJson.AppendValue(label);
+    }
+    result = PROTECT(mkString(ToString(classLabelsJson).c_str()));
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
 // Mirrors _catboost.pyx _MetadataHashProxy: model->ModelInfo is the same
 // THashMap<TString, TString> the CLI's `metadata dump`/`metadata get` modes
 // (mode_metadata.cpp) and Python's model.get_metadata() read. Returns a named
@@ -2858,6 +3294,185 @@ EXPORT_FUNCTION CatBoostSetModelInfo_R(SEXP modelParam, SEXP keyParam, SEXP valu
     model->ModelInfo[key] = value;
     R_API_END();
     return R_NilValue;
+}
+
+// P10.F (catboost-8z4.120): mirrors _catboost.pyx _MetadataHashProxy.__delitem__
+// (del model.get_metadata()[key]) -- catboost.set_probability_threshold(model, NULL)
+// is the caller. Erasing an absent key is a silent no-op, same as Python's
+// dict.pop(key, None) would be (Python's __delitem__ itself raises KeyError on a
+// missing key, but set_probability_threshold's own None-branch only calls it
+// when the key is already known present -- see core.py:5891-5906).
+EXPORT_FUNCTION CatBoostEraseModelInfo_R(SEXP modelParam, SEXP keyParam) {
+    R_API_BEGIN();
+    TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    TString key(CHAR(asChar(keyParam)));
+    model->ModelInfo.erase(key);
+    R_API_END();
+    return R_NilValue;
+}
+
+// P10.F (catboost-8z4.120): mirrors _catboost.pyx _get_borders(): dict
+// flat_feature_index -> TFloatFeature.Borders. Internal-only helper (see
+// catboostr.h) for catboost.plot_predictions()/catboost.plot_partial_dependence();
+// keys are the flat feature index formatted as a string, values are the
+// (possibly empty, for unused float features) numeric borders vector.
+EXPORT_FUNCTION CatBoostGetFloatFeatureBorders_R(SEXP modelParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    TConstArrayRef<TFloatFeature> floatFeatures = model->ModelTrees.Get()->GetFloatFeatures();
+    result = PROTECT(allocVector(VECSXP, floatFeatures.size()));
+    SEXP names = PROTECT(allocVector(STRSXP, floatFeatures.size()));
+    for (size_t i = 0; i < floatFeatures.size(); ++i) {
+        const TFloatFeature& feature = floatFeatures[i];
+        SEXP borders = PROTECT(allocVector(REALSXP, feature.Borders.size()));
+        for (size_t j = 0; j < feature.Borders.size(); ++j) {
+            REAL(borders)[j] = feature.Borders[j];
+        }
+        SET_VECTOR_ELT(result, i, borders);
+        UNPROTECT(1); // borders -- reachable through `result` from here on
+        SET_STRING_ELT(names, i, mkChar(ToString(feature.Position.FlatIndex).c_str()));
+    }
+    setAttrib(result, R_NamesSymbol, names);
+    R_API_END();
+    UNPROTECT(2);
+    return result;
+}
+
+// P10.E (catboost-8z4.119): tree-internals accessors/mutator. Mirror
+// _catboost.pyx's _get_leaf_values/_get_leaf_weights/_get_tree_leaf_counts/
+// _set_leaf_values (backing CatBoost.get_leaf_values()/get_leaf_weights()/
+// get_tree_leaf_counts()/set_leaf_values(), core.py:2112-2152, defined once
+// on _CatBoostBase and inherited unchanged by
+// CatBoost/CatBoostClassifier/CatBoostRegressor/CatBoostRanker) and
+// _save_borders (core.py:1976-1979, CatBoost.save_borders(),
+// core.py:3809-3820). All read/write TFullModel's already-computed
+// ModelTrees state directly (model.h) -- no new tree-structure parsing,
+// same native state Python's own binding reads/writes via
+// GetModelTreeData()->GetLeafValues()/GetLeafWeights(),
+// TModelTrees::GetTreeLeafCounts()/SetLeafValues(), and
+// SaveModelBorders() (already linked via model.h, used by
+// CatBoostPoolSaveQuantizationBorders_R's sibling pool-level function
+// above).
+EXPORT_FUNCTION CatBoostGetLeafValues_R(SEXP modelParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    TConstArrayRef<double> leafValues = model->ModelTrees.Get()->GetModelTreeData()->GetLeafValues();
+    result = PROTECT(allocVector(REALSXP, leafValues.size()));
+    for (size_t i = 0; i < leafValues.size(); ++i) {
+        REAL(result)[i] = leafValues[i];
+    }
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+EXPORT_FUNCTION CatBoostGetLeafWeights_R(SEXP modelParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    TConstArrayRef<double> leafWeights = model->ModelTrees.Get()->GetModelTreeData()->GetLeafWeights();
+    result = PROTECT(allocVector(REALSXP, leafWeights.size()));
+    for (size_t i = 0; i < leafWeights.size(); ++i) {
+        REAL(result)[i] = leafWeights[i];
+    }
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+EXPORT_FUNCTION CatBoostGetTreeLeafCounts_R(SEXP modelParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    TVector<ui32> counts = model->ModelTrees.Get()->GetTreeLeafCounts();
+    result = PROTECT(allocVector(INTSXP, counts.size()));
+    for (size_t i = 0; i < counts.size(); ++i) {
+        INTEGER(result)[i] = static_cast<int>(counts[i]);
+    }
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+// Mutates the live model handle's leaf values in place, matching Python's
+// set_leaf_values() calling convention (in-memory only; call
+// catboost.save_model() to persist, same note as CatBoostSetScaleAndBias_R
+// above). new_leaf_values must have exactly one entry per existing flat
+// leaf-value slot -- GetLeafValues().size(), i.e. sum(get_tree_leaf_counts())
+// times ApproxDimension, NOT just the leaf count (a leaf has
+// ApproxDimension consecutive values for multiclass/multi-dimensional
+// losses) -- same length check _catboost.pyx:6127 performs.
+EXPORT_FUNCTION CatBoostSetLeafValues_R(SEXP modelParam, SEXP valuesParam) {
+    R_API_BEGIN();
+    TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    size_t expected = model->ModelTrees.Get()->GetModelTreeData()->GetLeafValues().size();
+    size_t n = static_cast<size_t>(Rf_length(valuesParam));
+    CB_ENSURE(n == expected,
+        "set_leaf_values: expected " << expected << " leaf values (length of get_leaf_values(), i.e. "
+        "sum of get_tree_leaf_counts() times ApproxDimension), got " << n);
+    TVector<double> values(n);
+    for (size_t i = 0; i < n; ++i) {
+        values[i] = REAL(valuesParam)[i];
+    }
+    model->ModelTrees.GetMutable()->SetLeafValues(values);
+    R_API_END();
+    return R_NilValue;
+}
+
+// R equivalent of CatBoost.save_borders() (core.py:3809-3820,
+// _save_borders() -> _catboost.pyx:5900-5901 SaveModelBorders()). Writes the
+// model's float-feature borders to a file in the same
+// input-data_custom-borders.html format
+// CatBoostPoolSaveQuantizationBorders_R's pool-level sibling above writes;
+// unlike that pool-level function (which requires an already-quantized
+// Pool), this reads borders directly off the trained model, matching
+// Python's is_fitted()-gated precondition (enforced R-side by
+// catboost.save_borders() below via catboost.restore_handle()).
+EXPORT_FUNCTION CatBoostSaveModelBorders_R(SEXP modelParam, SEXP outputFileParam) {
+    R_API_BEGIN();
+    TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    SaveModelBorders(TString(CHAR(asChar(outputFileParam))), *model);
+    R_API_END();
+    return R_NilValue;
+}
+
+// R equivalent of CatBoost.calc_leaf_indexes() (core.py:3157-3195,
+// _base_calc_leaf_indexes() -> _catboost.pyx:5606-5621 CalcLeafIndexesMulti(),
+// catboost/private/libs/algo/apply.h/.cpp -- already linked into this
+// library via apply.h for CatBoostPredictMulti_R's ApplyModelMulti sibling
+// above). Returns a flat, object-major vector (each object's contiguous
+// block of (treeEnd - treeStart) leaf indexes) -- CalcLeafIndexesMulti's own
+// output layout -- matching CatBoostPredictMulti_R's existing
+// flatten-then-reshape convention: catboost.calc_leaf_indexes() (R/catboost.R)
+// reshapes with matrix(..., nrow = object count, byrow = TRUE).
+// catboost.iterate_leaf_indexes() is a thin R-side wrapper around this same
+// entry point (splitting the resulting matrix into one row per object)
+// rather than a second native streaming iterator: Python's own
+// _leaf_indexes_iterator only differs by batching for memory, not by
+// computing anything different, so re-deriving identical numeric output
+// from the already-computed matrix is exact, not an approximation.
+EXPORT_FUNCTION CatBoostCalcLeafIndexes_R(SEXP modelParam, SEXP poolParam, SEXP treeStartParam,
+                                          SEXP treeEndParam, SEXP threadCountParam, SEXP verboseParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TFullModelHandle model = static_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    TVector<ui32> leafIndexes = CalcLeafIndexesMulti(
+        *model,
+        pool->ObjectsData,
+        static_cast<bool>(asLogical(verboseParam)),
+        asInteger(treeStartParam),
+        asInteger(treeEndParam),
+        UpdateThreadCount(asInteger(threadCountParam)));
+    result = PROTECT(allocVector(INTSXP, leafIndexes.size()));
+    for (size_t i = 0; i < leafIndexes.size(); ++i) {
+        INTEGER(result)[i] = static_cast<int>(leafIndexes[i]);
+    }
+    R_API_END();
+    UNPROTECT(1);
+    return result;
 }
 
 // P5.7 (catboost-8z4.64): R equivalents of Python's
@@ -3388,6 +4003,174 @@ EXPORT_FUNCTION CatBoostEvalMetrics_R(
 
     R_API_END();
     UNPROTECT(protectedCount);
+    return result;
+}
+
+// catboost-8z4.124: R equivalent of Python's catboost.utils.eval_metric()
+// (vendor/catboost/catboost/python-package/catboost/utils.py:271, native
+// side vendor/catboost/catboost/python-package/catboost/_catboost.pyx
+// _eval_metric_util() -> EvalMetricsForUtils(), vendor/catboost/catboost/
+// python-package/catboost/helpers.cpp:138) -- evaluates a single named
+// metric directly on raw label/approx arrays, with neither a fitted model
+// nor a catboost.Pool. helpers.cpp lives under python-package/ and pulls in
+// <Python.h>, so it cannot be linked into libcatboostr as-is; this ports the
+// same call sequence (CreateMetricsFromDescription, IsGroupwiseMetric,
+// NCB::CreateObjectsGroupingFromGroupIds, NCB::CheckPairs, NCB::MakeGroupInfos,
+// EvalErrorsWithCaching) using this package's own SEXP marshalling
+// conventions -- group_id/subgroup_id follow the same pre-canonicalized
+// decimal-string -> CalcGroupIdFor()/CalcSubgroupIdFor() convention as
+// CatBoostPoolSetGroupId_R/CatBoostPoolSetSubgroupId_R above, and pairs
+// follows the same (N x 2 or N x 3) matrix convention as
+// CatBoostPoolSetPairs_R.
+EXPORT_FUNCTION CatBoostEvalMetric_R(
+        SEXP labelParam,
+        SEXP approxParam,
+        SEXP metricParam,
+        SEXP weightParam,
+        SEXP groupIdParam,
+        SEXP groupWeightParam,
+        SEXP subgroupIdParam,
+        SEXP pairsParam,
+        SEXP threadCountParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+
+    SEXP labelDim = getAttrib(labelParam, R_DimSymbol);
+    size_t objectCount = labelDim != R_NilValue
+        ? SafeIntegerCast<size_t>(INTEGER(labelDim)[0])
+        : SafeIntegerCast<size_t>(length(labelParam));
+    size_t labelDimension = labelDim != R_NilValue ? SafeIntegerCast<size_t>(INTEGER(labelDim)[1]) : 1;
+    CB_ENSURE(objectCount > 0, "Cannot evaluate metric on empty data");
+    double* ptr_label = REAL(labelParam);
+    TVector<TVector<float>> label(labelDimension, TVector<float>(objectCount));
+    for (auto d : xrange(labelDimension)) {
+        for (auto i : xrange(objectCount)) {
+            label[d][i] = static_cast<float>(ptr_label[i + objectCount * d]);
+        }
+    }
+
+    SEXP approxDim = getAttrib(approxParam, R_DimSymbol);
+    size_t approxObjectCount = approxDim != R_NilValue
+        ? SafeIntegerCast<size_t>(INTEGER(approxDim)[0])
+        : SafeIntegerCast<size_t>(length(approxParam));
+    size_t approxDimension = approxDim != R_NilValue ? SafeIntegerCast<size_t>(INTEGER(approxDim)[1]) : 1;
+    CB_ENSURE(approxObjectCount == objectCount, "Label and approx should have same sizes.");
+    double* ptr_approx = REAL(approxParam);
+    TVector<TVector<double>> approx(approxDimension, TVector<double>(objectCount));
+    for (auto d : xrange(approxDimension)) {
+        for (auto i : xrange(objectCount)) {
+            approx[d][i] = ptr_approx[i + objectCount * d];
+        }
+    }
+
+    TString metricName = CHAR(asChar(metricParam));
+
+    TVector<float> weight = GetVectorFromNullableSEXP<float>(weightParam, "weight"_sb);
+    CB_ENSURE(weight.empty() || weight.size() == objectCount, "Label and weight should have same sizes.");
+
+    TVector<TGroupId> groupId;
+    if (!Rf_isNull(groupIdParam)) {
+        CB_ENSURE(
+            static_cast<size_t>(length(groupIdParam)) == objectCount,
+            "Label and group_id should have same sizes."
+        );
+        groupId.reserve(objectCount);
+        for (auto i : xrange(objectCount)) {
+            groupId.push_back(CalcGroupIdFor(TStringBuf(CHAR(STRING_ELT(groupIdParam, i)))));
+        }
+    }
+
+    TVector<float> groupWeight = GetVectorFromNullableSEXP<float>(groupWeightParam, "group_weight"_sb);
+    CB_ENSURE(groupWeight.empty() || groupWeight.size() == objectCount, "Label and group weight should have same sizes.");
+
+    TVector<TSubgroupId> subgroupId;
+    if (!Rf_isNull(subgroupIdParam)) {
+        CB_ENSURE(
+            static_cast<size_t>(length(subgroupIdParam)) == objectCount,
+            "Label and subgroup_id should have same sizes."
+        );
+        subgroupId.reserve(objectCount);
+        for (auto i : xrange(objectCount)) {
+            subgroupId.push_back(CalcSubgroupIdFor(TStringBuf(CHAR(STRING_ELT(subgroupIdParam, i)))));
+        }
+    }
+
+    TVector<TPair> pairs;
+    if (!Rf_isNull(pairsParam)) {
+        SEXP pairsDim = getAttrib(pairsParam, R_DimSymbol);
+        CB_ENSURE(pairsDim != R_NilValue, "pairs must be a matrix");
+        size_t pairsCount = SafeIntegerCast<size_t>(INTEGER(pairsDim)[0]);
+        int pairsColumns = INTEGER(pairsDim)[1];
+        CB_ENSURE(pairsColumns == 2 || pairsColumns == 3, "pairs must have 2 or 3 columns");
+        double* ptr_pairs = REAL(pairsParam);
+        pairs.reserve(pairsCount);
+        for (auto i : xrange(pairsCount)) {
+            float pairWeight = pairsColumns == 3 ? static_cast<float>(ptr_pairs[i + pairsCount * 2]) : 1.0f;
+            pairs.emplace_back(
+                static_cast<ui32>(ptr_pairs[i + pairsCount * 0]),
+                static_cast<ui32>(ptr_pairs[i + pairsCount * 1]),
+                pairWeight
+            );
+        }
+    }
+
+    int threadCount = UpdateThreadCount(asInteger(threadCountParam));
+
+    CB_ENSURE(
+        !IsGroupwiseMetric(metricName) || !groupId.empty(),
+        "Metric \"" << metricName << "\" requires group data"
+    );
+
+    NPar::TLocalExecutor executor;
+    executor.RunAdditionalThreads(threadCount - 1);
+    TVector<THolder<IMetric>> metrics = CreateMetricsFromDescription({metricName}, approx.ysize());
+    if (!weight.empty()) {
+        for (auto& metric : metrics) {
+            metric->UseWeights.SetDefaultValue(true);
+        }
+    }
+
+    NCB::TObjectsGrouping objectGrouping = NCB::CreateObjectsGroupingFromGroupIds<TGroupId>(
+        objectCount,
+        groupId.empty() ? Nothing() : NCB::TMaybeData<TConstArrayRef<TGroupId>>(groupId)
+    );
+    if (!pairs.empty()) {
+        NCB::CheckPairs(pairs, objectGrouping);
+    }
+    TVector<TQueryInfo> queriesInfo;
+    if (!groupId.empty()) {
+        queriesInfo = *NCB::MakeGroupInfos(
+            objectGrouping,
+            subgroupId.empty() ? Nothing() : NCB::TMaybeData<TConstArrayRef<TSubgroupId>>(subgroupId),
+            groupWeight.empty() ? NCB::TWeights<float>(groupId.size()) : NCB::TWeights<float>(TVector<float>(groupWeight)),
+            TConstArrayRef<TPair>(pairs)
+        ).Get();
+    }
+
+    TVector<const IMetric*> metricPtrs;
+    metricPtrs.reserve(metrics.size());
+    for (const auto& metric : metrics) {
+        metricPtrs.push_back(metric.Get());
+    }
+
+    TVector<TMetricHolder> stats = EvalErrorsWithCaching(
+        approx,
+        /*approxDelta*/ {},
+        /*isExpApprox*/ false,
+        To2DConstArrayRef<float>(label),
+        weight,
+        queriesInfo,
+        metricPtrs,
+        &executor
+    );
+
+    result = PROTECT(allocVector(REALSXP, metricPtrs.size()));
+    for (auto metricIdx : xrange(metricPtrs.size())) {
+        REAL(result)[metricIdx] = metricPtrs[metricIdx]->GetFinalError(stats[metricIdx]);
+    }
+
+    R_API_END();
+    UNPROTECT(1);
     return result;
 }
 

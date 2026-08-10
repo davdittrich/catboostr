@@ -42,7 +42,8 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(
     SEXP featureNamesParam,
     SEXP classLabelsParam,
     SEXP embeddingListParam,
-    SEXP embeddingFeaturesIndicesParam
+    SEXP embeddingFeaturesIndicesParam,
+    SEXP featureTagsParam
 );
 
 EXPORT_FUNCTION CatBoostHashStrings_R(SEXP stringsParam);
@@ -87,7 +88,11 @@ EXPORT_FUNCTION CatBoostFit_R(
     // P6.4 (catboost-8z4.90): R_NilValue, or a named list with
     // evaluate/is_max_optimal (and optionally get_final_error/is_additive)
     // closures -- see r_custom_metric.h.
-    SEXP customEvalMetricParam
+    SEXP customEvalMetricParam,
+    // catboost-8z4.122: R_NilValue, or a list of after_iteration(info)
+    // closures (params$callbacks, stripped out before JSON export by
+    // apply_train_callbacks_params()) -- see r_train_callbacks.h.
+    SEXP callbacksParam
 );
 
 // catboost-8z4.91 test hook: MaxActiveWorkers() from the bridge's most
@@ -114,6 +119,13 @@ EXPORT_FUNCTION CatBoostCV_R(
     // or a named list, see r_custom_objective.h/r_custom_metric.h.
     SEXP customObjectiveParam,
     SEXP customEvalMetricParam
+);
+
+// catboost-azg: R equivalent of Python's catboost.utils.compute_training_options.
+EXPORT_FUNCTION CatBoostComputeTrainingOptions_R(
+    SEXP paramsAsJsonParam,
+    SEXP trainMetaInfoAsJsonParam,
+    SEXP testMetaInfoAsJsonParam
 );
 
 EXPORT_FUNCTION CatBoostGridSearch_R(
@@ -228,11 +240,51 @@ EXPORT_FUNCTION CatBoostGetModelParams_R(SEXP modelParam);
 
 EXPORT_FUNCTION CatBoostGetPlainParams_R(SEXP modelParam);
 
+// P10.D (catboost-8z4.118): R equivalent of Python's CatBoost.classes_.
+EXPORT_FUNCTION CatBoostGetModelClassLabels_R(SEXP modelParam);
+
 // P5.6 (catboost-8z4.63): R equivalents of the CLI's `metadata` mode and
 // Python's model.get_metadata()/model.feature_names_.
 EXPORT_FUNCTION CatBoostGetModelInfo_R(SEXP modelParam);
 
 EXPORT_FUNCTION CatBoostSetModelInfo_R(SEXP modelParam, SEXP keyParam, SEXP valueParam);
+
+// P10.F (catboost-8z4.120): erase support for
+// catboost.set_probability_threshold(model, NULL), mirroring _catboost.pyx
+// _MetadataHashProxy.__delitem__. Kept separate from CatBoostSetModelInfo_R
+// so that function's existing (string key, string value, always-sets)
+// contract is unchanged.
+EXPORT_FUNCTION CatBoostEraseModelInfo_R(SEXP modelParam, SEXP keyParam);
+
+// P10.F (catboost-8z4.120): internal float-feature-borders accessor used by
+// catboost.plot_predictions()/catboost.plot_partial_dependence() to
+// reproduce core.py's `model_borders = self._get_borders()`
+// (_catboost.pyx:5561). Also the sole native entry point backing the public
+// catboost.get_borders() R function (P10.E, catboost-8z4.119) -- both
+// callers need the exact same (feature_index -> borders) map, so this one
+// function backs both instead of a second identical accessor.
+EXPORT_FUNCTION CatBoostGetFloatFeatureBorders_R(SEXP modelParam);
+
+// P10.E (catboost-8z4.119): tree-internals accessors/mutator (see
+// src/catboostr.cpp for full rationale).
+EXPORT_FUNCTION CatBoostGetLeafValues_R(SEXP modelParam);
+
+EXPORT_FUNCTION CatBoostGetLeafWeights_R(SEXP modelParam);
+
+EXPORT_FUNCTION CatBoostGetTreeLeafCounts_R(SEXP modelParam);
+
+EXPORT_FUNCTION CatBoostSetLeafValues_R(SEXP modelParam, SEXP valuesParam);
+
+EXPORT_FUNCTION CatBoostSaveModelBorders_R(SEXP modelParam, SEXP outputFileParam);
+
+EXPORT_FUNCTION CatBoostCalcLeafIndexes_R(
+    SEXP modelParam,
+    SEXP poolParam,
+    SEXP treeStartParam,
+    SEXP treeEndParam,
+    SEXP threadCountParam,
+    SEXP verboseParam
+);
 
 // P5.7 (catboost-8z4.64): R equivalents of CLI's `normalize-model` mode /
 // Python's get_scale_and_bias()/set_scale_and_bias().
@@ -290,6 +342,18 @@ EXPORT_FUNCTION CatBoostEvalMetrics_R(
     SEXP resultDirParam
 );
 
+EXPORT_FUNCTION CatBoostEvalMetric_R(
+    SEXP labelParam,
+    SEXP approxParam,
+    SEXP metricParam,
+    SEXP weightParam,
+    SEXP groupIdParam,
+    SEXP groupWeightParam,
+    SEXP subgroupIdParam,
+    SEXP pairsParam,
+    SEXP threadCountParam
+);
+
 EXPORT_FUNCTION CatBoostVersion_R(void);
 
 // P8.1 (catboost-8z4.102): R equivalent of the CLI's `run-worker` mode
@@ -306,6 +370,10 @@ EXPORT_FUNCTION CatBoostRunWorker_R(SEXP nodePortParam, SEXP threadCountParam);
 EXPORT_FUNCTION CatBoostPoolHasLabel_R(SEXP poolParam);
 
 EXPORT_FUNCTION CatBoostPoolGetLabel_R(SEXP poolParam);
+
+EXPORT_FUNCTION CatBoostPoolPromoteStringTarget_R(SEXP poolParam);
+
+EXPORT_FUNCTION CatBoostPoolDemoteStringTarget_R(SEXP poolParam);
 
 EXPORT_FUNCTION CatBoostPoolGetWeight_R(SEXP poolParam);
 
@@ -411,6 +479,10 @@ EXPORT_FUNCTION CatBoostDatasetStatistics_R(
     SEXP borderCountParam,
     SEXP onlyGroupStatisticsParam,
     SEXP onlyLightStatisticsParam,
+    SEXP notConvertStringTargetsParam,
+    SEXP customFeatureLimitsParam,
+    SEXP spotSizeParam,
+    SEXP spotCountParam,
     SEXP outputPathParam,
     SEXP histogramPathParam
 );

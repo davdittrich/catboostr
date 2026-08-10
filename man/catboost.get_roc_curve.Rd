@@ -4,7 +4,7 @@
 \alias{catboost.get_roc_curve}
 \title{Build a ROC curve}
 \usage{
-catboost.get_roc_curve(model, pool)
+catboost.get_roc_curve(model, pool, label_border = 0.5)
 }
 \arguments{
 \item{model}{The model obtained as the result of training on a binary classification task.
@@ -12,11 +12,17 @@ catboost.get_roc_curve(model, pool)
 Default value: Required argument}
 
 \item{pool}{A \code{catboost.Pool} (or list of \code{catboost.Pool}s) with label data, used
-to build the curve. Labels are binarized: values >= 0.5 count as the positive class. Labels
-that do not round to 0 or 1 (i.e. the pool is not a binary classification target) make the
-call fail with an error.
+to build the curve. Labels are binarized: values > \code{label_border} count as the positive
+class. Labels that do not round to 0 or 1 (i.e. the pool is not a binary classification
+target) make the call fail with an error.
 
 Default value: Required argument}
+
+\item{label_border}{The label binarization border: a label counts as the positive class if
+it is strictly greater than this value. Matches the CLI's \code{roc} mode
+\code{--label-border}/\code{-b} option.
+
+Default value: 0.5}
 }
 \value{
 A list with three numeric vectors of equal length, sorted by decreasing

@@ -97,6 +97,128 @@ test_that("select_features: RecursiveByLossFunctionChange with train_final_model
   expect_null(result$model)
 })
 
+# catboost-8z4.117 (P10.C): EFeaturesSelectionAlgorithm.RecursiveByPredictionValuesChange
+# and EShapCalcType.{Regular,Approximate,Exact} -- no fixture exists for
+# these values (gen_select_features_fixture.py only pinned
+# RecursiveByShapValues/RecursiveByLossFunctionChange), and regenerating one
+# needs the pinned Python catboost binary, which is unavailable in this
+# worktree. Following this file's own precedent (the CLI-range-syntax test
+# below, which also has no oracle fixture), these are real, non-oracle
+# structural/self-consistency tests: the native NCB::SelectFeatures call is
+# genuinely exercised end-to-end with each value and must return a
+# selection that partitions features_for_select exactly, proving the value
+# is accepted and produces a well-formed result (not silently ignored or
+# defaulted).
+test_that("select_features: algorithm = 'RecursiveByPredictionValuesChange' produces a valid partition", {
+  result <- catboost.select_features(
+    learn_pool,
+    features_for_select = fixture$features_for_select,
+    num_features_to_select = fixture$num_features_to_select,
+    params = base_params(),
+    algorithm = "RecursiveByPredictionValuesChange",
+    steps = fixture$steps,
+    train_final_model = FALSE
+  )
+  expect_equal(length(result$selected_features), fixture$num_features_to_select)
+  expect_equal(
+    sort(c(result$selected_features, result$eliminated_features)),
+    sort(fixture$features_for_select)
+  )
+})
+
+test_that("select_features: shap_calc_type = 'Regular'/'Approximate'/'Exact' each produce a valid partition", {
+  for (sct in c("Regular", "Approximate", "Exact")) {
+    result <- catboost.select_features(
+      learn_pool,
+      features_for_select = fixture$features_for_select,
+      num_features_to_select = fixture$num_features_to_select,
+      params = base_params(),
+      algorithm = "RecursiveByShapValues",
+      shap_calc_type = sct,
+      steps = fixture$steps,
+      train_final_model = FALSE
+    )
+    expect_equal(length(result$selected_features), fixture$num_features_to_select, info = sct)
+    expect_equal(
+      sort(c(result$selected_features, result$eliminated_features)),
+      sort(fixture$features_for_select),
+      info = sct
+    )
+  }
+})
+
+test_that("select_features: shap_calc_type = 'Exact' matches the CLI oracle's elimination decision", {
+  # catboost-inm (followup to catboost-8z4.115/P10.A): closes the
+  # select-features half of flag:--shap-calc-type. The Python-oracle
+  # fixture above never varies shap_calc_type away from its "Regular"
+  # default, so this differentially tests it directly against the CLI
+  # oracle (Python oracle binary unavailable in this worktree) on the
+  # shared smoke dataset -- see
+  # tools/oracle/cli/gen_select_features_shap_calc_type_fixture.sh.
+  #
+  # Compares the elimination decision (selected_features/eliminated_features/
+  # removed_features_count), which matches the CLI oracle exactly: real
+  # evidence that shap_calc_type = "Exact" is wired through to the same
+  # feature ranking as the CLI, not merely accepted-and-ignored (the gap
+  # this row's justification named). The loss_graph's absolute loss_values
+  # do NOT match the CLI oracle at any tolerance tried (~1.6% relative,
+  # first-step baseline loss already differs before any feature is
+  # removed) -- root-caused in catboost-hpk.5 (see closure_overlay.json's
+  # "mode:select-features" entry for the full trace): the CLI's own
+  # mode_select_features.cpp shuffles the learn pool before calling the
+  # shared native SelectFeatures entry point; that shuffle step doesn't
+  # exist in the entry point itself, so R (and Python, which calls the
+  # identical entry point) never shuffle. Confirmed empirically -- passing
+  # --has-time to the CLI binary (which disables its shuffle) moves the
+  # CLI's own first loss_graph.loss_values entry by a comparable margin.
+  # Deliberately not "fixed": matching the CLI's incidental shuffle would
+  # mean R diverging from the shared entry point Python also uses, which
+  # is the actual parity target here (and already verified bit-exact
+  # elsewhere in this file at 1e-12 against the Python oracle).
+  oracle <- jsonlite::fromJSON(
+    testthat::test_path("..", "fixtures", "oracle-cli", "select_features_shap_calc_type.json"),
+    simplifyVector = TRUE
+  )
+
+  smoke_pool <- catboost.load_pool(
+    testthat::test_path("..", "fixtures", "oracle-cli", "smoke_data.csv"),
+    column_description = testthat::test_path("..", "fixtures", "oracle-cli", "smoke.cd"),
+    delimiter = ",", has_header = TRUE, thread_count = 1
+  )
+
+  base_call <- function(sct) {
+    catboost.select_features(
+      smoke_pool,
+      test_pool = smoke_pool,
+      features_for_select = c(0, 1),
+      num_features_to_select = 1,
+      params = list(
+        loss_function = "Logloss", iterations = 20, depth = 4, learning_rate = 0.1,
+        random_seed = 42, thread_count = 1, logging_level = "Silent"
+      ),
+      algorithm = "RecursiveByShapValues",
+      shap_calc_type = sct,
+      steps = 2,
+      train_final_model = FALSE
+    )
+  }
+  result <- base_call("Exact")
+
+  expect_equal(sort(result$selected_features), sort(oracle$selected_features), check.attributes = FALSE)
+  expect_equal(sort(result$eliminated_features), sort(oracle$eliminated_features), check.attributes = FALSE)
+  expect_equal(
+    result$loss_graph$removed_features_count, oracle$loss_graph$removed_features_count,
+    check.attributes = FALSE
+  )
+
+  # shap_calc_type has a real numeric effect (not accepted-and-ignored):
+  # "Approximate"'s intermediate SHAP estimates differ from "Exact"'s.
+  result_approx <- base_call("Approximate")
+  expect_false(isTRUE(all.equal(
+    result$loss_graph$loss_values, result_approx$loss_graph$loss_values
+  )))
+})
+
 test_that("select_features accepts the CLI range syntax for features_for_select", {
   result <- catboost.select_features(
     learn_pool,

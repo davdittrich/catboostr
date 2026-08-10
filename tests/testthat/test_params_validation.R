@@ -26,6 +26,35 @@ test_that("catboost.train: a canonical params key trains without error", {
   expect_silent(catboost.train(pool, params = tiny_params(list(depth = 3))))
 })
 
+test_that("params key 'silent' is translated to logging_level before export (catboost-8z4.122, matrix row goes green)", {
+  # 'silent' is Python-client-side sugar for logging_level (core.py's
+  # _process_verbose(), never a native flat option itself -- confirmed by
+  # the "Python-only params keys" test below still rejecting it if it ever
+  # reached native unmodified). prepare_train_export_parameters() now
+  # translates it before JSON export, so silent = TRUE/FALSE trains exactly
+  # as logging_level = "Silent"/"Verbose" would. Kept right after the
+  # canonical-training test above (not next to the deliberately-erroring
+  # red-row tests further down this file), because CatBoost's native global
+  # logger singleton (TCatboostLog::ResetBackend, logging.cpp) only suppresses
+  # its own "Custom logger is already specified" cross-talk warning while
+  # LogPriority is still at the *previous* successful call's level -- a
+  # training call that errors before that gets set leaves the singleton
+  # noisier for whatever call comes right after it, unrelated to this fix.
+  expect_silent(catboost.train(pool, params = tiny_params(list(logging_level = NULL, silent = TRUE))))
+  expect_output(
+    catboost.train(pool, params = tiny_params(list(logging_level = NULL, silent = FALSE))),
+    "learn:"
+  )
+  expect_error(
+    catboost.train(pool, params = tiny_params(list(silent = TRUE))),
+    "Only one of the parameters"
+  )
+  expect_error(
+    catboost.train(pool, params = tiny_params(list(logging_level = NULL, silent = "yes"))),
+    "'silent' must be a single TRUE/FALSE"
+  )
+})
+
 test_that("catboost.pool.quantize: also reaches validate_params_keys() via process_synonyms(), and its documented params all pass (review-round fix)", {
   # catboost.pool.quantize()'s own roxygen doc names exactly 5 accepted
   # params: border_count (already covered by test_pool_quantization.R),
@@ -173,6 +202,48 @@ test_that("catboost.load_pool: 'graph' is accepted syntactically but the R Pool-
   )
 })
 
+test_that("catboost.load_pool: in-memory 'graph' always fails, even with no group_id at all (catboost-hpk.1, matrix row stays red)", {
+  # catboost-hpk.1: read vendor/catboost/catboost/libs/data/data_provider_builders.cpp
+  # in full. R's in-memory Pool-construction path (src/catboostr.cpp's
+  # CatBoostCreateFromMatrix_R) drives an IRawFeaturesOrderDataVisitor
+  # exclusively, so visitor->SetGraph() always resolves to
+  # TRawFeaturesOrderDataProviderBuilder::SetGraph
+  # (data_provider_builders.cpp:1321-1324), whose body is unconditionally
+  # CB_ENSURE_INTERNAL(false, "Unimplemented") -- confirmed by reading the
+  # body. This is a strictly more general reproduction than the
+  # graph+group_id test above: no group_id, no grouped queries, just a plain
+  # matrix Pool with graph set. TRawObjectsOrderDataProviderBuilder::SetGraph
+  # (data_provider_builders.cpp:205-209), which IS implemented, is only ever
+  # reached by the file-based dsv-flat loader (catboost.from_file()), never
+  # by catboost.from_matrix()/catboost.load_pool(data = <matrix>, ...).
+  plain_matrix_data <- matrix(c(1, 2, 3, 4, 5, 6, 7, 8), ncol = 2)
+  expect_error(
+    catboost.load_pool(plain_matrix_data, label = c(0, 1, 0, 1),
+                        graph = matrix(c(1L, 2L, 3L, 4L), ncol = 2)),
+    "Internal CatBoost Error|Unimplemented"
+  )
+})
+
+test_that("catboost.load_pool: the documented file-based workaround for 'graph' actually builds a Pool (catboost-hpk.1)", {
+  # Positive control for the roxygen workaround added to catboost.load_pool's
+  # @param graph docs: writing graph to a dsv-flat file and passing a file
+  # `data` path routes through TRawObjectsOrderDataProviderBuilder (the
+  # sibling builder that DOES implement SetGraph), so the same logical Pool
+  # that fails in-memory above succeeds here. Oracle-level numeric parity for
+  # this file-based graph path is already covered by
+  # test_grouped_data_parity.R (catboost-inm); this test only proves the
+  # workaround itself is real and does not throw.
+  pool_path <- tempfile()
+  cd_path <- tempfile()
+  graph_path <- tempfile()
+  writeLines(c("1\t5\t2", "2\t6\t3", "3\t7\t4", "4\t8\t1"), pool_path)
+  writeLines(c("0\tLabel"), cd_path)
+  writeLines(c("0\t1", "2\t3"), graph_path)
+  workaround_pool <- catboost.load_pool(pool_path, column_description = cd_path, graph = graph_path)
+  expect_true(inherits(workaround_pool, "catboost.Pool"))
+  expect_equal(dim(workaround_pool)[1], 4)
+})
+
 test_that("GPU-only params keys fail without a CUDA device, matching the mode:model-based-eval precedent (matrix rows stay red)", {
   # Each key needs a syntactically valid value so the failure genuinely comes
   # from "no CUDA device", not from a value-parsing error one layer earlier.
@@ -196,7 +267,12 @@ test_that("GPU-only params keys fail without a CUDA device, matching the mode:mo
 })
 
 test_that("Python-only params keys with no catboostr equivalent are rejected by native (matrix rows stay red)", {
-  no_r_equivalent_keys <- c("callback", "plot", "plot_file", "log_cout", "log_cerr", "silent")
+  # 'callback' (singular) is not a real Python kwarg either (unlike
+  # 'callbacks', see the test below) nor a native flat option -- there is no
+  # capability of any kind behind this key in either language, verified by
+  # grepping catboost/python-package/catboost/core.py and
+  # plain_options_helper.cpp for it (catboost-8z4.122 re-verification).
+  no_r_equivalent_keys <- c("callback", "plot", "plot_file", "log_cout", "log_cerr")
   for (k in no_r_equivalent_keys) {
     extra <- setNames(list("x"), k)
     expect_error(
@@ -207,33 +283,136 @@ test_that("Python-only params keys with no catboostr equivalent are rejected by 
   }
 })
 
-test_that("params key 'callbacks' is syntactically accepted by native but has no functioning R-side callback mechanism (matrix row stays red)", {
-  # Unlike the other Python-only keys above, native's plain_options_helper.cpp
-  # explicitly *records* "callbacks" as a seen/valid key without validating or
-  # consuming its value (plain_options_helper.cpp:269-270) -- so this does
-  # NOT error, confirmed below. catboostr's C glue (src/catboostr.cpp) has no
-  # mechanism to marshal an R closure into a per-iteration native callback --
-  # inspected directly, not asserted here (this test only proves the
-  # non-error half: an arbitrary value under "callbacks" doesn't trip
-  # native's flat-option validation, unlike every other Python-only key
-  # above). The absence of any callback-invocation mechanism in catboostr's
-  # C glue is a code-inspection finding, not something a single training
-  # call can spy on from R.
-  expect_error(catboost.train(pool, params = tiny_params(list(callbacks = list(1)))), NA)
+test_that("params key 'callbacks' invokes a real per-iteration native callback (catboost-8z4.122, matrix row goes green)", {
+  # r_train_callbacks.h/.cpp wires params$callbacks into the same native
+  # ITrainingCallbacks/TCustomCallbackDescriptor::AfterIterationFunc hook
+  # Python's `callbacks` kwarg uses (train_model.h; _catboost.pyx's
+  # _BuildCustomCallbackDescritor) -- this is a real per-iteration training
+  # callback, not just syntactic acceptance.
+  seen_iterations <- integer(0)
+  record_iteration <- function(info) {
+    seen_iterations <<- c(seen_iterations, info$iteration)
+    TRUE
+  }
+  model <- catboost.train(pool, params = tiny_params(list(iterations = 5, callbacks = list(record_iteration))))
+  expect_equal(seen_iterations, 1:5)
+  expect_true(is.list(model))
+
+  # info$metrics has the same shape as catboost.get_evals_result()'s return
+  # value (both come from the identical TMetricsAndTimeLeftHistory::
+  # SaveMetrics() JSON, see r_train_callbacks.cpp) -- learn Logloss should be
+  # present and growing by one value per iteration seen so far.
+  seen_metric_lengths <- integer(0)
+  record_metric_length <- function(info) {
+    seen_metric_lengths <<- c(seen_metric_lengths, length(info$metrics$learn$Logloss))
+    TRUE
+  }
+  catboost.train(pool, params = tiny_params(list(iterations = 3, callbacks = list(record_metric_length))))
+  expect_equal(seen_metric_lengths, 1:3)
+
+  # A callback returning FALSE stops training early -- all()-of-callbacks
+  # semantics, matching Python's _TrainCallbacksWrapper.
+  stop_after_two <- function(info) info$iteration < 2
+  model_stopped_early <- catboost.train(
+    pool, params = tiny_params(list(iterations = 10, callbacks = list(stop_after_two)))
+  )
+  expect_equal(model_stopped_early$tree_count, 2)
+
+  # all()-of-callbacks: training stops as soon as ANY callback returns FALSE,
+  # even if an earlier one in the list would have said continue.
+  always_true <- function(info) TRUE
+  model_multi_callback <- catboost.train(
+    pool, params = tiny_params(list(iterations = 10, callbacks = list(always_true, stop_after_two)))
+  )
+  expect_equal(model_multi_callback$tree_count, 2)
 })
 
-test_that("params keys 'classes_count'/'class_names' can't be exercised for MultiClass string labels: catboost.load_pool pre-converts labels client-side (matrix rows stay red)", {
+test_that("params keys 'classes_count'/'class_names' can be exercised for MultiClass string labels: catboost.train promotes the Pool's target to a String type to match", {
   mc_pool <- catboost.load_pool(
     matrix(c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), ncol = 1),
     label = c("neg", "pos", "neg", "pos", "neg", "pos", "neg", "pos", "neg", "pos")
   )
-  expect_error(
-    catboost.train(mc_pool, params = list(
-      loss_function = "MultiClass", iterations = 2, logging_level = "Silent",
-      thread_count = 1, classes_count = 2, class_names = list("neg", "pos")
-    )),
-    "Not all class names are numeric, but specified target data is"
+  model <- catboost.train(mc_pool, params = list(
+    loss_function = "MultiClass", iterations = 2, logging_level = "Silent",
+    thread_count = 1, classes_count = 2, class_names = list("neg", "pos")
+  ))
+  expect_equal(model$tree_count, 2)
+  expect_equal(sort(model$classes_), c("neg", "pos"))
+})
+
+test_that("classes_count alone (no class_names) against a factor/character label still trains against the Pool's numeric target, unaffected by catboost-1wu's class_names promotion", {
+  mc_pool <- catboost.load_pool(
+    matrix(c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), ncol = 1),
+    label = c("neg", "pos", "neg", "pos", "neg", "pos", "neg", "pos", "neg", "pos")
   )
+  model <- catboost.train(mc_pool, params = list(
+    loss_function = "MultiClass", iterations = 2, logging_level = "Silent",
+    thread_count = 1, classes_count = 2
+  ))
+  expect_equal(model$tree_count, 2)
+})
+
+test_that("catboost-1wu: a Pool promoted for class_names can be retrained, and reused as both learn_pool and test_pool, without error", {
+  mc_pool <- catboost.load_pool(
+    matrix(c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), ncol = 1),
+    label = c("neg", "pos", "neg", "pos", "neg", "pos", "neg", "pos", "neg", "pos")
+  )
+  mc_params <- list(
+    loss_function = "MultiClass", iterations = 2, logging_level = "Silent",
+    thread_count = 1, classes_count = 2, class_names = list("neg", "pos")
+  )
+  model_first <- catboost.train(mc_pool, params = mc_params)
+  model_second <- catboost.train(mc_pool, params = mc_params)
+  expect_equal(model_first$tree_count, 2)
+  expect_equal(model_second$tree_count, 2)
+
+  model_with_test_pool <- catboost.train(mc_pool, test_pool = mc_pool, params = mc_params)
+  expect_equal(model_with_test_pool$tree_count, 2)
+})
+
+test_that("catboost-1wu fix round 2: a class_names training call does not leave the Pool's target permanently String-typed -- get_label/train_eval_split keep working afterwards", {
+  feature <- matrix(c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), ncol = 1)
+  label_strings <- c("neg", "pos", "neg", "pos", "neg", "pos", "neg", "pos", "neg", "pos")
+  mc_pool <- catboost.load_pool(feature, label = label_strings)
+  original_label <- catboost.pool.get_label(mc_pool)
+
+  invisible(catboost.train(mc_pool, params = list(
+    loss_function = "MultiClass", iterations = 2, logging_level = "Silent",
+    thread_count = 1, classes_count = 2, class_names = list("neg", "pos")
+  )))
+
+  # Fix round 1 left the Pool's target permanently String-typed here, which
+  # made both of these hard-error where they worked before training.
+  expect_equal(catboost.pool.get_label(mc_pool), original_label)
+  split <- catboost.pool.train_eval_split(mc_pool, has_time = TRUE, is_classification = TRUE, eval_fraction = 0.3)
+  expect_false(is.null(split$train))
+})
+
+test_that("catboost-1wu fix round 2: a class_names-less retrain of the SAME Pool object after a class_names training call is not silently class-flipped when factor levels() aren't alphabetical", {
+  feature <- matrix(c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), ncol = 1)
+  label_strings <- c("neg", "pos", "neg", "pos", "neg", "pos", "neg", "pos", "neg", "pos")
+  # Non-alphabetical level order: as.integer(factor(...)) - 1L maps
+  # "pos" -> class index 0 and "neg" -> class index 1 here, the opposite of
+  # alphabetical order -- exactly the case fix round 1's bug depended on.
+  label_factor <- factor(label_strings, levels = c("pos", "neg"))
+
+  mc_pool <- catboost.load_pool(feature, label = label_factor)
+  invisible(catboost.train(mc_pool, params = list(
+    loss_function = "MultiClass", iterations = 5, logging_level = "Silent",
+    thread_count = 1, classes_count = 2, class_names = list("pos", "neg")
+  )))
+
+  fresh_params <- list(loss_function = "MultiClass", iterations = 5, logging_level = "Silent", thread_count = 1)
+  fresh_pool <- catboost.load_pool(feature, label = label_factor)
+  fresh_model <- catboost.train(fresh_pool, params = fresh_params)
+  retrained_model <- catboost.train(mc_pool, params = fresh_params)
+
+  fresh_pred <- catboost.predict(fresh_model, fresh_pool, prediction_type = "Probability")
+  retrained_pred <- catboost.predict(retrained_model, mc_pool, prediction_type = "Probability")
+  # Fix round 1's bug produced the COMPLEMENT of these predictions here
+  # (max|p_fresh + p_retrained - 1| ~ 0, i.e. the positive class silently
+  # flipped) instead of matching.
+  expect_equal(retrained_pred, fresh_pred, tolerance = 1e-6)
 })
 
 test_that("catboost.cv: an unknown params key is rejected the same way as catboost.train", {
@@ -247,6 +426,13 @@ test_that("catboost.cv: a canonical params key (including one set by early_stopp
   expect_error(
     catboost.cv(pool, params = tiny_params(), fold_count = 2, early_stopping_rounds = 5),
     NA
+  )
+})
+
+test_that("catboost.cv: a 'callbacks' params key is rejected loudly instead of silently ignored (final-review finding, batch fix)", {
+  expect_error(
+    catboost.cv(pool, params = tiny_params(list(callbacks = list(function(info) TRUE))), fold_count = 2),
+    "'callbacks'.*only supported by catboost.train"
   )
 })
 

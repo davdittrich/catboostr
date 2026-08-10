@@ -82,6 +82,39 @@ test_that("pool embeddings: fit/predict on an embedding Pool matches Python orac
   expect_equal(as.double(prediction), fixture$expected$predict, tolerance = 1e-6)
 })
 
+# catboost-hpk.2: the CLI's --embedding-calcers flag is a mutually-exclusive
+# alternate encoding of embedding_processing's default-slot calcer list --
+# both are parsed by the identical native
+# ParseEmbeddingProcessingOptionsFromPlainJson() (plain_options_helper.cpp /
+# embedding_processing_options.cpp), which PlainJsonToOptions() (called by
+# both the CLI and catboostr's CatBoostFit_R) invokes unconditionally. Unlike
+# embedding_processing's value (which must repeat the "embedding_processing"
+# wrapper key, matching TEmbeddingProcessingOptions::Load's own field name --
+# see the fixture's params$embedding_processing above), embedding_calcers
+# takes the bare calcer list directly: plainOptions["embedding_calcers"] is
+# assigned straight into embeddingProcessingOptions["embedding_processing"]
+# ["default"]. This test drives training through embedding_calcers = list("KNN")
+# instead -- non-default because the CLI/native default is the two-calcer
+# ("LDA", "KNN") list (see the LDA-divergence test below) -- and checks the
+# prediction against the identical oracle fixture already proven to match
+# Python's KNN-only run above, proving catboostr's embedding_calcers path
+# reaches the same native code and produces the same oracle-verified result.
+test_that("pool embeddings: embedding_calcers (CLI flag's key) matches the Python oracle", {
+  pool <- catboost.load_pool(
+    feature_matrix(),
+    label = as.double(fixture$inputs$label),
+    embedding_features = list(emb = embedding_matrix())
+  )
+  params <- fixture$params
+  params$embedding_processing <- NULL
+  params$embedding_calcers <- list("KNN")
+  params$verbose <- NULL
+  params$logging_level <- "Silent"
+  model <- catboost.train(pool, params = params)
+  prediction <- catboost.predict(model, pool, prediction_type = "RawFormulaVal")
+  expect_equal(as.double(prediction), fixture$expected$predict, tolerance = 1e-6)
+})
+
 # catboost-8z4.45: default embedding_processing is ("LDA", "KNN"), not the
 # KNN-only pin used above. R's LDA calcer and the pinned Python wheel's LDA
 # calcer diverge from bit-exactness: both read the identical embedding

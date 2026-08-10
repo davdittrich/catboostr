@@ -1,0 +1,607 @@
+{
+  "inputs": {
+    "params": {
+      "loss_function": "Logloss",
+      "iterations": 100,
+      "learning_rate": 0.05,
+      "thread_count": 1,
+      "random_seed": 42
+    },
+    "train_meta_info": {
+      "object_count": 100000,
+      "feature_count": 10,
+      "max_cat_features_uniq_values_on_learn": 0,
+      "target_min_value": 0.0,
+      "target_max_value": 1.0,
+      "has_pairs": false
+    },
+    "test_meta_info": {
+      "object_count": 20000,
+      "feature_count": 10,
+      "max_cat_features_uniq_values_on_learn": 0,
+      "has_pairs": false
+    }
+  },
+  "expected": {
+    "options_with_test": {
+      "detailed_profile": false,
+      "boosting_options": {
+        "model_shrink_mode": "Constant",
+        "approx_on_full_history": false,
+        "fold_len_multiplier": 2,
+        "fold_permutation_block": 0,
+        "posterior_sampling": false,
+        "boosting_type": "Plain",
+        "iterations": 100,
+        "model_shrink_rate": 0,
+        "od_config": {
+          "wait_iterations": 20,
+          "type": "None",
+          "stop_pvalue": 0
+        },
+        "boost_from_average": false,
+        "permutation_count": 4,
+        "learning_rate": 0.05000000074505806
+      },
+      "pool_metainfo_options": {
+        "tags": {}
+      },
+      "metrics": {
+        "objective_metric": {
+          "type": "Logloss",
+          "params": {}
+        },
+        "eval_metric": {
+          "type": "RMSE",
+          "params": {}
+        },
+        "custom_metrics": []
+      },
+      "metadata": {},
+      "cat_feature_params": {
+        "store_all_simple_ctr": false,
+        "ctr_leaf_count_limit": 18446744073709551615,
+        "simple_ctrs": [
+          {
+            "ctr_binarization": {
+              "border_count": 15,
+              "border_type": "Uniform"
+            },
+            "target_binarization": {
+              "border_count": 1,
+              "border_type": "MinEntropy"
+            },
+            "prior_estimation": "No",
+            "priors": [
+              [
+                0,
+                1
+              ],
+              [
+                0.5,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "ctr_type": "Borders"
+          },
+          {
+            "ctr_binarization": {
+              "border_count": 15,
+              "border_type": "Uniform"
+            },
+            "prior_estimation": "No",
+            "priors": [
+              [
+                0,
+                1
+              ]
+            ],
+            "ctr_type": "Counter"
+          }
+        ],
+        "counter_calc_method": "SkipTest",
+        "one_hot_max_size": 2,
+        "max_ctr_complexity": 1,
+        "combinations_ctrs": [
+          {
+            "ctr_binarization": {
+              "border_count": 15,
+              "border_type": "Uniform"
+            },
+            "target_binarization": {
+              "border_count": 1,
+              "border_type": "MinEntropy"
+            },
+            "prior_estimation": "No",
+            "priors": [
+              [
+                0,
+                1
+              ],
+              [
+                0.5,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "ctr_type": "Borders"
+          },
+          {
+            "ctr_binarization": {
+              "border_count": 15,
+              "border_type": "Uniform"
+            },
+            "prior_estimation": "No",
+            "priors": [
+              [
+                0,
+                1
+              ]
+            ],
+            "ctr_type": "Counter"
+          }
+        ],
+        "target_binarization": {
+          "border_count": 1,
+          "border_type": "MinEntropy"
+        },
+        "per_feature_ctrs": {}
+      },
+      "logging_level": "Verbose",
+      "data_processing_options": {
+        "ignored_features": [],
+        "float_features_binarization": {
+          "border_count": 254,
+          "dev_max_subset_size_for_build_borders": 200000,
+          "nan_mode": "Min",
+          "border_type": "GreedyLogSum"
+        },
+        "has_time": false,
+        "dev_sparse_array_indexing": "Indices",
+        "allow_const_label": false,
+        "dev_default_value_fraction_for_sparse": 0.8299999833106995,
+        "class_names": [],
+        "embedding_processing_options": {
+          "embedding_processing": {
+            "default": [
+              "LDA",
+              "KNN"
+            ]
+          }
+        },
+        "dev_group_features": false,
+        "eval_fraction": 0,
+        "classes_count": 0,
+        "dev_leafwise_scoring": false,
+        "auto_class_weights": "None",
+        "target_border": null,
+        "force_unit_auto_pair_weights": false,
+        "text_processing_options": {
+          "feature_processing": {
+            "default": [
+              {
+                "dictionaries_names": [
+                  "BiGram",
+                  "Word"
+                ],
+                "feature_calcers": [
+                  "BoW"
+                ],
+                "tokenizers_names": [
+                  "Space"
+                ]
+              },
+              {
+                "dictionaries_names": [
+                  "Word"
+                ],
+                "feature_calcers": [
+                  "NaiveBayes"
+                ],
+                "tokenizers_names": [
+                  "Space"
+                ]
+              }
+            ]
+          },
+          "dictionaries": [
+            {
+              "start_token_id": "0",
+              "occurrence_lower_bound": "5",
+              "skip_step": "0",
+              "end_of_word_token_policy": "Insert",
+              "token_level_type": "Word",
+              "end_of_sentence_token_policy": "Skip",
+              "gram_order": "2",
+              "max_dictionary_size": "50000",
+              "dictionary_id": "BiGram"
+            },
+            {
+              "start_token_id": "0",
+              "occurrence_lower_bound": "5",
+              "skip_step": "0",
+              "end_of_word_token_policy": "Insert",
+              "token_level_type": "Word",
+              "end_of_sentence_token_policy": "Skip",
+              "gram_order": "1",
+              "max_dictionary_size": "50000",
+              "dictionary_id": "Word"
+            }
+          ],
+          "tokenizers": [
+            {
+              "number_token": "\ud83d\udd22",
+              "skip_empty": "1",
+              "number_process_policy": "LeaveAsIs",
+              "tokenizer_id": "Space",
+              "token_types": [
+                "Number",
+                "Unknown",
+                "Word"
+              ],
+              "delimiter": " ",
+              "languages": [],
+              "lemmatizing": "0",
+              "split_by_set": "0",
+              "lowercasing": "0",
+              "subtokens_policy": "SingleToken",
+              "separator_type": "ByDelimiter"
+            }
+          ]
+        },
+        "class_weights": [],
+        "per_float_feature_quantization": {}
+      },
+      "loss_function": {
+        "type": "Logloss",
+        "params": {}
+      },
+      "tree_learner_options": {
+        "model_size_reg": 0.5,
+        "sampling_frequency": "PerTree",
+        "bayesian_matrix_reg": 0.10000000149011612,
+        "score_function": "Cosine",
+        "monotone_constraints": {},
+        "leaf_estimation_method": "Newton",
+        "dev_score_calc_obj_block_size": 5000000,
+        "grow_policy": "SymmetricTree",
+        "min_data_in_leaf": 1,
+        "random_strength": 1,
+        "dev_efb_max_buckets": 1024,
+        "l2_leaf_reg": 3,
+        "bootstrap": {
+          "mvs_reg": null,
+          "subsample": 0.800000011920929,
+          "type": "MVS"
+        },
+        "depth": 6,
+        "max_leaves": 64,
+        "leaf_estimation_backtracking": "AnyImprovement",
+        "rsm": 1,
+        "dev_leafwise_approxes": false,
+        "penalties": {
+          "per_object_feature_penalties": {},
+          "first_feature_use_penalties": {},
+          "feature_weights": {},
+          "penalties_coefficient": 1
+        },
+        "random_score_type": "NormalWithModelSizeDecrease",
+        "leaf_estimation_iterations": 1,
+        "sparse_features_conflict_fraction": 0
+      },
+      "task_type": "CPU",
+      "flat_params": {
+        "thread_count": 1,
+        "random_seed": 42,
+        "learning_rate": 0.05,
+        "iterations": 100,
+        "loss_function": "Logloss"
+      },
+      "random_seed": 42,
+      "system_options": {
+        "thread_count": 1,
+        "file_with_hosts": "hosts.txt",
+        "node_type": "SingleHost",
+        "node_port": 0,
+        "used_ram_limit": ""
+      }
+    },
+    "options_train_only": {
+      "detailed_profile": false,
+      "boosting_options": {
+        "model_shrink_mode": "Constant",
+        "approx_on_full_history": false,
+        "fold_len_multiplier": 2,
+        "fold_permutation_block": 0,
+        "posterior_sampling": false,
+        "boosting_type": "Plain",
+        "iterations": 100,
+        "model_shrink_rate": 0,
+        "od_config": {
+          "wait_iterations": 20,
+          "type": "None",
+          "stop_pvalue": 0
+        },
+        "boost_from_average": false,
+        "permutation_count": 4,
+        "learning_rate": 0.05000000074505806
+      },
+      "pool_metainfo_options": {
+        "tags": {}
+      },
+      "metrics": {
+        "objective_metric": {
+          "type": "Logloss",
+          "params": {}
+        },
+        "eval_metric": {
+          "type": "RMSE",
+          "params": {}
+        },
+        "custom_metrics": []
+      },
+      "metadata": {},
+      "cat_feature_params": {
+        "store_all_simple_ctr": false,
+        "ctr_leaf_count_limit": 18446744073709551615,
+        "simple_ctrs": [
+          {
+            "ctr_binarization": {
+              "border_count": 15,
+              "border_type": "Uniform"
+            },
+            "target_binarization": {
+              "border_count": 1,
+              "border_type": "MinEntropy"
+            },
+            "prior_estimation": "No",
+            "priors": [
+              [
+                0,
+                1
+              ],
+              [
+                0.5,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "ctr_type": "Borders"
+          },
+          {
+            "ctr_binarization": {
+              "border_count": 15,
+              "border_type": "Uniform"
+            },
+            "prior_estimation": "No",
+            "priors": [
+              [
+                0,
+                1
+              ]
+            ],
+            "ctr_type": "Counter"
+          }
+        ],
+        "counter_calc_method": "SkipTest",
+        "one_hot_max_size": 2,
+        "max_ctr_complexity": 1,
+        "combinations_ctrs": [
+          {
+            "ctr_binarization": {
+              "border_count": 15,
+              "border_type": "Uniform"
+            },
+            "target_binarization": {
+              "border_count": 1,
+              "border_type": "MinEntropy"
+            },
+            "prior_estimation": "No",
+            "priors": [
+              [
+                0,
+                1
+              ],
+              [
+                0.5,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "ctr_type": "Borders"
+          },
+          {
+            "ctr_binarization": {
+              "border_count": 15,
+              "border_type": "Uniform"
+            },
+            "prior_estimation": "No",
+            "priors": [
+              [
+                0,
+                1
+              ]
+            ],
+            "ctr_type": "Counter"
+          }
+        ],
+        "target_binarization": {
+          "border_count": 1,
+          "border_type": "MinEntropy"
+        },
+        "per_feature_ctrs": {}
+      },
+      "logging_level": "Verbose",
+      "data_processing_options": {
+        "ignored_features": [],
+        "float_features_binarization": {
+          "border_count": 254,
+          "dev_max_subset_size_for_build_borders": 200000,
+          "nan_mode": "Min",
+          "border_type": "GreedyLogSum"
+        },
+        "has_time": false,
+        "dev_sparse_array_indexing": "Indices",
+        "allow_const_label": false,
+        "dev_default_value_fraction_for_sparse": 0.8299999833106995,
+        "class_names": [],
+        "embedding_processing_options": {
+          "embedding_processing": {
+            "default": [
+              "LDA",
+              "KNN"
+            ]
+          }
+        },
+        "dev_group_features": false,
+        "eval_fraction": 0,
+        "classes_count": 0,
+        "dev_leafwise_scoring": false,
+        "auto_class_weights": "None",
+        "target_border": null,
+        "force_unit_auto_pair_weights": false,
+        "text_processing_options": {
+          "feature_processing": {
+            "default": [
+              {
+                "dictionaries_names": [
+                  "BiGram",
+                  "Word"
+                ],
+                "feature_calcers": [
+                  "BoW"
+                ],
+                "tokenizers_names": [
+                  "Space"
+                ]
+              },
+              {
+                "dictionaries_names": [
+                  "Word"
+                ],
+                "feature_calcers": [
+                  "NaiveBayes"
+                ],
+                "tokenizers_names": [
+                  "Space"
+                ]
+              }
+            ]
+          },
+          "dictionaries": [
+            {
+              "start_token_id": "0",
+              "occurrence_lower_bound": "5",
+              "skip_step": "0",
+              "end_of_word_token_policy": "Insert",
+              "token_level_type": "Word",
+              "end_of_sentence_token_policy": "Skip",
+              "gram_order": "2",
+              "max_dictionary_size": "50000",
+              "dictionary_id": "BiGram"
+            },
+            {
+              "start_token_id": "0",
+              "occurrence_lower_bound": "5",
+              "skip_step": "0",
+              "end_of_word_token_policy": "Insert",
+              "token_level_type": "Word",
+              "end_of_sentence_token_policy": "Skip",
+              "gram_order": "1",
+              "max_dictionary_size": "50000",
+              "dictionary_id": "Word"
+            }
+          ],
+          "tokenizers": [
+            {
+              "number_token": "\ud83d\udd22",
+              "skip_empty": "1",
+              "number_process_policy": "LeaveAsIs",
+              "tokenizer_id": "Space",
+              "token_types": [
+                "Number",
+                "Unknown",
+                "Word"
+              ],
+              "delimiter": " ",
+              "languages": [],
+              "lemmatizing": "0",
+              "split_by_set": "0",
+              "lowercasing": "0",
+              "subtokens_policy": "SingleToken",
+              "separator_type": "ByDelimiter"
+            }
+          ]
+        },
+        "class_weights": [],
+        "per_float_feature_quantization": {}
+      },
+      "loss_function": {
+        "type": "Logloss",
+        "params": {}
+      },
+      "tree_learner_options": {
+        "model_size_reg": 0.5,
+        "sampling_frequency": "PerTree",
+        "bayesian_matrix_reg": 0.10000000149011612,
+        "score_function": "Cosine",
+        "monotone_constraints": {},
+        "leaf_estimation_method": "Newton",
+        "dev_score_calc_obj_block_size": 5000000,
+        "grow_policy": "SymmetricTree",
+        "min_data_in_leaf": 1,
+        "random_strength": 1,
+        "dev_efb_max_buckets": 1024,
+        "l2_leaf_reg": 3,
+        "bootstrap": {
+          "mvs_reg": null,
+          "subsample": 0.800000011920929,
+          "type": "MVS"
+        },
+        "depth": 6,
+        "max_leaves": 64,
+        "leaf_estimation_backtracking": "AnyImprovement",
+        "rsm": 1,
+        "dev_leafwise_approxes": false,
+        "penalties": {
+          "per_object_feature_penalties": {},
+          "first_feature_use_penalties": {},
+          "feature_weights": {},
+          "penalties_coefficient": 1
+        },
+        "random_score_type": "NormalWithModelSizeDecrease",
+        "leaf_estimation_iterations": 1,
+        "sparse_features_conflict_fraction": 0
+      },
+      "task_type": "CPU",
+      "flat_params": {
+        "thread_count": 1,
+        "random_seed": 42,
+        "learning_rate": 0.05,
+        "iterations": 100,
+        "loss_function": "Logloss"
+      },
+      "random_seed": 42,
+      "system_options": {
+        "thread_count": 1,
+        "file_with_hosts": "hosts.txt",
+        "node_type": "SingleHost",
+        "node_port": 0,
+        "used_ram_limit": ""
+      }
+    }
+  }
+}

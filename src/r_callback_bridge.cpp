@@ -175,10 +175,13 @@ void TRCallbackBridge::DrainLoop() {
 
     for (;;) {
         TRequest* req = nullptr;
+        bool waitTimedOut = false;
         {
             std::unique_lock<std::mutex> lk(QueueMutex_);
-            QueueCv_.wait_for(lk, std::chrono::milliseconds(kDrainPollMs),
-                              [this] { return !Queue_.empty() || Finished_; });
+            // The predicate overload returns the predicate's value, so `false`
+            // means "the full kDrainPollMs elapsed with nothing to do".
+            waitTimedOut = !QueueCv_.wait_for(lk, std::chrono::milliseconds(kDrainPollMs),
+                                              [this] { return !Queue_.empty() || Finished_; });
             if (!Queue_.empty()) {
                 req = Queue_.front();
                 Queue_.pop_front();
@@ -197,8 +200,17 @@ void TRCallbackBridge::DrainLoop() {
 
         // Bounded-interval interrupt poll, whether or not requests are
         // flowing: a busy queue must not starve Ctrl-C.
+        //
+        // A timed-out wait is itself proof that kDrainPollMs of idle time
+        // passed, and it must poll unconditionally. Gating it on the
+        // steady_clock delta alone drops every other poll on platforms whose
+        // condition variable wakes a hair *before* the requested deadline
+        // (observed on macOS/arm64 CI: wake at ~99.9 ms, delta < 100 ms, poll
+        // skipped, lastPoll not advanced), halving the effective Ctrl-C
+        // responsiveness. The delta check still governs the busy-queue case,
+        // where wait_for() returns early because work arrived.
         const auto now = std::chrono::steady_clock::now();
-        if (now - lastPoll >= std::chrono::milliseconds(kDrainPollMs)) {
+        if (waitTimedOut || now - lastPoll >= std::chrono::milliseconds(kDrainPollMs)) {
             lastPoll = now;
             InterruptPolls_.fetch_add(1);
             if (!Interrupted_.load() && PendingInterrupt()) {

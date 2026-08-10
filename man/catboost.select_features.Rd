@@ -6,15 +6,18 @@
 \usage{
 catboost.select_features(
   learn_pool,
-  features_for_select,
-  num_features_to_select,
+  features_for_select = NULL,
+  num_features_to_select = NULL,
   test_pool = NULL,
   params = list(),
   algorithm = NULL,
   steps = NULL,
   shap_calc_type = NULL,
   train_final_model = TRUE,
-  custom_eval_metric_object = NULL
+  custom_eval_metric_object = NULL,
+  grouping = NULL,
+  features_tags_for_select = NULL,
+  num_features_tags_to_select = NULL
 )
 }
 \arguments{
@@ -22,18 +25,20 @@ catboost.select_features(
 
 Default value: Required argument}
 
-\item{features_for_select}{Which features may be eliminated. A vector of
-0-based feature indices or of feature names, or a single string in the CLI's
-range syntax (\code{"0,2-4,17"}, both ends of a range inclusive). Vectors are
-collapsed with commas, matching Python's
-\code{",".join(map(str, features_for_select))}.
+\item{features_for_select}{(for \code{grouping = "Individual"}, the default)
+Which features may be eliminated. A vector of 0-based feature indices or of
+feature names, or a single string in the CLI's range syntax
+(\code{"0,2-4,17"}, both ends of a range inclusive). Vectors are collapsed
+with commas, matching Python's \code{",".join(map(str, features_for_select))}.
+Must be \code{NULL} when \code{grouping = "ByTags"}.
 
-Default value: Required argument}
+Default value: Required argument when \code{grouping = "Individual"}}
 
-\item{num_features_to_select}{How many features to keep out of
-\code{features_for_select}.
+\item{num_features_to_select}{(for \code{grouping = "Individual"}) How many
+features to keep out of \code{features_for_select}. Must be \code{NULL} when
+\code{grouping = "ByTags"}.
 
-Default value: Required argument}
+Default value: Required argument when \code{grouping = "Individual"}}
 
 \item{test_pool}{Validation dataset used to measure the loss during
 elimination (a \code{catboost.Pool}), or \code{NULL} to measure it on
@@ -79,6 +84,26 @@ select_features.h}) has no custom-objective-descriptor parameter at all
 to wire it to.
 
 Default value: NULL (use \code{params$eval_metric} as-is)}
+
+\item{grouping}{One of \code{"Individual"} (the default) or \code{"ByTags"}.
+\code{"Individual"} selects among \code{features_for_select}; \code{"ByTags"}
+selects among the tags attached to \code{learn_pool} via
+\code{\link{catboost.load_pool}}'s \code{feature_tags} argument, using
+\code{features_tags_for_select}/\code{num_features_tags_to_select} instead.
+
+Default value: \code{"Individual"}}
+
+\item{features_tags_for_select}{(for \code{grouping = "ByTags"}) A character
+vector of tag names (from \code{learn_pool}'s \code{feature_tags}) that may
+be eliminated as a group. Must be \code{NULL} when \code{grouping = "Individual"}.
+
+Default value: Required argument when \code{grouping = "ByTags"}}
+
+\item{num_features_tags_to_select}{(for \code{grouping = "ByTags"}) How many
+tags to keep out of \code{features_tags_for_select}. Must be \code{NULL} when
+\code{grouping = "Individual"}.
+
+Default value: Required argument when \code{grouping = "ByTags"}}
 }
 \value{
 A list with the fields of the vendor's selection summary:
@@ -87,6 +112,8 @@ A list with the fields of the vendor's selection summary:
   \item \code{selected_features_names} -- their names.
   \item \code{eliminated_features} -- 0-based indices of the dropped features.
   \item \code{eliminated_features_names} -- their names.
+  \item \code{selected_features_tags}/\code{eliminated_features_tags} --
+    present only when \code{grouping = "ByTags"}: the kept/dropped tag names.
   \item \code{loss_graph} -- list with \code{removed_features_count},
     \code{loss_values} and \code{main_indices} (the graph points whose loss
     was measured by fitting a model rather than estimated from fstr).
@@ -110,8 +137,9 @@ This is a different algorithm from \code{\link{catboost.eval_feature}}, which
 scores caller-supplied feature sets by cross-validation instead of
 eliminating features.
 
-Feature selection by feature \emph{tags} (Python's \code{grouping = "ByTags"},
-\code{features_tags_for_select}, \code{num_features_tags_to_select}) is not
-supported: \code{catboost.load_pool} has no feature-tags argument, so an R
-pool never carries the tags that grouping selects over.
+Feature selection by feature \emph{tags} (Python's \code{grouping = "ByTags"})
+is supported via \code{grouping}/\code{features_tags_for_select}/
+\code{num_features_tags_to_select}: attach tags to \code{learn_pool} with
+\code{\link{catboost.load_pool}}'s \code{feature_tags} argument, then select
+among them here.
 }

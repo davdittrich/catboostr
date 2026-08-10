@@ -311,6 +311,74 @@ test_that("model: catboost.save_model", {
   expect_true(is_equal_model_and_load_model(model, pool, file_format = "coreml"))
 })
 
+# catboost-8z4.117 (P10.C) disposition test: catboost.utils.convert_to_onnx_object
+# (catboost/python-package/catboost/utils.py:730) calls
+# _get_onnx_model(model._object, params_string), which serializes the model
+# to an in-memory ONNX ModelProto via the same native exporter as
+# CatBoost.save_model(..., format="onnx") (core.py's save_model dispatches
+# to the identical NCB::ExportModel(..., EModelType::Onnx) C++ path,
+# catboost/libs/model/model_export/model_exporter.cpp) -- Python's version
+# just skips the temp-file round trip and hands back the parsed bytes
+# directly. R's catboost.save_model(model, path, file_format = "onnx")
+# reaches the exact same exporter and is the closest observable R
+# equivalent (writing the ONNX bytes to disk instead of returning an
+# in-memory object). No R onnx-parsing package is available in this
+# environment (would be a new dependency for one test, out of this
+# disposition-only ticket's scope), so this verifies what's directly
+# observable without one: the call succeeds, produces a non-empty file, and
+# that file's bytes are format-specific (distinct from a "cbm" export of
+# the exact same model) -- i.e. the format argument genuinely reaches a
+# different native code path rather than silently falling back to "cbm".
+#
+# ONNX categorical/floating-point-label constraints (verified live): ONNX
+# export requires integer class labels (native error otherwise: "ONNX
+# format does not support floating-point labels",
+# catboost/libs/model/model_export/onnx_helpers.cpp:137) and no categorical
+# features (per convert_to_onnx_object's own docstring) -- the model below
+# is built to satisfy both.
+test_that("model: catboost.save_model(format = 'onnx') produces a distinct, non-empty export", {
+  target <- as.integer(sample(c(0L, 1L), size = 1000, replace = TRUE))
+  features <- data.frame(feature_0 = rnorm(length(target), mean = 0, sd = 1),
+                         feature_1 = rnorm(length(target), mean = 0, sd = 1),
+                         feature_2 = rnorm(length(target), mean = 0, sd = 1))
+
+  pool <- catboost.load_pool(features, target)
+
+  params <- list(iterations = 10,
+                 loss_function = "Logloss",
+                 random_seed = 12345,
+                 allow_writing_files = FALSE)
+
+  model <- catboost.train(pool, NULL, params)
+
+  cbm_path <- tempfile()
+  onnx_path <- tempfile()
+  on.exit(unlink(c(cbm_path, onnx_path)))
+
+  expect_true(catboost.save_model(model, cbm_path, file_format = "cbm"))
+  expect_true(catboost.save_model(model, onnx_path, file_format = "onnx"))
+
+  onnx_size <- file.info(onnx_path)$size
+  expect_true(onnx_size > 0)
+  cbm_bytes <- readBin(cbm_path, "raw", n = file.info(cbm_path)$size)
+  onnx_bytes <- readBin(onnx_path, "raw", n = onnx_size)
+  expect_false(identical(cbm_bytes, onnx_bytes))
+})
+
+test_that("model: catboost.save_model(format = 'onnx') rejects floating-point labels, matching convert_to_onnx_object's constraint", {
+  target <- sample(c(1, -1), size = 200, replace = TRUE) # double-valued labels
+  features <- data.frame(feature_0 = rnorm(length(target)), feature_1 = rnorm(length(target)))
+  pool <- catboost.load_pool(features, target)
+  model <- catboost.train(pool, NULL, list(iterations = 5, loss_function = "Logloss",
+                                           random_seed = 1, allow_writing_files = FALSE))
+  onnx_path <- tempfile()
+  on.exit(unlink(onnx_path))
+  expect_error(
+    catboost.save_model(model, onnx_path, file_format = "onnx"),
+    "floating-point labels"
+  )
+})
+
 test_that("model: loss_function = multiclass", {
   target <- sample(c(0, 1, 2), size = 1000, replace = TRUE)
   data <- data.frame(f_numeric = target + rnorm(length(target), mean = 0, sd = 1),
@@ -590,8 +658,9 @@ test_that("model: catboost.cv's type argument (Classical vs Inverted) changes th
 # own TCrossValidationParams and calls the identical CrossValidate() entry
 # point. Both wrappers are thin field-for-field constructors around the same
 # native call, so the per-iteration test/train mean/std columns are expected
-# to match bit-for-bit (same precedent as catboost-8z4.59's grid_search/
-# randomized_search oracle test, test_grid_search.R).
+# to agree to within cross-architecture floating-point noise (same precedent
+# as catboost-8z4.59's grid_search/randomized_search oracle test,
+# test_grid_search.R).
 #
 # This is a *different* capability from the CLI's `--cv` flag (flag:--cv
 # row, catboost-8z4.76 / closure_overlay.json): that flag is parsed into a
@@ -601,7 +670,29 @@ test_that("model: catboost.cv's type argument (Classical vs Inverted) changes th
 #
 # Regenerate fixture with:
 #   uv run --frozen --project tools/oracle python3 tools/oracle/gen_cv_fixture.py
-test_that("model: catboost.cv matches the Python oracle bit-for-bit (catboost-8z4.78)", {
+test_that("model: catboost.cv matches the Python oracle (catboost-8z4.78)", {
+  # Cross-architecture FP bound (catboost-8z4.112). The fixture is generated by
+  # Python CatBoost on x86_64; macOS CI runs arm64, where the compiler is free
+  # to contract multiply-add pairs (FMA) in the boosting/metric accumulation.
+  # The columns therefore agree to a few ULP of the *Logloss* value rather than
+  # bit-for-bit: worst observed deviation on macos-14 is 4.4e-08 absolute (CI
+  # run 31280833801, both macOS jobs), while both x86_64 Linux jobs are exact.
+  #
+  # The bound is stated in absolute Logloss units because that is the scale the
+  # divergence lives on. The std columns are ~1e-2, i.e. the same ~1e-8 absolute
+  # noise shows up there as a ~2.6e-06 *relative* difference (cancellation
+  # between near-equal fold losses), so a relative tolerance covering it would
+  # have to be far looser than what the mean columns actually need.
+  # 1e-6 keeps ~20x headroom over the observed divergence and is the same
+  # oracle-comparison magnitude already used across the differential suite
+  # (TOL in test_compare.R, test_eval_metrics_classes.R, ...).
+  ARCH_TOL <- 1e-6
+
+  expect_cv_col <- function(actual, expected, label) {
+    expect_length(actual, length(expected))
+    expect_lt(max(abs(actual - expected)), ARCH_TOL, label = paste0("max|delta| ", label))
+  }
+
   fixture <- jsonlite::fromJSON(
     testthat::test_path("..", "fixtures", "oracle", "cv.json"),
     simplifyVector = TRUE
@@ -626,10 +717,14 @@ test_that("model: catboost.cv matches the Python oracle bit-for-bit (catboost-8z
     # (see test_model.R's earlier catboost.cv tests, e.g.
     # cv_result$train.Logloss.std); the fixture's JSON keys keep the native
     # dashes, so they are indexed with `[[` here instead.
-    expect_equal(result$test.Logloss.mean, expected[["test-Logloss-mean"]], tolerance = 1e-12)
-    expect_equal(result$test.Logloss.std, expected[["test-Logloss-std"]], tolerance = 1e-12)
-    expect_equal(result$train.Logloss.mean, expected[["train-Logloss-mean"]], tolerance = 1e-12)
-    expect_equal(result$train.Logloss.std, expected[["train-Logloss-std"]], tolerance = 1e-12)
+    expect_cv_col(result$test.Logloss.mean, expected[["test-Logloss-mean"]],
+                  paste(type, "test-Logloss-mean"))
+    expect_cv_col(result$test.Logloss.std, expected[["test-Logloss-std"]],
+                  paste(type, "test-Logloss-std"))
+    expect_cv_col(result$train.Logloss.mean, expected[["train-Logloss-mean"]],
+                  paste(type, "train-Logloss-mean"))
+    expect_cv_col(result$train.Logloss.std, expected[["train-Logloss-std"]],
+                  paste(type, "train-Logloss-std"))
   }
 
   check_cv("Classical", fixture$expected$classical)

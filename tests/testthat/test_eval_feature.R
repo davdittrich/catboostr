@@ -86,6 +86,56 @@ test_that("eval_feature: summary matches the CatBoost CLI oracle", {
                oracle[["feature set"]])
 })
 
+test_that("eval_feature: timesplit_quantile matches the CatBoost CLI oracle", {
+  # catboost-inm (followup to catboost-8z4.115/P10.A): closes
+  # flag:--timesplit-quantile. P10.A fix-round-1's justification named the
+  # wrong trigger (assumed a nonexistent "--feature-eval-mode TimeSplit"
+  # value); verified in catboost/libs/train_lib/eval_feature.cpp:910 that
+  # the real trigger is the dataset having a timestamp column
+  # (MetaInfo.HasTimestamp), which switches PrepareFolds to
+  # PrepareTimeSplitFolds -- the only path that reads TimeSplitQuantile at
+  # all. See tools/oracle/cli/gen_eval_feature_timesplit_fixture.sh (8
+  # groups, one timestamp per GroupId at 0/10/.../70).
+  timesplit_pool_path <- testthat::test_path("..", "fixtures", "oracle-cli", "timesplit_data.csv")
+  timesplit_cd_path <- testthat::test_path("..", "fixtures", "oracle-cli", "timesplit_data.cd")
+  pool <- catboost.load_pool(timesplit_pool_path, column_description = timesplit_cd_path,
+                             delimiter = ",", has_header = TRUE, thread_count = 1)
+  timestamps_by_group <- as.matrix(read.delim(
+    testthat::test_path("..", "fixtures", "oracle-cli", "timesplit_timestamps.tsv"),
+    header = FALSE
+  ))
+  group_id <- read.csv(timesplit_pool_path)$group_id
+  catboost.pool.set_timestamp(pool, timestamps_by_group[match(group_id, timestamps_by_group[, 1]), 2])
+
+  run_timesplit <- function(quantile) {
+    train_dir <- file.path(tempdir(), paste0("eval_feature_timesplit_", as.integer(runif(1, 0, 1e9))))
+    dir.create(train_dir, showWarnings = FALSE, recursive = TRUE)
+    on.exit(unlink(train_dir, recursive = TRUE), add = TRUE)
+    catboost.eval_feature(
+      pool,
+      features_to_evaluate = list(0L, 1L),
+      params = list(loss_function = "RMSE", iterations = 10, depth = 3, learning_rate = 0.1,
+                    random_seed = 42, thread_count = 1, logging_level = "Silent", train_dir = train_dir),
+      eval_mode = "OneVsAll", offset = 0, fold_count = 2, fold_size_unit = "Group", fold_size = 1,
+      timesplit_quantile = quantile
+    )
+  }
+
+  for (spec in list(list(q = 0.5, file = "eval_feature_timesplit_q25.tsv"),
+                    list(q = 0.75, file = "eval_feature_timesplit_q75.tsv"))) {
+    oracle <- read.delim(testthat::test_path("..", "fixtures", "oracle-cli", spec$file),
+                         sep = "\t", check.names = FALSE, colClasses = "character")
+    res <- run_timesplit(spec$q)
+
+    expect_equal(res$p_value, as.numeric(oracle[["p-value"]]),
+                tolerance = CLI_TOLERANCE, info = spec$file)
+    expect_equal(as.numeric(res$metric_delta[, 1]), as.numeric(oracle[["RMSE"]]),
+                tolerance = CLI_TOLERANCE, info = spec$file)
+    expect_equal(vapply(res$best_iterations, paste, character(1), collapse = ","),
+                oracle[["best iteration in each fold"]], info = spec$file)
+  }
+})
+
 test_that("eval_feature: rejects an out-of-range feature index", {
   expect_error(
     run_eval_feature(features_to_evaluate = list(99L), eval_mode = "OneVsAll",

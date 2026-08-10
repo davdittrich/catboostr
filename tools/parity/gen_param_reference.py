@@ -54,10 +54,37 @@ DEDICATED_ARG = {
     "eval_set": "the \\code{test_pool} argument of \\code{catboost.train}",
 }
 NO_R_EQUIVALENT = {
-    "callback", "callbacks", "plot", "plot_file", "log_cout", "log_cerr",
-    "silent",
+    "callback", "plot", "plot_file", "log_cout", "log_cerr",
 }
 SELF_REFERENTIAL = {"params"}
+
+# catboost-8z4.122: names with real catboostr-specific behavior that the
+# generic per-bucket notes above don't capture (not simply "Python-only" and
+# not a plain pass-through native option either) -- kept as a small,
+# hand-written exception list rather than teaching classify() a one-off
+# bucket for two names.
+CUSTOM_NOTES = {
+    "callback": (
+        "Python-only (a native training-progress convenience distinct from "
+        "\\code{callbacks}); no catboostr equivalent."
+    ),
+    "callbacks": (
+        "A list of functions, each taking a single \\code{info} argument (a "
+        "list with \\code{iteration} and \\code{metrics} elements, the "
+        "latter shaped like \\code{\\link{catboost.get_evals_result}}'s "
+        "return value) and returning \\code{TRUE} to continue training or "
+        "\\code{FALSE} to stop it early. Training continues only while "
+        "every callback returns \\code{TRUE}, matching Python's "
+        "\\code{callbacks} kwarg."
+    ),
+    "silent": (
+        "Client-side convenience translated to \\code{logging_level} "
+        "(\"Silent\" if \\code{TRUE}, \"Verbose\" if \\code{FALSE}) before "
+        "export to native, matching Python's \\code{silent} kwarg. Mutually "
+        "exclusive with \\code{logging_level}/\\code{verbose}/"
+        "\\code{verbose_eval}."
+    ),
+}
 
 # Params catboostr already accepted pre-P5.5 (proven by a passing regression
 # test) but that the machine-generated 139-row capability inventory does not
@@ -65,11 +92,15 @@ SELF_REFERENTIAL = {"params"}
 # Included in .catboostr_known_params so the new validation gate cannot
 # regress pre-existing behavior (found via a full-suite sweep after adding
 # the gate; see tests/testthat/test_pool_embeddings.R).
-# `embedding_processing` is not a literal CopyOption(plainOptions, "...") name
-# in plain_options_helper.cpp (it is routed through a different code path),
-# so it cannot be picked up by parse_native_copyoption_names() below and stays
-# a hand-kept exception here.
-EXTRA_KNOWN_PARAMS = {"embedding_processing"}
+# `embedding_processing` and `embedding_calcers` are not literal
+# CopyOption(plainOptions, "...") names in plain_options_helper.cpp (both are
+# routed through ParseEmbeddingProcessingOptionsFromPlainJson instead, a
+# distinct code path that accepts either key as a mutually-exclusive
+# alternate encoding of the same embedding-calcer descriptor -- see
+# embedding_processing_options.cpp), so neither can be picked up by
+# parse_native_copyoption_names() below and both stay hand-kept exceptions
+# here.
+EXTRA_KNOWN_PARAMS = {"embedding_processing", "embedding_calcers"}
 
 
 def parse_native_copyoption_names(vendor_cpp_path):
@@ -183,6 +214,8 @@ def parse_load_pool_args(src: str):
 
 
 def classify(name, alias_of, pool_arg_names):
+    if name in CUSTOM_NOTES:
+        return CUSTOM_NOTES[name]
     if name in SELF_REFERENTIAL:
         return "Refers to the \\code{params} argument itself."
     if name in DEDICATED_ARG:

@@ -41,12 +41,17 @@ test_that("bridge round-trips R callback results from background threads", {
 })
 
 test_that("the drain loop polls for interrupts while the queue is idle", {
-  # "idle": the background thread makes no requests at all for 400 ms, so the
+  # "idle": the background thread makes no requests at all for 1000 ms, so the
   # drain loop is parked on an empty queue the whole time. An indefinite
   # condition-variable wait would poll R_CheckUserInterrupt() zero times; the
-  # bounded 100 ms wait_for() polls roughly four times. This is the assertion
+  # bounded 100 ms wait_for() polls roughly ten times. This is the assertion
   # that Ctrl-C stays responsive during long non-callback training phases.
-  res <- bridge_self_test("idle", n_items = 400L)
+  #
+  # The window is 1000 ms rather than the 100 ms poll interval times the >= 3
+  # bar, so that the bar is cleared by the drain loop's own timeout behaviour
+  # and not by the CI scheduler's punctuality: a loaded runner that delivers
+  # only half the nominal wakeups still polls ~5 times.
+  res <- bridge_self_test("idle", n_items = 1000L)
   expect_gte(res$interrupt_polls, 3L)
 })
 

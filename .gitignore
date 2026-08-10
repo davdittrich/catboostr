@@ -23,6 +23,8 @@ catboost_info/
 tests/fixtures/oracle/smoke_model.cbm
 tests/fixtures/oracle-cli/smoke_model.cbm
 .tmp-build/
+tmp/
+.catboostr-thirdparty-prefix/
 # NPar::RunMaster (distributed training, catboost-8z4.103) writes a network-
 # delay measurement file as a side effect into the process's cwd -- not a
 # training artifact governed by allow_writing_files, and not deterministic.

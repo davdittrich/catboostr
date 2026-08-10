@@ -122,7 +122,7 @@ test_that("catboost.compute_training_options returns a parsed R list via the pub
   )
   expect_identical(options$boosting_options$iterations, expected$options_with_test$boosting_options$iterations)
   expect_equal(options$boosting_options$learning_rate, expected$options_with_test$boosting_options$learning_rate, tolerance = 1e-9)
-  expect_identical(options$metric_options$objective_metric$type, expected$options_with_test$metric_options$objective_metric$type)
+  expect_identical(options$metrics$objective_metric$type, expected$options_with_test$metrics$objective_metric$type)
 })
 
 test_that("catboost.compute_training_options without test_meta_info returns a parsed R list", {
@@ -131,4 +131,25 @@ test_that("catboost.compute_training_options without test_meta_info returns a pa
     train_meta_info = inputs$train_meta_info
   )
   expect_identical(options$boosting_options$iterations, expected$options_train_only$boosting_options$iterations)
+})
+
+test_that("catboost.compute_training_options errors on a missing/misspelled required meta-info key rather than silently resolving garbage defaults", {
+  # object_count typo'd as objectcount: must error like Python's DataMetaInfo
+  # (TypeError for a missing required constructor arg), not silently
+  # default the (nonexistent) key to 0 and resolve a garbage-looking-but-
+  # plausible options tree.
+  expect_error(
+    catboost.compute_training_options(
+      params = inputs$params,
+      train_meta_info = list(objectcount = 1e5, feature_count = 10)
+    ),
+    "object_count"
+  )
+  expect_error(
+    catboost.compute_training_options(
+      params = inputs$params,
+      train_meta_info = list(object_count = 1e5)
+    ),
+    "feature_count"
+  )
 })

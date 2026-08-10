@@ -2922,6 +2922,14 @@ EXPORT_FUNCTION CatBoostGetPlainParams_R(SEXP modelParam) {
 // python-package-only helpers.cpp/.h (which pulls in Cython-generated types
 // this target doesn't otherwise need).
 static TDataMetaInfo BuildDataMetaInfoFromR(const NJson::TJsonValue& metaInfoJson) {
+    // Python's DataMetaInfo.__init__ requires object_count/feature_count as
+    // positional args (TypeError if missing) -- mirror that instead of
+    // silently defaulting a missing/misspelled key to 0 (GetUIntegerSafe(0)
+    // would otherwise resolve a garbage-but-plausible-looking options tree).
+    CB_ENSURE(
+        metaInfoJson.Has("object_count") && metaInfoJson.Has("feature_count"),
+        "train_meta_info/test_meta_info must include 'object_count' and 'feature_count'"
+    );
     TDataMetaInfo metaInfo;
     metaInfo.ObjectCount = metaInfoJson["object_count"].GetUIntegerSafe(0);
     const ui32 featureCount = SafeIntegerCast<ui32>(metaInfoJson["feature_count"].GetUIntegerSafe(0));
@@ -2962,6 +2970,16 @@ EXPORT_FUNCTION CatBoostComputeTrainingOptions_R(
     NCatboostOptions::TCatBoostOptions catBoostOptions(taskType);
     catBoostOptions.Load(trainOptionsJson);
 
+    // Deliberate divergence from Python's GetTrainingOptions (helpers.cpp),
+    // which passes SetDataDependentDefaults a default-constructed (empty)
+    // TOutputFilesOptions: this loads the caller's own output-file options
+    // (train_dir, use_best_model, etc.) out of params first, matching how
+    // every other params-consuming entry point in this file (e.g.
+    // TrainModelDistributed above) builds TOutputFilesOptions. Since only
+    // catBoostOptions is Saved/returned below, this has no observed effect
+    // on the resolved tree this row's oracle test compares against -- but
+    // it is untested against Python's own empty-TOutputFilesOptions path,
+    // so flag it here rather than leave it silently unexplained.
     NCatboostOptions::TOutputFilesOptions outputOptions;
     outputOptions.Load(outputFilesOptionsJson);
     outputOptions.UseBestModel.SetDefault(false);

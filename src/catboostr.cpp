@@ -1126,21 +1126,51 @@ EXPORT_FUNCTION CatBoostPoolGetLabel_R(SEXP poolParam) {
     return result;
 }
 
+// catboost-1wu: rebuilds pool->RawTargetData in place with a new one-
+// dimensional Target value, copying every other field (Baseline, Weights,
+// GroupWeights, Pairs) across unchanged. Shared by
+// CatBoostPoolPromoteStringTarget_R/CatBoostPoolDemoteStringTarget_R below,
+// which are exact inverses of each other (Integer <-> String) built on top
+// of this.
+static void RetargetPool(TPoolHandle pool, ERawTargetType newTargetType, TRawTarget&& newTarget) {
+    TRawTargetData newRawTargetData;
+    newRawTargetData.TargetType = newTargetType;
+    newRawTargetData.Target = {std::move(newTarget)};
+    TMaybeData<TBaselineArrayRef> maybeBaseline = pool->RawTargetData.GetBaseline();
+    if (maybeBaseline) {
+        for (const auto& approxRef : *maybeBaseline) {
+            newRawTargetData.Baseline.emplace_back(approxRef.begin(), approxRef.end());
+        }
+    }
+    newRawTargetData.Weights = pool->RawTargetData.GetWeights();
+    newRawTargetData.GroupWeights = pool->RawTargetData.GetGroupWeights();
+    newRawTargetData.Pairs = pool->RawTargetData.GetPairs();
+
+    pool->RawTargetData = TRawTargetDataProvider(
+        pool->ObjectsGrouping,
+        std::move(newRawTargetData),
+        /*skipCheck*/ false,
+        pool->RawTargetData.IsForceUnitAutoPairWeights(),
+        &NPar::LocalExecutor()
+    );
+    pool->MetaInfo.TargetType = newTargetType;
+}
+
 // catboost-1wu: retargets a Pool's target in-place from
 // ERawTargetType::Integer to ERawTargetType::String, using the Pool's own
 // MetaInfo.ClassLabels (the original factor/character label levels,
 // catboost.from_matrix's is.factor()/is.character() branch, SetClassLabels
 // above) as the index -> string mapping. Exists solely to unblock
-// classes_count/class_names (params keys that supply STRING class names,
-// e.g. list("neg","pos")) for Pools built from factor/character labels:
-// native's target converter (target_converter.cpp's
-// TUseClassLabelsTargetConverter) requires the Pool's raw target itself to
-// be String-typed when class_names are strings, rejecting an
-// already-numeric target outright ("Not all class names are numeric, but
-// specified target data is", target_converter.cpp:279) -- catboost.
-// load_pool() otherwise always pre-converts such labels to a 0-based
-// integer vector before it ever reaches native (catboostr.cpp:900/1065-66),
-// so that combination could never succeed before this.
+// class_names (a params key that supplies STRING class names, e.g.
+// list("neg","pos")) for Pools built from factor/character labels: native's
+// target converter (target_converter.cpp's TUseClassLabelsTargetConverter)
+// requires the Pool's raw target itself to be String-typed when class_names
+// are strings, rejecting an already-numeric target outright ("Not all
+// class names are numeric, but specified target data is",
+// target_converter.cpp:279) -- catboost.load_pool() otherwise always
+// pre-converts such labels to a 0-based integer vector before it ever
+// reaches native (catboostr.cpp:900/1065-66), so that combination could
+// never succeed before this.
 //
 // This is a lossless round trip, not a reinterpretation: index i was
 // produced from ClassLabels[i] via `as.integer(factor(label)) - 1L` (R/
@@ -1148,24 +1178,21 @@ EXPORT_FUNCTION CatBoostPoolGetLabel_R(SEXP poolParam) {
 // string right back to class index i (target_converter.cpp:210-211) --
 // so training on the promoted Pool is numerically identical to training on
 // the (hypothetical, never-reachable) Integer target directly, for the one
-// scenario this unblocks. It is invoked ONLY by catboost.train(), and ONLY
-// when params contains classes_count/class_names AND the Pool was built
-// from a factor/character label (R/catboost.R checks its "class_labels"
-// Pool attribute, set alongside the existing class_labels-derived
-// SetClassLabels call) -- catboost.load_pool()'s default output for every
-// other caller is completely untouched, so every existing factor/character-
-// label test (and every other consumer of an Integer-targeted Pool, e.g.
-// CatBoostPoolGetLabel_R above and CatBoostPoolTrainEvalSplit_R's
-// stratified split) keeps running its current code path unchanged.
+// scenario this unblocks.
+//
+// catboost-1wu fix round 2: this mutation must NOT outlive the single
+// catboost.train() call that needed it -- a Pool object is legitimately
+// reused afterwards (retrained, read via catboost.pool.get_label(),
+// train_eval_split()'d, ...), all of which assume an Integer target, and a
+// factor whose levels() aren't already alphabetical would otherwise
+// silently retrain into a DIFFERENT (complemented) class-index mapping the
+// next time round (see CatBoostPoolDemoteStringTarget_R below, which
+// R/catboost.R now always pairs with a call to this one via on.exit()).
 EXPORT_FUNCTION CatBoostPoolPromoteStringTarget_R(SEXP poolParam) {
     R_API_BEGIN();
     TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
-    // catboost-1wu fix round 1: idempotent no-op if already promoted. A
-    // Pool object is legitimately reused across multiple catboost.train()
-    // calls (or passed as both learn_pool and test_pool in one call) --
-    // this function permanently mutates the Pool in place, so a second
-    // promotion attempt on an already-promoted Pool must succeed silently
-    // rather than erroring on a type it itself just set.
+    // Idempotent no-op if already promoted (e.g. the same underlying Pool
+    // passed as both learn_pool and test_pool in one catboost.train() call).
     if (pool->RawTargetData.GetTargetType() != ERawTargetType::String) {
         CB_ENSURE(
             pool->RawTargetData.GetTargetType() == ERawTargetType::Integer,
@@ -1209,27 +1236,61 @@ EXPORT_FUNCTION CatBoostPoolPromoteStringTarget_R(SEXP poolParam) {
             }
         );
 
-        TRawTargetData newRawTargetData;
-        newRawTargetData.TargetType = ERawTargetType::String;
-        newRawTargetData.Target = {TRawTarget(std::move(stringTarget))};
-        TMaybeData<TBaselineArrayRef> maybeBaseline = pool->RawTargetData.GetBaseline();
-        if (maybeBaseline) {
-            for (const auto& approxRef : *maybeBaseline) {
-                newRawTargetData.Baseline.emplace_back(approxRef.begin(), approxRef.end());
-            }
-        }
-        newRawTargetData.Weights = pool->RawTargetData.GetWeights();
-        newRawTargetData.GroupWeights = pool->RawTargetData.GetGroupWeights();
-        newRawTargetData.Pairs = pool->RawTargetData.GetPairs();
+        RetargetPool(pool, ERawTargetType::String, TRawTarget(std::move(stringTarget)));
+    }
 
-        pool->RawTargetData = TRawTargetDataProvider(
-            pool->ObjectsGrouping,
-            std::move(newRawTargetData),
-            /*skipCheck*/ false,
-            pool->RawTargetData.IsForceUnitAutoPairWeights(),
-            &NPar::LocalExecutor()
+    R_API_END();
+    return R_NilValue;
+}
+
+// catboost-1wu fix round 2: the exact inverse of
+// CatBoostPoolPromoteStringTarget_R above, restoring a Pool's target to
+// ERawTargetType::Integer by mapping each String value back to its index in
+// MetaInfo.ClassLabels -- i.e. undoing the promotion losslessly, byte-for-
+// byte reproducing the Integer target that was there before (same
+// ClassLabels, same round trip, run backwards). R/catboost.R calls this via
+// on.exit() right after every promotion, so the Pool never remains
+// String-typed once catboost.train() returns (success or error).
+EXPORT_FUNCTION CatBoostPoolDemoteStringTarget_R(SEXP poolParam) {
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    // Idempotent no-op if not currently promoted (mirrors the Promote side:
+    // the same underlying Pool passed as both learn_pool and test_pool
+    // gets demoted back to Integer by the first call already).
+    if (pool->RawTargetData.GetTargetType() == ERawTargetType::String) {
+        CB_ENSURE_INTERNAL(
+            pool->MetaInfo.TargetCount == 1,
+            "CatBoostPoolDemoteStringTarget_R: only single-dimensional targets are supported"
         );
-        pool->MetaInfo.TargetType = ERawTargetType::String;
+        CB_ENSURE_INTERNAL(
+            !pool->MetaInfo.ClassLabels.empty(),
+            "CatBoostPoolDemoteStringTarget_R: Pool has no class labels to demote its target against"
+        );
+
+        THashMap<TString, ui32> classLabelToIdx;
+        for (size_t i : xrange(pool->MetaInfo.ClassLabels.size())) {
+            classLabelToIdx[pool->MetaInfo.ClassLabels[i].GetStringRobust()] = SafeIntegerCast<ui32>(i);
+        }
+
+        TVector<TConstArrayRef<TString>> stringTargetRefs;
+        pool->RawTargetData.GetStringTargetRef(&stringTargetRefs);
+        CB_ENSURE_INTERNAL(stringTargetRefs.size() == 1, "CatBoostPoolDemoteStringTarget_R: expected a one-dimensional target");
+
+        TVector<float> intTarget(stringTargetRefs[0].size());
+        for (size_t i : xrange(stringTargetRefs[0].size())) {
+            const auto it = classLabelToIdx.find(stringTargetRefs[0][i]);
+            CB_ENSURE_INTERNAL(
+                it != classLabelToIdx.end(),
+                "CatBoostPoolDemoteStringTarget_R: target value '" << stringTargetRefs[0][i] << "' is not a known class label"
+            );
+            intTarget[i] = static_cast<float>(it->second);
+        }
+
+        RetargetPool(
+            pool,
+            ERawTargetType::Integer,
+            TRawTarget(MakeIntrusive<TTypeCastArrayHolder<float, float>>(std::move(intTarget)))
+        );
     }
 
     R_API_END();

@@ -1237,10 +1237,12 @@ default); it is rejected for GPU training.
 \note{
 If \code{params$class_names} is set and \code{learn_pool}/
 \code{test_pool} was built from a factor or character \code{label}, this
-function permanently mutates that Pool object's internal target
-representation as a side effect (needed to match native's classification
-target converter against string class names). The Pool remains fully
-usable afterwards, including being retrained or reused as both
+function temporarily retargets that Pool object's internal target
+representation for the duration of this call (needed to match native's
+classification target converter against string class names), then
+restores it before returning -- including on error -- so the Pool is
+left exactly as it was and remains safe to retrain, read via
+\code{catboost.pool.get_label}/\code{train_eval_split}, or reuse as both
 \code{learn_pool} and \code{test_pool}. This \code{class_names} +
 string-label combination is currently only supported via
 \code{catboost.train}; \code{catboost.cv}/\code{catboost.grid_search}/

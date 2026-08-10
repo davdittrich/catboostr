@@ -328,6 +328,51 @@ test_that("catboost-1wu: a Pool promoted for class_names can be retrained, and r
   expect_equal(model_with_test_pool$tree_count, 2)
 })
 
+test_that("catboost-1wu fix round 2: a class_names training call does not leave the Pool's target permanently String-typed -- get_label/train_eval_split keep working afterwards", {
+  feature <- matrix(c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), ncol = 1)
+  label_strings <- c("neg", "pos", "neg", "pos", "neg", "pos", "neg", "pos", "neg", "pos")
+  mc_pool <- catboost.load_pool(feature, label = label_strings)
+  original_label <- catboost.pool.get_label(mc_pool)
+
+  invisible(catboost.train(mc_pool, params = list(
+    loss_function = "MultiClass", iterations = 2, logging_level = "Silent",
+    thread_count = 1, classes_count = 2, class_names = list("neg", "pos")
+  )))
+
+  # Fix round 1 left the Pool's target permanently String-typed here, which
+  # made both of these hard-error where they worked before training.
+  expect_equal(catboost.pool.get_label(mc_pool), original_label)
+  split <- catboost.pool.train_eval_split(mc_pool, has_time = TRUE, is_classification = TRUE, eval_fraction = 0.3)
+  expect_false(is.null(split$train))
+})
+
+test_that("catboost-1wu fix round 2: a class_names-less retrain of the SAME Pool object after a class_names training call is not silently class-flipped when factor levels() aren't alphabetical", {
+  feature <- matrix(c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), ncol = 1)
+  label_strings <- c("neg", "pos", "neg", "pos", "neg", "pos", "neg", "pos", "neg", "pos")
+  # Non-alphabetical level order: as.integer(factor(...)) - 1L maps
+  # "pos" -> class index 0 and "neg" -> class index 1 here, the opposite of
+  # alphabetical order -- exactly the case fix round 1's bug depended on.
+  label_factor <- factor(label_strings, levels = c("pos", "neg"))
+
+  mc_pool <- catboost.load_pool(feature, label = label_factor)
+  invisible(catboost.train(mc_pool, params = list(
+    loss_function = "MultiClass", iterations = 5, logging_level = "Silent",
+    thread_count = 1, classes_count = 2, class_names = list("pos", "neg")
+  )))
+
+  fresh_params <- list(loss_function = "MultiClass", iterations = 5, logging_level = "Silent", thread_count = 1)
+  fresh_pool <- catboost.load_pool(feature, label = label_factor)
+  fresh_model <- catboost.train(fresh_pool, params = fresh_params)
+  retrained_model <- catboost.train(mc_pool, params = fresh_params)
+
+  fresh_pred <- catboost.predict(fresh_model, fresh_pool, prediction_type = "Probability")
+  retrained_pred <- catboost.predict(retrained_model, mc_pool, prediction_type = "Probability")
+  # Fix round 1's bug produced the COMPLEMENT of these predictions here
+  # (max|p_fresh + p_retrained - 1| ~ 0, i.e. the positive class silently
+  # flipped) instead of matching.
+  expect_equal(retrained_pred, fresh_pred, tolerance = 1e-6)
+})
+
 test_that("catboost.cv: an unknown params key is rejected the same way as catboost.train", {
   expect_error(
     catboost.cv(pool, params = tiny_params(list(depht = 3)), fold_count = 2),

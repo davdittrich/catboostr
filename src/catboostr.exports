@@ -35,6 +35,7 @@ C CatBoostIsOblivious_R
 C CatBoostLastCustomObjectiveMaxActiveWorkers_R
 C CatBoostModelBasedEval_R
 C CatBoostOutputModel_R
+C CatBoostPoolDemoteStringTarget_R
 C CatBoostPoolGetBaseline_R
 C CatBoostPoolGetCatFeatureIndices_R
 C CatBoostPoolGetEmbeddingFeatureIndices_R

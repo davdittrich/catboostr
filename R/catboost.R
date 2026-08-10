@@ -3123,10 +3123,12 @@ apply_train_callbacks_params <- function(params) {
 #' }
 #' @note If \code{params$class_names} is set and \code{learn_pool}/
 #' \code{test_pool} was built from a factor or character \code{label}, this
-#' function permanently mutates that Pool object's internal target
-#' representation as a side effect (needed to match native's classification
-#' target converter against string class names). The Pool remains fully
-#' usable afterwards, including being retrained or reused as both
+#' function temporarily retargets that Pool object's internal target
+#' representation for the duration of this call (needed to match native's
+#' classification target converter against string class names), then
+#' restores it before returning -- including on error -- so the Pool is
+#' left exactly as it was and remains safe to retrain, read via
+#' \code{catboost.pool.get_label}/\code{train_eval_split}, or reuse as both
 #' \code{learn_pool} and \code{test_pool}. This \code{class_names} +
 #' string-label combination is currently only supported via
 #' \code{catboost.train}; \code{catboost.cv}/\code{catboost.grid_search}/
@@ -3181,16 +3183,26 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list(), init_m
     # combination already works today against the Pool's existing Integer
     # target and must keep doing so unchanged. Also only promotes a Pool
     # that actually carries the "class_labels" attribute catboost.from_matrix
-    # stashes for a factor/character label; this permanently mutates the
-    # Pool object in place (its target stays String-typed after this call
-    # returns; NB: CatBoostPoolPromoteStringTarget_R is a no-op if a Pool
-    # already has one, so re-training the same Pool object, or reusing it as
-    # both learn_pool and test_pool, is safe).
+    # stashes for a factor/character label.
+    #
+    # catboost-1wu fix round 2: the promotion is undone via on.exit() right
+    # after the native fit call, on BOTH the success and error path, so it
+    # never outlives this single catboost.train() call -- a promoted Pool
+    # left String-typed would silently break catboost.pool.get_label()/
+    # train_eval_split(), and worse, a later retrain WITHOUT class_names
+    # would then decode class indices back out of alphabetically-SORTED
+    # strings instead of the factor's original level order, silently
+    # flipping which class index means what whenever the factor's levels()
+    # aren't already alphabetical.
     if (!is.null(params$class_names)) {
-        if (!is.null(attr(learn_pool, "class_labels")))
+        if (!is.null(attr(learn_pool, "class_labels"))) {
             .Call("CatBoostPoolPromoteStringTarget_R", learn_pool)
-        if (!is.null(test_pool) && !is.null(attr(test_pool, "class_labels")))
+            on.exit(.Call("CatBoostPoolDemoteStringTarget_R", learn_pool), add = TRUE)
+        }
+        if (!is.null(test_pool) && !is.null(attr(test_pool, "class_labels"))) {
             .Call("CatBoostPoolPromoteStringTarget_R", test_pool)
+            on.exit(.Call("CatBoostPoolDemoteStringTarget_R", test_pool), add = TRUE)
+        }
     }
 
     json_params <- prepare_train_export_parameters(params)

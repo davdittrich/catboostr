@@ -43,6 +43,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"CatBoostLastCustomObjectiveMaxActiveWorkers_R", (DL_FUNC) &CatBoostLastCustomObjectiveMaxActiveWorkers_R, 0},
     {"CatBoostModelBasedEval_R",              (DL_FUNC) &CatBoostModelBasedEval_R,               6},
     {"CatBoostOutputModel_R",                 (DL_FUNC) &CatBoostOutputModel_R,                  5},
+    {"CatBoostPoolDemoteStringTarget_R",      (DL_FUNC) &CatBoostPoolDemoteStringTarget_R,       1},
     {"CatBoostPoolGetBaseline_R",             (DL_FUNC) &CatBoostPoolGetBaseline_R,              1},
     {"CatBoostPoolGetCatFeatureIndices_R",    (DL_FUNC) &CatBoostPoolGetCatFeatureIndices_R,     1},
     {"CatBoostPoolGetEmbeddingFeatureIndices_R", (DL_FUNC) &CatBoostPoolGetEmbeddingFeatureIndices_R, 1},

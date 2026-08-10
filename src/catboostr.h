@@ -373,6 +373,8 @@ EXPORT_FUNCTION CatBoostPoolGetLabel_R(SEXP poolParam);
 
 EXPORT_FUNCTION CatBoostPoolPromoteStringTarget_R(SEXP poolParam);
 
+EXPORT_FUNCTION CatBoostPoolDemoteStringTarget_R(SEXP poolParam);
+
 EXPORT_FUNCTION CatBoostPoolGetWeight_R(SEXP poolParam);
 
 EXPORT_FUNCTION CatBoostPoolSetWeight_R(SEXP poolParam, SEXP weightParam);

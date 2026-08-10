@@ -162,12 +162,19 @@ test_that("select_features: shap_calc_type = 'Exact' matches the CLI oracle's el
   # feature ranking as the CLI, not merely accepted-and-ignored (the gap
   # this row's justification named). The loss_graph's absolute loss_values
   # do NOT match the CLI oracle at any tolerance tried (~1.6% relative,
-  # investigated: same params, same shap_calc_type, same dataset both
-  # sides, first-step baseline loss already differs before any feature is
-  # removed) -- a distinct, uninvestigated select-features-mode test-set
-  # evaluation discrepancy, not something this fixture's scope covers.
-  # Filed as catboost-hpk (discovered-from) rather than silently dropped or
-  # papered over with a loose tolerance.
+  # first-step baseline loss already differs before any feature is
+  # removed) -- root-caused in catboost-hpk.5 (see closure_overlay.json's
+  # "mode:select-features" entry for the full trace): the CLI's own
+  # mode_select_features.cpp shuffles the learn pool before calling the
+  # shared native SelectFeatures entry point; that shuffle step doesn't
+  # exist in the entry point itself, so R (and Python, which calls the
+  # identical entry point) never shuffle. Confirmed empirically -- passing
+  # --has-time to the CLI binary (which disables its shuffle) moves the
+  # CLI's own first loss_graph.loss_values entry by a comparable margin.
+  # Deliberately not "fixed": matching the CLI's incidental shuffle would
+  # mean R diverging from the shared entry point Python also uses, which
+  # is the actual parity target here (and already verified bit-exact
+  # elsewhere in this file at 1e-12 against the Python oracle).
   oracle <- jsonlite::fromJSON(
     testthat::test_path("..", "fixtures", "oracle-cli", "select_features_shap_calc_type.json"),
     simplifyVector = TRUE

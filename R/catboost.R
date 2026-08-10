@@ -429,7 +429,15 @@ catboost.from_matrix <- function(float_and_cat_features_data, label = NULL, cat_
                 float_and_cat_features_data, label, cat_features_indices, text_features_data, text_features_indices, pairs, graph, weight,
                 group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names, class_labels,
                 embedding_features_data, embedding_features_indices, feature_tags)
-  attributes(pool) <- list(.Dimnames = list(NULL, as.character(feature_names)), class = "catboost.Pool")
+  # catboost-1wu: stash the original factor/character label's levels (already
+  # computed above for SetClassLabels) as a Pool attribute, purely as a
+  # signal catboost.train() can use to detect when it's safe to promote this
+  # Pool's target to ERawTargetType::String for classes_count/class_names
+  # (CatBoostPoolPromoteStringTarget_R) -- setting an R attribute has no
+  # effect on the Pool's native representation, so this changes nothing for
+  # every existing caller that never inspects it.
+  attributes(pool) <- list(.Dimnames = list(NULL, as.character(feature_names)), class = "catboost.Pool",
+                            class_labels = class_labels)
   if (!is.null(timestamp))
       catboost.pool.set_timestamp(pool, timestamp)
   return(pool)
@@ -3152,6 +3160,23 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list(), init_m
     callbacks_split <- apply_train_callbacks_params(params)
     params <- callbacks_split$params
     train_callbacks <- callbacks_split$callbacks
+
+    # catboost-1wu: classes_count/class_names can supply STRING class names
+    # (e.g. list("neg", "pos")) -- native's target converter requires the
+    # Pool's raw target itself to be String-typed to match them
+    # (CatBoostPoolPromoteStringTarget_R above has the full mechanism/
+    # rationale). Only promotes a Pool that actually carries the
+    # "class_labels" attribute catboost.from_matrix stashes for a factor/
+    # character label; every other combination (numeric label, or
+    # classes_count given alone without class_names against an already-
+    # numeric class-index target) is untouched and keeps training exactly
+    # as before.
+    if (!is.null(params$classes_count) || !is.null(params$class_names)) {
+        if (!is.null(attr(learn_pool, "class_labels")))
+            .Call("CatBoostPoolPromoteStringTarget_R", learn_pool)
+        if (!is.null(test_pool) && !is.null(attr(test_pool, "class_labels")))
+            .Call("CatBoostPoolPromoteStringTarget_R", test_pool)
+    }
 
     json_params <- prepare_train_export_parameters(params)
     handle <- .Call("CatBoostFit_R", learn_pool, test_pool, json_params, init_model_handle, custom_objective, custom_eval_metric_object, train_callbacks)

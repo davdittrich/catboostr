@@ -912,7 +912,10 @@ EXPORT_FUNCTION CatBoostPoolSliceSubset_R(SEXP poolParam, SEXP sizeParam, SEXP o
 // TDataProvider::GetSubset), which are all already reachable from this file.
 // Only the float-typed-target branch of the stratified path is implemented,
 // matching this fork's existing precedent at CatBoostPoolGetLabel_R: R's own
-// Pool construction paths never produce ERawTargetType::String labels.
+// Pool construction paths never produce ERawTargetType::String labels (the
+// one narrow exception, catboost-1wu's CatBoostPoolPromoteStringTarget_R,
+// only fires right before catboost.train() when classes_count/class_names
+// are supplied -- never for a Pool that reaches train_eval_split unpromoted).
 EXPORT_FUNCTION CatBoostPoolTrainEvalSplit_R(
     SEXP poolParam,
     SEXP hasTimeParam,
@@ -1078,7 +1081,11 @@ EXPORT_FUNCTION CatBoostPoolHasLabel_R(SEXP poolParam) {
 // into a pre-sized buffer per target dimension. String targets are out of
 // scope for this fork's Pool construction paths (CreateFromMatrix/FromFile
 // only ever set ERawTargetType::Integer/Float/None), so unlike the Python
-// method this does not need an ERawTargetType::String branch.
+// method this does not need an ERawTargetType::String branch -- the one
+// exception is a Pool that catboost.train() has since promoted via
+// catboost-1wu's CatBoostPoolPromoteStringTarget_R (classes_count/
+// class_names), which correctly hits the CB_ENSURE below instead of
+// silently misreading its (now string-typed) target as numeric.
 EXPORT_FUNCTION CatBoostPoolGetLabel_R(SEXP poolParam) {
     SEXP result = NULL;
     SEXP resultDim = NULL;
@@ -1117,6 +1124,108 @@ EXPORT_FUNCTION CatBoostPoolGetLabel_R(SEXP poolParam) {
     R_API_END();
     UNPROTECT(protectedCount);
     return result;
+}
+
+// catboost-1wu: retargets a Pool's target in-place from
+// ERawTargetType::Integer to ERawTargetType::String, using the Pool's own
+// MetaInfo.ClassLabels (the original factor/character label levels,
+// catboost.from_matrix's is.factor()/is.character() branch, SetClassLabels
+// above) as the index -> string mapping. Exists solely to unblock
+// classes_count/class_names (params keys that supply STRING class names,
+// e.g. list("neg","pos")) for Pools built from factor/character labels:
+// native's target converter (target_converter.cpp's
+// TUseClassLabelsTargetConverter) requires the Pool's raw target itself to
+// be String-typed when class_names are strings, rejecting an
+// already-numeric target outright ("Not all class names are numeric, but
+// specified target data is", target_converter.cpp:279) -- catboost.
+// load_pool() otherwise always pre-converts such labels to a 0-based
+// integer vector before it ever reaches native (catboostr.cpp:900/1065-66),
+// so that combination could never succeed before this.
+//
+// This is a lossless round trip, not a reinterpretation: index i was
+// produced from ClassLabels[i] via `as.integer(factor(label)) - 1L` (R/
+// catboost.R), and TUseClassLabelsTargetConverter maps each ClassLabels[i]
+// string right back to class index i (target_converter.cpp:210-211) --
+// so training on the promoted Pool is numerically identical to training on
+// the (hypothetical, never-reachable) Integer target directly, for the one
+// scenario this unblocks. It is invoked ONLY by catboost.train(), and ONLY
+// when params contains classes_count/class_names AND the Pool was built
+// from a factor/character label (R/catboost.R checks its "class_labels"
+// Pool attribute, set alongside the existing class_labels-derived
+// SetClassLabels call) -- catboost.load_pool()'s default output for every
+// other caller is completely untouched, so every existing factor/character-
+// label test (and every other consumer of an Integer-targeted Pool, e.g.
+// CatBoostPoolGetLabel_R above and CatBoostPoolTrainEvalSplit_R's
+// stratified split) keeps running its current code path unchanged.
+EXPORT_FUNCTION CatBoostPoolPromoteStringTarget_R(SEXP poolParam) {
+    R_API_BEGIN();
+    TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    CB_ENSURE(
+        pool->RawTargetData.GetTargetType() == ERawTargetType::Integer,
+        "CatBoostPoolPromoteStringTarget_R: only an Integer-typed Pool target can be promoted to String"
+    );
+    CB_ENSURE(
+        pool->MetaInfo.TargetCount == 1,
+        "CatBoostPoolPromoteStringTarget_R: only single-dimensional targets are supported"
+    );
+    CB_ENSURE(
+        !pool->MetaInfo.ClassLabels.empty(),
+        "CatBoostPoolPromoteStringTarget_R: Pool has no class labels to promote its target against"
+    );
+    CB_ENSURE(
+        !pool->MetaInfo.HasGraph,
+        "CatBoostPoolPromoteStringTarget_R: Pools with graph data are not supported"
+    );
+
+    const ui32 classCount = SafeIntegerCast<ui32>(pool->MetaInfo.ClassLabels.size());
+    auto maybeTarget = pool->RawTargetData.GetOneDimensionalTarget();
+    CB_ENSURE_INTERNAL(maybeTarget, "CatBoostPoolPromoteStringTarget_R: Pool has no target");
+    const ITypedSequencePtr<float>* typedSequence
+        = std::get_if<ITypedSequencePtr<float>>(&(**maybeTarget));
+    CB_ENSURE_INTERNAL(typedSequence, "CatBoostPoolPromoteStringTarget_R: expected a numeric target");
+
+    TVector<TString> stringTarget(pool->GetObjectCount());
+    ui32 nextIdx = 0;
+    (*typedSequence)->ForEach(
+        [&](float value) {
+            // AddTarget<int>() (this file) only ever writes a
+            // static_cast<float>() of an R integer here, exactly
+            // representable as a float, so a plain round-trip cast check
+            // (no <cmath>/std::modf dependency) is exact, not an
+            // approximation.
+            ui32 classIdx = value >= 0.0f ? static_cast<ui32>(value) : classCount;
+            CB_ENSURE(
+                classIdx < classCount && static_cast<float>(classIdx) == value,
+                "CatBoostPoolPromoteStringTarget_R: target value " << value << " is not a valid class index"
+            );
+            stringTarget[nextIdx++] = pool->MetaInfo.ClassLabels[static_cast<size_t>(classIdx)].GetStringRobust();
+        }
+    );
+
+    TRawTargetData newRawTargetData;
+    newRawTargetData.TargetType = ERawTargetType::String;
+    newRawTargetData.Target = {TRawTarget(std::move(stringTarget))};
+    TMaybeData<TBaselineArrayRef> maybeBaseline = pool->RawTargetData.GetBaseline();
+    if (maybeBaseline) {
+        for (const auto& approxRef : *maybeBaseline) {
+            newRawTargetData.Baseline.emplace_back(approxRef.begin(), approxRef.end());
+        }
+    }
+    newRawTargetData.Weights = pool->RawTargetData.GetWeights();
+    newRawTargetData.GroupWeights = pool->RawTargetData.GetGroupWeights();
+    newRawTargetData.Pairs = pool->RawTargetData.GetPairs();
+
+    pool->RawTargetData = TRawTargetDataProvider(
+        pool->ObjectsGrouping,
+        std::move(newRawTargetData),
+        /*skipCheck*/ false,
+        pool->RawTargetData.IsForceUnitAutoPairWeights(),
+        &NPar::LocalExecutor()
+    );
+    pool->MetaInfo.TargetType = ERawTargetType::String;
+
+    R_API_END();
+    return R_NilValue;
 }
 
 // Mirrors _catboost.pyx get_weight(): TWeights::IsTrivial() means "weight

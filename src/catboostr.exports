@@ -50,6 +50,7 @@ C CatBoostPoolNumCol_R
 C CatBoostPoolNumPairs_R
 C CatBoostPoolNumRow_R
 C CatBoostPoolNumTrees_R
+C CatBoostPoolPromoteStringTarget_R
 C CatBoostPoolQuantize_R
 C CatBoostPoolSaveQuantizationBorders_R
 C CatBoostPoolSave_R

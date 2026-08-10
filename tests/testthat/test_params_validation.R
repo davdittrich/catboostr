@@ -285,18 +285,17 @@ test_that("params key 'callbacks' invokes a real per-iteration native callback (
   expect_equal(model_multi_callback$tree_count, 2)
 })
 
-test_that("params keys 'classes_count'/'class_names' can't be exercised for MultiClass string labels: catboost.load_pool pre-converts labels client-side (matrix rows stay red)", {
+test_that("params keys 'classes_count'/'class_names' can be exercised for MultiClass string labels: catboost.train promotes the Pool's target to a String type to match", {
   mc_pool <- catboost.load_pool(
     matrix(c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), ncol = 1),
     label = c("neg", "pos", "neg", "pos", "neg", "pos", "neg", "pos", "neg", "pos")
   )
-  expect_error(
-    catboost.train(mc_pool, params = list(
-      loss_function = "MultiClass", iterations = 2, logging_level = "Silent",
-      thread_count = 1, classes_count = 2, class_names = list("neg", "pos")
-    )),
-    "Not all class names are numeric, but specified target data is"
-  )
+  model <- catboost.train(mc_pool, params = list(
+    loss_function = "MultiClass", iterations = 2, logging_level = "Silent",
+    thread_count = 1, classes_count = 2, class_names = list("neg", "pos")
+  ))
+  expect_equal(model$tree_count, 2)
+  expect_equal(sort(model$classes_), c("neg", "pos"))
 })
 
 test_that("catboost.cv: an unknown params key is rejected the same way as catboost.train", {

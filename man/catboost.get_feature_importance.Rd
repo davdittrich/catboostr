@@ -57,6 +57,12 @@ Possible values:
     Calculate the most important features explaining the difference in predictions for a pair of documents.
     \code{pool} is required and must contain exactly 2 rows.
 
+  \item 'SageValues'
+
+    Calculate SAGE (Shapley Additive Global importancE) values, a global feature importance
+    measure based on Shapley values of the model's loss function. \code{pool} is required.
+    Not supported for multiclass models.
+
 }
 
 Default value: 'FeatureImportance'}

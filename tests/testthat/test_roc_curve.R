@@ -140,6 +140,73 @@ test_that("get_roc_curve: matches the CatBoost CLI `roc` mode oracle", {
   expect_equal(result$threshold, cli_expected$Threshold, tolerance = CLI_TOL)
 })
 
+## --- catboost-hpk.3 / catboost-ahs: label_border argument, matching the
+## CLI roc mode's --label-border/-b (LabelBinarizationBorder, default 0.5,
+## vendor/catboost/catboost/app/mode_roc.cpp:34-37). That flag is applied
+## upstream of TRocCurve::BuildCurve, via PrepareTargetBinary
+## (catboost/private/libs/target/binarize_target.cpp: target > border) --
+## BuildCurve itself only ever sees an already-binary 0/1 target. Uses a
+## dedicated dataset (label_border_data.csv) with a continuous [0, 1)
+## soft-label target (i / n, distinct per row) instead of smoke_data.csv's
+## hard {0, 1}: a hard-label target binarizes identically at any border in
+## (0, 1), which would let a border-plumbing bug pass silently.
+##
+## Regenerate both label_border CLI fixtures with:
+##   tools/oracle/cli/gen_roc_label_border_fixture.sh
+
+label_border_data <- read.csv(
+  testthat::test_path("..", "fixtures", "oracle-cli", "label_border_data.csv"),
+  header = TRUE
+)
+label_border_cd <- read.table(
+  testthat::test_path("..", "fixtures", "oracle-cli", "label_border.cd"),
+  header = FALSE, sep = "\t", stringsAsFactors = FALSE
+)
+lb_label_col <- label_border_cd[label_border_cd$V2 == "Label", "V1"] + 1
+lb_cat_col <- label_border_cd[label_border_cd$V2 == "Categ", "V1"] + 1
+label_border_data[[lb_cat_col]] <- as.factor(label_border_data[[lb_cat_col]])
+label_border_pool <- catboost.load_pool(
+  label_border_data[, -lb_label_col],
+  label = label_border_data[, lb_label_col]
+)
+label_border_model <- catboost.train(label_border_pool, params = list(
+  loss_function = "CrossEntropy", iterations = 20, depth = 4,
+  learning_rate = 0.1, random_seed = 42, thread_count = 1,
+  logging_level = "Silent"
+))
+
+label_border_expected_default <- read.table(
+  testthat::test_path("..", "fixtures", "oracle-cli", "roc_data_label_border_default.tsv"),
+  header = TRUE, sep = "\t"
+)
+label_border_expected_0.3 <- read.table(
+  testthat::test_path("..", "fixtures", "oracle-cli", "roc_data_label_border_0.3.tsv"),
+  header = TRUE, sep = "\t"
+)
+
+test_that("get_roc_curve: the two label_border CLI oracle fixtures actually differ", {
+  # Guards against a fixture-generation regression that would make this
+  # whole section a false-positive (e.g. reverting to a hard-{0,1}-label
+  # dataset, where any border in (0, 1) binarizes identically).
+  expect_false(isTRUE(all.equal(
+    label_border_expected_default$TPR, label_border_expected_0.3$TPR
+  )))
+})
+
+test_that("get_roc_curve: label_border = 0.5 (default) matches the CLI oracle", {
+  result <- catboost.get_roc_curve(label_border_model, label_border_pool)
+  expect_equal(result$fpr, label_border_expected_default$FPR, tolerance = CLI_TOL)
+  expect_equal(result$tpr, label_border_expected_default$TPR, tolerance = CLI_TOL)
+  expect_equal(result$threshold, label_border_expected_default$Threshold, tolerance = CLI_TOL)
+})
+
+test_that("get_roc_curve: label_border = 0.3 matches `roc --label-border 0.3` CLI oracle", {
+  result <- catboost.get_roc_curve(label_border_model, label_border_pool, label_border = 0.3)
+  expect_equal(result$fpr, label_border_expected_0.3$FPR, tolerance = CLI_TOL)
+  expect_equal(result$tpr, label_border_expected_0.3$TPR, tolerance = CLI_TOL)
+  expect_equal(result$threshold, label_border_expected_0.3$Threshold, tolerance = CLI_TOL)
+})
+
 ## --- catboost-8z4.117 (P10.C): catboost.utils.get_fpr_curve / get_fnr_curve /
 ## select_threshold -- these three Python functions (catboost/python-package/
 ## catboost/utils.py:400-538) have no dedicated R wrapper, but they compute

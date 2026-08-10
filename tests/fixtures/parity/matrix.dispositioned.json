@@ -11114,10 +11114,10 @@
     "oracle": "cli",
     "kind": "flag",
     "method": "parameter_or_flag",
-    "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "catboost-inm: P10.A fix-round-1 left no justification for this row (empty tolerance_justification, no overlay entry) -- newly triaged for this ticket. Genuinely unexposed, real gap (code-verified): the CLI's roc mode has --label-border/-b (LabelBinarizationBorder, default 0.5, vendor/catboost/catboost/app/mode_roc.cpp:34-37) overriding the target-binarization threshold; catboost.get_roc_curve(model, pool) (R/catboost.R:6378) has a fixed 2-argument signature with no such override, even though it ports the identical TRocCurve engine (per its own roxygen doc). A real, plausibly-addable capability gap -- filed as catboost-hpk (discovered-from).",
+    "tolerance": 1e-09,
+    "test_id": "tests/testthat/test_roc_curve.R",
+    "state": "green",
+    "tolerance_justification": "catboost-hpk.3 / catboost-ahs: implemented. catboost.get_roc_curve(model, pool, label_border = 0.5) (R/catboost.R) now takes a label_border argument matching the CLI roc mode's --label-border/-b. Read TRocCurve::BuildCurve (vendor/catboost/catboost/private/libs/algo/roc_curve.cpp:74-144) first: it hardcodes `targets[documentIdx] + 0.5` with no border parameter at all -- the CLI's border is applied one layer up, in mode_roc.cpp's `PrepareTargetBinary(labels, params.LabelBinarizationBorder, &labels)` call before constructing TRocCurve, which itself just does `srcTarget[i] > border` (binarize_target.cpp:8). R's fix mirrors that exact split: a border-independent sanity check (label rounds to 0/1, catching genuine multiclass mistakes) plus the real binarization `as.integer(label > label_border)`. Verified against a dedicated CLI oracle fixture (tests/fixtures/oracle-cli/label_border_data.csv, a continuous i/n soft-label target so 0.5 vs 0.3 borders produce genuinely different curves, unlike smoke_data.csv's hard 0/1 labels) at label_border = 0.3, matching `roc --label-border 0.3` to CLI_TOL=1e-9 (tools/oracle/cli/gen_roc_label_border_fixture.sh).",
     "needs_disposition": false,
     "members": [
       {

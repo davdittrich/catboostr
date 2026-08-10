@@ -6833,17 +6833,22 @@ catboost.compare <- function(model, other, pool, metrics, ntree_start = 0L, ntre
 #'
 #' Default value: Required argument
 #' @param pool A \code{catboost.Pool} (or list of \code{catboost.Pool}s) with label data, used
-#' to build the curve. Labels are binarized: values >= 0.5 count as the positive class. Labels
-#' that do not round to 0 or 1 (i.e. the pool is not a binary classification target) make the
-#' call fail with an error.
+#' to build the curve. Labels are binarized: values > \code{label_border} count as the positive
+#' class. Labels that do not round to 0 or 1 (i.e. the pool is not a binary classification
+#' target) make the call fail with an error.
 #'
 #' Default value: Required argument
+#' @param label_border The label binarization border: a label counts as the positive class if
+#' it is strictly greater than this value. Matches the CLI's \code{roc} mode
+#' \code{--label-border}/\code{-b} option.
+#'
+#' Default value: 0.5
 #' @return A list with three numeric vectors of equal length, sorted by decreasing
 #' \code{threshold}: \code{fpr} (false positive rate), \code{tpr} (true positive rate), and
 #' \code{threshold} (probability decision boundary, in \code{[0, 1]}).
 #' @export
 #' @seealso \url{https://catboost.ai/docs/concepts/python-reference_utils_get_roc_curve.html}
-catboost.get_roc_curve <- function(model, pool) {
+catboost.get_roc_curve <- function(model, pool, label_border = 0.5) {
   if (!inherits(model, "catboost.Model"))
     stop("Expected catboost.Model, got: ", class(model))
   catboost.restore_handle(model)
@@ -6852,7 +6857,16 @@ catboost.get_roc_curve <- function(model, pool) {
   if (!is.list(pools) || length(pools) == 0)
     stop("Expected catboost.Pool or non-empty list of catboost.Pool, got: ", class(pool))
 
+  # Pool labels are stored natively as float32 (matching the CLI's TVector<float>
+  # target); catboost.pool.get_label() widens them to double, so e.g. 0.3 comes
+  # back as 0.30000001192092896. Rounding label_border to the same float32
+  # precision before comparing keeps ties (label == border) resolved exactly
+  # like mode_roc.cpp's float-vs-float PrepareTargetBinary comparison, instead
+  # of a double-vs-widened-float32 comparison that can flip on exact borders.
+  label_border <- readBin(writeBin(as.double(label_border), raw(), size = 4L), "double", size = 4L)
+
   probability <- numeric(0)
+  rounded <- integer(0) # sanity-checked shape of the raw label, independent of label_border
   target <- integer(0)
   for (p in pools) {
     if (!inherits(p, "catboost.Pool"))
@@ -6863,9 +6877,12 @@ catboost.get_roc_curve <- function(model, pool) {
     if (length(label) == 0)
       stop("Pool has no label data.")
     probability <- c(probability, catboost.predict(model, p, prediction_type = "Probability"))
-    target <- c(target, as.integer(label + 0.5)) # custom round for accuracy, matches TRocCurve::BuildCurve
+    rounded <- c(rounded, as.integer(label + 0.5)) # custom round for accuracy, matches TRocCurve::BuildCurve
+    # matches mode_roc's PrepareTargetBinary (binarize_target.cpp): target > border, applied
+    # upstream of TRocCurve::BuildCurve, which only ever sees an already-binary 0/1 target.
+    target <- c(target, as.integer(label > label_border))
   }
-  bad <- unique(target[!(target %in% c(0L, 1L))])
+  bad <- unique(rounded[!(rounded %in% c(0L, 1L))])
   if (length(bad) > 0)
     stop("catboost.get_roc_curve requires labels that round to 0 or 1 (binary classification); ",
          "found rounded label(s): ", paste(bad, collapse = ", "))

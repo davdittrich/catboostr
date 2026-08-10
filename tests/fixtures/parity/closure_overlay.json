@@ -1650,8 +1650,9 @@
     "tolerance_justification": "P10.C: read the vendored Python source before concluding this -- calculate_quantization_grid (catboost/python-package/catboost/utils.py:779) is a thin wrapper around _calculate_quantization_grid (catboost/python-package/catboost/_grid_creator.pxi:19-27), which calls BestSplit() (library/cpp/grid_creator/binarization.h) directly on a raw values vector. This is the exact same border-selection engine catboost.pool.quantize() calls per numeric feature during Pool quantization -- already verified byte-for-byte against the Python oracle in this file's 'save_quantization_borders output matches Python oracle byte-for-byte' test (feature num1's borders are BestSplit's output). A new test in this file additionally confirms feature_border_type='Median' (calculate_quantization_grid's own function default, as opposed to quantize()'s separate native default) reaches the shared engine deterministically and returns well-formed ascending borders."
   },
   "catboost.utils.compute_training_options": {
-    "state": "red",
-    "tolerance_justification": "No R equivalent exists: R has no function that resolves training options to their final values without training (same underlying native gap as the CLI's mode:dump-options, already recorded as untriaged-but-real in catboost-8z4.115's follow-up evidence). Genuinely missing capability, not a disposition gap -- filed as a discovered-from follow-up (catboost-8z4.116 report) rather than adding new R/src code in this disposition-only ticket."
+    "state": "green",
+    "test_id": "tests/testthat/test_compute_training_options.R",
+    "tolerance_justification": "catboost-azg: catboost.compute_training_options() (src/catboostr.cpp CatBoostComputeTrainingOptions_R) closes the gap this row previously recorded as missing. It reproduces the exact native call sequence behind Python's compute_training_options (PlainJsonToOptions -> ConvertParamsToCanonicalFormat -> LoadOptions -> SetDataDependentDefaults -> TCatBoostOptions::Save, all already linked via private-libs-options), taking the same DataMetaInfo-shaped primitives (object_count/feature_count/max_cat_features_uniq_values_on_learn/target_min_value/target_max_value/has_pairs) Python's own DataMetaInfo constructor takes, instead of a real Pool."
   },
   "catboost.utils.compute_wx_test": {
     "state": "out_of_scope",

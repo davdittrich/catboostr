@@ -2903,6 +2903,97 @@ EXPORT_FUNCTION CatBoostGetPlainParams_R(SEXP modelParam) {
     return result;
 }
 
+// catboost-azg: R equivalent of Python's catboost.utils.compute_training_options
+// (_catboost.pyx:7095), which resolves a plain params dict to its final,
+// fully-resolved training options *without* fitting a model. Python builds
+// that resolution from a hand-constructed DataMetaInfo (object_count,
+// feature_count, max_cat_features_uniq_values_on_learn, target_stats,
+// has_pairs -- _catboost.pyx:7075-7091, exercised exactly this way by
+// test_compute_options in the vendored ut/medium/test.py) rather than a real
+// pool, so this export takes those same primitives instead of a pool handle.
+//
+// Python's compute_training_options calls the native GetTrainingOptions
+// (python-package/catboost/helpers.cpp:205), which is just:
+//   PlainJsonToOptions -> ConvertParamsToCanonicalFormat -> LoadOptions
+//   -> SetDataDependentDefaults -> TCatBoostOptions::Save
+// Every one of those calls is already used in this file (see
+// TrainModelDistributed above) and already linked via private-libs-options,
+// so this reproduces the same sequence directly instead of linking the
+// python-package-only helpers.cpp/.h (which pulls in Cython-generated types
+// this target doesn't otherwise need).
+static TDataMetaInfo BuildDataMetaInfoFromR(const NJson::TJsonValue& metaInfoJson) {
+    TDataMetaInfo metaInfo;
+    metaInfo.ObjectCount = metaInfoJson["object_count"].GetUIntegerSafe(0);
+    const ui32 featureCount = SafeIntegerCast<ui32>(metaInfoJson["feature_count"].GetUIntegerSafe(0));
+    metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(featureCount);
+    metaInfo.MaxCatFeaturesUniqValuesOnLearn =
+        metaInfoJson["max_cat_features_uniq_values_on_learn"].GetUIntegerSafe(0);
+    metaInfo.HasPairs = metaInfoJson["has_pairs"].GetBooleanSafe(false);
+    if (metaInfoJson.Has("target_min_value") && metaInfoJson.Has("target_max_value")) {
+        TTargetStats targetStats;
+        targetStats.MinValue = static_cast<float>(metaInfoJson["target_min_value"].GetDoubleSafe(0.0));
+        targetStats.MaxValue = static_cast<float>(metaInfoJson["target_max_value"].GetDoubleSafe(0.0));
+        metaInfo.TargetStats = targetStats;
+    }
+    return metaInfo;
+}
+
+EXPORT_FUNCTION CatBoostComputeTrainingOptions_R(
+    SEXP paramsAsJsonParam,
+    SEXP trainMetaInfoAsJsonParam,
+    SEXP testMetaInfoAsJsonParam
+) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+
+    NJson::TJsonValue plainJsonParams = LoadFitParams(paramsAsJsonParam);
+    const TDataMetaInfo trainMetaInfo = BuildDataMetaInfoFromR(LoadFitParams(trainMetaInfoAsJsonParam));
+    TMaybe<TDataMetaInfo> testMetaInfo;
+    if (testMetaInfoAsJsonParam != R_NilValue) {
+        testMetaInfo = BuildDataMetaInfoFromR(LoadFitParams(testMetaInfoAsJsonParam));
+    }
+
+    NJson::TJsonValue trainOptionsJson;
+    NJson::TJsonValue outputFilesOptionsJson;
+    NCatboostOptions::PlainJsonToOptions(plainJsonParams, &trainOptionsJson, &outputFilesOptionsJson);
+    ConvertParamsToCanonicalFormat(trainMetaInfo, &trainOptionsJson);
+
+    const ETaskType taskType = NCatboostOptions::GetTaskType(trainOptionsJson);
+    NCatboostOptions::TCatBoostOptions catBoostOptions(taskType);
+    catBoostOptions.Load(trainOptionsJson);
+
+    NCatboostOptions::TOutputFilesOptions outputOptions;
+    outputOptions.Load(outputFilesOptionsJson);
+    outputOptions.UseBestModel.SetDefault(false);
+
+    SetDataDependentDefaults(
+        trainMetaInfo,
+        testMetaInfo,
+        /*continueFromModel*/ false,
+        /*learningContinuation*/ false,
+        &outputOptions,
+        &catBoostOptions
+    );
+
+    NJson::TJsonValue catBoostOptionsJson;
+    catBoostOptions.Save(&catBoostOptionsJson);
+
+    // ToString(TJsonValue) uses the default writer config, whose
+    // DefaultDoubleNDigits = 10 (library/cpp/json/json_writer.h:16) silently
+    // truncates resolved-option doubles (e.g. learning_rate) to 10
+    // significant digits. Use PREC_AUTO, same fix as BestOptionValuesToRList
+    // and CatBoostSelectFeatures_R's summary JSON above.
+    TStringStream optionsStream;
+    NJson::TJsonWriterConfig optionsConfig;
+    optionsConfig.FloatToStringMode = PREC_AUTO;
+    NJson::WriteJson(&optionsStream, &catBoostOptionsJson, optionsConfig);
+
+    result = PROTECT(mkString(optionsStream.Str().c_str()));
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
 // P10.D (catboost-8z4.118): R equivalent of Python's CatBoost.classes_
 // property (core.py:2085, `self._object._get_class_labels()`). Delegates to
 // the same native TFullModel::GetModelClassLabels() (model.cpp:1425) Python's

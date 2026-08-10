@@ -18301,9 +18301,9 @@
     "kind": "attribute",
     "method": "elementwise",
     "tolerance": 1e-12,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "No R equivalent exists: R has no function that resolves training options to their final values without training (same underlying native gap as the CLI's mode:dump-options, already recorded as untriaged-but-real in catboost-8z4.115's follow-up evidence). Genuinely missing capability, not a disposition gap -- filed as a discovered-from follow-up (catboost-8z4.116 report) rather than adding new R/src code in this disposition-only ticket.",
+    "test_id": "tests/testthat/test_compute_training_options.R",
+    "state": "green",
+    "tolerance_justification": "catboost-azg: catboost.compute_training_options() (src/catboostr.cpp CatBoostComputeTrainingOptions_R) closes the gap this row previously recorded as missing. It reproduces the exact native call sequence behind Python's compute_training_options (PlainJsonToOptions -> ConvertParamsToCanonicalFormat -> LoadOptions -> SetDataDependentDefaults -> TCatBoostOptions::Save, all already linked via private-libs-options), taking the same DataMetaInfo-shaped primitives (object_count/feature_count/max_cat_features_uniq_values_on_learn/target_min_value/target_max_value/has_pairs) Python's own DataMetaInfo constructor takes, instead of a real Pool.",
     "needs_disposition": false,
     "members": [
       {

@@ -121,6 +121,13 @@ EXPORT_FUNCTION CatBoostCV_R(
     SEXP customEvalMetricParam
 );
 
+// catboost-azg: R equivalent of Python's catboost.utils.compute_training_options.
+EXPORT_FUNCTION CatBoostComputeTrainingOptions_R(
+    SEXP paramsAsJsonParam,
+    SEXP trainMetaInfoAsJsonParam,
+    SEXP testMetaInfoAsJsonParam
+);
+
 EXPORT_FUNCTION CatBoostGridSearch_R(
     SEXP gridJsonParam,
     SEXP poolParam,

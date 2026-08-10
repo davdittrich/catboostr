@@ -5339,6 +5339,45 @@ catboost.get_plain_params <- function(model) {
     return(params)
 }
 
+#' @name catboost.compute_training_options
+#' @title Resolve training options without training a model
+#'
+#' @description R equivalent of Python's
+#' \code{catboost.utils.compute_training_options()}: resolves a plain
+#' \code{params} list (the same shape \code{\link{catboost.train}} accepts)
+#' to its final, fully-resolved training options, without fitting a model.
+#' Some defaults (e.g. \code{depth}, \code{border_count}) depend on the shape
+#' of the training data, so a minimal description of that shape must be
+#' supplied via \code{train_meta_info} instead of an actual pool.
+#'
+#' @param params Training parameters, as passed to \code{\link{catboost.train}}.
+#' @param train_meta_info A list describing the learn dataset shape:
+#' \itemize{
+#'   \item \code{object_count} -- number of rows.
+#'   \item \code{feature_count} -- number of features.
+#'   \item \code{max_cat_features_uniq_values_on_learn} -- (optional, default 0)
+#'     max number of unique values across categorical features on learn.
+#'   \item \code{target_min_value}, \code{target_max_value} -- (optional) target
+#'     value range; omit both to leave target statistics unresolved.
+#'   \item \code{has_pairs} -- (optional, default FALSE) whether the dataset has pairs.
+#' }
+#' @param test_meta_info Optional, same shape as \code{train_meta_info}, describing
+#' the test dataset. Defaults to \code{NULL} (no test dataset).
+#' @return A list object with the fully-resolved training options.
+#' @export
+catboost.compute_training_options <- function(params, train_meta_info, test_meta_info = NULL) {
+    params_json <- jsonlite::toJSON(params, auto_unbox = TRUE, digits = NA)
+    train_meta_info_json <- jsonlite::toJSON(train_meta_info, auto_unbox = TRUE, digits = NA)
+    test_meta_info_json <- if (is.null(test_meta_info)) {
+        NULL
+    } else {
+        jsonlite::toJSON(test_meta_info, auto_unbox = TRUE, digits = NA)
+    }
+    options <- .Call("CatBoostComputeTrainingOptions_R", params_json, train_meta_info_json, test_meta_info_json)
+    options <- jsonlite::fromJSON(options)
+    return(options)
+}
+
 #' @name catboost.get_metadata
 #' @title Get model metadata
 #'

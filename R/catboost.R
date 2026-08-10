@@ -1,5 +1,6 @@
 #' @import jsonlite
 #' @importFrom stats predict
+#' @importFrom stats rnorm
 #' @importFrom utils head
 #' @importFrom utils tail
 #' @importFrom utils write.table
@@ -4251,6 +4252,259 @@ catboost.model_based_eval <- function(learn_set,
           delimiter, has_header)
 
     return(invisible(if (is.null(params$train_dir)) "catboost_info" else params$train_dir))
+}
+
+#' @name catboost.sample_gaussian_process
+#' @title Sample from a Gaussian Process posterior
+#' @description R port of Python's module-level \code{catboost.sample_gaussian_process}.
+#' Implements Gaussian Process posterior sampling (Kernel Gradient Boosting /
+#' Algorithm 4) from "Gradient Boosting Performs Gaussian Process Inference"
+#' (\url{https://arxiv.org/abs/2206.05608}). Produces samples from the GP
+#' posterior under the prior assumption \code{f ~ GP(0, sigma^2 K + delta^2 I)}.
+#'
+#' Takes a \code{catboost.Pool} rather than the separate \code{X}/\code{y}/
+#' \code{cat_features}/\code{text_features}/\code{embedding_features}
+#' arguments Python's version takes -- every other R training entry point
+#' (\code{\link{catboost.train}}, \code{\link{catboost.cv}}, ...) is
+#' Pool-based, and the Pool already carries that information.
+#'
+#' Reproduces the Python algorithm's two-stage fit -- a near-zero-signal
+#' "prior" model whose leaf values are then randomized by direct JSON model
+#' surgery, then a "posterior" model fit to the residual -- with the same
+#' fitting hyperparameters. Both stages need to fit \code{learn_pool}'s
+#' features against a boosting label other than its own (pure noise for the
+#' prior, a residual for the posterior); this package's Pool object has no
+#' \code{set_label} entry point (unlike Python's \code{X}/\code{y} arrays,
+#' which Python simply resubmits with a different \code{y} each stage), so
+#' each stage instead builds a throwaway \code{catboost.Pool} from
+#' \code{learn_pool}'s features (\code{\link{catboost.pool.get_features}})
+#' plus the desired label -- the same "extract features, rebuild pool with
+#' something else changed" idiom already used by
+#' \code{\link{catboost.plot_predictions}}/\code{\link{catboost.plot_partial_dependence}}.
+#' As with those, this restricts \code{learn_pool} to all-numeric features
+#' (\code{get_features}'s own restriction); an earlier revision instead kept
+#' one shared pool and retargeted its label via a temporary
+#' \code{\link{catboost.pool.set_baseline}} (which supports categorical/text/
+#' embedding features), but CatBoost's native trainer silently zeroes out
+#' \code{model_shrink_rate} whenever a baseline column is present ("Model
+#' shrinkage in combination with baseline column is not implemented yet"),
+#' which would silently drop a term the paper's Algorithm 4 requires -- not
+#' an acceptable substitution.
+#'
+#' RNG note: seeded and reproducible within this package, but not
+#' byte-identical to the Python implementation -- R has no generator matching
+#' numpy's PCG64 \code{default_rng} bit-for-bit (same caveat as this
+#' package's \code{embedding_processing} LDA calcer; see
+#' \code{\link{catboost.train}}).
+#' @param learn_pool A catboost.Pool with a single-dimensional label and
+#' all-numeric features (no categorical/text/embedding features -- the same
+#' restriction \code{\link{catboost.pool.get_features}} itself enforces).
+#' Must be non-empty.
+#'
+#' Default value: Required argument
+#' @param test_pool A catboost.Pool or NULL. Validation dataset for metrics/early
+#' stopping during posterior training only, as in \code{\link{catboost.train}}'s
+#' own \code{test_pool}.
+#'
+#' Default value: NULL
+#' @param random_seed NULL (mapped to 0) or a single integer.
+#'
+#' Default value: NULL
+#' @param samples Number of posterior samples (models) to produce. Range: \code{[1,+inf)}.
+#'
+#' Default value: 10
+#' @param posterior_iterations Number of boosting iterations for each posterior model. Range: \code{[1,+inf)}.
+#'
+#' Default value: 900
+#' @param prior_iterations Number of boosting iterations for each prior model. Range: \code{[1,+inf)}.
+#'
+#' Default value: 100
+#' @param learning_rate Learning rate of the posterior model. Range: \code{(0,1]}.
+#'
+#' Default value: 0.1
+#' @param depth Tree depth. Range: \code{[1,16]}.
+#'
+#' Default value: 6
+#' @param sigma Scale of the GP kernel (lower values give lower posterior variance). Range: \code{(0,+inf)}.
+#'
+#' Default value: 0.1
+#' @param delta Scale of homogeneous noise added to the kernel (label noise). Range: \code{[0,+inf)}.
+#'
+#' Default value: 0
+#' @param random_strength Corresponds to beta in the paper; higher values give faster
+#' posterior convergence. Range: \code{(0,+inf)}.
+#'
+#' Default value: 0.1
+#' @param random_score_type Type of random noise added to split scores.
+#'
+#' Possible values:
+#' \itemize{
+#'   \item 'Gumbel' -- Gumbel-distributed, as in the paper.
+#'   \item 'NormalWithModelSizeDecrease' -- normally-distributed, deviation decreasing with model iteration count.
+#' }
+#'
+#' Default value: 'Gumbel'
+#' @param eps Technical parameter controlling precision of the prior estimate. Range: \code{(0,1]}.
+#'
+#' Default value: 1e-4
+#' @param verbose Verbosity of posterior model training output, same convention as
+#' \code{\link{catboost.train}}'s \code{verbose} param. The prior model always trains silently.
+#'
+#' Default value: FALSE
+#' @return A list of \code{samples} trained \code{catboost.Model} objects, each the sum
+#' (via \code{\link{catboost.sum_models}}) of that sample's prior and posterior model.
+#' @seealso \url{https://arxiv.org/abs/2206.05608}
+#' @export
+catboost.sample_gaussian_process <- function(learn_pool, test_pool = NULL,
+                                              random_seed = NULL, samples = 10,
+                                              posterior_iterations = 900, prior_iterations = 100,
+                                              learning_rate = 0.1, depth = 6, sigma = 0.1, delta = 0,
+                                              random_strength = 0.1, random_score_type = "Gumbel",
+                                              eps = 1e-4, verbose = FALSE) {
+    if (!inherits(learn_pool, "catboost.Pool"))
+        stop("Expected catboost.Pool, got: ", paste(class(learn_pool), collapse = ", "))
+    if (is.null.handle(learn_pool))
+        stop("'learn_pool' object is invalid.")
+    if (!is.null(test_pool)) {
+        if (!inherits(test_pool, "catboost.Pool"))
+            stop("Expected catboost.Pool, got: ", paste(class(test_pool), collapse = ", "))
+        if (is.null.handle(test_pool))
+            stop("'test_pool' object is invalid.")
+    }
+    if (!(is.numeric(sigma) && length(sigma) == 1 && sigma > 0))
+        stop("sigma must be a single number > 0.")
+    if (!(is.numeric(samples) && length(samples) == 1 && samples > 0))
+        stop("samples must be a single number > 0.")
+    if (!(is.numeric(random_strength) && length(random_strength) == 1 && random_strength > 0))
+        stop("random_strength must be a single number > 0.")
+    if (!(is.numeric(eps) && length(eps) == 1 && eps > 0))
+        stop("eps must be a single number > 0.")
+
+    y <- catboost.pool.get_label(learn_pool)
+    if (length(y) == 0)
+        stop("learn_pool must have a label to sample a Gaussian process regressor.")
+    if (!is.null(dim(y)))
+        stop("catboost.sample_gaussian_process only supports a single-dimensional label.")
+    N <- length(y)
+    features <- catboost.pool.get_features(learn_pool)
+
+    samples <- as.integer(samples)
+    depth <- as.integer(depth)
+
+    if (is.null(random_seed))
+        random_seed <- 0
+    set.seed(as.integer(random_seed))
+    # Seeds for CatBoost's own internal training RNG only (bootstrap/split-scoring
+    # noise) -- drawn once up front, exactly like Python draws
+    # prior_seeds/posterior_seeds once from its outer numpy Generator before the
+    # sample loop. The rnorm() draws below (prior label noise, leaf-value
+    # randomization, delta noise) intentionally keep consuming this same
+    # continuing R RNG stream across the whole sample loop, unaffected by these
+    # seeds, mirroring Python's single shared numpy Generator.
+    prior_seeds <- sample.int(.Machine$integer.max, samples, replace = TRUE)
+    posterior_seeds <- sample.int(.Machine$integer.max, samples, replace = TRUE)
+
+    model_shrink_rate <- (random_strength / sigma) ^ 2 / N
+
+    # Native's flat "verbose" params key is an integer print-period, not a
+    # boolean (output_file_options.cpp's VerbosePeriod("verbose", 1); see
+    # test_params_validation.R); a bare TRUE/FALSE must go through
+    # logging_level instead, same translation Python's client-side
+    # _process_verbose() does before CatBoostRegressor.fit().
+    verbose_params <- if (is.logical(verbose)) {
+        list(logging_level = if (isTRUE(verbose)) "Verbose" else "Silent")
+    } else {
+        list(logging_level = "Verbose", verbose = as.integer(verbose))
+    }
+
+    # Fits a fresh model on a throwaway Pool sharing learn_pool's features but
+    # boosting against `target` instead of learn_pool's own label -- see the
+    # roxygen block above for why this rebuilds rather than retargets in
+    # place. Never touches/mutates the caller-supplied learn_pool.
+    fit_residual <- function(target, params, fit_test_pool = NULL) {
+        catboost.train(catboost.load_pool(features, label = target), fit_test_pool, params)
+    }
+
+    output_models <- vector("list", samples)
+
+    for (sample_idx in seq_len(samples)) {
+        prior_y <- rnorm(N, mean = 0, sd = eps)
+
+        prior_params <- list(
+            random_seed = prior_seeds[sample_idx],
+            iterations = as.integer(prior_iterations),
+            learning_rate = eps,
+            loss_function = "RMSE",
+            bootstrap_type = "No",
+            depth = depth,
+            logging_level = "Silent",
+            leaf_estimation_backtracking = "No",
+            boost_from_average = FALSE,
+            random_strength = 1 / eps,
+            random_score_type = random_score_type,
+            l2_leaf_reg = 0,
+            score_function = "L2",
+            boosting_type = "Plain"
+        )
+        prior <- fit_residual(prior_y, prior_params)
+
+        # JSON model surgery (same save_model(file_format="json") + jsonlite
+        # round trip pattern as catboost.plot_tree): randomize the prior's leaf
+        # values so it carries a random function drawn (roughly) from the GP
+        # prior, then rescale it down by sigma / sqrt(prior_iterations).
+        json_path <- tempfile(fileext = ".json")
+        catboost.save_model(prior, json_path, file_format = "json", pool = learn_pool)
+        prior_json <- jsonlite::fromJSON(json_path, simplifyVector = FALSE)
+        for (t in seq_along(prior_json$oblivious_trees)) {
+            tree <- prior_json$oblivious_trees[[t]]
+            leaf_values <- tree$leaf_values
+            leaf_weights <- tree$leaf_weights
+            if (is.null(leaf_weights))
+                leaf_weights <- rep(1, length(leaf_values))
+            num_leaves <- min(length(leaf_values), length(leaf_weights))
+            for (l in seq_len(num_leaves)) {
+                weight <- leaf_weights[[l]]
+                scale <- sqrt(N / sqrt(max(1, weight)))
+                leaf_values[[l]] <- rnorm(1, mean = 0, sd = scale)
+            }
+            prior_json$oblivious_trees[[t]]$leaf_values <- leaf_values
+        }
+        writeLines(jsonlite::toJSON(prior_json, auto_unbox = TRUE, digits = NA, null = "null"), json_path)
+        prior <- catboost.load_model(json_path, file_format = "json")
+        unlink(json_path)
+
+        scale_and_bias <- catboost.get_scale_and_bias(prior)
+        bias <- if (length(scale_and_bias$bias) > 0) scale_and_bias$bias[1] else 0
+        catboost.set_scale_and_bias(prior,
+                                     scale_and_bias$scale * sigma / sqrt(prior_iterations),
+                                     bias * sigma / sqrt(prior_iterations))
+
+        posterior_noise <- rnorm(N, mean = 0, sd = delta)
+        posterior_target <- y - catboost.predict(prior, learn_pool) + posterior_noise
+
+        posterior_params <- modifyList(list(
+            random_seed = posterior_seeds[sample_idx],
+            iterations = as.integer(posterior_iterations),
+            learning_rate = learning_rate,
+            model_shrink_rate = model_shrink_rate,
+            loss_function = "RMSE",
+            bootstrap_type = "No",
+            depth = depth,
+            leaf_estimation_backtracking = "No",
+            boost_from_average = FALSE,
+            random_strength = random_strength,
+            random_score_type = random_score_type,
+            l2_leaf_reg = 0,
+            score_function = "L2",
+            boosting_type = "Plain",
+            use_best_model = FALSE
+        ), verbose_params)
+        posterior <- fit_residual(posterior_target, posterior_params, test_pool)
+
+        output_models[[sample_idx]] <- catboost.sum_models(list(prior, posterior), weights = c(1, 1))
+    }
+
+    return(output_models)
 }
 
 #' @name catboost.sum_models

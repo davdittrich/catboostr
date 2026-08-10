@@ -159,21 +159,8 @@ test_that("get_feature_importance: type = 'ShapValues' sums to the RawFormulaVal
   }
 })
 
-# catboost-8z4.117: EFstrType.SageValues -- confirmed by reading
-# R/catboost.R's catboost.get_feature_importance() dispatch (the final
-# `else { stop("Unknown type: ", type) }` branch) that "SageValues" is not
-# one of the type strings the R<->native bridge recognizes at all (unlike
-# PredictionValuesChange/LossFunctionChange/FeatureImportance/Interaction/
-# ShapValues/ShapInteractionValues/PredictionDiff, which each have their own
-# branch). This is a genuine capability gap, not a missing test -- verified
-# live, not assumed.
-test_that("get_feature_importance: type = 'SageValues' is rejected (EFstrType.SageValues has no R binding)", {
-  inputs <- fixture$inputs$CatBoostRegressor
-  data <- data.frame(num1 = inputs$num1, num2 = inputs$num2)
-  pool <- catboost.load_pool(data, label = inputs$label)
-  model <- catboost.train(pool, params = c(list(loss_function = "RMSE"), COMMON_PARAMS))
-  expect_error(
-    catboost.get_feature_importance(model, pool, type = "SageValues"),
-    "Unknown type"
-  )
-})
+# catboost-8z4.125 closed the catboost-8z4.117 gap this block used to
+# document (EFstrType.SageValues had no R dispatch branch): SageValues is now
+# wired in catboost.get_feature_importance() (R/catboost.R). Positive
+# coverage (dispatch succeeds, pool-required, multiclass-rejected) lives in
+# test_fstr_sage_values.R.

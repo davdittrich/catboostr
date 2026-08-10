@@ -12117,9 +12117,9 @@
     "kind": "enum_member",
     "method": "enum_member",
     "tolerance": null,
-    "test_id": null,
-    "state": "red",
-    "tolerance_justification": "P10.C: genuine capability gap, verified live and by reading R/catboost.R's catboost.get_feature_importance() dispatch -- 'SageValues' hits the function's final `else { stop(\"Unknown type: \", type) }` branch (R/catboost.R:4572-4574); unlike PredictionValuesChange/LossFunctionChange/FeatureImportance/Interaction/ShapValues/ShapInteractionValues/PredictionDiff (each has its own dispatch branch), SAGE feature importance was never wired into the R<->native bridge. Filed as a discovered-from follow-up rather than adding new R/src code in this disposition-only ticket.",
+    "test_id": "tests/testthat/test_fstr_sage_values.R",
+    "state": "green",
+    "tolerance_justification": "catboost-8z4.125: wired -- catboost.get_feature_importance(type = \"SageValues\") now dispatches through the pre-existing native GetFeatureImportances()/CalcSageValues() path (calc_fstr.cpp EFstrType::SageValues); R/catboost.R's post-processing dispatch previously discarded this result via its 'Unknown type' fallthrough.",
     "needs_disposition": false,
     "members": [
       {

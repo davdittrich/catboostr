@@ -4802,6 +4802,12 @@ catboost.virtual_ensembles_predict <- function(model, pool, verbose = FALSE, pre
 #'     Calculate the most important features explaining the difference in predictions for a pair of documents.
 #'     \code{pool} is required and must contain exactly 2 rows.
 #'
+#'   \item 'SageValues'
+#'
+#'     Calculate SAGE (Shapley Additive Global importancE) values, a global feature importance
+#'     measure based on Shapley values of the model's loss function. \code{pool} is required.
+#'     Not supported for multiclass models.
+#'
 #' }
 #'
 #' Default value: 'FeatureImportance'
@@ -4824,7 +4830,7 @@ catboost.get_feature_importance <- function(model, pool = NULL, type = "FeatureI
         stop("Expected catboost.Pool, got: ", class(pool))
     if (!is.null(pool) && is.null.handle(pool))
         stop("Pool object is invalid.")
-    if ( (type == "ShapValues" || type == "LossFunctionChange" || type == "ShapInteractionValues" || type == "PredictionDiff") && length(pool) == 0)
+    if ( (type == "ShapValues" || type == "LossFunctionChange" || type == "ShapInteractionValues" || type == "PredictionDiff" || type == "SageValues") && length(pool) == 0)
         stop("For `", type, "` type of feature importance, the pool is required")
     if (type == "PredictionDiff" && nrow(pool) != 2)
         stop("For `PredictionDiff` type of feature importance, the pool must contain exactly 2 rows, got: ", nrow(pool))
@@ -4846,7 +4852,7 @@ catboost.get_feature_importance <- function(model, pool = NULL, type = "FeatureI
             dimnames(importances)[[nd - 1]] <- c(colnames(pool), "<base>")
             dimnames(importances)[[nd]] <- c(colnames(pool), "<base>")
         }
-    } else if (type == "PredictionValuesChange" || type == "FeatureImportance" || type == "LossFunctionChange" || type == "PredictionDiff") {
+    } else if (type == "PredictionValuesChange" || type == "FeatureImportance" || type == "LossFunctionChange" || type == "PredictionDiff" || type == "SageValues") {
         # TODO: incorrect pool and ignored_features lead to incorrect column names; testing length is not enough
         if (!is.null(pool) && dim(importances)[1] == length(colnames(pool))) {
             rownames(importances) <- colnames(pool)

@@ -1339,8 +1339,9 @@
     "tolerance_justification": "P10.C: PredictionValuesChange is exactly what the default type='FeatureImportance' resolves to for non-ranking losses (core.py:3404-3417); new test confirms passing it by name for a non-ranking (RMSE) model produces output identical to the default AND matching the pinned Python oracle's already-verified FeatureImportance values."
   },
   "catboost.EFstrType.SageValues": {
-    "state": "red",
-    "tolerance_justification": "P10.C: genuine capability gap, verified live and by reading R/catboost.R's catboost.get_feature_importance() dispatch -- 'SageValues' hits the function's final `else { stop(\"Unknown type: \", type) }` branch (R/catboost.R:4572-4574); unlike PredictionValuesChange/LossFunctionChange/FeatureImportance/Interaction/ShapValues/ShapInteractionValues/PredictionDiff (each has its own dispatch branch), SAGE feature importance was never wired into the R<->native bridge. Filed as a discovered-from follow-up rather than adding new R/src code in this disposition-only ticket."
+    "state": "green",
+    "test_id": "tests/testthat/test_fstr_sage_values.R",
+    "tolerance_justification": "catboost-8z4.125: wired -- catboost.get_feature_importance(type = \"SageValues\") now dispatches through the pre-existing native GetFeatureImportances()/CalcSageValues() path (calc_fstr.cpp EFstrType::SageValues); R/catboost.R's post-processing dispatch previously discarded this result via its 'Unknown type' fallthrough."
   },
   "catboost.EFstrType.ShapInteractionValues": {
     "state": "green",

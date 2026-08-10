@@ -4278,8 +4278,12 @@ catboost.model_based_eval <- function(learn_set,
 #' which Python simply resubmits with a different \code{y} each stage), so
 #' each stage instead builds a throwaway \code{catboost.Pool} from
 #' \code{learn_pool}'s features (\code{\link{catboost.pool.get_features}})
-#' plus the desired label -- the same "extract features, rebuild pool with
-#' something else changed" idiom already used by
+#' plus the desired label, carrying over \code{learn_pool}'s weight
+#' (\code{\link{catboost.pool.get_weight}}) and group id
+#' (\code{\link{catboost.pool.get_group_id_hash}}/
+#' \code{\link{catboost.pool.set_group_id}}) if either is set -- the same
+#' "extract features, rebuild pool with something else changed" idiom
+#' already used by
 #' \code{\link{catboost.plot_predictions}}/\code{\link{catboost.plot_partial_dependence}}.
 #' As with those, this restricts \code{learn_pool} to all-numeric features
 #' (\code{get_features}'s own restriction); an earlier revision instead kept
@@ -4289,9 +4293,17 @@ catboost.model_based_eval <- function(learn_set,
 #' \code{model_shrink_rate} whenever a baseline column is present ("Model
 #' shrinkage in combination with baseline column is not implemented yet"),
 #' which would silently drop a term the paper's Algorithm 4 requires -- not
-#' an acceptable substitution.
+#' an acceptable substitution. \code{learn_pool}'s own baseline and pairs (if
+#' either is set) are NOT propagated onto the rebuilt Pools and trigger a
+#' warning, not a silent drop; group weight/subgroup id have no accessor
+#' anywhere in this package to even detect, so they can't be checked either.
 #'
-#' RNG note: seeded and reproducible within this package, but not
+#' RNG note: draws a seeded, deterministic sequence from \code{random_seed}
+#' (default 0), scoped to this call only -- the caller's global RNG stream is
+#' saved before and restored after, so this function has no observable RNG
+#' side effect (unlike Python's local \code{np.random.default_rng}, R has no
+#' non-global RNG object, so this is done by save/restore of
+#' \code{.Random.seed} instead). Reproducible within this package, but not
 #' byte-identical to the Python implementation -- R has no generator matching
 #' numpy's PCG64 \code{default_rng} bit-for-bit (same caveat as this
 #' package's \code{embedding_processing} LDA calcer; see
@@ -4388,11 +4400,35 @@ catboost.sample_gaussian_process <- function(learn_pool, test_pool = NULL,
     N <- length(y)
     features <- catboost.pool.get_features(learn_pool)
 
+    # Propagate weight/group_id onto every rebuilt Pool below (fit_residual);
+    # NULL/length-0 means "none set", matching get_weight/get_group_id_hash's
+    # own "absent" sentinel. Anything else learn_pool might carry that isn't
+    # propagated (baseline, pairs -- the only two this package additionally
+    # exposes an accessor for) is warned about below rather than silently
+    # dropped; group_weight/subgroup_id have no R accessor to even detect.
+    learn_weight <- catboost.pool.get_weight(learn_pool)
+    if (length(learn_weight) == 0) learn_weight <- NULL
+    learn_group_id <- catboost.pool.get_group_id_hash(learn_pool)
+    if (ncol(catboost.pool.get_baseline(learn_pool)) > 0 || catboost.pool.num_pairs(learn_pool) > 0)
+        warning("learn_pool has a baseline and/or pairs set; catboost.sample_gaussian_process ",
+                "rebuilds a fresh Pool per fit stage (features + label + weight + group_id only) ",
+                "and does not propagate these onto the rebuilt Pool.", call. = FALSE)
+
     samples <- as.integer(samples)
     depth <- as.integer(depth)
 
     if (is.null(random_seed))
         random_seed <- 0
+
+    # Seeded and deterministic, but scoped to this call: save/restore the
+    # caller's global RNG state around set.seed() below, the same way
+    # Python's local np.random.default_rng(random_seed) never touches
+    # numpy's global RNG (this is the only set.seed() call in this package).
+    old_seed <- if (exists(".Random.seed", envir = globalenv())) get(".Random.seed", envir = globalenv()) else NULL
+    on.exit({
+        if (!is.null(old_seed)) assign(".Random.seed", old_seed, envir = globalenv())
+        else if (exists(".Random.seed", envir = globalenv())) rm(".Random.seed", envir = globalenv())
+    }, add = TRUE)
     set.seed(as.integer(random_seed))
     # Seeds for CatBoost's own internal training RNG only (bootstrap/split-scoring
     # noise) -- drawn once up front, exactly like Python draws
@@ -4417,12 +4453,16 @@ catboost.sample_gaussian_process <- function(learn_pool, test_pool = NULL,
         list(logging_level = "Verbose", verbose = as.integer(verbose))
     }
 
-    # Fits a fresh model on a throwaway Pool sharing learn_pool's features but
-    # boosting against `target` instead of learn_pool's own label -- see the
-    # roxygen block above for why this rebuilds rather than retargets in
-    # place. Never touches/mutates the caller-supplied learn_pool.
+    # Fits a fresh model on a throwaway Pool sharing learn_pool's features
+    # (plus weight/group_id) but boosting against `target` instead of
+    # learn_pool's own label -- see the roxygen block above for why this
+    # rebuilds rather than retargets in place. Never touches/mutates the
+    # caller-supplied learn_pool.
     fit_residual <- function(target, params, fit_test_pool = NULL) {
-        catboost.train(catboost.load_pool(features, label = target), fit_test_pool, params)
+        pool <- catboost.load_pool(features, label = target, weight = learn_weight)
+        if (!is.null(learn_group_id))
+            catboost.pool.set_group_id(pool, learn_group_id)
+        catboost.train(pool, fit_test_pool, params)
     }
 
     output_models <- vector("list", samples)

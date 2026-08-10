@@ -1160,69 +1160,77 @@ EXPORT_FUNCTION CatBoostPoolGetLabel_R(SEXP poolParam) {
 EXPORT_FUNCTION CatBoostPoolPromoteStringTarget_R(SEXP poolParam) {
     R_API_BEGIN();
     TPoolHandle pool = static_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
-    CB_ENSURE(
-        pool->RawTargetData.GetTargetType() == ERawTargetType::Integer,
-        "CatBoostPoolPromoteStringTarget_R: only an Integer-typed Pool target can be promoted to String"
-    );
-    CB_ENSURE(
-        pool->MetaInfo.TargetCount == 1,
-        "CatBoostPoolPromoteStringTarget_R: only single-dimensional targets are supported"
-    );
-    CB_ENSURE(
-        !pool->MetaInfo.ClassLabels.empty(),
-        "CatBoostPoolPromoteStringTarget_R: Pool has no class labels to promote its target against"
-    );
-    CB_ENSURE(
-        !pool->MetaInfo.HasGraph,
-        "CatBoostPoolPromoteStringTarget_R: Pools with graph data are not supported"
-    );
+    // catboost-1wu fix round 1: idempotent no-op if already promoted. A
+    // Pool object is legitimately reused across multiple catboost.train()
+    // calls (or passed as both learn_pool and test_pool in one call) --
+    // this function permanently mutates the Pool in place, so a second
+    // promotion attempt on an already-promoted Pool must succeed silently
+    // rather than erroring on a type it itself just set.
+    if (pool->RawTargetData.GetTargetType() != ERawTargetType::String) {
+        CB_ENSURE(
+            pool->RawTargetData.GetTargetType() == ERawTargetType::Integer,
+            "CatBoostPoolPromoteStringTarget_R: only an Integer-typed Pool target can be promoted to String"
+        );
+        CB_ENSURE(
+            pool->MetaInfo.TargetCount == 1,
+            "CatBoostPoolPromoteStringTarget_R: only single-dimensional targets are supported"
+        );
+        CB_ENSURE(
+            !pool->MetaInfo.ClassLabels.empty(),
+            "CatBoostPoolPromoteStringTarget_R: Pool has no class labels to promote its target against"
+        );
+        CB_ENSURE(
+            !pool->MetaInfo.HasGraph,
+            "CatBoostPoolPromoteStringTarget_R: Pools with graph data are not supported"
+        );
 
-    const ui32 classCount = SafeIntegerCast<ui32>(pool->MetaInfo.ClassLabels.size());
-    auto maybeTarget = pool->RawTargetData.GetOneDimensionalTarget();
-    CB_ENSURE_INTERNAL(maybeTarget, "CatBoostPoolPromoteStringTarget_R: Pool has no target");
-    const ITypedSequencePtr<float>* typedSequence
-        = std::get_if<ITypedSequencePtr<float>>(&(**maybeTarget));
-    CB_ENSURE_INTERNAL(typedSequence, "CatBoostPoolPromoteStringTarget_R: expected a numeric target");
+        const ui32 classCount = SafeIntegerCast<ui32>(pool->MetaInfo.ClassLabels.size());
+        auto maybeTarget = pool->RawTargetData.GetOneDimensionalTarget();
+        CB_ENSURE_INTERNAL(maybeTarget, "CatBoostPoolPromoteStringTarget_R: Pool has no target");
+        const ITypedSequencePtr<float>* typedSequence
+            = std::get_if<ITypedSequencePtr<float>>(&(**maybeTarget));
+        CB_ENSURE_INTERNAL(typedSequence, "CatBoostPoolPromoteStringTarget_R: expected a numeric target");
 
-    TVector<TString> stringTarget(pool->GetObjectCount());
-    ui32 nextIdx = 0;
-    (*typedSequence)->ForEach(
-        [&](float value) {
-            // AddTarget<int>() (this file) only ever writes a
-            // static_cast<float>() of an R integer here, exactly
-            // representable as a float, so a plain round-trip cast check
-            // (no <cmath>/std::modf dependency) is exact, not an
-            // approximation.
-            ui32 classIdx = value >= 0.0f ? static_cast<ui32>(value) : classCount;
-            CB_ENSURE(
-                classIdx < classCount && static_cast<float>(classIdx) == value,
-                "CatBoostPoolPromoteStringTarget_R: target value " << value << " is not a valid class index"
-            );
-            stringTarget[nextIdx++] = pool->MetaInfo.ClassLabels[static_cast<size_t>(classIdx)].GetStringRobust();
+        TVector<TString> stringTarget(pool->GetObjectCount());
+        ui32 nextIdx = 0;
+        (*typedSequence)->ForEach(
+            [&](float value) {
+                // AddTarget<int>() (this file) only ever writes a
+                // static_cast<float>() of an R integer here, exactly
+                // representable as a float, so a plain round-trip cast check
+                // (no <cmath>/std::modf dependency) is exact, not an
+                // approximation.
+                ui32 classIdx = value >= 0.0f ? static_cast<ui32>(value) : classCount;
+                CB_ENSURE(
+                    classIdx < classCount && static_cast<float>(classIdx) == value,
+                    "CatBoostPoolPromoteStringTarget_R: target value " << value << " is not a valid class index"
+                );
+                stringTarget[nextIdx++] = pool->MetaInfo.ClassLabels[static_cast<size_t>(classIdx)].GetStringRobust();
+            }
+        );
+
+        TRawTargetData newRawTargetData;
+        newRawTargetData.TargetType = ERawTargetType::String;
+        newRawTargetData.Target = {TRawTarget(std::move(stringTarget))};
+        TMaybeData<TBaselineArrayRef> maybeBaseline = pool->RawTargetData.GetBaseline();
+        if (maybeBaseline) {
+            for (const auto& approxRef : *maybeBaseline) {
+                newRawTargetData.Baseline.emplace_back(approxRef.begin(), approxRef.end());
+            }
         }
-    );
+        newRawTargetData.Weights = pool->RawTargetData.GetWeights();
+        newRawTargetData.GroupWeights = pool->RawTargetData.GetGroupWeights();
+        newRawTargetData.Pairs = pool->RawTargetData.GetPairs();
 
-    TRawTargetData newRawTargetData;
-    newRawTargetData.TargetType = ERawTargetType::String;
-    newRawTargetData.Target = {TRawTarget(std::move(stringTarget))};
-    TMaybeData<TBaselineArrayRef> maybeBaseline = pool->RawTargetData.GetBaseline();
-    if (maybeBaseline) {
-        for (const auto& approxRef : *maybeBaseline) {
-            newRawTargetData.Baseline.emplace_back(approxRef.begin(), approxRef.end());
-        }
+        pool->RawTargetData = TRawTargetDataProvider(
+            pool->ObjectsGrouping,
+            std::move(newRawTargetData),
+            /*skipCheck*/ false,
+            pool->RawTargetData.IsForceUnitAutoPairWeights(),
+            &NPar::LocalExecutor()
+        );
+        pool->MetaInfo.TargetType = ERawTargetType::String;
     }
-    newRawTargetData.Weights = pool->RawTargetData.GetWeights();
-    newRawTargetData.GroupWeights = pool->RawTargetData.GetGroupWeights();
-    newRawTargetData.Pairs = pool->RawTargetData.GetPairs();
-
-    pool->RawTargetData = TRawTargetDataProvider(
-        pool->ObjectsGrouping,
-        std::move(newRawTargetData),
-        /*skipCheck*/ false,
-        pool->RawTargetData.IsForceUnitAutoPairWeights(),
-        &NPar::LocalExecutor()
-    );
-    pool->MetaInfo.TargetType = ERawTargetType::String;
 
     R_API_END();
     return R_NilValue;

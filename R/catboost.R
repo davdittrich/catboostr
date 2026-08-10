@@ -3121,6 +3121,16 @@ apply_train_callbacks_params <- function(params) {
 #'     params = list(iterations = 10, depth = 3, logging_level = "Silent"),
 #'     custom_eval_metric_object = rmse_custom_eval_metric)
 #' }
+#' @note If \code{params$class_names} is set and \code{learn_pool}/
+#' \code{test_pool} was built from a factor or character \code{label}, this
+#' function permanently mutates that Pool object's internal target
+#' representation as a side effect (needed to match native's classification
+#' target converter against string class names). The Pool remains fully
+#' usable afterwards, including being retrained or reused as both
+#' \code{learn_pool} and \code{test_pool}. This \code{class_names} +
+#' string-label combination is currently only supported via
+#' \code{catboost.train}; \code{catboost.cv}/\code{catboost.grid_search}/
+#' \code{catboost.select_features}/etc. do not yet apply the same promotion.
 #' @return Model object.
 #' @export
 #' @seealso \url{https://catboost.ai/docs/concepts/r-reference_catboost-train.html}
@@ -3161,17 +3171,22 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list(), init_m
     params <- callbacks_split$params
     train_callbacks <- callbacks_split$callbacks
 
-    # catboost-1wu: classes_count/class_names can supply STRING class names
-    # (e.g. list("neg", "pos")) -- native's target converter requires the
-    # Pool's raw target itself to be String-typed to match them
+    # catboost-1wu: class_names supplies STRING class names (e.g.
+    # list("neg", "pos")) -- native's target converter requires the Pool's
+    # raw target itself to be String-typed to match them
     # (CatBoostPoolPromoteStringTarget_R above has the full mechanism/
-    # rationale). Only promotes a Pool that actually carries the
-    # "class_labels" attribute catboost.from_matrix stashes for a factor/
-    # character label; every other combination (numeric label, or
-    # classes_count given alone without class_names against an already-
-    # numeric class-index target) is untouched and keeps training exactly
-    # as before.
-    if (!is.null(params$classes_count) || !is.null(params$class_names)) {
+    # rationale). classes_count ALONE (no class_names) must NOT trigger
+    # this: native then builds a TNumericClassTargetConverter, which expects
+    # a numeric target and would fail on a promoted String one -- that
+    # combination already works today against the Pool's existing Integer
+    # target and must keep doing so unchanged. Also only promotes a Pool
+    # that actually carries the "class_labels" attribute catboost.from_matrix
+    # stashes for a factor/character label; this permanently mutates the
+    # Pool object in place (its target stays String-typed after this call
+    # returns; NB: CatBoostPoolPromoteStringTarget_R is a no-op if a Pool
+    # already has one, so re-training the same Pool object, or reusing it as
+    # both learn_pool and test_pool, is safe).
+    if (!is.null(params$class_names)) {
         if (!is.null(attr(learn_pool, "class_labels")))
             .Call("CatBoostPoolPromoteStringTarget_R", learn_pool)
         if (!is.null(test_pool) && !is.null(attr(test_pool, "class_labels")))

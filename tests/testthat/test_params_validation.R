@@ -298,6 +298,36 @@ test_that("params keys 'classes_count'/'class_names' can be exercised for MultiC
   expect_equal(sort(model$classes_), c("neg", "pos"))
 })
 
+test_that("classes_count alone (no class_names) against a factor/character label still trains against the Pool's numeric target, unaffected by catboost-1wu's class_names promotion", {
+  mc_pool <- catboost.load_pool(
+    matrix(c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), ncol = 1),
+    label = c("neg", "pos", "neg", "pos", "neg", "pos", "neg", "pos", "neg", "pos")
+  )
+  model <- catboost.train(mc_pool, params = list(
+    loss_function = "MultiClass", iterations = 2, logging_level = "Silent",
+    thread_count = 1, classes_count = 2
+  ))
+  expect_equal(model$tree_count, 2)
+})
+
+test_that("catboost-1wu: a Pool promoted for class_names can be retrained, and reused as both learn_pool and test_pool, without error", {
+  mc_pool <- catboost.load_pool(
+    matrix(c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), ncol = 1),
+    label = c("neg", "pos", "neg", "pos", "neg", "pos", "neg", "pos", "neg", "pos")
+  )
+  mc_params <- list(
+    loss_function = "MultiClass", iterations = 2, logging_level = "Silent",
+    thread_count = 1, classes_count = 2, class_names = list("neg", "pos")
+  )
+  model_first <- catboost.train(mc_pool, params = mc_params)
+  model_second <- catboost.train(mc_pool, params = mc_params)
+  expect_equal(model_first$tree_count, 2)
+  expect_equal(model_second$tree_count, 2)
+
+  model_with_test_pool <- catboost.train(mc_pool, test_pool = mc_pool, params = mc_params)
+  expect_equal(model_with_test_pool$tree_count, 2)
+})
+
 test_that("catboost.cv: an unknown params key is rejected the same way as catboost.train", {
   expect_error(
     catboost.cv(pool, params = tiny_params(list(depht = 3)), fold_count = 2),

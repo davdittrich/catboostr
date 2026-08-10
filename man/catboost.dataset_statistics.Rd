@@ -13,7 +13,11 @@ catboost.dataset_statistics(
   thread_count = -1,
   border_count = 254,
   only_group_statistics = FALSE,
-  only_light_statistics = FALSE
+  only_light_statistics = FALSE,
+  not_convert_string_targets = TRUE,
+  custom_feature_limits = "",
+  spot_size = 0,
+  spot_count = 0
 )
 }
 \arguments{
@@ -52,6 +56,32 @@ Default value: \code{FALSE}}
 \item{only_light_statistics}{Skip the second-pass histogram computation.
 
 Default value: \code{FALSE}}
+
+\item{not_convert_string_targets}{If \code{TRUE}, a string-typed target
+column is kept as-is (reported as a category distribution). If
+\code{FALSE}, it is converted to a float target instead (fails if the
+strings are not numeric).
+
+Default value: \code{TRUE}}
+
+\item{custom_feature_limits}{Comma-separated list of custom float-feature
+clip ranges, in the CLI's \code{"<feature_id>:<min>:<max>,..."} format
+(\code{min}/\code{max} may be \code{"-inf"}/\code{"inf"}). Values outside
+\code{[min, max]} are reported as underflow/overflow instead of being
+binned.
+
+Default value: \code{""} (no custom limits)}
+
+\item{spot_size}{Size of each sampled "spot" (contiguous row range) to
+process instead of the whole dataset. Must be set together with
+\code{spot_count}.
+
+Default value: \code{0} (process the whole dataset)}
+
+\item{spot_count}{Number of sampled spots to process instead of the whole
+dataset. Must be set together with \code{spot_size}.
+
+Default value: \code{0} (process the whole dataset)}
 }
 \value{
 A named list with elements \code{statistics} and \code{histograms}

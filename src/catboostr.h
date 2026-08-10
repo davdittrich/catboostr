@@ -479,6 +479,10 @@ EXPORT_FUNCTION CatBoostDatasetStatistics_R(
     SEXP borderCountParam,
     SEXP onlyGroupStatisticsParam,
     SEXP onlyLightStatisticsParam,
+    SEXP notConvertStringTargetsParam,
+    SEXP customFeatureLimitsParam,
+    SEXP spotSizeParam,
+    SEXP spotCountParam,
     SEXP outputPathParam,
     SEXP histogramPathParam
 );

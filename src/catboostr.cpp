@@ -105,6 +105,9 @@
 #include <util/stream/file.h>
 #include <util/stream/str.h>
 #include <util/string/cast.h>
+#include <util/string/split.h>
+
+#include <limits>
 #include <util/system/info.h>
 
 #include <algorithm>
@@ -1768,6 +1771,10 @@ EXPORT_FUNCTION CatBoostDatasetStatistics_R(
     SEXP borderCountParam,
     SEXP onlyGroupStatisticsParam,
     SEXP onlyLightStatisticsParam,
+    SEXP notConvertStringTargetsParam,
+    SEXP customFeatureLimitsParam,
+    SEXP spotSizeParam,
+    SEXP spotCountParam,
     SEXP outputPathParam,
     SEXP histogramPathParam
 ) {
@@ -1792,6 +1799,45 @@ EXPORT_FUNCTION CatBoostDatasetStatistics_R(
     params.BorderCount = static_cast<size_t>(asInteger(borderCountParam));
     params.OnlyGroupStatistics = static_cast<bool>(asLogical(onlyGroupStatisticsParam));
     params.OnlyLightStatistics = static_cast<bool>(asLogical(onlyLightStatisticsParam));
+    // CLI's --not-convert-string-targets negates onto ConvertStringTargets
+    // (mode_dataset_statistics_helpers.cpp BindParserOpts); mirrored here.
+    params.ConvertStringTargets = !static_cast<bool>(asLogical(notConvertStringTargetsParam));
+
+    // CLI's --custom-feature-limits parsing (mode_dataset_statistics_helpers.cpp
+    // BindParserOpts), reproduced verbatim so both entry points accept the
+    // same "<feature_id>:<min>:<max>,..." syntax and reject the same inputs.
+    TStringBuf customFeatureLimits(CHAR(asChar(customFeatureLimitsParam)));
+    if (!customFeatureLimits.empty()) {
+        for (const TStringBuf& featureLimit : StringSplitter(customFeatureLimits).Split(',')) {
+            TVector<TString> tokens = StringSplitter(featureLimit).Split(':');
+            if (tokens.empty()) {
+                continue;
+            }
+            CB_ENSURE(tokens.size() == 3, "Inappropriate feature limits description: " << TString(featureLimit));
+            ui32 featureId = FromString<ui32>(tokens[0]);
+            double minValue = -std::numeric_limits<float>::infinity();
+            double maxValue = std::numeric_limits<float>::infinity();
+            if (tokens[1] != "-inf") {
+                minValue = FromString<double>(tokens[1]);
+            }
+            if (tokens[2] != "inf") {
+                maxValue = FromString<double>(tokens[2]);
+            }
+            CB_ENSURE(minValue <= maxValue, "Inappropriate feature limits description: " << TString(featureLimit));
+            CB_ENSURE(params.FeatureLimits.find(featureId) == params.FeatureLimits.end(),
+                      "Duplicate feature " << featureId << " in custom-feature-limits");
+            params.FeatureLimits[featureId] = {minValue, maxValue};
+        }
+    }
+
+    params.SpotSize = static_cast<ui32>(asInteger(spotSizeParam));
+    params.SpotCount = static_cast<ui32>(asInteger(spotCountParam));
+    // Same joint-specification guard as TCalculateStatisticsParams::ProcessParams
+    // (mode_dataset_statistics_helpers.cpp), which this R entry point bypasses
+    // since it fills params in-process instead of parsing argv.
+    CB_ENSURE((params.SpotSize == 0) == (params.SpotCount == 0),
+              "spot size and spot count must be specified together");
+
     params.OutputPath = TString(CHAR(asChar(outputPathParam)));
     params.HistogramPath = TString(CHAR(asChar(histogramPathParam)));
 

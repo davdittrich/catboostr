@@ -1396,17 +1396,45 @@ catboost.pool.save_quantization_borders <- function(pool, output_file) {
 #' @param only_light_statistics Skip the second-pass histogram computation.
 #'
 #' Default value: \code{FALSE}
+#' @param not_convert_string_targets If \code{TRUE}, a string-typed target
+#' column is kept as-is (reported as a category distribution). If
+#' \code{FALSE}, it is converted to a float target instead (fails if the
+#' strings are not numeric).
+#'
+#' Default value: \code{TRUE}
+#' @param custom_feature_limits Comma-separated list of custom float-feature
+#' clip ranges, in the CLI's \code{"<feature_id>:<min>:<max>,..."} format
+#' (\code{min}/\code{max} may be \code{"-inf"}/\code{"inf"}). Values outside
+#' \code{[min, max]} are reported as underflow/overflow instead of being
+#' binned.
+#'
+#' Default value: \code{""} (no custom limits)
+#' @param spot_size Size of each sampled "spot" (contiguous row range) to
+#' process instead of the whole dataset. Must be set together with
+#' \code{spot_count}.
+#'
+#' Default value: \code{0} (process the whole dataset)
+#' @param spot_count Number of sampled spots to process instead of the whole
+#' dataset. Must be set together with \code{spot_size}.
+#'
+#' Default value: \code{0} (process the whole dataset)
 #' @return A named list with elements \code{statistics} and \code{histograms}
 #' (each the parsed contents of the corresponding CLI JSON output file;
 #' \code{histograms} is \code{NULL} if \code{only_light_statistics} was set).
 #' @export
 catboost.dataset_statistics <- function(pool_path, cd_path = "", pairs_path = "", delimiter = "\t",
                                          has_header = FALSE, thread_count = -1, border_count = 254,
-                                         only_group_statistics = FALSE, only_light_statistics = FALSE) {
+                                         only_group_statistics = FALSE, only_light_statistics = FALSE,
+                                         not_convert_string_targets = TRUE, custom_feature_limits = "",
+                                         spot_size = 0, spot_count = 0) {
     if (missing(pool_path))
         stop("Need to specify pool path.")
     if (!is.character(pool_path) || !is.character(cd_path) || !is.character(pairs_path))
         stop("Path must be a string.")
+    if (!is.character(custom_feature_limits))
+        stop("custom_feature_limits must be a string.")
+    if ((spot_size == 0) != (spot_count == 0))
+        stop("spot_size and spot_count must be specified together.")
 
     pool_path <- path.expand(pool_path)
     cd_path <- path.expand(cd_path)
@@ -1416,6 +1444,7 @@ catboost.dataset_statistics <- function(pool_path, cd_path = "", pairs_path = ""
 
     .Call("CatBoostDatasetStatistics_R", pool_path, cd_path, pairs_path, delimiter, has_header,
           thread_count, border_count, only_group_statistics, only_light_statistics,
+          not_convert_string_targets, custom_feature_limits, spot_size, spot_count,
           output_path, histogram_path)
 
     statistics <- jsonlite::fromJSON(output_path, simplifyVector = TRUE)

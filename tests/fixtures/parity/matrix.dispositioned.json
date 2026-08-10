@@ -10278,9 +10278,9 @@
     "kind": "flag",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "out_of_scope",
-    "tolerance_justification": "catboost-inm: P10.A fix-round-1 left no justification for this row (empty tolerance_justification, no overlay entry) -- newly triaged for this ticket. dataset-statistics-mode-only sub-option with no R equivalent (code-verified): defined as a local TCalculateStatisticsParams field in mode_dataset_statistics_helpers.cpp:36-40, not part of the shared training-options JSON. catboost.dataset_statistics()'s R wrapper has 9 formal arguments (pool_path, cd_path, pairs_path, delimiter, has_header, thread_count, border_count, only_group_statistics, only_light_statistics, R/catboost.R:1394) with nothing corresponding. A real, addable capability gap (not architecturally impossible) -- filed as catboost-hpk (discovered-from) rather than fixed in this disposition-only ticket.",
+    "test_id": "tests/testthat/test_dataset_statistics.R::not_convert_string_targets defaults to keeping string targets as-is / = FALSE converts a numeric-string target to float",
+    "state": "green",
+    "tolerance_justification": "catboost-hpk.4: implemented. TCalculateStatisticsParams::ConvertStringTargets (mode_dataset_statistics_helpers.h) was already a plain struct field consumed by NCB::CalculateDatasetStatisticsSingleHost; catboost.dataset_statistics()'s native entry point (CatBoostDatasetStatistics_R, src/catboostr.cpp) now takes a not_convert_string_targets R argument (default TRUE, preserving prior behavior) and negates it onto that field, mirroring the CLI's own --not-convert-string-targets -> ConvertStringTargets negation in BindParserOpts. Oracle-verified against catboost-v1.2.10 on a new string-target fixture (tests/fixtures/oracle-cli/dataset_statistics_string_target.{csv,cd}) for both the default (TargetType stays String) and not_convert_string_targets=FALSE (TargetType becomes Float) cases.",
     "needs_disposition": false,
     "members": [
       {
@@ -10301,9 +10301,9 @@
     "kind": "flag",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "out_of_scope",
-    "tolerance_justification": "catboost-inm: P10.A fix-round-1 left no justification for this row (empty tolerance_justification, no overlay entry) -- newly triaged for this ticket. dataset-statistics-mode-only sub-option with no R equivalent, same root cause and same follow-up (catboost-hpk) as flag:--not-convert-string-targets above (mode_dataset_statistics_helpers.cpp:41-64; catboost.dataset_statistics()'s 9-argument R wrapper has nothing corresponding).",
+    "test_id": "tests/testthat/test_dataset_statistics.R::custom_feature_limits clips a float feature and reports over/underflow",
+    "state": "green",
+    "tolerance_justification": "catboost-hpk.4: implemented. TCalculateStatisticsParams::FeatureLimits (mode_dataset_statistics_helpers.h) was already a plain THashMap<ui32, pair<double,double>> field consumed by NCB::CalculateDatasetStatisticsSingleHost; CatBoostDatasetStatistics_R (src/catboostr.cpp) now takes a custom_feature_limits string argument and parses the same \"<feature_id>:<min>:<max>,...\" syntax as the CLI's BindParserOpts (mode_dataset_statistics_helpers.cpp:41-64), reproduced verbatim (including -inf/inf tokens and duplicate-feature/range CB_ENSURE checks) so both entry points accept and reject identical input. Oracle-verified against catboost-v1.2.10 on the smoke fixture with \"0:0:1\", which clips feature 0 and reports Underflow/Overflow/OutOfDomainValuesCount/CustomMin/CustomMax.",
     "needs_disposition": false,
     "members": [
       {
@@ -10347,9 +10347,9 @@
     "kind": "flag",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "out_of_scope",
-    "tolerance_justification": "catboost-inm: P10.A fix-round-1 left no justification for this row (empty tolerance_justification, no overlay entry) -- newly triaged for this ticket. dataset-statistics-mode-only sub-option with no R equivalent, same root cause and same follow-up (catboost-hpk) as flag:--not-convert-string-targets above (mode_dataset_statistics_helpers.cpp:70-71).",
+    "test_id": "tests/testthat/test_dataset_statistics.R::spot_size/spot_count subsample the dataset instead of reading it whole",
+    "state": "green",
+    "tolerance_justification": "catboost-hpk.4: implemented together with --spot-count (jointly-required by the same CB_ENSURE in both CLI and R paths). TCalculateStatisticsParams::SpotSize (mode_dataset_statistics_helpers.h) was already a plain ui32 field consumed by NCB::CalculateDatasetStatisticsSingleHost via GetSpots/GetDatasetLoader; CatBoostDatasetStatistics_R (src/catboostr.cpp) now takes a spot_size R argument (default 0, preserving prior whole-dataset behavior) and sets it directly. Oracle-verified against catboost-v1.2.10 on the smoke fixture with spot-size=10/spot-count=2 (ObjectCount drops from 40 to 20, matching the oracle).",
     "needs_disposition": false,
     "members": [
       {
@@ -10370,9 +10370,9 @@
     "kind": "flag",
     "method": "parameter_or_flag",
     "tolerance": null,
-    "test_id": null,
-    "state": "out_of_scope",
-    "tolerance_justification": "catboost-inm: P10.A fix-round-1 left no justification for this row (empty tolerance_justification, no overlay entry) -- newly triaged for this ticket. dataset-statistics-mode-only sub-option with no R equivalent, same root cause and same follow-up (catboost-hpk) as flag:--not-convert-string-targets above (mode_dataset_statistics_helpers.cpp:72-73).",
+    "test_id": "tests/testthat/test_dataset_statistics.R::spot_size/spot_count subsample the dataset instead of reading it whole",
+    "state": "green",
+    "tolerance_justification": "catboost-hpk.4: implemented together with --spot-size (jointly-required by the same CB_ENSURE in both CLI and R paths). TCalculateStatisticsParams::SpotCount (mode_dataset_statistics_helpers.h) was already a plain ui32 field consumed by NCB::CalculateDatasetStatisticsSingleHost via GetSpots/GetDatasetLoader; CatBoostDatasetStatistics_R (src/catboostr.cpp) now takes a spot_count R argument (default 0, preserving prior whole-dataset behavior), sets it directly, and enforces the same (SpotSize==0)==(SpotCount==0) joint-specification guard as TCalculateStatisticsParams::ProcessParams (both at the R argument-validation level and again natively). Oracle-verified against catboost-v1.2.10 on the smoke fixture with spot-size=10/spot-count=2, and a dedicated test asserts the R-level error when only one of the pair is given.",
     "needs_disposition": false,
     "members": [
       {

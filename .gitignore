@@ -12,7 +12,20 @@ inst/libs/
 __pycache__/
 *.pyc
 catboost_info/
-/vendor/
+/vendor/*
+# Carve-outs for r-universe's sandboxed builder (catboost-8z4.126): it runs
+# only R CMD build/check plus a documented git-submodule-init step, and has
+# no access to tools/vendor/acquire.sh / acquire-thirdparty.sh's network
+# fetches. vendor/catboost is tracked as a git submodule (still
+# .Rbuildignore'd -- it's not package source, same reasoning as before);
+# the three pinned thirdparty tarballs are committed directly, verified
+# against the exact SHA256 pins in configure/acquire-thirdparty.sh.
+!/vendor/catboost
+!/vendor/thirdparty
+/vendor/thirdparty/*
+!/vendor/thirdparty/openssl-3.5.7.tar.gz
+!/vendor/thirdparty/ragel-6.10.tar.gz
+!/vendor/thirdparty/yasm-1.3.0.tar.gz
 # CatBoost embeds a training-run timestamp/GUID in .cbm model files, so a
 # byte-for-byte identical fit produces a different file every run (predictions
 # are bit-identical; only the container metadata varies -- see

@@ -21,7 +21,7 @@ resolved_sha() {
   git -C "${DEST_DIR}" rev-parse HEAD
 }
 
-if [[ -d "${DEST_DIR}/.git" ]]; then
+if [[ -e "${DEST_DIR}/.git" ]]; then
   actual="$(resolved_sha)"
   if [[ "${actual}" == "${EXPECTED_SHA}" ]]; then
     echo "Already present and verified: ${DEST_DIR} @ ${actual}"

@@ -1,6 +1,6 @@
 Package: catboostr
 Title: Gradient Boosting on Decision Trees
-Version: 1.2.10
+Version: 1.2.10-1
 Description: Open-source gradient boosting on decision trees with categorical
     features support out of the box. A fork of the upstream CatBoost R package
     packaged for CRAN-style installation; the R API is a strict superset of

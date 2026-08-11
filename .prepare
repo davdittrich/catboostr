@@ -9,17 +9,33 @@
 set -eu
 
 # r-universe's build image doesn't map DESCRIPTION's SystemRequirements
-# free-text clang mention to an apt package; install it directly here.
-# Never fail the script on this -- the vendor-source population below
-# must still run even if this fails (catboost-8z4.126.2).
-if { ! command -v clang >/dev/null 2>&1 || ! command -v clang++ >/dev/null 2>&1; } \
-  && command -v apt-get >/dev/null 2>&1; then
+# free-text mentions (clang, Cython) to apt packages; install directly
+# here. Never fail the script on any of this -- the vendor-source
+# population below must still run even if these do (catboost-8z4.126.2).
+apt_install() {
+  command -v apt-get >/dev/null 2>&1 || return 0
   if command -v sudo >/dev/null 2>&1; then
-    sudo -n env DEBIAN_FRONTEND=noninteractive apt-get install -y clang lld \
-      || echo "*** .prepare: clang install (sudo) failed, continuing anyway" >&2
+    sudo -n env DEBIAN_FRONTEND=noninteractive apt-get install -y "$@" \
+      || echo "*** .prepare: apt-get install (sudo) $* failed, continuing anyway" >&2
   else
-    DEBIAN_FRONTEND=noninteractive apt-get install -y clang lld \
-      || echo "*** .prepare: clang install failed, continuing anyway" >&2
+    DEBIAN_FRONTEND=noninteractive apt-get install -y "$@" \
+      || echo "*** .prepare: apt-get install $* failed, continuing anyway" >&2
+  fi
+}
+
+if ! command -v clang >/dev/null 2>&1 || ! command -v clang++ >/dev/null 2>&1; then
+  apt_install clang lld
+fi
+
+# Debian's cython package ships /usr/bin/cython3, but configure only
+# checks for a binary literally named 'cython' (CATBOOSTR_CYTHON's
+# default lookup, configure:403-405).
+if ! command -v cython >/dev/null 2>&1; then
+  apt_install cython3
+  if ! command -v cython >/dev/null 2>&1 && command -v cython3 >/dev/null 2>&1; then
+    CYTHON3_PATH=$(command -v cython3)
+    ln -sf "$CYTHON3_PATH" "$(dirname "$CYTHON3_PATH")/cython" \
+      || echo "*** .prepare: could not symlink cython3 -> cython, continuing anyway" >&2
   fi
 fi
 

@@ -8,6 +8,21 @@
 # boundary; configure's fallback check picks it up (catboost-8z4.126.1).
 set -eu
 
+# r-universe's build image doesn't map DESCRIPTION's SystemRequirements
+# free-text clang mention to an apt package; install it directly here.
+# Never fail the script on this -- the vendor-source population below
+# must still run even if this fails (catboost-8z4.126.2).
+if { ! command -v clang >/dev/null 2>&1 || ! command -v clang++ >/dev/null 2>&1; } \
+  && command -v apt-get >/dev/null 2>&1; then
+  if command -v sudo >/dev/null 2>&1; then
+    sudo -n env DEBIAN_FRONTEND=noninteractive apt-get install -y clang lld \
+      || echo "*** .prepare: clang install (sudo) failed, continuing anyway" >&2
+  else
+    DEBIAN_FRONTEND=noninteractive apt-get install -y clang lld \
+      || echo "*** .prepare: clang install failed, continuing anyway" >&2
+  fi
+fi
+
 FALLBACK_ROOT="/tmp/catboostr-runiverse-vendor-cache"
 
 tools/vendor/acquire.sh "${FALLBACK_ROOT}/catboost"

@@ -116,12 +116,26 @@ fi
 # --------------------------------------------------------------------------
 VENDOR_SRC="${CATBOOSTR_VENDOR_SRC:-${PKG_ROOT}/vendor/catboost}"
 if [ ! -d "$VENDOR_SRC" ]; then
-  echo "*** ${VENDOR_SRC} not found -- this fork requires the pinned vendor/catboost snapshot." >&2
-  echo "*** Run tools/vendor/acquire.sh, or set CATBOOSTR_VENDOR_SRC to point at an" >&2
-  echo "*** existing checkout (e.g. one kept outside the package tree so 'R CMD check'" >&2
-  echo "*** never has to statically scan its ~870 MiB of upstream content -- see" >&2
-  echo "*** docs/phase-1/P1.6-report.md sec. 4)." >&2
-  exit 1
+  # r-universe's build packages a source tarball (which .Rbuildignore
+  # strips vendor/ from) and installs from THAT, in a separate extraction
+  # dir -- vendor/catboost is never present there, submodule or not.
+  # .prepare (run once, earlier in the same r-universe build job) leaves a
+  # verified copy at this fixed path outside the package tree; check it
+  # before failing (catboost-8z4.126.1). Relies on r-universe's build job
+  # reusing the same container across .prepare and this later install step
+  # -- observed empirically, not documented by r-universe.
+  RUNIVERSE_FALLBACK="/tmp/catboostr-runiverse-vendor-cache/catboost"
+  if [ -d "$RUNIVERSE_FALLBACK" ]; then
+    VENDOR_SRC="$RUNIVERSE_FALLBACK"
+    echo "*** ${PKG_ROOT}/vendor/catboost not found; using .prepare's fallback: ${VENDOR_SRC}"
+  else
+    echo "*** ${VENDOR_SRC} not found -- this fork requires the pinned vendor/catboost snapshot." >&2
+    echo "*** Run tools/vendor/acquire.sh, or set CATBOOSTR_VENDOR_SRC to point at an" >&2
+    echo "*** existing checkout (e.g. one kept outside the package tree so 'R CMD check'" >&2
+    echo "*** never has to statically scan its ~870 MiB of upstream content -- see" >&2
+    echo "*** docs/phase-1/P1.6-report.md sec. 4)." >&2
+    exit 1
+  fi
 fi
 
 WORKDIR="${CATBOOSTR_BUILD_DIR:-}"
@@ -185,8 +199,6 @@ printf '\nadd_subdirectory(%s %s)\n' "$PKG_ROOT/src" '${CMAKE_BINARY_DIR}/catboo
 # -fPIC so it is embedded in libcatboostr.so; that embedding is exactly why
 # SOURCES.md carries a standing CVE-tracking obligation for it.
 # --------------------------------------------------------------------------
-THIRDPARTY_SRC="${CATBOOSTR_THIRDPARTY_SRC:-${PKG_ROOT}/vendor/thirdparty}"
-
 # Keep these three in lockstep with tools/vendor/acquire-thirdparty.sh and
 # SOURCES.md. They are duplicated rather than sourced from one file because
 # configure must run standalone from an unpacked source tarball.
@@ -196,6 +208,17 @@ RAGEL_VERSION="6.10"
 RAGEL_SHA256="5f156edb65d20b856d638dd9ee2dfb43285914d9aa2b6ec779dac0270cd56c3f"
 YASM_VERSION="1.3.0"
 YASM_SHA256="3dce6601b495f5b3d45b59f7d2492a340ee7e84b5beca17e48f862502bd5603f"
+
+THIRDPARTY_SRC="${CATBOOSTR_THIRDPARTY_SRC:-${PKG_ROOT}/vendor/thirdparty}"
+if [ ! -f "${THIRDPARTY_SRC}/openssl-${OPENSSL_VERSION}.tar.gz" ]; then
+  # Same r-universe tarball-round-trip problem as vendor/catboost above --
+  # see that comment. .prepare leaves a verified copy here too.
+  RUNIVERSE_THIRDPARTY_FALLBACK="/tmp/catboostr-runiverse-vendor-cache/thirdparty"
+  if [ -f "${RUNIVERSE_THIRDPARTY_FALLBACK}/openssl-${OPENSSL_VERSION}.tar.gz" ]; then
+    THIRDPARTY_SRC="$RUNIVERSE_THIRDPARTY_FALLBACK"
+    echo "*** ${PKG_ROOT}/vendor/thirdparty missing; using .prepare's fallback: ${THIRDPARTY_SRC}"
+  fi
+fi
 
 JOBS="${CATBOOSTR_JOBS:-4}"
 TP_PREFIX="${CATBOOSTR_THIRDPARTY_PREFIX:-${WORKDIR}/thirdparty}"

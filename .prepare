@@ -1,0 +1,14 @@
+#!/bin/sh
+# r-universe's post-checkout, pre-build hook (r-universe-org/help#411):
+# entrypoint.sh runs `(cd $PKGDIR; sh .prepare)` in a subshell, then later
+# packages a source tarball via `R CMD build` -- .Rbuildignore correctly
+# strips vendor/ from that tarball, so a subsequent `R CMD INSTALL` on the
+# tarball never sees vendor/catboost, submodule or not. Populate a fixed
+# path OUTSIDE the package tree instead, so it survives the tarball
+# boundary; configure's fallback check picks it up (catboost-8z4.126.1).
+set -eu
+
+FALLBACK_ROOT="/tmp/catboostr-runiverse-vendor-cache"
+
+tools/vendor/acquire.sh "${FALLBACK_ROOT}/catboost"
+tools/vendor/acquire-thirdparty.sh "${FALLBACK_ROOT}/thirdparty"

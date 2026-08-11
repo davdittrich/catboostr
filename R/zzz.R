@@ -27,7 +27,26 @@
 #' @keywords internal
 .catboost.check_version_skew <- function(pkg_version, compiled_tag) {
   compiled_version <- sub("^v", "", compiled_tag)
-  if (nzchar(compiled_version) && compiled_version != pkg_version) {
+  if (!nzchar(compiled_version)) {
+    return(invisible(TRUE))
+  }
+  # DESCRIPTION's Version field is always dot-rendered by packageVersion()
+  # (e.g. "1.2.10-1" reads back as "1.2.10.1"), while a git tag may use
+  # hyphens (e.g. "v1.2.10-1"). Compare structurally via numeric_version()
+  # so that separator choice alone never produces a false-positive skew;
+  # fall back to the raw string comparison when the tag has a non-numeric
+  # component (e.g. a human-readable suffix DESCRIPTION could never carry),
+  # since that is a genuine mismatch, not a formatting difference.
+  parsed <- tryCatch(
+    list(pkg = numeric_version(pkg_version), compiled = numeric_version(compiled_version)),
+    error = function(e) NULL
+  )
+  mismatched <- if (!is.null(parsed)) {
+    parsed$pkg != parsed$compiled
+  } else {
+    compiled_version != pkg_version
+  }
+  if (mismatched) {
     stop(.catboost.version_skew_message(pkg_version, compiled_tag), call. = FALSE)
   }
   invisible(TRUE)

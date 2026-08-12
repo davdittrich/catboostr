@@ -2964,7 +2964,7 @@ apply_train_callbacks_params <- function(params) {
 #' run multi-machine training: start a worker process on each remote machine
 #' with \code{\link{catboost.run_worker}}, then set \code{node_type =
 #' "Master"}, \code{file_with_hosts = <path to a "host:port"-per-line file>}
-#' and \code{node_port = <this machine's own par-framework port>} in the
+#' and \code{node_port = <the par-framework port on this machine>} in the
 #' master-side \code{params} list. Setting any \code{node_type} other than
 #' \code{"SingleHost"} routes the call to the native distributed training
 #' engine (the same one the command-line client's \code{--node-type Master}
